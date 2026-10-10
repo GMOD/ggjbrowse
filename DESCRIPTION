@@ -13,7 +13,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports:
     curl,
-    ggplot2 (>= 3.5.0),
+    ggplot2 (>= 3.4.0),
     jsonlite,
     V8
 Suggests:
