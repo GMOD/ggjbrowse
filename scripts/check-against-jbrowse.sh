@@ -7,5 +7,7 @@ set -eu
 here=$(cd "$(dirname "$0")/.." && pwd)
 cd "$here"
 scripts/build-js.sh
-R CMD INSTALL .
-Rscript -e 'testthat::test_local(stop_on_failure = TRUE)'
+lib=$(mktemp -d)
+R CMD INSTALL -l "$lib" .
+R_LIBS="$lib" Rscript -e 'library(testthat); library(ggjbrowse)
+  test_dir("tests/testthat", stop_on_failure = TRUE)'
