@@ -1,0 +1,22 @@
+Package: ggjbrowse
+Title: Genome Browser Tracks as Data Frames for 'ggplot2'
+Version: 0.0.0.9000
+Authors@R: person("Colin", "Diesh", email = "colindiesh@berkeley.edu", role = c("aut", "cre"))
+Description: Reads a region of a BAM or CRAM file as the 'JBrowse 2' genome
+    browser draws it, through the browser's own data engine run in 'V8': the
+    reads on their pileup rows, their mismatches, deletions and splice gaps,
+    and the coverage, each as a data frame to plot with 'ggplot2'.
+License: Apache License (>= 2)
+URL: https://github.com/GMOD/ggjbrowse
+BugReports: https://github.com/GMOD/ggjbrowse/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports:
+    curl,
+    ggplot2 (>= 3.5.0),
+    jsonlite,
+    V8
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
