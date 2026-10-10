@@ -3,9 +3,9 @@
 # calls synchronously; jsonlite sends the raw body back base64-encoded.
 
 read_range <- function(url, start, end) {
-  path <- sub("^file://", "", url)
-  if (!grepl("^[a-z]+://", path)) {
-    path <- utils::URLdecode(path)
+  if (startsWith(url, "file://")) {
+    path <- utils::URLdecode(sub("\\?.*$", "", sub("^file://", "", url)))
+    path <- sub("^/([A-Za-z]:)", "\\1", path)
     size <- file.size(path)
     last <- if (end < 0) size - 1 else min(end, size - 1)
     con <- file(path, "rb")
@@ -29,7 +29,11 @@ read_range <- function(url, start, end) {
 
 engine <- local({
   ctx <- NULL
-  function() {
+  function(reset = FALSE) {
+    if (reset) {
+      ctx <<- NULL
+      return(invisible())
+    }
     if (is.null(ctx)) {
       fresh <- V8::v8()
       fresh$eval(paste(
@@ -43,17 +47,33 @@ engine <- local({
   }
 })
 
+#' Start the engine afresh
+#'
+#' The engine caches what it reads, keyed by each file's URL. A local file's
+#' URL carries its modification time and size, so an overwritten file is read
+#' again; a remote file changed on its server is not, until this is called.
+#' @export
+jbrowse_reset <- function() engine(reset = TRUE)
+
 call_engine <- function(table, args) {
-  json <- engine()$eval(
-    sprintf("jbrowse.%s(%s)", table,
-      jsonlite::toJSON(jsonlite::toJSON(args, auto_unbox = TRUE))),
-    await = TRUE)
+  json <- engine()$call(sprintf("jbrowse.%s", table),
+    as.character(jsonlite::toJSON(args, auto_unbox = TRUE)), await = TRUE)
   jsonlite::fromJSON(json, simplifyVector = TRUE, simplifyDataFrame = FALSE)
 }
 
+# A file's location for the engine: a URL as given, and a local path as a
+# file:// URL, each segment percent-encoded so a %, ? or # in a name stays in
+# the name, with the file's modification time and size as a query, which
+# read_range() drops, so a file overwritten in place is a new cache key.
 location <- function(path) {
-  uri <- if (grepl("^[a-z]+://", path)) path else
-    paste0("file://", normalizePath(path, mustWork = TRUE))
+  uri <- if (grepl("^[a-z]+://", path)) path else {
+    full <- normalizePath(path, winslash = "/", mustWork = TRUE)
+    info <- file.info(full)
+    encoded <- paste(vapply(strsplit(full, "/", fixed = TRUE)[[1]],
+      utils::URLencode, "", reserved = TRUE, repeated = TRUE), collapse = "/")
+    sprintf("file://%s%s?v=%s-%.0f", if (startsWith(encoded, "/")) "" else "/",
+      encoded, format(as.numeric(info$mtime), digits = 17), info$size)
+  }
   list(uri = uri, locationType = "UriLocation")
 }
 

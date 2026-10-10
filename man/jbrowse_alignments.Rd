@@ -4,7 +4,15 @@
 \alias{jbrowse_alignments}
 \title{Read a region of a BAM or CRAM file as JBrowse draws it}
 \usage{
-jbrowse_alignments(file, chrom, start, end, reference = NULL, index = NULL)
+jbrowse_alignments(
+  file,
+  chrom,
+  start,
+  end,
+  reference = NULL,
+  index = NULL,
+  byte_limit = 2e+08
+)
 }
 \arguments{
 \item{file}{a BAM or CRAM file, a path or a URL}
@@ -15,14 +23,17 @@ jbrowse_alignments(file, chrom, start, end, reference = NULL, index = NULL)
 needs it, and a BAM read without an MD tag is compared against it}
 
 \item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
+
+\item{byte_limit}{the most compressed bytes the region may need, refused off
+the index before any read is fetched; the whole table is held in memory}
 }
 \value{
 a \code{jbrowse_alignments} list of data frames:
 \itemize{
 \item \code{reads}: \code{start}, \code{end}, \code{row}, \code{strand}, \code{mapq}, \code{flags}, \code{name},
 \code{insert_size}, \code{pair_orientation}
-\item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{row}, \code{frequency} (that base's
-share of the depth there), \code{quality}
+\item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{row}, \code{frequency} (how many
+reads carry that base there, over the depth), \code{quality}
 \item \code{gaps}: \code{start}, \code{end}, \code{type} (\code{"deletion"} or \code{"skip"}), \code{read}, \code{row}
 \item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}
 }

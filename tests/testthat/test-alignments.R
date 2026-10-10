@@ -59,3 +59,37 @@ test_that("a remote BAM reads over HTTP", {
   r <- jbrowse_alignments(u, "ctgA", 1000, 2000)
   expect_gt(nrow(r$reads), 100)
 })
+
+test_that("a file overwritten in place is read again", {
+  dir <- tempfile()
+  dir.create(dir)
+  path <- file.path(dir, "x.bam")
+  put <- function(f) {
+    file.copy(extdata(f), path, overwrite = TRUE)
+    file.copy(extdata(paste0(f, ".bai")), paste0(path, ".bai"), overwrite = TRUE)
+  }
+  put("volvox-sorted.bam")
+  first <- jbrowse_alignments(path, "ctgA", 400, 1300)
+  Sys.sleep(1.1)
+  put("spliced.bam")
+  second <- jbrowse_alignments(path, "ctgA", 400, 1300)
+  fresh <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300)
+  expect_false(nrow(first$reads) == nrow(second$reads))
+  expect_equal(second$reads$name, fresh$reads$name)
+})
+
+test_that("a path with %, ? and # in it reads", {
+  dir <- file.path(tempfile(), "dir 50%41 a?b#c")
+  dir.create(dir, recursive = TRUE)
+  path <- file.path(dir, "x.bam")
+  file.copy(extdata("volvox-sorted.bam"), path)
+  file.copy(extdata("volvox-sorted.bam.bai"), paste0(path, ".bai"))
+  expect_equal(nrow(jbrowse_alignments(path, "ctgA", 1000, 6000)$reads), 982)
+})
+
+test_that("a region over the byte limit is refused with its size", {
+  expect_error(
+    jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 0, 50000,
+      byte_limit = 1000),
+    "over the 1000-byte limit")
+})

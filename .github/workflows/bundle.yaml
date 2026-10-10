@@ -1,113 +1,74 @@
 name: Bundle
 
-# inst/js/jbrowse-tables.js is @jbrowse/tables built from jbrowse-components,
-# committed so installing needs no JavaScript toolchain. Its first line names
-# the commit it came from.
+# inst/js/jbrowse-tables.js is @jbrowse/tables' dist/jbrowse-tables.js,
+# committed so installing needs no JavaScript toolchain; its first line names
+# the release. This takes each new release from npm into main once R CMD check
+# passes on it, then asks R-CMD-check for the full platform matrix, since a
+# push made with the workflow's own token starts no workflow. A failing check
+# leaves main alone and fails the run, so the next run tries again.
 #
-# Two jobs keep it honest, since a change there fires no event here:
-#   canary  rebuilds against jbrowse-components main nightly and runs the
-#           tests on the result, committing nothing. Red means main broke
-#           the contract before any release did.
-#   release rebuilds from each new jbrowse-components release tag, and
-#           commits the bundle to main once R CMD check passes on it. A
-#           failing check leaves main alone and fails the run, so the next
-#           run tries again.
-# jbrowse-components can also start the release job the moment it tags, with
-# a repository_dispatch of type jbrowse-release.
+# A break before a release is jbrowse-components' to see: its downstream
+# canary runs scripts/check-against-jbrowse.sh against its main nightly.
 on:
   schedule:
     - cron: '23 6 * * *'
-  repository_dispatch:
-    types: [jbrowse-release]
   workflow_dispatch:
     inputs:
-      ref:
-        description: 'jbrowse-components tag to take, the latest release by default'
+      version:
+        description: '@jbrowse/tables version, latest by default'
         required: false
 
 concurrency: bundle
 
 jobs:
-  canary:
-    name: Tests pass on a bundle from jbrowse-components main
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          path: ggjbrowse
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: GMOD/jbrowse-components
-          path: jbrowse-components
-      - uses: ./ggjbrowse/.github/actions/toolchains
-      - run: pnpm install --frozen-lockfile
-        working-directory: jbrowse-components
-      - run: scripts/check-against-jbrowse.sh
-        working-directory: ggjbrowse
-
   release:
-    name: Take the latest jbrowse-components release
+    name: Take the latest @jbrowse/tables release
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          path: ggjbrowse
       - name: Find the release to take
         id: release
-        working-directory: ggjbrowse
         env:
-          GH_TOKEN: ${{ github.token }}
-          INPUT_REF: ${{ inputs.ref || github.event.client_payload.ref }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          wanted=${INPUT_REF:-$(gh api repos/GMOD/jbrowse-components/releases/latest --jq .tag_name)}
-          built=$(head -1 inst/js/jbrowse-tables.js)
-          echo "wanted $wanted; bundle says: $built"
-          echo "ref=$wanted" >> "$GITHUB_OUTPUT"
-          case "$built" in *"($wanted)"*) ;; *) echo "update=true" >> "$GITHUB_OUTPUT" ;; esac
-      - if: steps.release.outputs.update
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: GMOD/jbrowse-components
-          ref: ${{ steps.release.outputs.ref }}
-          path: jbrowse-components
-      - name: Skip a release older than @jbrowse/tables
-        id: has-tables
-        if: steps.release.outputs.update
-        run: |
-          if [ -f jbrowse-components/packages/tables/package.json ]; then
-            echo "yes=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::${{ steps.release.outputs.ref }} predates packages/tables; nothing to take"
+          wanted=${INPUT_VERSION:-$(npm view @jbrowse/tables version 2>/dev/null || true)}
+          built=$(sed -n '1s|^// @jbrowse/tables \([^ ]*\) .*|\1|p' inst/js/jbrowse-tables.js)
+          if [ -z "$wanted" ]; then
+            echo "::notice::@jbrowse/tables is not on npm yet"
+          elif [ "$wanted" != "$built" ]; then
+            echo "taking $wanted over $built"
+            echo "version=$wanted" >> "$GITHUB_OUTPUT"
           fi
-      - if: steps.has-tables.outputs.yes
-        uses: ./ggjbrowse/.github/actions/toolchains
-      - if: steps.has-tables.outputs.yes
-        run: pnpm install --frozen-lockfile
-        working-directory: jbrowse-components
-      - if: steps.has-tables.outputs.yes
-        run: scripts/build-js.sh
-        working-directory: ggjbrowse
+      - if: steps.release.outputs.version
+        run: scripts/take-release.sh "$VERSION"
         env:
-          JBROWSE_REF: ${{ steps.release.outputs.ref }}
-      - if: steps.has-tables.outputs.yes
+          VERSION: ${{ steps.release.outputs.version }}
+      - if: steps.release.outputs.version
+        uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
+        with:
+          use-public-rspm: true
+      - if: steps.release.outputs.version
+        uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+      - if: steps.release.outputs.version
         uses: r-lib/actions/check-r-package@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
         with:
-          working-directory: ggjbrowse
           args: 'c("--no-manual")'
           error-on: '"note"'
-      - if: steps.has-tables.outputs.yes
-        name: Commit to main
-        working-directory: ggjbrowse
+      - if: steps.release.outputs.version
+        name: Commit to main and check every platform
         env:
-          REF: ${{ steps.release.outputs.ref }}
+          VERSION: ${{ steps.release.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add inst/js
-          git commit -m "Bundle @jbrowse/tables from jbrowse-components $REF"
+          git commit -m "Bundle @jbrowse/tables $VERSION"
           git push origin HEAD:main
+          gh workflow run R-CMD-check.yaml --ref main

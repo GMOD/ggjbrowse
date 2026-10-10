@@ -31,11 +31,13 @@ sequence_adapter <- function(reference) {
 #' @param reference the reference FASTA (indexed) or 2bit, path or URL; a CRAM
 #'   needs it, and a BAM read without an MD tag is compared against it
 #' @param index the BAI, CSI or CRAI, if not beside `file` under its usual name
+#' @param byte_limit the most compressed bytes the region may need, refused off
+#'   the index before any read is fetched; the whole table is held in memory
 #' @return a `jbrowse_alignments` list of data frames:
 #'   * `reads`: `start`, `end`, `row`, `strand`, `mapq`, `flags`, `name`,
 #'     `insert_size`, `pair_orientation`
-#'   * `mismatches`: `position`, `base`, `read`, `row`, `frequency` (that base's
-#'     share of the depth there), `quality`
+#'   * `mismatches`: `position`, `base`, `read`, `row`, `frequency` (how many
+#'     reads carry that base there, over the depth), `quality`
 #'   * `gaps`: `start`, `end`, `type` (`"deletion"` or `"skip"`), `read`, `row`
 #'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`
 #'
@@ -46,10 +48,11 @@ sequence_adapter <- function(reference) {
 #' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000)
 #' head(a$reads)
 jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
-                               index = NULL) {
+                               index = NULL, byte_limit = 2e8) {
   args <- list(
     adapterConfig = alignments_adapter(file, index),
-    region = list(refName = chrom, start = start, end = end))
+    region = list(refName = chrom, start = start, end = end),
+    byteLimit = byte_limit)
   if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
   t <- call_engine("alignments", args)
   reads <- as_frame(t$reads)

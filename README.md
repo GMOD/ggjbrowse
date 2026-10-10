@@ -42,9 +42,9 @@ is no Bioconductor dependency: the BAM, CRAM and FASTA readers are JBrowse's.
 `inst/js/jbrowse-tables.js` is
 [`@jbrowse/tables`](https://github.com/GMOD/jbrowse-components/tree/main/packages/tables)
 bundled for a bare JavaScript host, committed so installing needs no
-JavaScript toolchain. Its first line names the jbrowse-components release and
-commit it was built from. JBrowse's own tests hold the bundle, run with no web
-globals, to the browser's engine.
+JavaScript toolchain. Its first line names the release, or the
+jbrowse-components commit it was built from. JBrowse's own tests hold the
+bundle, run with no web globals, to the browser's engine.
 
 To rebuild it from a jbrowse-components checkout beside this repo:
 
@@ -54,15 +54,18 @@ scripts/build-js.sh
 ```
 
 `scripts/check-against-jbrowse.sh` rebuilds, installs and tests in one step,
-against `$JBROWSE_COMPONENTS` or `../jbrowse-components`. The `Bundle` workflow
-runs it nightly against jbrowse-components `main`, and takes each new
-jbrowse-components release into the committed bundle once R CMD check passes.
+against `$JBROWSE_COMPONENTS` or `../jbrowse-components`; jbrowse-components'
+downstream canary runs it against its main nightly, so a change there that
+breaks this package shows up there. The `Bundle` workflow takes each new
+`@jbrowse/tables` release from npm (`scripts/take-release.sh`) into the
+committed bundle once R CMD check passes.
 
 ## Not yet
 
 Feature tracks (GFF3, BED, BigBed gene models), BigWig and VCF; the
 alignments display's color schemes beyond strand; insertions, clips and
-modifications on reads.
+modifications on reads. A CRAN release, which needs the bundle's own
+dependencies credited (`cph` and a LICENSE.note) and its source named.
 
 ## See also
 
