@@ -1,5 +1,9 @@
 # ggjbrowse
 
+
+> [!CAUTION]
+> Very early results from work in progress!
+
 Genome browser tracks as data frames for ggplot2. `jbrowse_alignments()` reads
 a region of a BAM or CRAM through the [JBrowse 2](https://jbrowse.org) genome
 browser's own data engine, run in V8, and returns what its alignments display
@@ -71,6 +75,5 @@ dependencies credited (`cph` and a LICENSE.note) and its source named.
 
 - [JBrowse 2](https://jbrowse.org)
 - [JBrowseR](https://github.com/GMOD/JBrowseR) - JBrowse 2 as an R htmlwidget
-- [ggbandage](https://github.com/GMOD/ggbandage) and
-  [ggtubemap](https://github.com/GMOD/ggtubemap) - pangenome graph figures as
-  ggplot2 layers
+- [ggbandage](https://github.com/GMOD/ggbandage) - pangenome graphs as ggplot2 layers
+- [ggtubemap](https://github.com/GMOD/ggtubemap) - pangenome tubemaps as ggplot2 layers
