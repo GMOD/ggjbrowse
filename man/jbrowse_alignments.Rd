@@ -12,13 +12,6 @@ jbrowse_alignments(
   reference = NULL,
   reference_chrom = NULL,
   index = NULL,
-  color = NULL,
-  filter = NULL,
-  base_color = NULL,
-  modifications = NULL,
-  sort = NULL,
-  facet = NULL,
-  read_connections = NULL,
   display = NULL,
   byte_limit = 2e+08
 )
@@ -44,50 +37,41 @@ spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA)}
 
 \item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
 
-\item{color}{what fills each read, as the display's \code{color} object: a
-field name (\code{"strand"}, \code{"mapq"}, \code{"insertSize"}, \code{"pairOrientation"},
-\code{"firstOfPairStrand"}, \code{"tags.XS"}) or a list of the object's slots, such
-as \code{list(field = "insertSize", domain = c(200, 600))} or
-\code{list(field = "strand", range = c("#d33", "#33d"))}; \code{NULL} fills every
-read plain}
-
-\item{filter}{which reads are kept, as the display's \code{filter} object: a
-list with any of \code{flagInclude}, \code{flagExclude} (1540 by default), \code{readName},
-\code{tagFilters} (a list of \code{list(tag = , value = )}), \code{spliced},
-\code{properPairs}, \code{singletons} and \code{split} (each \code{"only"} or \code{"exclude"})}
-
-\item{base_color}{the per-base layer painted over the reads, as the
-display's \code{baseColor} object: \code{"modifications"} for the reads' base
-modifications (MM/ML tags), or a list of the object's slots; \code{NULL}
-paints none}
-
-\item{modifications}{the settings that layer reads, as the display's
-\code{modifications} object: a list with any of \code{threshold} (the percent
-probability under which a call is hidden, 10), \code{unmodified} (\code{"hidden"},
-\code{"calls"} or \code{"all"}: which unmodified sites are painted too),
-\code{cytosineContext} (\code{"CG"}, \code{"CHG"}, \code{"CHH"} or \code{"all"}) and
-\code{shownModifications} (the type codes drawn, every one when empty)}
-
-\item{sort}{how the rows are laid out, as the display's \code{sort} object: a
-whole-window order (\code{"position"}, \code{"length"}, \code{"spliced"}, \code{"split"}), or
-a list with \code{type} (\code{"strand"}, \code{"basePair"}, \code{"tag"}, \code{"insertion"},
-\code{"softclip"} or \code{"hardclip"}) and \code{pos}, the 0-based column the reads
-are ranked over, plus \code{tag} under \code{"tag"}}
-
-\item{facet}{what splits the reads into stacked sections, as the display's
-\code{facet} object: a field name (\code{"strand"}, \code{"pairOrientation"},
-\code{"tags.HP"}, ...) or a list with \code{field}, \code{domain} (the section keys in
-stacking order) and \code{hidden} (the section keys left out); each section
-lays out on its own}
-
-\item{read_connections}{the display's read-connection band: \code{"arc"} for
-each mate pair's and split read's arc, \code{"cloud"} for the read cloud's
-bars at each pair's insert size; \code{NULL} reads none}
-
-\item{display}{any other slots of the display's config, as a track's
-\code{displays} entry writes them for a \code{LinearAlignmentsDisplay}, such as
-\code{showOrdinaryPairs}, \code{showInterchrom}, \code{minInterchromSupport},
-\code{arcColor} or \code{readConnectionsLineWidth}}
+\item{display}{the display's config, as a track's \code{displays} entry
+writes it for a \code{LinearAlignmentsDisplay}, which is what JBrowse's
+"Export R script" passes. Its main slots:
+\itemize{
+\item \code{color}: what fills each read: \code{list(field = "strand")} (or \code{"mapq"},
+\code{"insertSize"}, \code{"pairOrientation"}, \code{"firstOfPairStrand"},
+\code{"tags.XS"}), with optional \code{domain} and \code{range}, e.g.
+\code{list(field = "insertSize", domain = c(200, 600))}; a bare string is
+one constant color, as in a track config; unset fills every read plain
+\item \code{filter}: which reads are kept: any of \code{flagInclude}, \code{flagExclude}
+(1540 by default), \code{readName}, \code{tagFilters} (a list of
+\code{list(tag = , value = )}), \code{spliced}, \code{properPairs}, \code{singletons} and
+\code{split} (each \code{"only"} or \code{"exclude"})
+\item \code{baseColor}: the per-base layer painted over the reads:
+\code{list(field = "modifications")} for the reads' MM/ML base
+modifications; unset paints none
+\item \code{modifications}: what that layer reads: any of \code{threshold} (the
+percent probability under which a call is hidden, 10), \code{unmodified}
+(\code{"hidden"}, \code{"calls"} or \code{"all"}), \code{cytosineContext} (\code{"CG"},
+\code{"CHG"}, \code{"CHH"} or \code{"all"}) and \code{shownModifications} (the type codes
+drawn, every one when empty)
+\item \code{sort}: how the rows are laid out: \code{list(type = "position")} (or
+\code{"length"}, \code{"spliced"}, \code{"split"}), or a column sort, \code{type}
+(\code{"strand"}, \code{"basePair"}, \code{"tag"}, \code{"insertion"}, \code{"softclip"},
+\code{"hardclip"}) with \code{pos}, the 0-based column ranked over, and \code{tag}
+\item \code{facet}: what splits the reads into stacked sections, each laid out on
+its own: \code{list(field = "strand")} (or \code{"pairOrientation"},
+\code{"tags.HP"}, ...), with optional \code{domain} (section keys in stacking
+order) and \code{hidden} (keys left out)
+\item \code{readConnections}: the read-connection band, \code{"arc"} for each mate
+pair's and split read's arc or \code{"cloud"} for the read cloud; unset
+reads none
+\item \code{showCoverage}, \code{showPileup}, \code{showSashimiArcs}, and any other slot
+such as \code{showOrdinaryPairs}, \code{arcColor} or \code{minSashimiScore}
+}}
 
 \item{byte_limit}{the most compressed bytes the region may need, refused off
 the index before any read is fetched; the whole table is held in memory}
@@ -110,20 +94,20 @@ reads carry that base there, over the depth), \code{quality}, \code{fade}
 \code{position}, \code{read}, \code{row}, \code{type} (the code, \code{m} for 5mC), \code{name},
 \code{probability}, \code{unmodified} (whether the call is that the base is not
 modified), and the \code{color} and \code{opacity} the display paints it at;
-empty without \code{base_color}
+empty without \code{display$baseColor}
 \item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}
 \item \code{allele_coverage}: the coverage band's stack at each mismatch position,
 as the display stacks it: \code{position}, \code{base}, \code{from} and \code{to} (the
 allele's share of the bar, from the bottom) and the \code{depth} there
 \item \code{modification_coverage}: the band's stack of modification states under
-\code{base_color}: \code{position}, \code{from}, \code{to}, \code{depth}, \code{color}, \code{opacity}
+\code{display$baseColor}: \code{position}, \code{from}, \code{to}, \code{depth}, \code{color}, \code{opacity}
 \item \code{junctions}: the reads' splice gaps merged, each once: \code{start}, \code{end},
 \code{count} (the reads supporting it), \code{strand} (1, -1, or 0 where neither
 the reads' tags nor the splice motif says) and \code{motif} (\code{"GT-AG (canonical)"}, \code{"non-canonical"}, or \code{""} where the region's sequence
 does not cover both ends)
 \item \code{legend}: \code{label} and \code{color}, the key the display shows for \code{color},
 its title as the frame's \code{"title"} attribute
-\item \code{arcs}: under \code{read_connections}, each connection the band draws:
+\item \code{arcs}: under \code{display$readConnections}, each connection the band draws:
 \code{start} and \code{end} (its feet), \code{shape} (\code{"arc"}, or the read cloud's
 \code{"flat"}, \code{"flatSplit"} for a split read, and \code{"unplaced"} for one whose
 partner is outside the region), \code{category}, \code{color}, \code{opacity}, \code{y}
@@ -133,7 +117,7 @@ itself), \code{support} (the reads behind it) and \code{width} (the stroke in px
 \item \code{arc_ticks}: the interchromosomal ticks: \code{position}, \code{support},
 \code{partners} (the contigs reached), \code{color}, \code{width}
 \item \code{arc_legend}: the band's key, its title as the \code{"title"} attribute
-\item \code{sections}: under \code{facet}, each section's \code{key} and \code{label} in stacking
+\item \code{sections}: under \code{display$facet}, each section's \code{key} and \code{label} in stacking
 order; ungrouped, one section labelled \code{""}
 }
 
@@ -150,7 +134,8 @@ are 0-based, half-open, on the reference.
 }
 \examples{
 bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-a <- jbrowse_alignments(bam, "ctgA", 1000, 3000, color = "strand")
+a <- jbrowse_alignments(bam, "ctgA", 1000, 3000,
+  display = list(color = list(field = "strand")))
 head(a$reads)
 a$legend
 }

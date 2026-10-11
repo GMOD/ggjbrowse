@@ -40,43 +40,39 @@ sequence_adapter <- function(reference) {
 #' @param reference_chrom the contig's name in `reference`, where the file
 #'   spells it another way (`1` in the BAM, `chr1` in the FASTA)
 #' @param index the BAI, CSI or CRAI, if not beside `file` under its usual name
-#' @param color what fills each read, as the display's `color` object: a
-#'   field name (`"strand"`, `"mapq"`, `"insertSize"`, `"pairOrientation"`,
-#'   `"firstOfPairStrand"`, `"tags.XS"`) or a list of the object's slots, such
-#'   as `list(field = "insertSize", domain = c(200, 600))` or
-#'   `list(field = "strand", range = c("#d33", "#33d"))`; `NULL` fills every
-#'   read plain
-#' @param filter which reads are kept, as the display's `filter` object: a
-#'   list with any of `flagInclude`, `flagExclude` (1540 by default), `readName`,
-#'   `tagFilters` (a list of `list(tag = , value = )`), `spliced`,
-#'   `properPairs`, `singletons` and `split` (each `"only"` or `"exclude"`)
-#' @param base_color the per-base layer painted over the reads, as the
-#'   display's `baseColor` object: `"modifications"` for the reads' base
-#'   modifications (MM/ML tags), or a list of the object's slots; `NULL`
-#'   paints none
-#' @param modifications the settings that layer reads, as the display's
-#'   `modifications` object: a list with any of `threshold` (the percent
-#'   probability under which a call is hidden, 10), `unmodified` (`"hidden"`,
-#'   `"calls"` or `"all"`: which unmodified sites are painted too),
-#'   `cytosineContext` (`"CG"`, `"CHG"`, `"CHH"` or `"all"`) and
-#'   `shownModifications` (the type codes drawn, every one when empty)
-#' @param sort how the rows are laid out, as the display's `sort` object: a
-#'   whole-window order (`"position"`, `"length"`, `"spliced"`, `"split"`), or
-#'   a list with `type` (`"strand"`, `"basePair"`, `"tag"`, `"insertion"`,
-#'   `"softclip"` or `"hardclip"`) and `pos`, the 0-based column the reads
-#'   are ranked over, plus `tag` under `"tag"`
-#' @param facet what splits the reads into stacked sections, as the display's
-#'   `facet` object: a field name (`"strand"`, `"pairOrientation"`,
-#'   `"tags.HP"`, ...) or a list with `field`, `domain` (the section keys in
-#'   stacking order) and `hidden` (the section keys left out); each section
-#'   lays out on its own
-#' @param read_connections the display's read-connection band: `"arc"` for
-#'   each mate pair's and split read's arc, `"cloud"` for the read cloud's
-#'   bars at each pair's insert size; `NULL` reads none
-#' @param display any other slots of the display's config, as a track's
-#'   `displays` entry writes them for a `LinearAlignmentsDisplay`, such as
-#'   `showOrdinaryPairs`, `showInterchrom`, `minInterchromSupport`,
-#'   `arcColor` or `readConnectionsLineWidth`
+#' @param display the display's config, as a track's `displays` entry
+#'   writes it for a `LinearAlignmentsDisplay`, which is what JBrowse's
+#'   "Export R script" passes. Its main slots:
+#'   * `color`: what fills each read: `list(field = "strand")` (or `"mapq"`,
+#'     `"insertSize"`, `"pairOrientation"`, `"firstOfPairStrand"`,
+#'     `"tags.XS"`), with optional `domain` and `range`, e.g.
+#'     `list(field = "insertSize", domain = c(200, 600))`; a bare string is
+#'     one constant color, as in a track config; unset fills every read plain
+#'   * `filter`: which reads are kept: any of `flagInclude`, `flagExclude`
+#'     (1540 by default), `readName`, `tagFilters` (a list of
+#'     `list(tag = , value = )`), `spliced`, `properPairs`, `singletons` and
+#'     `split` (each `"only"` or `"exclude"`)
+#'   * `baseColor`: the per-base layer painted over the reads:
+#'     `list(field = "modifications")` for the reads' MM/ML base
+#'     modifications; unset paints none
+#'   * `modifications`: what that layer reads: any of `threshold` (the
+#'     percent probability under which a call is hidden, 10), `unmodified`
+#'     (`"hidden"`, `"calls"` or `"all"`), `cytosineContext` (`"CG"`,
+#'     `"CHG"`, `"CHH"` or `"all"`) and `shownModifications` (the type codes
+#'     drawn, every one when empty)
+#'   * `sort`: how the rows are laid out: `list(type = "position")` (or
+#'     `"length"`, `"spliced"`, `"split"`), or a column sort, `type`
+#'     (`"strand"`, `"basePair"`, `"tag"`, `"insertion"`, `"softclip"`,
+#'     `"hardclip"`) with `pos`, the 0-based column ranked over, and `tag`
+#'   * `facet`: what splits the reads into stacked sections, each laid out on
+#'     its own: `list(field = "strand")` (or `"pairOrientation"`,
+#'     `"tags.HP"`, ...), with optional `domain` (section keys in stacking
+#'     order) and `hidden` (keys left out)
+#'   * `readConnections`: the read-connection band, `"arc"` for each mate
+#'     pair's and split read's arc or `"cloud"` for the read cloud; unset
+#'     reads none
+#'   * `showCoverage`, `showPileup`, `showSashimiArcs`, and any other slot
+#'     such as `showOrdinaryPairs`, `arcColor` or `minSashimiScore`
 #' @param byte_limit the most compressed bytes the region may need, refused off
 #'   the index before any read is fetched; the whole table is held in memory
 #' @return a `jbrowse_alignments` list of data frames:
@@ -95,13 +91,13 @@ sequence_adapter <- function(reference) {
 #'     `position`, `read`, `row`, `type` (the code, `m` for 5mC), `name`,
 #'     `probability`, `unmodified` (whether the call is that the base is not
 #'     modified), and the `color` and `opacity` the display paints it at;
-#'     empty without `base_color`
+#'     empty without `display$baseColor`
 #'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`
 #'   * `allele_coverage`: the coverage band's stack at each mismatch position,
 #'     as the display stacks it: `position`, `base`, `from` and `to` (the
 #'     allele's share of the bar, from the bottom) and the `depth` there
 #'   * `modification_coverage`: the band's stack of modification states under
-#'     `base_color`: `position`, `from`, `to`, `depth`, `color`, `opacity`
+#'     `display$baseColor`: `position`, `from`, `to`, `depth`, `color`, `opacity`
 #'   * `junctions`: the reads' splice gaps merged, each once: `start`, `end`,
 #'     `count` (the reads supporting it), `strand` (1, -1, or 0 where neither
 #'     the reads' tags nor the splice motif says) and `motif` (`"GT-AG
@@ -109,7 +105,7 @@ sequence_adapter <- function(reference) {
 #'     does not cover both ends)
 #'   * `legend`: `label` and `color`, the key the display shows for `color`,
 #'     its title as the frame's `"title"` attribute
-#'   * `arcs`: under `read_connections`, each connection the band draws:
+#'   * `arcs`: under `display$readConnections`, each connection the band draws:
 #'     `start` and `end` (its feet), `shape` (`"arc"`, or the read cloud's
 #'     `"flat"`, `"flatSplit"` for a split read, and `"unplaced"` for one whose
 #'     partner is outside the region), `category`, `color`, `opacity`, `y`
@@ -119,7 +115,7 @@ sequence_adapter <- function(reference) {
 #'   * `arc_ticks`: the interchromosomal ticks: `position`, `support`,
 #'     `partners` (the contigs reached), `color`, `width`
 #'   * `arc_legend`: the band's key, its title as the `"title"` attribute
-#'   * `sections`: under `facet`, each section's `key` and `label` in stacking
+#'   * `sections`: under `display$facet`, each section's `key` and `label` in stacking
 #'     order; ungrouped, one section labelled `""`
 #'
 #'   Every table but the keys carries `section`, a factor in stacking order,
@@ -129,15 +125,13 @@ sequence_adapter <- function(reference) {
 #' @export
 #' @examples
 #' bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-#' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000, color = "strand")
+#' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000,
+#'   display = list(color = list(field = "strand")))
 #' head(a$reads)
 #' a$legend
 jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
                                reference = NULL, reference_chrom = NULL,
-                               index = NULL, color = NULL, filter = NULL,
-                               base_color = NULL, modifications = NULL,
-                               sort = NULL, facet = NULL,
-                               read_connections = NULL, display = NULL,
+                               index = NULL, display = NULL,
                                byte_limit = 2e8) {
   adapter <- adapter_of(file, function() alignments_adapter(file, index))
   if (adapter$type == "CramAdapter" && is.null(reference)) {
@@ -146,33 +140,19 @@ jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
   }
   read_regions(region, start, end, function(chrom, start, end, share, i)
     alignments_region(adapter, chrom, start, end, reference,
-      reference_chrom[i] %||% chrom, color, filter, base_color,
-      modifications, sort, facet, read_connections, display, byte_limit))
+      reference_chrom[i] %||% chrom, display, byte_limit))
 }
 
 alignments_region <- function(adapter, chrom, start, end, reference,
-                              reference_chrom, color, filter, base_color,
-                              modifications, sort, facet, read_connections,
-                              display, byte_limit) {
+                              reference_chrom, display, byte_limit) {
   display <- display %||% list()
-  display$color <- if (is.null(color)) config_color(display$color)
-    else color_object(color)
-  if (!is.null(filter)) display$filter <- filter
-  if (!is.null(base_color)) {
-    display$baseColor <- if (is.character(base_color))
-      list(field = base_color) else base_color
+  display$color <- config_color(display$color)
+  if (!is.null(display$facet)) display$facet <- in_json(display$facet,
+    c("domain", "hidden"))
+  if (!is.null(display$modifications)) {
+    display$modifications <- in_json(display$modifications,
+      "shownModifications")
   }
-  if (!is.null(modifications)) {
-    if (!is.null(modifications$shownModifications)) {
-      modifications$shownModifications <- I(modifications$shownModifications)
-    }
-    display$modifications <- modifications
-  }
-  if (!is.null(sort)) {
-    display$sort <- if (is.character(sort)) list(type = sort) else sort
-  }
-  if (!is.null(facet)) display$facet <- facet_object(facet)
-  if (!is.null(read_connections)) display$readConnections <- read_connections
   args <- list(
     adapterConfig = adapter,
     region = list(refName = chrom, originalRefName = reference_chrom,
@@ -272,19 +252,13 @@ jbrowse_sequence <- function(reference, chrom, start, end) {
     auto_unbox = TRUE)), await = TRUE)
 }
 
-# The display's facet object from a field name or a list of its slots
-facet_object <- function(facet) {
-  if (is.character(facet) && length(facet) == 1) return(list(field = facet))
-  for (slot in intersect(c("domain", "hidden"), names(facet))) {
-    facet[[slot]] <- I(facet[[slot]])
+# A config object whose vector slots stay JSON arrays however many values
+# they hold
+in_json <- function(object, slots) {
+  for (slot in intersect(slots, names(object))) {
+    object[[slot]] <- I(object[[slot]])
   }
-  facet
-}
-
-# The display's color object from a field name or a list of its slots
-color_object <- function(color) {
-  if (is.character(color) && length(color) == 1) return(list(field = color))
-  config_color(color)
+  object
 }
 
 # A config's color as it writes it, a bare string its constant, and a list

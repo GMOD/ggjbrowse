@@ -21,7 +21,7 @@
 
 \item{what}{\code{"track"}: the display's stack, any \code{tracks} on top,
 then splice-junction arcs where the reads splice, the coverage band,
-the read-connection band under \code{read_connections}, the reference's bases
+the read-connection band under \code{display$readConnections}, the reference's bases
 where they are wide enough to read and the pileup, one above the other
 on a shared axis, each band split into the \code{facet}'s sections, and each
 drawn where the display's \code{showCoverage}, \code{showPileup} and
@@ -67,7 +67,8 @@ Draw alignments as JBrowse's alignments track, or one band of it
 }
 \examples{
 bam <- system.file("extdata", "spliced.bam", package = "ggjbrowse")
-a <- jbrowse_alignments(bam, "ctgA:401-1,300", color = "strand")
+a <- jbrowse_alignments(bam, "ctgA:401-1,300",
+  display = list(color = list(field = "strand")))
 autoplot(a)
 autoplot(a, "pileup") + ggplot2::theme_classic()
 gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")

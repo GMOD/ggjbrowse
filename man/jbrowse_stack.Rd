@@ -9,7 +9,9 @@ jbrowse_stack(...)
 \arguments{
 \item{...}{\code{\link[=jbrowse_features]{jbrowse_features()}}, \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}}, \code{\link[=jbrowse_variants]{jbrowse_variants()}}
 and \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} results over the same regions, top to bottom,
-or lists of them}
+or lists of them; or a ggplot of your own, drawn on the stack's x axis:
+genomic positions over one region, and over several the axis that
+\verb{ggplot(<result>)} draws on}
 }
 \value{
 a patchwork
@@ -26,6 +28,6 @@ e <- function(f) system.file("extdata", f, package = "ggjbrowse")
 locus <- "ctgA:1,001-9,000"
 genes <- jbrowse_features(e("volvox.sort.gff3.gz"), locus)
 signal <- jbrowse_wiggle(e("volvox_microarray_posneg.bw"), locus)
-reads <- jbrowse_alignments(e("volvox-sorted.bam"), locus, color = "strand")
+reads <- jbrowse_alignments(e("volvox-sorted.bam"), locus)
 jbrowse_stack(genes, signal, reads)
 }

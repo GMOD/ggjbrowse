@@ -26,7 +26,8 @@ carries:
 library(ggjbrowse)
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")
 
-a <- jbrowse_alignments(e("spliced.bam"), "ctgA:401-1,300", color = "strand")
+a <- jbrowse_alignments(e("spliced.bam"), "ctgA:401-1,300",
+  display = list(color = list(field = "strand")))
 autoplot(a)
 ```
 
@@ -47,7 +48,7 @@ bases and insertion lengths are written out.
 
 ```r
 l <- jbrowse_alignments(e("volvox-long-reads-sv.bam"), "ctgA:1,001-2,700",
-  reference = e("volvox.fa"), color = "strand")
+  reference = e("volvox.fa"), display = list(color = list(field = "strand")))
 autoplot(l)
 ```
 
@@ -55,28 +56,29 @@ autoplot(l)
 
 ```r
 autoplot(jbrowse_alignments(e("volvox-sorted.bam"), "ctgA:1,001-1,120",
-  reference = e("volvox.fa"), color = "mapq"))
+  reference = e("volvox.fa"), display = list(color = list(field = "mapq"))))
 ```
 
 ![120 bp of volvox reads, colored by mapping quality, with the mismatched bases written out](man/figures/zoom.png)
 
 ```r
 m <- jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
-  reference = e("hg38_clip.fa"), base_color = "modifications",
-  modifications = list(unmodified = "calls"))
+  reference = e("hg38_clip.fa"),
+  display = list(baseColor = list(field = "modifications"),
+    modifications = list(unmodified = "calls")))
 autoplot(m)
 ```
 
 ![Nanopore reads over 12 kb of chr20, each CpG call painted red where methylated and blue where not](man/figures/methylation.png)
 
-`read_connections = "arc"` adds the display's read-pair band: each mate
+`readConnections = "arc"` adds the display's read-pair band: each mate
 pair's and split read's arc, colored by insert size and pair orientation.
-`"cloud"` plots each abnormal pair at its insert size instead. `facet` splits
+`"cloud"` plots each abnormal pair at its insert size instead. A `facet` splits
 the reads into the display's stacked sections, each packed separately:
 
 ```r
 inv <- jbrowse_alignments(e("volvox-simple-inv-paired.bam"), "ctgA:18,001-32,000",
-  read_connections = "arc", facet = "strand")
+  display = list(readConnections = "arc", facet = list(field = "strand")))
 autoplot(inv)
 ```
 
@@ -123,14 +125,16 @@ ggplot(cram$mismatches, aes(position, frequency, colour = color)) +
   scale_colour_jbrowse(cram, "bases")
 ```
 
-`color`, `filter`, `base_color`, `modifications`, `sort` and `facet` are the
-display's own settings objects, so what JBrowse can color, filter, paint,
-sort or split by, this can: `color = "mapq"`,
+`display` is the display's config, written as a JBrowse track config writes
+it, so what JBrowse can color, filter, paint, sort or split by, this can:
+`color = list(field = "mapq")`,
 `color = list(field = "insertSize", domain = c(200, 600))`,
 `filter = list(flagExclude = 1796, tagFilters = list(list(tag = "HP", value = "1")))`,
-`base_color = "modifications"`, `sort = list(type = "basePair", pos = 1055)`,
-`facet = "tags.HP"`. `display` takes any other slot of the display's config,
-such as `list(showOrdinaryPairs = FALSE)`.
+`baseColor = list(field = "modifications")`,
+`sort = list(type = "basePair", pos = 1055)`,
+`facet = list(field = "tags.HP")`, or any other slot such as
+`showOrdinaryPairs = FALSE`. As in a track config, a bare string `color` is
+one constant color: `color = "purple"`.
 Each read comes back on the row the display lays it on, with the fill the
 display paints it and the bucket it files it under, each modification call
 with its color and opacity, the coverage band's stacks as the display stacks
@@ -151,7 +155,7 @@ names fit. Draw it over reads with `tracks`:
 genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1,001-10,000",
   display = list(showOnlyGenes = TRUE))
 reads <- jbrowse_alignments(e("spliced.bam"), "ctgA:1,001-10,000",
-  reference = e("volvox.fa"), color = "strand")
+  reference = e("volvox.fa"), display = list(color = list(field = "strand")))
 autoplot(reads, tracks = genes)
 ```
 
@@ -207,14 +211,17 @@ out several regions, each tick labelled in its own region's positions:
 loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
 genes <- jbrowse_features(e("volvox.sort.gff3.gz"), loci)
 signal <- jbrowse_wiggle(e("volvox_microarray_posneg.bw"), loci)
-reads <- jbrowse_alignments(e("volvox-sorted.bam"), loci, color = "strand")
+reads <- jbrowse_alignments(e("volvox-sorted.bam"), loci,
+  display = list(color = list(field = "strand")))
 jbrowse_stack(genes, signal, reads)
 ```
 
 ![Volvox genes, a BigWig and strand-colored reads over two regions of ctgA laid end to end](man/figures/stack.png)
 
-Each band is an ordinary ggplot, so to restyle one, draw it on its own:
-`autoplot(reads, "pileup") + geom_jbrowse_mismatches(aes(alpha = quality))`.
+Each band is an ordinary ggplot. Restyle every band with patchwork's `&`,
+`jbrowse_stack(genes, signal, reads) & theme_classic()`, or draw one on its
+own and add to it: `autoplot(reads, "pileup") + theme_classic()`. A ggplot
+of your own stacks as a band on the same axis.
 A track's settings decide its bands: an alignments track read with
 `display = list(showCoverage = FALSE)` stacks no coverage band.
 

@@ -27,7 +27,8 @@ test_that("the display's keys are scales, each listing what was painted", {
   expect_equal(scale$name, "Base")
   expect_error(scale_fill_jbrowse(bam, "nope"), "keys reads, bases")
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 3000,
-    color = list(field = "strand", range = c("#FF0000", "#0000FF")))
+    display = list(color = list(field = "strand",
+      range = c("#FF0000", "#0000FF"))))
   expect_setequal(as.character(unique(s$reads$color)), c("#ff0000", "#0000ff"))
   key <- get_guide_data(ggplot(s) + geom_jbrowse_reads() +
     scale_fill_jbrowse(s), "fill")
@@ -64,7 +65,7 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
 
 test_that("a key row names every label its color stands for", {
   paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA",
-    18000, 32000, read_connections = "arc")
+    18000, 32000, display = list(readConnections = "arc"))
   legend <- paired$arc_legend
   expect_true(anyDuplicated(legend$color) > 0)
   key <- get_guide_data(ggplot(paired) + geom_jbrowse_arcs() +
@@ -78,7 +79,7 @@ test_that("a key row names every label its color stands for", {
 
 test_that("the multi-layer geoms take any column of their tables", {
   paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA",
-    18000, 32000, read_connections = "arc")
+    18000, 32000, display = list(readConnections = "arc"))
   domes <- layer_data(ggplot(paired) + geom_jbrowse_arcs(aes(alpha = span)), 1)
   expect_equal(length(unique(domes$group)), nrow(paired$arcs))
   expect_gt(length(unique(domes$alpha)), 1)

@@ -69,14 +69,14 @@ test_that("the coverage band stacks each position's alleles as the display does"
 test_that("the display's sort object lays the rows out", {
   site <- bam$mismatches$position[1]
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
-    sort = list(type = "basePair", pos = site))
+    display = list(sort = list(type = "basePair", pos = site)))
   covering <- which(s$reads$start <= site & s$reads$end > site)
   mismatched <- unique(s$mismatches$read[s$mismatches$position == site])
   expect_gt(length(mismatched), 0)
   expect_lt(max(s$reads$row[mismatched]),
     min(s$reads$row[setdiff(covering, mismatched)]))
   l <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
-    sort = "length")
+    display = list(sort = list(type = "length")))
   expect_false(identical(l$reads$row, bam$reads$row))
 })
 
@@ -100,7 +100,8 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   plain <- jbrowse_alignments(bam, "20", 10000, 20000)
   expect_equal(nrow(plain$modifications), 0)
   m <- jbrowse_alignments(bam, "20", 10000, 20000,
-    reference = extdata("hg38_clip.fa"), base_color = "modifications")
+    reference = extdata("hg38_clip.fa"),
+    display = list(baseColor = list(field = "modifications")))
   expect_gt(nrow(m$modifications), 100)
   expect_setequal(unique(m$modifications$name), "5mC")
   expect_equal(m$modifications$row, m$reads$row[m$modifications$read])
@@ -114,7 +115,8 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   expect_equal(nrow(p$data[[4]]), nrow(m$modifications))
   expect_true(all(p$data[[4]]$fill %in% m$legend$color))
   calls <- jbrowse_alignments(bam, "20", 10000, 20000,
-    base_color = "modifications", modifications = list(unmodified = "calls"))
+    display = list(baseColor = list(field = "modifications"),
+      modifications = list(unmodified = "calls")))
   expect_gt(sum(calls$modifications$unmodified), 0)
 })
 
@@ -160,7 +162,7 @@ test_that("the pileup and coverage draw in the display's colors", {
 
 test_that("reads fill as the display's color object paints them, with its key", {
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
-    color = "strand")
+    display = list(color = list(field = "strand")))
   expect_equal(attr(s$legend, "title"), "Read colors")
   expect_equal(s$legend$label, c("Forward strand", "Reverse strand"))
   expect_equal(unique(s$reads$color[s$reads$strand == 1]), s$legend$color[1])
@@ -170,13 +172,13 @@ test_that("reads fill as the display's color object paints them, with its key", 
   expect_setequal(unique(p$data[[1]]$fill), s$legend$color)
 
   own <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
-    color = list(field = "strand", range = c("#ff0000", "#0000ff"),
-      title = "Mine"))
+    display = list(color = list(field = "strand",
+      range = c("#ff0000", "#0000ff"), title = "Mine")))
   expect_equal(unique(own$reads$color[own$reads$strand == 1]), "#ff0000")
   expect_equal(attr(own$legend, "title"), "Mine")
 
   m <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
-    color = list(field = "mapq"))
+    display = list(color = list(field = "mapq")))
   expect_equal(attr(m$legend, "title"), "Mapping quality")
   expect_true(all(m$reads$color %in% m$legend$color))
   expect_equal(unique(m$reads$category), "mapq")
@@ -184,7 +186,7 @@ test_that("reads fill as the display's color object paints them, with its key", 
 
 test_that("the display's filter object keeps the reads it keeps", {
   r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
-    filter = list(flagInclude = 16))
+    display = list(filter = list(flagInclude = 16)))
   expect_true(all(r$reads$strand == -1))
   expect_gt(nrow(r$reads), 0)
   expect_lt(nrow(r$reads), nrow(bam$reads))

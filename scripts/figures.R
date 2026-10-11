@@ -11,30 +11,36 @@ save <- function(name, plot, height) {
 }
 
 spliced <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300,
-  reference = extdata("volvox.fa"), color = "strand")
+  reference = extdata("volvox.fa"),
+  display = list(color = list(field = "strand")))
 save("spliced.png", autoplot(spliced), 6)
 
 long <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA",
-  1000, 2700, reference = extdata("volvox.fa"), color = "strand")
+  1000, 2700, reference = extdata("volvox.fa"),
+  display = list(color = list(field = "strand")))
 save("long-reads.png", autoplot(long), 5)
 
 zoom <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 1120,
-  reference = extdata("volvox.fa"), color = "mapq")
+  reference = extdata("volvox.fa"),
+  display = list(color = list(field = "mapq")))
 save("zoom.png", autoplot(zoom), 6)
 
 inv <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA",
-  18000, 32000, read_connections = "arc", facet = "strand")
+  18000, 32000,
+  display = list(readConnections = "arc", facet = list(field = "strand")))
 save("inversion.png", autoplot(inv), 7)
 
 meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
-  reference = extdata("hg38_clip.fa"), base_color = "modifications",
-  modifications = list(unmodified = "calls"))
+  reference = extdata("hg38_clip.fa"),
+  display = list(baseColor = list(field = "modifications"),
+    modifications = list(unmodified = "calls")))
 save("methylation.png", autoplot(meth), 4)
 
 genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA", 1000, 10000,
   display = list(showOnlyGenes = TRUE))
 reads <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 1000, 10000,
-  reference = extdata("volvox.fa"), color = "strand")
+  reference = extdata("volvox.fa"),
+  display = list(color = list(field = "strand")))
 save("genes-over-reads.png", autoplot(reads, tracks = genes), 7)
 
 bw <- extdata("volvox_microarray_posneg.bw")
@@ -49,7 +55,8 @@ loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
 save("stack.png", jbrowse_stack(
   jbrowse_features(extdata("volvox.sort.gff3.gz"), loci),
   jbrowse_wiggle(extdata("volvox_microarray_posneg.bw"), loci),
-  jbrowse_alignments(extdata("volvox-sorted.bam"), loci, color = "strand")), 9)
+  jbrowse_alignments(extdata("volvox-sorted.bam"), loci,
+    display = list(color = list(field = "strand")))), 9)
 
 dogs <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"), "chr30",
   38258000, 38265000)
