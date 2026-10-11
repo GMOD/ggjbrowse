@@ -71,3 +71,14 @@ test_that("a BigWig stacks over reads as one of the track's tracks", {
     tracks = jbrowse_wiggle(bw, "ctgA", 1000, 6000))
   expect_equal(length(track$patches$plots) + 1, 3)
 })
+
+test_that("the score axis takes the display's log or symlog transform", {
+  axis <- function(type) {
+    w <- jbrowse_wiggle(bw, "ctgA", 0, 50000,
+      display = list(scales = list(y = list(type = type))))
+    scale_y_jbrowse(w)$get_transformation()$name
+  }
+  expect_equal(axis("log"), "log-10")
+  expect_equal(axis("symlog"), "symlog")
+  expect_equal(axis("linear"), "identity")
+})

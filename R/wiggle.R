@@ -83,11 +83,25 @@ symlog_transform <- function(constant) {
     function(y) sign(y) * constant * expm1(abs(y)))
 }
 
-y_scale <- function(x) {
-  switch(x$scale_type,
+#' The display's score axis as a ggplot scale
+#'
+#' The y scale a quantitative display plots its scores on: linear, log, or
+#' symlog around the display's constant.
+#' @param object a [jbrowse_wiggle()] result
+#' @return a ggplot scale
+#' @export
+#' @examples
+#' bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+#'   package = "ggjbrowse")
+#' w <- jbrowse_wiggle(bw, "ctgA", 0, 50000,
+#'   display = list(scales = list(y = list(type = "symlog"))))
+#' library(ggplot2)
+#' ggplot(w) + geom_jbrowse_wiggle() + scale_y_jbrowse(w)
+scale_y_jbrowse <- function(object) {
+  switch(object$scale_type,
     log = ggplot2::scale_y_log10(),
     symlog = ggplot2::scale_y_continuous(
-      transform = symlog_transform(x$symlog_constant)),
+      transform = symlog_transform(object$symlog_constant)),
     ggplot2::scale_y_continuous())
 }
 
@@ -194,7 +208,7 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
   p <- ggplot2::ggplot(object) +
     geom_jbrowse_wiggle() +
     geom_jbrowse_rules() +
-    (if (density) NULL else y_scale(object)) +
+    (if (density) NULL else scale_y_jbrowse(object)) +
     ggplot2::coord_cartesian(
       xlim = c(object$region$start, object$region$end),
       ylim = if (density) c(0, 1) else object$domain, expand = FALSE) +
