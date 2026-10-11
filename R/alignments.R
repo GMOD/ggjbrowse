@@ -31,29 +31,47 @@ sequence_adapter <- function(reference) {
 #' @param reference the reference FASTA (indexed) or 2bit, path or URL; a CRAM
 #'   needs it, and a BAM read without an MD tag is compared against it
 #' @param index the BAI, CSI or CRAI, if not beside `file` under its usual name
+#' @param color what fills each read, as the display's `color` object: a
+#'   field name (`"strand"`, `"mapq"`, `"insertSize"`, `"pairOrientation"`,
+#'   `"firstOfPairStrand"`, `"tags.XS"`) or a list of the object's slots, such
+#'   as `list(field = "insertSize", domain = c(200, 600))` or
+#'   `list(field = "strand", range = c("#d33", "#33d"))`; `NULL` fills every
+#'   read plain
+#' @param filter which reads are kept, as the display's `filter` object: a
+#'   list with any of `flagInclude`, `flagExclude` (1540 by default), `readName`,
+#'   `tagFilters` (a list of `list(tag = , value = )`), `spliced`,
+#'   `properPairs`, `singletons` and `split` (each `"only"` or `"exclude"`)
 #' @param byte_limit the most compressed bytes the region may need, refused off
 #'   the index before any read is fetched; the whole table is held in memory
 #' @return a `jbrowse_alignments` list of data frames:
 #'   * `reads`: `start`, `end`, `row`, `strand`, `mapq`, `flags`, `name`,
-#'     `insert_size`, `pair_orientation`
+#'     `insert_size`, `pair_orientation`, `color` (the fill the display paints,
+#'     as `#rrggbb`) and `category` (the bucket the display files the read
+#'     under: `fwdStrand`, `mapq`, `unmappedMate`, ...)
 #'   * `mismatches`: `position`, `base`, `read`, `row`, `frequency` (how many
 #'     reads carry that base there, over the depth), `quality`
 #'   * `gaps`: `start`, `end`, `type` (`"deletion"` or `"skip"`), `read`, `row`
 #'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`
+#'   * `legend`: `label` and `color`, the key the display shows for `color`,
+#'     its title as the frame's `"title"` attribute
 #'
 #'   `read` is a row number of `reads`.
 #' @export
 #' @examples
 #' bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-#' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000)
+#' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000, color = "strand")
 #' head(a$reads)
+#' a$legend
 jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
-                               index = NULL, byte_limit = 2e8) {
+                               index = NULL, color = NULL, filter = NULL,
+                               byte_limit = 2e8) {
   args <- list(
     adapterConfig = alignments_adapter(file, index),
     region = list(refName = chrom, start = start, end = end),
     byteLimit = byte_limit)
   if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
+  if (!is.null(color)) args$color <- color_object(color)
+  if (!is.null(filter)) args$filter <- filter
   t <- call_engine("alignments", args)
   reads <- as_frame(t$reads)
   names(reads)[names(reads) == "insertSize"] <- "insert_size"
@@ -64,11 +82,23 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
     d$row <- reads$row[d$read]
     d
   }
+  legend <- as_frame(t$legend)
+  attr(legend, "title") <- t$legendTitle
   structure(
     list(reads = reads, mismatches = on_read(t$mismatches),
-      gaps = on_read(t$gaps), coverage = as_frame(t$coverage),
+      gaps = on_read(t$gaps), coverage = as_frame(t$coverage), legend = legend,
       region = list(chrom = chrom, start = start, end = end)),
     class = "jbrowse_alignments")
+}
+
+# The display's color object from a field name or a list of its slots; a
+# slot that is a list stays one in JSON, however many values it holds.
+color_object <- function(color) {
+  if (is.character(color) && length(color) == 1) return(list(field = color))
+  for (slot in intersect(c("domain", "range", "labels"), names(color))) {
+    color[[slot]] <- I(color[[slot]])
+  }
+  color
 }
 
 #' @export

@@ -4,20 +4,14 @@
 \alias{autoplot.jbrowse_alignments}
 \title{Draw alignments as JBrowse's pileup or coverage band}
 \usage{
-\method{autoplot}{jbrowse_alignments}(
-  object,
-  what = c("pileup", "coverage"),
-  color_by = c("none", "strand"),
-  ...
-)
+\method{autoplot}{jbrowse_alignments}(object, what = c("pileup", "coverage"), ...)
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result}
 
 \item{what}{\code{"pileup"} (each read on its row, split at its splice gaps, with
-its deletions and mismatches) or \code{"coverage"}}
-
-\item{color_by}{\code{"none"} for the display's plain fill, or \code{"strand"}}
+its deletions and mismatches, filled as the display's \code{color} object
+paints it and keyed as the display keys it) or \code{"coverage"}}
 
 \item{...}{unused}
 }
@@ -30,6 +24,6 @@ Draw alignments as JBrowse's pileup or coverage band
 }
 \examples{
 bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-a <- jbrowse_alignments(bam, "ctgA", 1000, 3000)
+a <- jbrowse_alignments(bam, "ctgA", 1000, 3000, color = "strand")
 autoplot(a)
 }

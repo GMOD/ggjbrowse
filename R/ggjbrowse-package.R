@@ -6,5 +6,6 @@
 NULL
 
 utils::globalVariables(c(
-  "start", "end", "row", "strand", "position", "base", "type", "depth"
+  "start", "end", "row", "strand", "position", "base", "type", "depth",
+  "color"
 ))

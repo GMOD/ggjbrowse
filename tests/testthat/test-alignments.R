@@ -44,12 +44,45 @@ test_that("the pileup and coverage draw in the display's colors", {
   colors <- jbrowse_colors()
   expect_type(colors$bases, "character")
   expect_setequal(names(colors$bases), c("A", "C", "G", "T", "N"))
-  p <- ggplot2::ggplot_build(ggplot2::autoplot(bam, color_by = "strand"))
-  expect_setequal(unique(toupper(p$data[[1]]$fill)),
-    toupper(c(colors$forward, colors$reverse)))
+  expect_equal(unique(bam$reads$color), tolower(colors$read))
+  expect_equal(bam$legend$label, "Reads")
+  p <- ggplot2::ggplot_build(ggplot2::autoplot(bam))
+  expect_equal(unique(p$data[[1]]$fill), tolower(colors$read))
   expect_equal(nrow(p$data[[4]]), nrow(bam$mismatches))
   cov <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage"))
   expect_equal(nrow(cov$data[[1]]), nrow(bam$coverage))
+})
+
+test_that("reads fill as the display's color object paints them, with its key", {
+  s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+    color = "strand")
+  expect_equal(attr(s$legend, "title"), "Read colors")
+  expect_equal(s$legend$label, c("Forward strand", "Reverse strand"))
+  expect_equal(unique(s$reads$color[s$reads$strand == 1]), s$legend$color[1])
+  expect_equal(unique(s$reads$color[s$reads$strand == -1]), s$legend$color[2])
+  expect_setequal(unique(s$reads$category), c("fwdStrand", "revStrand"))
+  p <- ggplot2::ggplot_build(ggplot2::autoplot(s))
+  expect_setequal(unique(p$data[[1]]$fill), s$legend$color)
+
+  own <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+    color = list(field = "strand", range = c("#ff0000", "#0000ff"),
+      title = "Mine"))
+  expect_equal(unique(own$reads$color[own$reads$strand == 1]), "#ff0000")
+  expect_equal(attr(own$legend, "title"), "Mine")
+
+  m <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+    color = list(field = "mapq"))
+  expect_equal(attr(m$legend, "title"), "Mapping quality")
+  expect_true(all(m$reads$color %in% m$legend$color))
+  expect_equal(unique(m$reads$category), "mapq")
+})
+
+test_that("the display's filter object keeps the reads it keeps", {
+  r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+    filter = list(flagInclude = 16))
+  expect_true(all(r$reads$strand == -1))
+  expect_gt(nrow(r$reads), 0)
+  expect_lt(nrow(r$reads), nrow(bam$reads))
 })
 
 test_that("a remote BAM reads over HTTP", {

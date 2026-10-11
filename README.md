@@ -7,9 +7,10 @@
 Genome browser tracks as data frames for ggplot2. `jbrowse_alignments()` reads
 a region of a BAM or CRAM through the [JBrowse 2](https://jbrowse.org) genome
 browser's own data engine, run in V8, and returns what its alignments display
-draws: each read on its pileup row, with its mismatches, deletions and splice
-gaps, and the coverage. A plot is an ordinary ggplot: themes, scales,
-`patchwork` and `ggsave()` all work.
+draws: each read on its pileup row, filled as the display's `color` setting
+paints it, with its mismatches, deletions and splice gaps, the coverage, and
+the display's key. A plot is an ordinary ggplot: themes, scales, `patchwork`
+and `ggsave()` all work.
 
 ```r
 remotes::install_github("GMOD/ggjbrowse")
@@ -19,8 +20,8 @@ remotes::install_github("GMOD/ggjbrowse")
 library(ggjbrowse)
 library(patchwork)
 
-a <- jbrowse_alignments("rnaseq.bam", "ctgA", 400, 1300)
-autoplot(a, "coverage") / autoplot(a, color_by = "strand")
+a <- jbrowse_alignments("rnaseq.bam", "ctgA", 400, 1300, color = "strand")
+autoplot(a, "coverage") / autoplot(a)
 ```
 
 ![RNA-seq reads over two exons of volvox ctgA, split at their introns](man/figures/spliced.png)
@@ -36,6 +37,13 @@ ggplot(cram$mismatches, aes(position, frequency, colour = base)) +
   geom_point() +
   scale_colour_manual(values = jbrowse_colors()$bases)
 ```
+
+`color` and `filter` are the display's own settings objects, so what JBrowse
+can color or filter by, this can: `color = "mapq"`,
+`color = list(field = "insertSize", domain = c(200, 600))`,
+`filter = list(flagExclude = 1796, tagFilters = list(list(tag = "HP", value = "1")))`.
+Each read comes back with the fill the display paints it and the bucket it
+files it under, and `a$legend` is the display's key.
 
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There
@@ -66,10 +74,10 @@ committed bundle once R CMD check passes.
 
 ## Not yet
 
-Feature tracks (GFF3, BED, BigBed gene models), BigWig and VCF; the
-alignments display's color schemes beyond strand; insertions, clips and
-modifications on reads. A CRAN release, which needs the bundle's own
-dependencies credited (`cph` and a LICENSE.note) and its source named.
+Feature tracks (GFF3, BED, BigBed gene models), BigWig and VCF; insertions,
+clips, modifications and per-base colors on reads; a legend for a linear
+color ramp. A CRAN release, which needs the bundle's own dependencies credited
+(`cph` and a LICENSE.note) and its source named.
 
 ## See also
 

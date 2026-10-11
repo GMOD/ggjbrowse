@@ -11,6 +11,8 @@ jbrowse_alignments(
   end,
   reference = NULL,
   index = NULL,
+  color = NULL,
+  filter = NULL,
   byte_limit = 2e+08
 )
 }
@@ -24,6 +26,18 @@ needs it, and a BAM read without an MD tag is compared against it}
 
 \item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
 
+\item{color}{what fills each read, as the display's \code{color} object: a
+field name (\code{"strand"}, \code{"mapq"}, \code{"insertSize"}, \code{"pairOrientation"},
+\code{"firstOfPairStrand"}, \code{"tags.XS"}) or a list of the object's slots, such
+as \code{list(field = "insertSize", domain = c(200, 600))} or
+\code{list(field = "strand", range = c("#d33", "#33d"))}; \code{NULL} fills every
+read plain}
+
+\item{filter}{which reads are kept, as the display's \code{filter} object: a
+list with any of \code{flagInclude}, \code{flagExclude} (1540 by default), \code{readName},
+\code{tagFilters} (a list of \code{list(tag = , value = )}), \code{spliced},
+\code{properPairs}, \code{singletons} and \code{split} (each \code{"only"} or \code{"exclude"})}
+
 \item{byte_limit}{the most compressed bytes the region may need, refused off
 the index before any read is fetched; the whole table is held in memory}
 }
@@ -31,11 +45,15 @@ the index before any read is fetched; the whole table is held in memory}
 a \code{jbrowse_alignments} list of data frames:
 \itemize{
 \item \code{reads}: \code{start}, \code{end}, \code{row}, \code{strand}, \code{mapq}, \code{flags}, \code{name},
-\code{insert_size}, \code{pair_orientation}
+\code{insert_size}, \code{pair_orientation}, \code{color} (the fill the display paints,
+as \verb{#rrggbb}) and \code{category} (the bucket the display files the read
+under: \code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...)
 \item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{row}, \code{frequency} (how many
 reads carry that base there, over the depth), \code{quality}
 \item \code{gaps}: \code{start}, \code{end}, \code{type} (\code{"deletion"} or \code{"skip"}), \code{read}, \code{row}
 \item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}
+\item \code{legend}: \code{label} and \code{color}, the key the display shows for \code{color},
+its title as the frame's \code{"title"} attribute
 }
 
 \code{read} is a row number of \code{reads}.
@@ -48,6 +66,7 @@ are 0-based, half-open, on the reference.
 }
 \examples{
 bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-a <- jbrowse_alignments(bam, "ctgA", 1000, 3000)
+a <- jbrowse_alignments(bam, "ctgA", 1000, 3000, color = "strand")
 head(a$reads)
+a$legend
 }

@@ -42,20 +42,19 @@ read_blocks <- function(x) {
 #'
 #' @param object a [jbrowse_alignments()] result
 #' @param what `"pileup"` (each read on its row, split at its splice gaps, with
-#'   its deletions and mismatches) or `"coverage"`
-#' @param color_by `"none"` for the display's plain fill, or `"strand"`
+#'   its deletions and mismatches, filled as the display's `color` object
+#'   paints it and keyed as the display keys it) or `"coverage"`
 #' @param ... unused
 #' @return a ggplot, to extend with layers, scales and themes or to stack with
 #'   patchwork
 #' @exportS3Method ggplot2::autoplot
 #' @examples
 #' bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-#' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000)
+#' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000, color = "strand")
 #' autoplot(a)
 autoplot.jbrowse_alignments <- function(object, what = c("pileup", "coverage"),
-                                        color_by = c("none", "strand"), ...) {
+                                        ...) {
   what <- match.arg(what)
-  color_by <- match.arg(color_by)
   colors <- jbrowse_colors()
   xlab <- sprintf("%s (bp)", object$region$chrom)
   xlim <- c(object$region$start, object$region$end)
@@ -68,16 +67,14 @@ autoplot.jbrowse_alignments <- function(object, what = c("pileup", "coverage"),
       ggplot2::theme_minimal())
   }
   blocks <- read_blocks(object)
-  reads <- if (color_by == "strand") {
-    ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = row + 0.1,
-      ymax = row + 0.9, fill = factor(strand, c(1, -1))), blocks)
-  } else {
-    ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = row + 0.1,
-      ymax = row + 0.9), blocks, fill = colors$read)
-  }
+  legend <- object$legend
+  keyed <- legend[!duplicated(legend$color), , drop = FALSE]
   gaps <- object$gaps
   ggplot2::ggplot() +
-    reads +
+    ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = row + 0.1,
+      ymax = row + 0.9, fill = color), blocks) +
+    ggplot2::scale_fill_identity(name = attr(legend, "title"),
+      breaks = keyed$color, labels = keyed$label, guide = "legend") +
     ggplot2::geom_segment(ggplot2::aes(x = start, xend = end, y = row + 0.5,
       yend = row + 0.5), gaps[gaps$type == "skip", , drop = FALSE],
       colour = colors$skip, linewidth = 0.3) +
@@ -88,9 +85,6 @@ autoplot.jbrowse_alignments <- function(object, what = c("pileup", "coverage"),
       ymin = row + 0.1, ymax = row + 0.9, colour = base), object$mismatches,
       fill = "transparent", linewidth = 0.4, key_glyph = "path") +
     ggplot2::scale_colour_manual(values = colors$bases, name = "Mismatch") +
-    (if (color_by == "strand") ggplot2::scale_fill_manual(
-      values = c("1" = colors$forward, "-1" = colors$reverse),
-      labels = c("1" = "Forward", "-1" = "Reverse"), name = "Strand")) +
     ggplot2::scale_y_reverse() +
     ggplot2::coord_cartesian(xlim = xlim, expand = FALSE) +
     ggplot2::labs(x = xlab, y = NULL) +
