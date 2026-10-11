@@ -54,15 +54,13 @@ jbrowse_wiggle <- function(file, chrom, start, end, display = NULL,
   marks <- as_frame(t$marks)
   marks$color <- jbrowse_color(marks$color)
   rules <- as_frame(t$rules)
-  rules$color <- jbrowse_color(ifelse(rules$color == "", "grey50",
-    rules$color))
+  rules$color <- jbrowse_color(rules$color)
   structure(
     list(bins = as_frame(t$bins), marks = marks,
       sources = as_frame(t$sources), rules = rules, keys = list(),
       domain = unlist(t$domain), scale_type = t$scaleType,
       symlog_constant = t$symlogConstant, rendering = t$rendering,
       origin = t$origin, row_layout = t$rowLayout,
-      gap_limit_bp = t$gapLimitBp,
       region = list(chrom = chrom, start = start, end = end)),
     primary = "marks",
     class = c("jbrowse_wiggle", "jbrowse_result"))
@@ -98,8 +96,9 @@ y_scale <- function(x) {
 #' them: bars from the origin, a stepped or interpolated line with its
 #' whisker band, points, or density, each in the display's color. Map
 #' `score`, `source` or any other column of the marks table to draw it your
-#' own way. `geom_jbrowse_rules()` draws the reference lines `scales$y$rules`
-#' declares.
+#' own way. A line breaks into the `run`s the display breaks it into.
+#' `geom_jbrowse_rules()` draws the reference lines `scales$y$rules`
+#' declares, each labelled above its line as the display labels it.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_wiggle()] result, or `NULL` for the plot's
 #' @param ... passed to [ggplot2::layer()] params
@@ -119,6 +118,12 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
   }
   marks <- function(x) x$marks[!x$marks$band, , drop = FALSE]
   band <- function(x) x$marks[x$marks$band, , drop = FALSE]
+  steps <- function(x) {
+    m <- marks(x)
+    d <- m[rep(seq_len(nrow(m)), each = 2), , drop = FALSE]
+    d$x <- as.vector(rbind(m$start, m$end))
+    d
+  }
   list(
     jbrowse_layer(ggplot2::GeomRect, data, band,
       for_geom(mapping, ggplot2::GeomRect),
@@ -136,12 +141,11 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
       for_geom(mapping, ggplot2::GeomPoint),
       ggplot2::aes(x = (start + end) / 2, y = score, colour = color),
       list(size = 0.6, ...), keyed = FALSE),
-    jbrowse_layer(ggplot2::GeomSegment, data, of("line", marks),
-      for_geom(mapping, ggplot2::GeomSegment),
-      ggplot2::aes(x = start, xend = end, y = score, yend = score,
-        colour = color), list(...), keyed = FALSE),
-    jbrowse_layer(ggplot2::GeomPath, data,
-      of("linecenter", function(x) line_runs(marks(x), x$gap_limit_bp)),
+    jbrowse_layer(ggplot2::GeomPath, data, of("line", steps),
+      for_geom(mapping, ggplot2::GeomPath),
+      ggplot2::aes(x = x, y = score, colour = color, group = run),
+      list(...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomPath, data, of("linecenter", marks),
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = (start + end) / 2, y = score, colour = color,
         group = run), list(...), keyed = FALSE))
@@ -150,10 +154,24 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
 #' @rdname geom_jbrowse_wiggle
 #' @export
 geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
-  jbrowse_layer(ggplot2::GeomHline, data, function(x) {
-    if (x$rendering == "density") x$rules[0, ] else x$rules
-  }, mapping, ggplot2::aes(yintercept = value, colour = color),
-    list(linetype = "dashed", ...), keyed = FALSE)
+  rules <- function(x) {
+    r <- if (x$rendering == "density") x$rules[0, ] else x$rules
+    r$x <- rep(x$region$start, nrow(r))
+    r
+  }
+  list(
+    jbrowse_layer(ggplot2::GeomHline, data, rules,
+      for_geom(mapping, ggplot2::GeomHline),
+      ggplot2::aes(yintercept = value, colour = color),
+      list(linetype = "dashed", ...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomText, data,
+      function(x) {
+        r <- rules(x)
+        r[r$label != "", , drop = FALSE]
+      },
+      for_geom(mapping, ggplot2::GeomText),
+      ggplot2::aes(x = x, y = value, label = label, colour = color),
+      list(hjust = 0, vjust = -0.4, size = 2.6, ...), keyed = FALSE))
 }
 
 #' Draw a BigWig as JBrowse's quantitative track
@@ -185,14 +203,4 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
     p <- p + ggplot2::facet_grid(rows = ggplot2::vars(source))
   }
   if (density) p + no_y else p
-}
-
-# An interpolated line's points split into runs where the display breaks it:
-# across a hole wider than the gap limit
-line_runs <- function(marks, limit) {
-  mid <- (marks$start + marks$end) / 2
-  gap <- c(FALSE, diff(mid) > (limit %||% Inf) |
-    utils::head(marks$source, -1) != utils::tail(marks$source, -1))
-  marks$run <- cumsum(gap)
-  marks
 }

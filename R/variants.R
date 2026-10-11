@@ -71,7 +71,8 @@ jbrowse_variants <- function(file, chrom, start, end, display = NULL,
   cells$color <- jbrowse_color(cells$color)
   legend <- as_frame(t$legend)
   legend$color <- jbrowse_color(legend$color)
-  attr(legend, "title") <- "Genotypes"
+  attr(legend, "title") <- c(legend$section[legend$section != ""],
+    "Genotypes")[1]
   structure(
     list(variants = variants, cells = cells, rows = rows, legend = legend,
       keys = list(genotypes = legend),

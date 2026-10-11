@@ -12,7 +12,9 @@
 #' @param x color strings
 #' @return `x`, classed `jbrowse_color`
 #' @export
-jbrowse_color <- function(x) structure(as.character(x), class = "jbrowse_color")
+jbrowse_color <- function(x) {
+  structure(tolower(as.character(x)), class = "jbrowse_color")
+}
 
 #' @export
 `[.jbrowse_color` <- function(x, i) jbrowse_color(unclass(x)[i])
@@ -69,9 +71,12 @@ fortify.jbrowse_result <- function(model, data, ...) {
 # A key frame as an identity scale's breaks and labels, its line swatches
 # drawn solid whatever width the data maps
 key_scale <- function(scale, key, title) {
-  keyed <- key[!duplicated(key$color), , drop = FALSE]
-  scale(name = title, breaks = as.character(keyed$color),
-    labels = keyed$label, guide = if (nrow(keyed)) {
+  color <- as.character(key$color)
+  breaks <- unique(color)
+  labels <- vapply(breaks, function(c) paste(key$label[color == c],
+    collapse = " / "), "")
+  scale(name = title, breaks = breaks, labels = unname(labels),
+    guide = if (length(breaks)) {
       ggplot2::guide_legend(override.aes = list(linewidth = 1.5))
     } else "none")
 }

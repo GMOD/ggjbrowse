@@ -143,12 +143,14 @@ geom_jbrowse_clips <- function(mapping = NULL, data = NULL, fade = TRUE,
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_letters <- function(data = NULL, ...) {
+geom_jbrowse_letters <- function(mapping = NULL, data = NULL, ...) {
   list(
-    jbrowse_layer(ggplot2::GeomText, data, function(x) x$mismatches, NULL,
+    jbrowse_layer(ggplot2::GeomText, data, function(x) x$mismatches,
+      for_geom(mapping, ggplot2::GeomText),
       ggplot2::aes(x = position + 0.5, y = row + 0.5, label = base),
       list(size = 2.6, colour = "black", ...), keyed = FALSE),
-    jbrowse_layer(ggplot2::GeomLabel, data, function(x) x$insertions, NULL,
+    jbrowse_layer(ggplot2::GeomLabel, data, function(x) x$insertions,
+      for_geom(mapping, ggplot2::GeomLabel),
       ggplot2::aes(x = position, y = row + 0.5, label = length, fill = color),
       list(size = 2.2, colour = "white",
         label.padding = grid::unit(0.1, "lines"), linewidth = 0, ...),
@@ -230,17 +232,14 @@ geom_jbrowse_junction_counts <- function(mapping = NULL, data = NULL,
 # height the genomic radius, as the display's band rises an arc as high as it
 # is wide
 connection_domes <- function(arcs, points = 48) {
-  t <- seq(0, pi, length.out = points)
-  do.call(rbind, lapply(seq_len(nrow(arcs)), function(i) {
-    d <- data.frame(id = i, x = arcs$start[i] + (arcs$end[i] - arcs$start[i]) *
-      (1 - cos(t)) / 2, y = arcs$y[i] * sin(t), width = arcs$width[i],
-      category = arcs$category[i], support = arcs$support[i],
-      section = arcs$section[i])
-    d$color <- jbrowse_color(rep(as.character(arcs$color[i]), points))
-    d
-  })) %||% data.frame(id = integer(0), x = numeric(0), y = numeric(0),
-    color = jbrowse_color(character(0)), width = numeric(0),
-    category = character(0), support = numeric(0), section = arcs$section)
+  t <- rep(seq(0, pi, length.out = points), nrow(arcs))
+  id <- rep(seq_len(nrow(arcs)), each = points)
+  d <- arcs[id, , drop = FALSE]
+  d$id <- id
+  d$x <- d$start + (d$end - d$start) * (1 - cos(t)) / 2
+  d$height <- d$y
+  d$y <- d$height * sin(t)
+  d
 }
 
 is_cloud <- function(x) x$read_connections == "cloud"
@@ -260,15 +259,18 @@ geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, ...) {
     rbind(transform(b, x = start), transform(b, x = end))
   }
   list(
-    jbrowse_layer(ggplot2::GeomPath, data, domes, mapping,
+    jbrowse_layer(ggplot2::GeomPath, data, domes,
+      for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = y, group = id, colour = color,
         linewidth = I(width / ggplot2::.pt)), list(...)),
-    jbrowse_layer(ggplot2::GeomSegment, data, bars, mapping,
+    jbrowse_layer(ggplot2::GeomSegment, data, bars,
+      for_geom(mapping, ggplot2::GeomSegment),
       ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = color,
         alpha = I(opacity), linewidth = I(width / ggplot2::.pt),
         linetype = I(ifelse(shape == "flatSplit", "22", "solid"))),
       list(...)),
-    jbrowse_layer(ggplot2::GeomPoint, data, feet, mapping,
+    jbrowse_layer(ggplot2::GeomPoint, data, feet,
+      for_geom(mapping, ggplot2::GeomPoint),
       ggplot2::aes(x = x, y = y, colour = color),
       list(shape = 15, size = 1.3, ...)))
 }

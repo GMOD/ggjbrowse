@@ -74,7 +74,8 @@ on screen: \code{position}, \code{y}, \code{direction}, \code{head_half_height},
 \code{feature}
 \item \code{labels}: each name, description and transcript label the display
 shows: \code{text}, \code{kind}, \code{position} (its left edge, in bp), \code{y} (its top),
-\code{color}, \code{feature}
+\code{color}, \code{feature}, and \code{subfeature}, the transcript a transcript label
+names (a row number of \code{subfeatures}, \code{NA} for a feature's own label)
 \item \code{legend}: \code{label} and \code{color}, the key the display shows for a color
 field, its title as the frame's \code{"title"} attribute
 }

@@ -25,9 +25,11 @@ the intron and connector lines with their strand chevrons, the boxes, and
 the strand arrows. \code{geom_jbrowse_labels()} writes the names and
 descriptions the display shows at this zoom, at its text size scaled to the
 panel. Each mark table carries its feature's \code{name}, \code{type} and \code{strand}
-beside the display's \code{color}, so \code{aes(fill = type)} colors the boxes by
-feature type through ggplot's own scales; a \code{fill} mapping reaches the
-boxes and a \code{colour} mapping the lines.
+beside the display's \code{color}, and a mark with no span of its own (a
+chevron, an arrow, a label) its feature's \code{start} and \code{end}, so
+\code{aes(fill = type)} colors the boxes by feature type through ggplot's own
+scales. A \code{fill} mapping reaches the boxes and arrowheads, and a \code{colour}
+mapping every part that has a stroke, the boxes' outlines included.
 }
 \examples{
 gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")

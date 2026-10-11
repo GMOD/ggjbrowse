@@ -24,7 +24,8 @@ test_that("a zoomed-out min-max extent draws the max, mean and min bands on each
   line <- jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100,
     display = list(mark = "line"))
   band <- line$marks[line$marks$band, ]
-  expect_equal(nrow(band), nrow(line$bins))
+  expect_gte(nrow(band), nrow(line$bins))
+  expect_true(all(band$low <= band$score))
   expect_true(all(band$opacity < 1))
   layers <- ggplot2::ggplot_build(ggplot2::autoplot(line))$data
   expect_equal(nrow(layers[[1]]), nrow(band))
@@ -35,8 +36,32 @@ test_that("each plot type draws every mark", {
     x <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = mark,
       extent = "none"))
     built <- ggplot2::ggplot_build(ggplot2::autoplot(x))
-    expect_equal(sum(vapply(built$data[2:6], nrow, 1L)), nrow(x$marks))
+    expect_equal(sum(vapply(built$data[2:6], nrow, 1L)),
+      nrow(x$marks) * if (mark == "line") 2 else 1)
   }
+})
+
+test_that("an empty region draws, whatever the plot type", {
+  for (mark in c("bar", "line", "span")) {
+    empty <- jbrowse_wiggle(bw, "ctgB", 0, 1000, display = list(mark = mark))
+    expect_equal(nrow(empty$marks), 0)
+    expect_s3_class(ggplot2::ggplot_build(ggplot2::autoplot(empty)),
+      "ggplot_built")
+  }
+})
+
+test_that("a stepped line joins its bins, and a rule is labelled in its color", {
+  x <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = "line",
+    extent = "none", scales = list(y = list(rules = list(
+      list(value = 500, label = "gain"), list(value = 0))))))
+  expect_equal(x$rules$label, c("gain", ""))
+  expect_equal(as.character(x$rules$color), c("#787878", "#787878"))
+  built <- ggplot2::ggplot_build(ggplot2::autoplot(x))
+  path <- built$data[[5]]
+  expect_equal(length(unique(path$group)), 1)
+  expect_equal(path$x[2], path$x[3])
+  labels <- built$data[[8]]
+  expect_equal(labels$label, "gain")
 })
 
 test_that("a BigWig stacks over reads as one of the track's tracks", {

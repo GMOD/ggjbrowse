@@ -79,7 +79,8 @@ features_adapter <- function(file, index) {
 #'     `feature`
 #'   * `labels`: each name, description and transcript label the display
 #'     shows: `text`, `kind`, `position` (its left edge, in bp), `y` (its top),
-#'     `color`, `feature`
+#'     `color`, `feature`, and `subfeature`, the transcript a transcript label
+#'     names (a row number of `subfeatures`, `NA` for a feature's own label)
 #'   * `legend`: `label` and `color`, the key the display shows for a color
 #'     field, its title as the frame's `"title"` attribute
 #'
@@ -113,12 +114,16 @@ jbrowse_features <- function(file, chrom, start, end, display = NULL,
   on_feature <- function(table) {
     d <- as_frame(table)
     d$feature <- d$feature + 1
-    for (column in setdiff(c("name", "type", "strand"), names(d))) {
+    for (column in setdiff(c("name", "type", "strand", "start", "end"),
+      names(d))) {
       d[[column]] <- features[[column]][d$feature]
     }
     if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
     d
   }
+  labels <- on_feature(t$labels)
+  labels$subfeature <- ifelse(labels$subfeature >= 0, labels$subfeature + 1,
+    NA_integer_)
   arrows <- on_feature(t$arrows)
   names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
   legend <- as_frame(t$legend)
@@ -127,7 +132,7 @@ jbrowse_features <- function(file, chrom, start, end, display = NULL,
     list(features = features,
       subfeatures = on_feature(t$subfeatures), rects = on_feature(t$rects),
       lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
-      arrows = arrows, labels = on_feature(t$labels), legend = legend,
+      arrows = arrows, labels = labels, legend = legend,
       keys = list(features = legend),
       glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
       region = list(chrom = chrom, start = start, end = end)),
@@ -214,9 +219,11 @@ for_geom <- function(mapping, geom) {
 #' the strand arrows. `geom_jbrowse_labels()` writes the names and
 #' descriptions the display shows at this zoom, at its text size scaled to the
 #' panel. Each mark table carries its feature's `name`, `type` and `strand`
-#' beside the display's `color`, so `aes(fill = type)` colors the boxes by
-#' feature type through ggplot's own scales; a `fill` mapping reaches the
-#' boxes and a `colour` mapping the lines.
+#' beside the display's `color`, and a mark with no span of its own (a
+#' chevron, an arrow, a label) its feature's `start` and `end`, so
+#' `aes(fill = type)` colors the boxes by feature type through ggplot's own
+#' scales. A `fill` mapping reaches the boxes and arrowheads, and a `colour`
+#' mapping every part that has a stroke, the boxes' outlines included.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_features()] result, or `NULL` for the plot's
 #' @param ... passed to [ggplot2::layer()] params

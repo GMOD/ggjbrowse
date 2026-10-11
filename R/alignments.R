@@ -210,7 +210,7 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
   base_key <- key_frame(names(colors$bases), colors$bases, "Base")
   junction_key <- key_frame(c("Forward", "Reverse", "Unknown"), strand_colors,
     "Junction strand")
-  junction_key <- junction_key[strand_colors %in% junctions$color, ,
+  junction_key <- junction_key[junction_key$color %in% junctions$color, ,
     drop = FALSE]
   attr(junction_key, "title") <- "Junction strand"
   structure(

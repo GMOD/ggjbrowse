@@ -56,7 +56,7 @@ geom_jbrowse_clips(
   ...
 )
 
-geom_jbrowse_letters(data = NULL, ...)
+geom_jbrowse_letters(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_coverage(mapping = NULL, data = NULL, ...)
 
