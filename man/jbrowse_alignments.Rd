@@ -10,6 +10,7 @@ jbrowse_alignments(
   start,
   end,
   reference = NULL,
+  reference_chrom = chrom,
   index = NULL,
   color = NULL,
   filter = NULL,
@@ -23,6 +24,9 @@ jbrowse_alignments(
 
 \item{reference}{the reference FASTA (indexed) or 2bit, path or URL; a CRAM
 needs it, and a BAM read without an MD tag is compared against it}
+
+\item{reference_chrom}{the contig's name in \code{reference}, where the file
+spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA)}
 
 \item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
 

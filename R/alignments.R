@@ -30,6 +30,8 @@ sequence_adapter <- function(reference) {
 #' @param chrom,start,end the region, 0-based half-open
 #' @param reference the reference FASTA (indexed) or 2bit, path or URL; a CRAM
 #'   needs it, and a BAM read without an MD tag is compared against it
+#' @param reference_chrom the contig's name in `reference`, where the file
+#'   spells it another way (`1` in the BAM, `chr1` in the FASTA)
 #' @param index the BAI, CSI or CRAI, if not beside `file` under its usual name
 #' @param color what fills each read, as the display's `color` object: a
 #'   field name (`"strand"`, `"mapq"`, `"insertSize"`, `"pairOrientation"`,
@@ -63,11 +65,12 @@ sequence_adapter <- function(reference) {
 #' head(a$reads)
 #' a$legend
 jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
-                               index = NULL, color = NULL, filter = NULL,
-                               byte_limit = 2e8) {
+                               reference_chrom = chrom, index = NULL,
+                               color = NULL, filter = NULL, byte_limit = 2e8) {
   args <- list(
     adapterConfig = alignments_adapter(file, index),
-    region = list(refName = chrom, start = start, end = end),
+    region = list(refName = chrom, originalRefName = reference_chrom,
+      start = start, end = end),
     byteLimit = byte_limit)
   if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
   if (!is.null(color)) args$color <- color_object(color)
