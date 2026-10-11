@@ -43,6 +43,16 @@ sequence_adapter <- function(reference) {
 #'   list with any of `flagInclude`, `flagExclude` (1540 by default), `readName`,
 #'   `tagFilters` (a list of `list(tag = , value = )`), `spliced`,
 #'   `properPairs`, `singletons` and `split` (each `"only"` or `"exclude"`)
+#' @param base_color the per-base layer painted over the reads, as the
+#'   display's `baseColor` object: `"modifications"` for the reads' base
+#'   modifications (MM/ML tags), or a list of the object's slots; `NULL`
+#'   paints none
+#' @param modifications the settings that layer reads, as the display's
+#'   `modifications` object: a list with any of `threshold` (the percent
+#'   probability under which a call is hidden, 10), `unmodified` (`"hidden"`,
+#'   `"calls"` or `"all"`: which unmodified sites are painted too),
+#'   `cytosineContext` (`"CG"`, `"CHG"`, `"CHH"` or `"all"`) and
+#'   `shownModifications` (the type codes drawn, every one when empty)
 #' @param byte_limit the most compressed bytes the region may need, refused off
 #'   the index before any read is fetched; the whole table is held in memory
 #' @return a `jbrowse_alignments` list of data frames:
@@ -57,6 +67,11 @@ sequence_adapter <- function(reference) {
 #'   * `insertions`: `position`, `length`, `sequence`, `read`, `row`, `fade`
 #'   * `clips`: `position`, `length`, `type` (`"soft"` or `"hard"`), `read`,
 #'     `row`, `fade`
+#'   * `modifications`: each base modification call the layer paints:
+#'     `position`, `read`, `row`, `type` (the code, `m` for 5mC), `name`,
+#'     `probability`, `unmodified` (whether the call is that the base is not
+#'     modified), and the `color` and `opacity` the display paints it at;
+#'     empty without `base_color`
 #'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`
 #'   * `junctions`: the reads' splice gaps merged, each once: `start`, `end`,
 #'     `count` (the reads supporting it), `strand` (1, -1, or 0 where neither
@@ -77,7 +92,8 @@ sequence_adapter <- function(reference) {
 #' a$legend
 jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
                                reference_chrom = chrom, index = NULL,
-                               color = NULL, filter = NULL, byte_limit = 2e8) {
+                               color = NULL, filter = NULL, base_color = NULL,
+                               modifications = NULL, byte_limit = 2e8) {
   args <- list(
     adapterConfig = alignments_adapter(file, index),
     region = list(refName = chrom, originalRefName = reference_chrom,
@@ -86,6 +102,16 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
   if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
   if (!is.null(color)) args$color <- color_object(color)
   if (!is.null(filter)) args$filter <- filter
+  if (!is.null(base_color)) {
+    args$baseColor <- if (is.character(base_color)) list(field = base_color)
+      else base_color
+  }
+  if (!is.null(modifications)) {
+    if (!is.null(modifications$shownModifications)) {
+      modifications$shownModifications <- I(modifications$shownModifications)
+    }
+    args$modifications <- modifications
+  }
   t <- call_engine("alignments", args)
   reads <- as_frame(t$reads)
   names(reads)[names(reads) == "insertSize"] <- "insert_size"
@@ -101,10 +127,30 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
   structure(
     list(reads = reads, mismatches = on_read(t$mismatches),
       gaps = on_read(t$gaps), insertions = on_read(t$insertions),
-      clips = on_read(t$clips), coverage = as_frame(t$coverage),
-      junctions = as_frame(t$junctions), legend = legend,
-      region = list(chrom = chrom, start = start, end = end)),
+      clips = on_read(t$clips), modifications = on_read(t$modifications),
+      coverage = as_frame(t$coverage), junctions = as_frame(t$junctions),
+      legend = legend,
+      region = list(chrom = chrom, start = start, end = end),
+      reference = if (is.null(reference)) NULL else
+        list(file = reference, chrom = reference_chrom)),
     class = "jbrowse_alignments")
+}
+
+#' Read a region of the reference
+#'
+#' The bases of a region, read through JBrowse's own FASTA or 2bit reader.
+#' @param reference the reference FASTA (indexed) or 2bit, path or URL
+#' @inheritParams jbrowse_alignments
+#' @return one string of `end - start` bases
+#' @export
+#' @examples
+#' fa <- system.file("extdata", "volvox.fa", package = "ggjbrowse")
+#' jbrowse_sequence(fa, "ctgA", 1000, 1020)
+jbrowse_sequence <- function(reference, chrom, start, end) {
+  engine()$call("jbrowse.sequence", as.character(jsonlite::toJSON(list(
+    sequenceAdapter = sequence_adapter(reference),
+    region = list(refName = chrom, start = start, end = end)),
+    auto_unbox = TRUE)), await = TRUE)
 }
 
 # The display's color object from a field name or a list of its slots; a
@@ -120,9 +166,10 @@ color_object <- function(color) {
 #' @export
 print.jbrowse_alignments <- function(x, ...) {
   cat(sprintf(
-    "<jbrowse_alignments> %s:%.0f-%.0f, %d reads on %d rows, %d mismatches, %d gaps, %d insertions, %d clips, %d junctions\n",
+    "<jbrowse_alignments> %s:%.0f-%.0f, %d reads on %d rows, %d mismatches, %d gaps, %d insertions, %d clips, %d modifications, %d junctions\n",
     x$region$chrom, x$region$start, x$region$end, nrow(x$reads),
     length(unique(x$reads$row)), nrow(x$mismatches), nrow(x$gaps),
-    nrow(x$insertions), nrow(x$clips), nrow(x$junctions)))
+    nrow(x$insertions), nrow(x$clips), nrow(x$modifications),
+    nrow(x$junctions)))
   invisible(x)
 }

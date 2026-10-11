@@ -37,14 +37,14 @@ test_that("insertions and clips sit on their reads, in the track's layers", {
   expect_equal(l$clips$row, l$reads$row[l$clips$read])
   p <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup"))
   layers <- vapply(p$data, nrow, 1L)
-  expect_equal(layers[5], nrow(l$insertions))
-  expect_equal(layers[6] + layers[7], nrow(l$clips))
+  expect_equal(layers[6], nrow(l$insertions))
+  expect_equal(layers[7] + layers[8], nrow(l$clips))
   # sequencing-error insertions on 20 long reads fade toward the floor
-  faded <- p$data[[5]]$alpha
+  faded <- p$data[[6]]$alpha
   expect_true(any(faded < 1))
   expect_true(all(faded >= (1200 / 19000)^2 - 1e-9))
   opaque <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup",
-    fade_low_frequency = FALSE))$data[[5]]$alpha
+    fade_low_frequency = FALSE))$data[[6]]$alpha
   expect_true(all(opaque == 1))
 })
 
@@ -81,6 +81,40 @@ test_that("splice junctions arc over the coverage, counted and stranded", {
   expect_s3_class(ggplot2::autoplot(bam), "patchwork")
 })
 
+test_that("base modifications paint under the layer, keyed and tinted as the display paints them", {
+  bam <- extdata("methylation_clip.bam")
+  plain <- jbrowse_alignments(bam, "20", 10000, 20000)
+  expect_equal(nrow(plain$modifications), 0)
+  m <- jbrowse_alignments(bam, "20", 10000, 20000,
+    reference = extdata("hg38_clip.fa"), base_color = "modifications")
+  expect_gt(nrow(m$modifications), 100)
+  expect_setequal(unique(m$modifications$name), "5mC")
+  expect_equal(m$modifications$row, m$reads$row[m$modifications$read])
+  expect_true(all(m$modifications$opacity >= 0.1 & m$modifications$opacity <= 1))
+  expect_true("5mC" %in% m$legend$label)
+  expect_setequal(unique(m$reads$category), c("modFwd", "modRev"))
+  p <- ggplot2::ggplot_build(ggplot2::autoplot(m, "pileup"))
+  expect_equal(nrow(p$data[[4]]), nrow(m$modifications))
+  expect_true(all(p$data[[4]]$fill %in% m$legend$color))
+  calls <- jbrowse_alignments(bam, "20", 10000, 20000,
+    base_color = "modifications", modifications = list(unmodified = "calls"))
+  expect_gt(sum(calls$modifications$unmodified), 0)
+})
+
+test_that("the reference reads as its bases, and lines the pileup zoomed in", {
+  fa <- extdata("volvox.fa")
+  seq <- jbrowse_sequence(fa, "ctgA", 1000, 1020)
+  expect_match(seq, "^[ACGTNacgtn]{20}$")
+  z <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 1100,
+    reference = fa)
+  expect_equal(nchar(jbrowse_sequence(fa, "ctgA", 1000, 1100)), 100)
+  s <- ggplot2::ggplot_build(ggplot2::autoplot(z, "sequence"))
+  expect_equal(nrow(s$data[[2]]), 100)
+  track <- ggplot2::autoplot(z)
+  expect_s3_class(track, "patchwork")
+  expect_equal(length(track$patches$plots) + 1, 3)
+})
+
 test_that("a spliced read splits into its blocks at its skips", {
   s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300)
   skips <- s$gaps[s$gaps$type == "skip", ]
@@ -102,7 +136,7 @@ test_that("the pileup and coverage draw in the display's colors", {
   expect_equal(bam$legend$label, "Reads")
   p <- ggplot2::ggplot_build(ggplot2::autoplot(bam))
   expect_equal(unique(p$data[[1]]$fill), tolower(colors$read))
-  expect_equal(nrow(p$data[[4]]), nrow(bam$mismatches))
+  expect_equal(nrow(p$data[[5]]), nrow(bam$mismatches))
   cov <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage"))
   expect_equal(nrow(cov$data[[1]]), nrow(bam$coverage))
 })

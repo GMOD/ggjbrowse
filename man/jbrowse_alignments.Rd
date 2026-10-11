@@ -14,6 +14,8 @@ jbrowse_alignments(
   index = NULL,
   color = NULL,
   filter = NULL,
+  base_color = NULL,
+  modifications = NULL,
   byte_limit = 2e+08
 )
 }
@@ -42,6 +44,18 @@ list with any of \code{flagInclude}, \code{flagExclude} (1540 by default), \code
 \code{tagFilters} (a list of \code{list(tag = , value = )}), \code{spliced},
 \code{properPairs}, \code{singletons} and \code{split} (each \code{"only"} or \code{"exclude"})}
 
+\item{base_color}{the per-base layer painted over the reads, as the
+display's \code{baseColor} object: \code{"modifications"} for the reads' base
+modifications (MM/ML tags), or a list of the object's slots; \code{NULL}
+paints none}
+
+\item{modifications}{the settings that layer reads, as the display's
+\code{modifications} object: a list with any of \code{threshold} (the percent
+probability under which a call is hidden, 10), \code{unmodified} (\code{"hidden"},
+\code{"calls"} or \code{"all"}: which unmodified sites are painted too),
+\code{cytosineContext} (\code{"CG"}, \code{"CHG"}, \code{"CHH"} or \code{"all"}) and
+\code{shownModifications} (the type codes drawn, every one when empty)}
+
 \item{byte_limit}{the most compressed bytes the region may need, refused off
 the index before any read is fetched; the whole table is held in memory}
 }
@@ -59,6 +73,11 @@ reads carry that base there, over the depth), \code{quality}, \code{fade}
 \item \code{insertions}: \code{position}, \code{length}, \code{sequence}, \code{read}, \code{row}, \code{fade}
 \item \code{clips}: \code{position}, \code{length}, \code{type} (\code{"soft"} or \code{"hard"}), \code{read},
 \code{row}, \code{fade}
+\item \code{modifications}: each base modification call the layer paints:
+\code{position}, \code{read}, \code{row}, \code{type} (the code, \code{m} for 5mC), \code{name},
+\code{probability}, \code{unmodified} (whether the call is that the base is not
+modified), and the \code{color} and \code{opacity} the display paints it at;
+empty without \code{base_color}
 \item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}
 \item \code{junctions}: the reads' splice gaps merged, each once: \code{start}, \code{end},
 \code{count} (the reads supporting it), \code{strand} (1, -1, or 0 where neither

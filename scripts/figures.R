@@ -21,3 +21,8 @@ save("long-reads.png", autoplot(long), 5)
 zoom <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 1120,
   reference = extdata("volvox.fa"), color = "mapq")
 save("zoom.png", autoplot(zoom), 6)
+
+meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
+  reference = extdata("hg38_clip.fa"), base_color = "modifications",
+  modifications = list(unmodified = "calls"))
+save("methylation.png", autoplot(meth), 4)

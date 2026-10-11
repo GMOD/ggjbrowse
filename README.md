@@ -48,6 +48,14 @@ autoplot(jbrowse_alignments("reads.bam", "ctgA", 1000, 1120, color = "mapq"))
 
 ![120 bp of volvox reads, colored by mapping quality, with the mismatched bases written out](man/figures/zoom.png)
 
+```r
+m <- jbrowse_alignments("ont.bam", "20", 10000, 22000, reference = "hg38.fa",
+  base_color = "modifications", modifications = list(unmodified = "calls"))
+autoplot(m)
+```
+
+![Nanopore reads over 12 kb of chr20, each CpG call painted red where methylated and blue where not](man/figures/methylation.png)
+
 Each band is its own ggplot too (`autoplot(a, "pileup")`,
 `"coverage"`, `"junctions"`), to restyle or stack with patchwork.
 
@@ -63,12 +71,13 @@ ggplot(cram$mismatches, aes(position, frequency, colour = base)) +
   scale_colour_manual(values = jbrowse_colors()$bases)
 ```
 
-`color` and `filter` are the display's own settings objects, so what JBrowse
-can color or filter by, this can: `color = "mapq"`,
-`color = list(field = "insertSize", domain = c(200, 600))`,
-`filter = list(flagExclude = 1796, tagFilters = list(list(tag = "HP", value = "1")))`.
-Each read comes back with the fill the display paints it and the bucket it
-files it under, and `a$legend` is the display's key.
+`color`, `filter`, `base_color` and `modifications` are the display's own
+settings objects, so what JBrowse can color, filter or paint by, this can:
+`color = "mapq"`, `color = list(field = "insertSize", domain = c(200, 600))`,
+`filter = list(flagExclude = 1796, tagFilters = list(list(tag = "HP", value = "1")))`,
+`base_color = "modifications"`. Each read comes back with the fill the
+display paints it and the bucket it files it under, each modification call
+with its color and opacity, and `a$legend` is the display's key.
 
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There
@@ -99,10 +108,10 @@ committed bundle once R CMD check passes.
 
 ## Not yet
 
-Feature tracks (GFF3, BED, BigBed gene models), BigWig and VCF;
-modifications and per-base colors on reads; read-pair arcs; a legend for a
-linear color ramp. A CRAN release, which needs the bundle's own dependencies
-credited (`cph` and a LICENSE.note) and its source named.
+Feature tracks (GFF3, BED, BigBed gene models), BigWig and VCF; per-base
+quality and bisulfite layers; read-pair arcs; a legend for a linear color
+ramp. A CRAN release, which needs the bundle's own dependencies credited
+(`cph` and a LICENSE.note) and its source named.
 
 ## See also
 

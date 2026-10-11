@@ -6,7 +6,7 @@
 \usage{
 \method{autoplot}{jbrowse_alignments}(
   object,
-  what = c("track", "pileup", "coverage", "junctions"),
+  what = c("track", "pileup", "coverage", "junctions", "sequence"),
   min_allele_frequency = 0,
   min_junction_reads = 2,
   letters = NULL,
@@ -19,12 +19,14 @@
 \item{object}{a \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result}
 
 \item{what}{\code{"track"}: the display's stack, splice-junction arcs where the
-reads splice, the coverage band and the pileup, one above the other on a
-shared axis; \code{"pileup"}: each read on its row, split at its splice gaps,
-filled as the display's \code{color} object paints it and keyed as the display
-keys it, with its mismatches, deletions, insertions and clips;
-\code{"coverage"}: the depth, each mismatch position's alleles stacked in its
-bases' colors; \code{"junctions"}: the arcs alone}
+reads splice, the coverage band, the reference's bases where they are
+wide enough to read and the pileup, one above the other on a shared
+axis; \code{"pileup"}: each read on its row, split at its splice gaps, filled
+as the display's \code{color} object paints it and keyed as the display keys
+it, with its mismatches, deletions, insertions, clips and base
+modifications; \code{"coverage"}: the depth, each mismatch position's alleles
+stacked in its bases' colors; \code{"junctions"}: the arcs alone;
+\code{"sequence"}: the reference's bases alone}
 
 \item{min_allele_frequency}{hide a coverage-band allele segment whose share
 of the depth there is below this, the display's \code{coverageSnpMinFrequency}}

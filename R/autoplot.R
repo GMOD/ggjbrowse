@@ -91,7 +91,7 @@ no_x <- ggplot2::theme(axis.text.x = ggplot2::element_blank(),
   axis.title.x = ggplot2::element_blank())
 
 # A base's width on a figure about 170 mm wide, never thinner than a tick
-cell_width <- function(xlim) max(0.4, 170 / (xlim[2] - xlim[1]))
+cell_width <- function(xlim) max(0.3, 170 / (xlim[2] - xlim[1]))
 
 # One scale for every base drawn, so the bands share one key
 base_scale <- function(colors) {
@@ -124,10 +124,30 @@ coverage_plot <- function(x, colors, min_allele_frequency, xlim, xlab) {
     ggplot2::theme_minimal()
 }
 
+# The reference under the pileup, each base a lettered cell in its color
+sequence_plot <- function(x, colors, xlim, xlab) {
+  bases <- data.frame(position = seq(xlim[1], xlim[2] - 1))
+  bases$base <- toupper(strsplit(jbrowse_sequence(x$reference$file,
+    x$reference$chrom, xlim[1], xlim[2]), "")[[1]])
+  bases$tint <- ggplot2::alpha(colors$bases[bases$base], 0.35)
+  ggplot2::ggplot(bases) +
+    ggplot2::geom_segment(ggplot2::aes(x = position + 0.5, xend = position + 0.5,
+      y = 0, yend = 1, colour = tint), linewidth = cell_width(xlim),
+      lineend = "butt") +
+    ggplot2::scale_colour_identity() +
+    ggplot2::geom_text(ggplot2::aes(x = position + 0.5, y = 0.5, label = base),
+      size = 2.6) +
+    ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1), expand = FALSE) +
+    ggplot2::labs(x = xlab, y = NULL) +
+    ggplot2::theme_minimal() +
+    no_y
+}
+
 pileup_plot <- function(x, colors, letters, xlim, xlab, px, fade) {
   blocks <- read_blocks(x)
   legend <- x$legend
   keyed <- legend[!duplicated(legend$color), , drop = FALSE]
+  mods <- x$modifications
   gaps <- x$gaps
   cell <- cell_width(xlim)
   deletions <- gaps[gaps$type == "deletion", , drop = FALSE]
@@ -151,6 +171,8 @@ pileup_plot <- function(x, colors, letters, xlim, xlab, px, fade) {
       colour = colors$skip, linewidth = 0.3) +
     ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = row + 0.35,
       ymax = row + 0.65, alpha = alpha), deletions, fill = colors$deletion) +
+    ggplot2::geom_rect(ggplot2::aes(xmin = position, xmax = position + 1,
+      ymin = row + 0.1, ymax = row + 0.9, fill = color, alpha = opacity), mods) +
     ggplot2::geom_segment(ggplot2::aes(x = position + 0.5, xend = position + 0.5,
       y = row + 0.1, yend = row + 0.9, colour = base, alpha = alpha),
       mismatches, linewidth = cell, lineend = "butt") +
@@ -213,12 +235,14 @@ junctions_plot <- function(x, colors, min_junction_reads, xlim, xlab) {
 #'
 #' @param object a [jbrowse_alignments()] result
 #' @param what `"track"`: the display's stack, splice-junction arcs where the
-#'   reads splice, the coverage band and the pileup, one above the other on a
-#'   shared axis; `"pileup"`: each read on its row, split at its splice gaps,
-#'   filled as the display's `color` object paints it and keyed as the display
-#'   keys it, with its mismatches, deletions, insertions and clips;
-#'   `"coverage"`: the depth, each mismatch position's alleles stacked in its
-#'   bases' colors; `"junctions"`: the arcs alone
+#'   reads splice, the coverage band, the reference's bases where they are
+#'   wide enough to read and the pileup, one above the other on a shared
+#'   axis; `"pileup"`: each read on its row, split at its splice gaps, filled
+#'   as the display's `color` object paints it and keyed as the display keys
+#'   it, with its mismatches, deletions, insertions, clips and base
+#'   modifications; `"coverage"`: the depth, each mismatch position's alleles
+#'   stacked in its bases' colors; `"junctions"`: the arcs alone;
+#'   `"sequence"`: the reference's bases alone
 #' @param min_allele_frequency hide a coverage-band allele segment whose share
 #'   of the depth there is below this, the display's `coverageSnpMinFrequency`
 #' @param min_junction_reads hide a junction arc with fewer supporting reads,
@@ -243,7 +267,7 @@ junctions_plot <- function(x, colors, min_junction_reads, xlim, xlab) {
 #' autoplot(a, "pileup") + ggplot2::theme_classic()
 autoplot.jbrowse_alignments <- function(object,
                                         what = c("track", "pileup", "coverage",
-                                          "junctions"),
+                                          "junctions", "sequence"),
                                         min_allele_frequency = 0,
                                         min_junction_reads = 2,
                                         letters = NULL,
@@ -266,12 +290,17 @@ autoplot.jbrowse_alignments <- function(object,
   if (what == "junctions") {
     return(junctions_plot(object, colors, min_junction_reads, xlim, xlab))
   }
+  if (what == "sequence") {
+    return(sequence_plot(object, colors, xlim, xlab))
+  }
   spliced <- any(object$junctions$count >= min_junction_reads)
+  sequenced <- letters && !is.null(object$reference)
   bands <- c(
     if (spliced) list(junctions_plot(object, colors, min_junction_reads, xlim,
       xlab) + no_x),
-    list(coverage_plot(object, colors, min_allele_frequency, xlim, xlab) + no_x,
-      pileup()))
-  heights <- c(if (spliced) 0.8, 1, 3)
+    list(coverage_plot(object, colors, min_allele_frequency, xlim, xlab) + no_x),
+    if (sequenced) list(sequence_plot(object, colors, xlim, xlab) + no_x),
+    list(pileup()))
+  heights <- c(if (spliced) 0.8, 1, if (sequenced) 0.25, 3)
   patchwork::wrap_plots(bands, ncol = 1, heights = heights, guides = "collect")
 }
