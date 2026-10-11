@@ -29,7 +29,8 @@ print.jbrowse_color <- function(x, ...) print(unclass(x), ...)
 scale_type.jbrowse_color <- function(x) "identity"
 
 # What a geom draws: the jbrowse result its plot or its `data` holds, on its
-# axis and read through `pick`, or a data frame the caller handed it as is
+# axis and read through `pick`, or a data frame the caller handed it, on its
+# plot's axis where it is a result's table
 table_from <- function(data, pick) {
   if (inherits(data, "jbrowse_result")) {
     return(pick(on_axis(data)))
@@ -42,6 +43,11 @@ table_from <- function(data, pick) {
           call. = FALSE)
       }
       pick(on_axis(model))
+    })
+  }
+  if (is.data.frame(data) && !is.null(data$.region)) {
+    return(function(plot_data) {
+      frame_on_axis(data, attr(plot_data, "jbrowse")$regions)
     })
   }
   data

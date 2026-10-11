@@ -76,3 +76,28 @@ test_that("jbrowse_stack draws a ggplot of one's own on the tracks' axis", {
   b <- ggplot2::ggplot_build(fig[[2]])
   expect_equal(b$layout$panel_params[[1]]$x.range, c(1000, 9000))
 })
+
+test_that("a result's table handed to a geom or stacked in a plot of one's own draws on the axis", {
+  loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
+  a <- jbrowse_alignments(bam, loci)
+  axis <- c(a$region$start, a$region$end)
+  minus <- subset(a$reads, strand == -1)
+  p <- ggplot2::autoplot(a, "pileup") + geom_jbrowse_reads(data = minus)
+  drawn <- ggplot2::layer_data(p, length(p$layers))
+  expect_equal(nrow(drawn), nrow(minus))
+  expect_true(all(drawn$xmin >= axis[1] & drawn$xmax <= axis[2]))
+
+  own <- ggplot2::ggplot(a$coverage, ggplot2::aes(start, depth)) +
+    ggplot2::geom_step() + ggplot2::coord_cartesian(ylim = c(0, 5))
+  fig <- jbrowse_stack(a, own)
+  band <- fig[[length(fig)]]
+  built <- ggplot2::ggplot_build(band)
+  expect_true(all(built$data[[1]]$x >= axis[1] & built$data[[1]]$x <= axis[2]))
+  expect_equal(built$layout$panel_params[[1]]$y.range, c(0, 5))
+  expect_null(own$data$.on_axis)
+})
+
+test_that("an alignments track refuses tracks above it over other regions", {
+  expect_error(ggplot2::autoplot(jbrowse_alignments(bam, "ctgA:1,001-2,000"),
+    tracks = jbrowse_features(gff, "ctgA:20,001-30,000")), "same regions")
+})

@@ -9,7 +9,8 @@ jbrowse_colors <- local({
   colors <- NULL
   function() {
     if (is.null(colors)) {
-      read <- jsonlite::fromJSON(engine()$eval("jbrowse.alignmentColors()"))
+      read <- jsonlite::fromJSON(in_engine(function(ctx)
+        ctx$eval("jbrowse.alignmentColors()")))
       read$bases <- unlist(read$bases)
       colors <<- read
     }
@@ -243,6 +244,7 @@ autoplot.jbrowse_alignments <- function(object,
     return(sequence_plot(object, jbrowse_colors(), xlim, xlab))
   }
   if (!is.null(tracks$region)) tracks <- list(tracks)
+  same_regions(c(list(object), tracks))
   stack_bands(c(lapply(tracks, track_bands),
     list(alignment_bands(object, o))))
 }

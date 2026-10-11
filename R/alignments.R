@@ -246,10 +246,10 @@ alignments_region <- function(adapter, chrom, start, end, reference,
 #' fa <- system.file("extdata", "volvox.fa", package = "ggjbrowse")
 #' jbrowse_sequence(fa, "ctgA", 1000, 1020)
 jbrowse_sequence <- function(reference, chrom, start, end) {
-  engine()$call("jbrowse.sequence", as.character(jsonlite::toJSON(list(
-    sequenceAdapter = sequence_adapter(reference),
-    region = list(refName = chrom, start = start, end = end)),
-    auto_unbox = TRUE)), await = TRUE)
+  args <- list(sequenceAdapter = sequence_adapter(reference),
+    region = list(refName = chrom, start = start, end = end))
+  in_engine(function(ctx) ctx$call("jbrowse.sequence",
+    as.character(jsonlite::toJSON(args, auto_unbox = TRUE)), await = TRUE))
 }
 
 # A config object whose vector slots stay JSON arrays however many values

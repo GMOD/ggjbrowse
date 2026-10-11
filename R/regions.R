@@ -131,34 +131,41 @@ bind_regions <- function(regions, parts) {
 }
 
 # A result's tables as its geoms draw them, on the axis that lays several
-# regions end to end: each row moved by its region's offset, a span cut to
-# its region and a mark outside it dropped, so nothing draws over the gap
-# into the next region. One region's result draws as it is, and a result
-# already on its axis stays there.
+# regions end to end. One region's result draws as it is.
 on_axis <- function(x) {
   r <- x$regions
-  if (is.null(r) || isTRUE(x$on_axis)) return(x)
-  x$on_axis <- TRUE
+  if (is.null(r)) return(x)
   for (name in names(x)) {
-    d <- x[[name]]
-    if (!is.data.frame(d) || is.null(d$.region)) next
-    if (!is.null(d$start)) {
-      d <- d[d$end > r$start[d$.region] & d$start < r$end[d$.region], ,
-        drop = FALSE]
-      d$start <- pmax(d$start, r$start[d$.region])
-      d$end <- pmin(d$end, r$end[d$.region])
-    }
-    if (!is.null(d$position)) {
-      d <- d[d$position >= r$start[d$.region] &
-        d$position < r$end[d$.region], , drop = FALSE]
-    }
-    shift <- r$offset[d$.region] - r$start[d$.region]
-    if (!is.null(d$start)) {
-      d$start <- d$start + shift
-      d$end <- d$end + shift
-    }
-    if (!is.null(d$position)) d$position <- d$position + shift
-    x[[name]] <- d
+    if (is.data.frame(x[[name]])) x[[name]] <- frame_on_axis(x[[name]], r)
   }
   x
+}
+
+# A table's rows on the axis `regions` lays end to end: each moved by its
+# region's offset, a span cut to its region and a mark outside it dropped, so
+# nothing draws over the gap into the next region. A row keeps `.region` and
+# gains `.on_axis`, so a table already moved stays where it is.
+frame_on_axis <- function(d, regions) {
+  if (is.null(regions) || is.null(d$.region) || !is.null(d$.on_axis)) {
+    return(d)
+  }
+  r <- regions
+  if (!is.null(d$start)) {
+    d <- d[d$end > r$start[d$.region] & d$start < r$end[d$.region], ,
+      drop = FALSE]
+    d$start <- pmax(d$start, r$start[d$.region])
+    d$end <- pmin(d$end, r$end[d$.region])
+  }
+  if (!is.null(d$position)) {
+    d <- d[d$position >= r$start[d$.region] &
+      d$position < r$end[d$.region], , drop = FALSE]
+  }
+  shift <- r$offset[d$.region] - r$start[d$.region]
+  if (!is.null(d$start)) {
+    d$start <- d$start + shift
+    d$end <- d$end + shift
+  }
+  if (!is.null(d$position)) d$position <- d$position + shift
+  d$.on_axis <- rep(TRUE, nrow(d))
+  d
 }

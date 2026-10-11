@@ -60,12 +60,24 @@ same_regions <- function(results) {
   }
 }
 
-# A ggplot of the caller's own as a band: on the stack's x range and its
-# region labels
+# A ggplot of the caller's own as a band on the stack's x range and region
+# labels, a result's table in it moved onto the axis, and its own y limits and
+# x scale kept
 own_band <- function(p, axis) {
-  list(plots = list(p +
-    ggplot2::coord_cartesian(xlim = xlim_of(axis), expand = FALSE) +
-    genomic_x(axis)), heights = 1)
+  if (is.data.frame(p$data)) p$data <- frame_on_axis(p$data, axis$regions)
+  p$layers <- lapply(p$layers, function(layer) {
+    if (!is.data.frame(layer$data)) return(layer)
+    moved <- ggplot2::ggproto(NULL, layer)
+    moved$data <- frame_on_axis(layer$data, axis$regions)
+    moved
+  })
+  ylim <- if (inherits(p$coordinates, "CoordCartesian")) {
+    p$coordinates$limits$y
+  }
+  p <- suppressMessages(p + ggplot2::coord_cartesian(xlim = xlim_of(axis),
+    ylim = ylim, expand = FALSE))
+  if (is.null(p$scales$get_scales("x"))) p <- p + genomic_x(axis)
+  list(plots = list(p), heights = 1)
 }
 
 # A track's bands and their relative heights: a feature track as tall as its

@@ -32,6 +32,7 @@ engine <- local({
   function(reset = FALSE) {
     if (reset) {
       ctx <<- NULL
+      deferred$warnings <- character(0)
       return(invisible())
     }
     if (is.null(ctx)) {
@@ -40,9 +41,12 @@ engine <- local({
         "var jbrowseHost = { readRange: function(url, start, end) {",
         "return console.r.call('ggjbrowse:::read_range_deferring',",
         "{ url: url, start: start, end: end }) } };",
-        "var ggjbrowseWarnings = [];",
-        "console.warn = console.error = function() {",
-        "ggjbrowseWarnings.push(Array.prototype.join.call(arguments, ' ')) }"))
+        "var ggjbrowseQueued = { warnings: [], errors: [] };",
+        "function ggjbrowseQueue(kind) { return function() {",
+        "ggjbrowseQueued[kind].push(Array.prototype.join.call(arguments, ' '))",
+        "} }",
+        "console.warn = ggjbrowseQueue('warnings');",
+        "console.error = ggjbrowseQueue('errors')"))
       fresh$source(system.file("js", "jbrowse-tables.js", package = "ggjbrowse"))
       ctx <<- fresh
     }
@@ -61,8 +65,9 @@ jbrowse_reset <- function() engine(reset = TRUE)
 # V8 raises console.warn as an R warning and console.error as an R error from
 # inside its own frames, and a handler that unwinds through them (tryCatch,
 # options(warn = 2)) leaves the context broken, so the next call aborts R.
-# The engine's warnings and read_range()'s wait in a queue and are raised
-# here, once the call has returned.
+# The engine's warnings and errors, and read_range()'s warnings, wait in a
+# queue that in_engine() raises once its call has returned: an error stops
+# the call, as it did when V8 raised it.
 deferred <- new.env()
 deferred$warnings <- character(0)
 
@@ -73,16 +78,26 @@ read_range_deferring <- function(url, start, end) {
   })
 }
 
-call_engine <- function(table, args) {
+# Runs use(<the engine's context>) and raises what the engine queued meanwhile
+in_engine <- function(use) {
   ctx <- engine()
   on.exit({
-    queued <- c(deferred$warnings, unlist(ctx$get("ggjbrowseWarnings")))
+    queued <- ctx$get("ggjbrowseQueued")
+    ctx$eval("ggjbrowseQueued = { warnings: [], errors: [] }")
+    warnings <- unique(c(deferred$warnings, unlist(queued$warnings)))
     deferred$warnings <- character(0)
-    ctx$eval("ggjbrowseWarnings = []")
-    for (w in unique(queued)) warning(w, call. = FALSE)
+    for (w in warnings) warning(w, call. = FALSE)
+    if (length(queued$errors)) {
+      stop(paste(unique(unlist(queued$errors)), collapse = "\n"),
+        call. = FALSE)
+    }
   })
-  json <- ctx$call(sprintf("jbrowse.%s", table),
-    as.character(jsonlite::toJSON(args, auto_unbox = TRUE)), await = TRUE)
+  use(ctx)
+}
+
+call_engine <- function(table, args) {
+  json <- in_engine(function(ctx) ctx$call(sprintf("jbrowse.%s", table),
+    as.character(jsonlite::toJSON(args, auto_unbox = TRUE)), await = TRUE))
   jsonlite::fromJSON(json, simplifyVector = TRUE, simplifyDataFrame = FALSE)
 }
 
