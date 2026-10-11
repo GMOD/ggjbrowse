@@ -19,12 +19,20 @@ Genome browser tracks as ggplot2 layers.
 remotes::install_github("GMOD/ggjbrowse")
 ```
 
+Every example here runs as written, on the volvox test data the package
+carries:
+
 ```r
 library(ggjbrowse)
+e <- function(f) system.file("extdata", f, package = "ggjbrowse")
 
-a <- jbrowse_alignments("rnaseq.bam", "ctgA", 400, 1300, color = "strand")
+a <- jbrowse_alignments(e("spliced.bam"), "ctgA:401-1,300", color = "strand")
 autoplot(a)
 ```
+
+A region is a locus as JBrowse's location box writes it, 1-based:
+`"ctgA:401-1,300"`, or `"ctgA", 400, 1300` in 0-based half-open
+coordinates.
 
 ![RNA-seq reads over two exons of volvox ctgA: junction arcs, the coverage band and the pileup, split at the introns](man/figures/spliced.png)
 
@@ -38,21 +46,24 @@ sequencing errors recede and shared variants stand. Zoomed in far enough, the
 bases and insertion lengths are written out.
 
 ```r
-l <- jbrowse_alignments("long-reads.bam", "ctgA", 1000, 2700, color = "strand")
+l <- jbrowse_alignments(e("volvox-long-reads-sv.bam"), "ctgA:1,001-2,700",
+  reference = e("volvox.fa"), color = "strand")
 autoplot(l)
 ```
 
 ![Long reads over a volvox structural variant: soft clips at the breakpoints, insertions along the reads](man/figures/long-reads.png)
 
 ```r
-autoplot(jbrowse_alignments("reads.bam", "ctgA", 1000, 1120, color = "mapq"))
+autoplot(jbrowse_alignments(e("volvox-sorted.bam"), "ctgA:1,001-1,120",
+  reference = e("volvox.fa"), color = "mapq"))
 ```
 
 ![120 bp of volvox reads, colored by mapping quality, with the mismatched bases written out](man/figures/zoom.png)
 
 ```r
-m <- jbrowse_alignments("ont.bam", "20", 10000, 22000, reference = "hg38.fa",
-  base_color = "modifications", modifications = list(unmodified = "calls"))
+m <- jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
+  reference = e("hg38_clip.fa"), base_color = "modifications",
+  modifications = list(unmodified = "calls"))
 autoplot(m)
 ```
 
@@ -64,7 +75,7 @@ pair's and split read's arc, colored by insert size and pair orientation.
 the reads into the display's stacked sections, each packed separately:
 
 ```r
-inv <- jbrowse_alignments("paired.bam", "ctgA", 18000, 32000,
+inv <- jbrowse_alignments(e("volvox-simple-inv-paired.bam"), "ctgA:18,001-32,000",
   read_connections = "arc", facet = "strand")
 autoplot(inv)
 ```
@@ -105,8 +116,8 @@ ggplot(a) +
 The tables work without the geoms as well:
 
 ```r
-cram <- jbrowse_alignments("reads.cram", "chr1", 1e6, 1.002e6,
-  reference = "hg38.fa")
+cram <- jbrowse_alignments(e("volvox-sorted.cram"), "ctgA:1,001-3,000",
+  reference = e("volvox.fa"))
 ggplot(cram$mismatches, aes(position, frequency, colour = color)) +
   geom_point() +
   scale_colour_jbrowse(cram, "bases")
@@ -137,10 +148,10 @@ pixel width the display lays the region out across, which decides which
 names fit. Draw it over reads with `tracks`:
 
 ```r
-genes <- jbrowse_features("genes.gff3.gz", "ctgA", 1000, 10000,
+genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1,001-10,000",
   display = list(showOnlyGenes = TRUE))
-reads <- jbrowse_alignments("rnaseq.bam", "ctgA", 1000, 10000,
-  color = "strand")
+reads <- jbrowse_alignments(e("spliced.bam"), "ctgA:1,001-10,000",
+  reference = e("volvox.fa"), color = "strand")
 autoplot(reads, tracks = genes)
 ```
 
@@ -160,11 +171,11 @@ zoom level that answers. Zoomed out, a min-max extent draws each bin's max and
 min around its mean:
 
 ```r
-bw <- "signal.bw"
-autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100))
-autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100,
+bw <- e("volvox_microarray_posneg.bw")
+autoplot(jbrowse_wiggle(bw, "ctgA:1-50,000", width = 100))
+autoplot(jbrowse_wiggle(bw, "ctgA:1-50,000", width = 100,
   display = list(mark = "line", interpolate = "linear")))
-autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = "span")))
+autoplot(jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "span")))
 ```
 
 ![A signed volvox microarray track three ways: min-max bars, an interpolated line over its min-max band, and density](man/figures/wiggle.png)
@@ -178,14 +189,34 @@ takes the display's settings (`unit = "haplotype"` for a row per haplotype,
 `color`, `filter`, `minorAlleleFrequencyFilter`, ...):
 
 ```r
-v <- jbrowse_variants("dogs.vcf.gz", "chr30", 38258000, 38265000)
+v <- jbrowse_variants(e("dog10k_cyp1a2_snvs.vcf.gz"),
+  "chr30:38,258,001-38,265,000")
 autoplot(v, layout = "columns")
 ```
 
 ![39 dogs genotyped at 490 SNVs across CYP1A2, a column per record, hets pale and homs dark, the breeds in blocks](man/figures/variants.png)
 
-`tracks` stacks BigWigs and feature tracks above reads alike:
-`autoplot(reads, tracks = list(genes, jbrowse_wiggle(bw, "ctgA", 1000, 10000)))`.
+## A view of several tracks
+
+`jbrowse_stack()` stacks tracks as a JBrowse view does: each track's plot,
+or an alignments track's bands, top to bottom in the order given, on one x
+axis, with the keys collected. Several loci draw end to end, as a view lays
+out several regions, each tick labelled in its own region's positions:
+
+```r
+loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
+genes <- jbrowse_features(e("volvox.sort.gff3.gz"), loci)
+signal <- jbrowse_wiggle(e("volvox_microarray_posneg.bw"), loci)
+reads <- jbrowse_alignments(e("volvox-sorted.bam"), loci, color = "strand")
+jbrowse_stack(genes, signal, reads)
+```
+
+![Volvox genes, a BigWig and strand-colored reads over two regions of ctgA laid end to end](man/figures/stack.png)
+
+Each band is an ordinary ggplot, so to restyle one, draw it on its own:
+`autoplot(reads, "pileup") + geom_jbrowse_mismatches(aes(alpha = quality))`.
+A track's settings decide its bands: an alignments track read with
+`display = list(showCoverage = FALSE)` stacks no coverage band.
 
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There
@@ -217,7 +248,7 @@ committed bundle once R CMD check passes.
 
 ## Not yet
 
-A multi-BigWig track's dealt palette; the variant display's row arrangement
+The variant display's row arrangement
 and its zoomed-out density fade; per-base quality and bisulfite layers; a legend for a
 linear color ramp; facets on a feature track; the amino-acid
 overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited

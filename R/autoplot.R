@@ -94,6 +94,7 @@ band <- function(p, x, xlim, xlab, rows = FALSE, ylim = NULL) {
   p +
     ggplot2::coord_cartesian(xlim = xlim, ylim = ylim, expand = FALSE) +
     by_section(x, rows) +
+    genomic_x(x) +
     ggplot2::labs(x = xlab, y = NULL) +
     ggplot2::theme_minimal()
 }
@@ -173,64 +174,65 @@ arcs_plot <- function(x, xlim, xlab) {
 #'   then splice-junction arcs where the reads splice, the coverage band,
 #'   the read-connection band under `read_connections`, the reference's bases
 #'   where they are wide enough to read and the pileup, one above the other
-#'   on a shared axis, each band split into the `facet`'s sections; `"pileup"`: each read on its row, split at its splice gaps, filled
-#'   as the display's `color` object paints it and keyed as the display keys
-#'   it, with its mismatches, deletions, insertions, clips and base
-#'   modifications; `"coverage"`: the depth, each mismatch position's alleles
-#'   stacked in its bases' colors; `"junctions"`: the arcs alone;
-#'   `"arcs"`: the read-connection band alone, mate-pair and split-read arcs
-#'   or the read cloud on a log insert-size axis; `"sequence"`: the
-#'   reference's bases alone
+#'   on a shared axis, each band split into the `facet`'s sections, and each
+#'   drawn where the display's `showCoverage`, `showPileup` and
+#'   `showSashimiArcs` draw it; `"pileup"`: each read on its row, split at
+#'   its splice gaps, filled as the display's `color` object paints it and
+#'   keyed as the display keys it, with its mismatches, deletions,
+#'   insertions, clips and base modifications; `"coverage"`: the depth, each
+#'   mismatch position's alleles stacked in its bases' colors;
+#'   `"junctions"`: the arcs alone; `"arcs"`: the read-connection band
+#'   alone, mate-pair and split-read arcs or the read cloud on a log
+#'   insert-size axis; `"sequence"`: the reference's bases alone
 #' @param min_allele_frequency hide a coverage-band allele segment whose share
-#'   of the depth there is below this, the display's `coverageSnpMinFrequency`
-#' @param min_junction_reads hide a junction arc with fewer supporting reads,
-#'   the display's `minSashimiScore`
+#'   of the depth there is below this; `NULL` takes the display's
+#'   `coverageSnpMinFrequency`
+#' @param min_junction_reads hide a junction arc with fewer supporting reads;
+#'   `NULL` takes the display's `minSashimiScore`
 #' @param letters write each mismatch's base and each insertion's length on
 #'   the pileup; `NULL` does so where the region is at most 300 bp, where a
 #'   base is wide enough to read
 #' @param fade_low_frequency fade a mismatch, indel or clip narrower than a
-#'   pixel by its site's share of the depth, as the display does
-#'   (`fadeLowFrequencyMismatches`), so sequencing errors recede on a deep
-#'   pileup; `FALSE` draws every mark opaque
+#'   pixel by its site's share of the depth, so sequencing errors recede on a
+#'   deep pileup; `NULL` takes the display's `fadeLowFrequencyMismatches`
 #' @param px_per_bp how many pixels a base spans, which that fade reads;
 #'   `NULL` takes a figure about 1200 pixels wide
 #' @param tracks tracks to draw above a `"track"`, each a
 #'   [jbrowse_features()] or [jbrowse_wiggle()] result over the same region,
-#'   or a list of them
+#'   or a list of them, as [jbrowse_stack()] stacks them
 #' @param ... unused
 #' @return a ggplot, to extend with layers, scales and themes or to stack with
 #'   patchwork; a `"track"` is a patchwork of its bands
 #' @exportS3Method ggplot2::autoplot
 #' @examples
 #' bam <- system.file("extdata", "spliced.bam", package = "ggjbrowse")
-#' a <- jbrowse_alignments(bam, "ctgA", 400, 1300, color = "strand")
+#' a <- jbrowse_alignments(bam, "ctgA:401-1,300", color = "strand")
 #' autoplot(a)
 #' autoplot(a, "pileup") + ggplot2::theme_classic()
 #' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-#' autoplot(a, tracks = jbrowse_features(gff, "ctgA", 400, 1300))
+#' autoplot(a, tracks = jbrowse_features(gff, "ctgA:401-1,300"))
 autoplot.jbrowse_alignments <- function(object,
                                         what = c("track", "pileup", "coverage",
                                           "junctions", "arcs", "sequence"),
-                                        min_allele_frequency = 0,
-                                        min_junction_reads = 2,
+                                        min_allele_frequency = NULL,
+                                        min_junction_reads = NULL,
                                         letters = NULL,
-                                        fade_low_frequency = TRUE,
+                                        fade_low_frequency = NULL,
                                         px_per_bp = NULL, tracks = NULL,
                                         ...) {
   what <- match.arg(what)
-  xlab <- sprintf("%s (bp)", object$region$chrom)
-  xlim <- c(object$region$start, object$region$end)
-  if (is.null(letters)) letters <- xlim[2] - xlim[1] <= 300
-  pileup <- function() pileup_plot(object, letters, xlim, xlab,
-    px_per_bp, fade_low_frequency)
+  o <- alignment_options(object, min_allele_frequency, min_junction_reads,
+    letters, fade_low_frequency, px_per_bp)
+  xlab <- axis_label(object)
+  xlim <- xlim_of(object)
   if (what == "coverage") {
-    return(coverage_plot(object, min_allele_frequency, xlim, xlab))
+    return(coverage_plot(object, o$min_allele_frequency, xlim, xlab))
   }
   if (what == "pileup") {
-    return(pileup())
+    return(pileup_plot(object, o$letters, xlim, xlab, o$px_per_bp, o$fade))
   }
   if (what == "junctions") {
-    return(junctions_plot(object, min_junction_reads, xlim, xlab))
+    return(junctions_plot(object, o$min_junction_reads, xlim, xlab))
   }
   if (what == "arcs") {
     return(arcs_plot(object, xlim, xlab))
@@ -238,24 +240,49 @@ autoplot.jbrowse_alignments <- function(object,
   if (what == "sequence") {
     return(sequence_plot(object, jbrowse_colors(), xlim, xlab))
   }
-  connected <- nrow(object$arcs) + nrow(object$arc_ticks) > 0
-  sections <- nrow(object$sections)
-  spliced <- any(object$junctions$count >= min_junction_reads)
-  sequenced <- letters && !is.null(object$reference)
   if (!is.null(tracks$region)) tracks <- list(tracks)
-  bands <- c(
-    lapply(tracks, function(t) autoplot(t) + no_x),
-    if (spliced) list(junctions_plot(object, min_junction_reads, xlim,
-      xlab) + no_x),
-    list(coverage_plot(object, min_allele_frequency, xlim, xlab) + no_x),
-    if (connected) list(arcs_plot(object, xlim, xlab) + no_x),
-    if (sequenced) list(sequence_plot(object, jbrowse_colors(), xlim, xlab) +
-      no_x),
-    list(pileup()))
-  # a feature track's height in pixels, against a pileup band of about 300
-  heights <- c(vapply(tracks, function(t)
-      if (is.null(t$height)) 1 else max(0.3, t$height / 100), 1),
-    if (spliced) 0.8 * sections, sections, if (connected) 0.8 * sections,
-    if (sequenced) 0.25, 3)
-  patchwork::wrap_plots(bands, ncol = 1, heights = heights, guides = "collect")
+  stack_bands(c(lapply(tracks, track_bands),
+    list(alignment_bands(object, o))))
+}
+
+# What the alignments bands draw: the caller's settings, else the display's
+alignment_options <- function(object, min_allele_frequency = NULL,
+                              min_junction_reads = NULL, letters = NULL,
+                              fade_low_frequency = NULL, px_per_bp = NULL) {
+  s <- object$settings %||% list()
+  xlim <- xlim_of(object)
+  list(
+    min_allele_frequency = min_allele_frequency %||%
+      s$coverageSnpMinFrequency %||% 0,
+    min_junction_reads = min_junction_reads %||% s$minSashimiScore %||% 2,
+    letters = letters %||% (xlim[2] - xlim[1] <= 300),
+    fade = fade_low_frequency %||% s$fadeLowFrequencyMismatches %||% TRUE,
+    px_per_bp = px_per_bp,
+    coverage = !isFALSE(s$showCoverage),
+    pileup = !isFALSE(s$showPileup),
+    junctions = !isFALSE(s$showSashimiArcs))
+}
+
+# An alignments track's bands, top to bottom, and their relative heights
+alignment_bands <- function(object, o = alignment_options(object)) {
+  xlab <- axis_label(object)
+  xlim <- xlim_of(object)
+  sections <- nrow(object$sections)
+  connected <- nrow(object$arcs) + nrow(object$arc_ticks) > 0
+  spliced <- o$coverage && o$junctions &&
+    any(object$junctions$count >= o$min_junction_reads)
+  sequenced <- o$pileup && o$letters && !is.null(object$reference) &&
+    is.null(object$regions)
+  plots <- c(
+    if (spliced) list(junctions_plot(object, o$min_junction_reads, xlim,
+      xlab)),
+    if (o$coverage) list(coverage_plot(object, o$min_allele_frequency, xlim,
+      xlab)),
+    if (connected) list(arcs_plot(object, xlim, xlab)),
+    if (sequenced) list(sequence_plot(object, jbrowse_colors(), xlim, xlab)),
+    if (o$pileup) list(pileup_plot(object, o$letters, xlim, xlab,
+      o$px_per_bp, o$fade)))
+  heights <- c(if (spliced) 0.8 * sections, if (o$coverage) sections,
+    if (connected) 0.8 * sections, if (sequenced) 0.25, if (o$pileup) 3)
+  list(plots = plots, heights = heights)
 }

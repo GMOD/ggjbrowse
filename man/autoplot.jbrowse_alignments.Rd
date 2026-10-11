@@ -7,10 +7,10 @@
 \method{autoplot}{jbrowse_alignments}(
   object,
   what = c("track", "pileup", "coverage", "junctions", "arcs", "sequence"),
-  min_allele_frequency = 0,
-  min_junction_reads = 2,
+  min_allele_frequency = NULL,
+  min_junction_reads = NULL,
   letters = NULL,
-  fade_low_frequency = TRUE,
+  fade_low_frequency = NULL,
   px_per_bp = NULL,
   tracks = NULL,
   ...
@@ -23,36 +23,38 @@
 then splice-junction arcs where the reads splice, the coverage band,
 the read-connection band under \code{read_connections}, the reference's bases
 where they are wide enough to read and the pileup, one above the other
-on a shared axis, each band split into the \code{facet}'s sections; \code{"pileup"}: each read on its row, split at its splice gaps, filled
-as the display's \code{color} object paints it and keyed as the display keys
-it, with its mismatches, deletions, insertions, clips and base
-modifications; \code{"coverage"}: the depth, each mismatch position's alleles
-stacked in its bases' colors; \code{"junctions"}: the arcs alone;
-\code{"arcs"}: the read-connection band alone, mate-pair and split-read arcs
-or the read cloud on a log insert-size axis; \code{"sequence"}: the
-reference's bases alone}
+on a shared axis, each band split into the \code{facet}'s sections, and each
+drawn where the display's \code{showCoverage}, \code{showPileup} and
+\code{showSashimiArcs} draw it; \code{"pileup"}: each read on its row, split at
+its splice gaps, filled as the display's \code{color} object paints it and
+keyed as the display keys it, with its mismatches, deletions,
+insertions, clips and base modifications; \code{"coverage"}: the depth, each
+mismatch position's alleles stacked in its bases' colors;
+\code{"junctions"}: the arcs alone; \code{"arcs"}: the read-connection band
+alone, mate-pair and split-read arcs or the read cloud on a log
+insert-size axis; \code{"sequence"}: the reference's bases alone}
 
 \item{min_allele_frequency}{hide a coverage-band allele segment whose share
-of the depth there is below this, the display's \code{coverageSnpMinFrequency}}
+of the depth there is below this; \code{NULL} takes the display's
+\code{coverageSnpMinFrequency}}
 
-\item{min_junction_reads}{hide a junction arc with fewer supporting reads,
-the display's \code{minSashimiScore}}
+\item{min_junction_reads}{hide a junction arc with fewer supporting reads;
+\code{NULL} takes the display's \code{minSashimiScore}}
 
 \item{letters}{write each mismatch's base and each insertion's length on
 the pileup; \code{NULL} does so where the region is at most 300 bp, where a
 base is wide enough to read}
 
 \item{fade_low_frequency}{fade a mismatch, indel or clip narrower than a
-pixel by its site's share of the depth, as the display does
-(\code{fadeLowFrequencyMismatches}), so sequencing errors recede on a deep
-pileup; \code{FALSE} draws every mark opaque}
+pixel by its site's share of the depth, so sequencing errors recede on a
+deep pileup; \code{NULL} takes the display's \code{fadeLowFrequencyMismatches}}
 
 \item{px_per_bp}{how many pixels a base spans, which that fade reads;
 \code{NULL} takes a figure about 1200 pixels wide}
 
 \item{tracks}{tracks to draw above a \code{"track"}, each a
 \code{\link[=jbrowse_features]{jbrowse_features()}} or \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result over the same region,
-or a list of them}
+or a list of them, as \code{\link[=jbrowse_stack]{jbrowse_stack()}} stacks them}
 
 \item{...}{unused}
 }
@@ -65,9 +67,9 @@ Draw alignments as JBrowse's alignments track, or one band of it
 }
 \examples{
 bam <- system.file("extdata", "spliced.bam", package = "ggjbrowse")
-a <- jbrowse_alignments(bam, "ctgA", 400, 1300, color = "strand")
+a <- jbrowse_alignments(bam, "ctgA:401-1,300", color = "strand")
 autoplot(a)
 autoplot(a, "pileup") + ggplot2::theme_classic()
 gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-autoplot(a, tracks = jbrowse_features(gff, "ctgA", 400, 1300))
+autoplot(a, tracks = jbrowse_features(gff, "ctgA:401-1,300"))
 }

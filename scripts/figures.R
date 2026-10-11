@@ -45,6 +45,12 @@ save("wiggle.png", patchwork::wrap_plots(ncol = 1,
   autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000,
     display = list(mark = "span")))), 6)
 
+loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
+save("stack.png", jbrowse_stack(
+  jbrowse_features(extdata("volvox.sort.gff3.gz"), loci),
+  jbrowse_wiggle(extdata("volvox_microarray_posneg.bw"), loci),
+  jbrowse_alignments(extdata("volvox-sorted.bam"), loci, color = "strand")), 9)
+
 dogs <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"), "chr30",
   38258000, 38265000)
 save("variants.png", autoplot(dogs, layout = "columns"), 6)
