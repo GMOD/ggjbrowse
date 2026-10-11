@@ -98,13 +98,14 @@ genes <- jbrowse_features("genes.gff3.gz", "ctgA", 1000, 10000,
   display = list(showOnlyGenes = TRUE))
 reads <- jbrowse_alignments("rnaseq.bam", "ctgA", 1000, 10000,
   color = "strand")
-autoplot(reads, features = genes, figure_width_mm = 254)
+autoplot(reads, features = genes)
 ```
 
 ![EDEN's three isoforms and two smaller genes over spliced RNA-seq reads on volvox ctgA](man/figures/genes-over-reads.png)
 
-The y axis of a feature track is the display's pixels, and text is drawn at
-the display's label size for a figure `figure_width_mm` wide.
+The y axis of a feature track is the display's pixels. Labels scale with the
+panel they land in, so they keep to the room the layout left them at any
+output size.
 
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There

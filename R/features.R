@@ -49,7 +49,9 @@ features_adapter <- function(file, index) {
 #'   expressions) and `displayDirectionalChevrons`
 #' @param width the width in pixels the display lays the region out across:
 #'   whether a name fits beside its feature, which chevrons and arrows draw and
-#'   how the `auto` modes resolve all follow from it
+#'   how the `auto` modes resolve all follow from it. [autoplot()] scales those
+#'   pixels to the panel, so a smaller `width` gives larger labels in a figure
+#'   of the same size
 #' @param reference the reference FASTA (indexed) or 2bit, path or URL, for
 #'   `color_by_cds`
 #' @param reference_chrom the contig's name in `reference`, where the file
@@ -126,8 +128,25 @@ jbrowse_features <- function(file, chrom, start, end, display = NULL,
     class = "jbrowse_features")
 }
 
-# A line's width in ggplot's linewidth units from millimetres
-mm_linewidth <- function(mm) mm * 96 / 25.4 / ggplot2::.pt
+# Text sized in the display's pixels, scaled to the panel when it draws
+GeomDisplayText <- ggplot2::ggproto("GeomDisplayText", ggplot2::GeomText,
+  draw_panel = function(self, data, panel_params, coord, px_wide, px_tall) {
+    text <- ggplot2::ggproto_parent(ggplot2::GeomText, self)$draw_panel(data,
+      panel_params, coord)
+    grid::gTree(children = grid::gList(text), px_wide = px_wide,
+      px_tall = px_tall, cl = "ggjbrowse_display_text")
+  })
+
+#' @exportS3Method grid::makeContent
+makeContent.ggjbrowse_display_text <- function(x) {
+  mm_per_px <- min(
+    grid::convertWidth(grid::unit(1, "npc"), "mm", valueOnly = TRUE) /
+      x$px_wide,
+    grid::convertHeight(grid::unit(1, "npc"), "mm", valueOnly = TRUE) /
+      x$px_tall)
+  x$children[[1]]$gp$fontsize <- x$children[[1]]$gp$fontsize * mm_per_px
+  x
+}
 
 #' @export
 print.jbrowse_features <- function(x, ...) {
@@ -143,13 +162,12 @@ print.jbrowse_features <- function(x, ...) {
 #' Each feature's glyph on its row: the boxes in the colors the display's
 #' `color` object paints, the intron lines with their strand chevrons, the
 #' strand arrows, and the labels, at the pixel sizes the display draws them.
-#' The y axis is the display's pixels, so the track reads as the browser
-#' shows it when the panel is about `height` pixels tall at the figure's
-#' scale.
+#' The y axis is the display's pixels. Labels scale with the panel: at draw
+#' time they take the display's pixel size across the panel's width or down
+#' its height, whichever is smaller, so they keep inside the room the layout
+#' left them at any output size.
 #'
 #' @param object a [jbrowse_features()] result
-#' @param figure_width_mm the width the figure is printed at, which sets how
-#'   large the display's pixels are and so the labels' text size
 #' @param ... unused
 #' @return a ggplot, to extend or to stack over an alignments track with
 #'   patchwork
@@ -158,10 +176,9 @@ print.jbrowse_features <- function(x, ...) {
 #' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
 #' g <- jbrowse_features(gff, "ctgA", 0, 25000)
 #' autoplot(g)
-autoplot.jbrowse_features <- function(object, figure_width_mm = 170, ...) {
+autoplot.jbrowse_features <- function(object, ...) {
   bp <- object$bp_per_px
   glyph <- object$glyph
-  px_mm <- figure_width_mm * bp / (object$region$end - object$region$start)
   xlim <- c(object$region$start, object$region$end)
   legend <- object$legend
   keyed <- legend[!duplicated(legend$color), , drop = FALSE]
@@ -194,14 +211,18 @@ autoplot.jbrowse_features <- function(object, figure_width_mm = 170, ...) {
     ggplot2::scale_fill_identity(name = attr(legend, "title"),
       breaks = keyed$color, labels = keyed$label,
       guide = if (nrow(keyed)) "legend" else "none") +
-    ggplot2::geom_segment(ggplot2::aes(x = position, xend = stem_end,
-      y = y, yend = y, colour = color), cbind(a, stem_end = stem_end),
-      linewidth = mm_linewidth(2 * glyph$arrowStemHalfHeight * px_mm)) +
+    ggplot2::geom_rect(ggplot2::aes(xmin = pmin(position, stem_end),
+      xmax = pmax(position, stem_end), ymin = y - glyph$arrowStemHalfHeight,
+      ymax = y + glyph$arrowStemHalfHeight, fill = color),
+      cbind(a, stem_end = stem_end)) +
     ggplot2::geom_polygon(ggplot2::aes(x = x, y = y, group = id, fill = color),
       heads) +
-    ggplot2::geom_text(ggplot2::aes(x = position, y = y, label = text,
-      colour = color), labels, hjust = 0, vjust = 1,
-      size = glyph$fontSize * px_mm) +
+    ggplot2::layer(geom = GeomDisplayText, stat = "identity",
+      position = "identity", data = labels,
+      mapping = ggplot2::aes(x = position, y = y, label = text,
+        colour = color),
+      params = list(hjust = 0, vjust = 1, size = glyph$fontSize,
+        px_wide = diff(xlim) / bp, px_tall = object$height)) +
     ggplot2::scale_colour_identity() +
     ggplot2::scale_y_reverse() +
     ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, object$height),

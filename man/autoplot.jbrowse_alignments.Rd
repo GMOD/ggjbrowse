@@ -13,7 +13,6 @@
   fade_low_frequency = TRUE,
   px_per_bp = NULL,
   features = NULL,
-  figure_width_mm = 170,
   ...
 )
 }
@@ -51,9 +50,6 @@ pileup; \code{FALSE} draws every mark opaque}
 
 \item{features}{feature tracks to draw above a \code{"track"}, each a
 \code{\link[=jbrowse_features]{jbrowse_features()}} result over the same region, or a list of them}
-
-\item{figure_width_mm}{the width the figure is printed at, which sizes the
-feature tracks' labels (see \code{\link[=autoplot.jbrowse_features]{autoplot.jbrowse_features()}})}
 
 \item{...}{unused}
 }

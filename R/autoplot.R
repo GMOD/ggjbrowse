@@ -249,8 +249,6 @@ junctions_plot <- function(x, colors, min_junction_reads, xlim, xlab) {
 #'   `NULL` takes a figure about 1200 pixels wide
 #' @param features feature tracks to draw above a `"track"`, each a
 #'   [jbrowse_features()] result over the same region, or a list of them
-#' @param figure_width_mm the width the figure is printed at, which sizes the
-#'   feature tracks' labels (see [autoplot.jbrowse_features()])
 #' @param ... unused
 #' @return a ggplot, to extend with layers, scales and themes or to stack with
 #'   patchwork; a `"track"` is a patchwork of its bands
@@ -270,7 +268,7 @@ autoplot.jbrowse_alignments <- function(object,
                                         letters = NULL,
                                         fade_low_frequency = TRUE,
                                         px_per_bp = NULL, features = NULL,
-                                        figure_width_mm = 170, ...) {
+                                        ...) {
   what <- match.arg(what)
   colors <- jbrowse_colors()
   xlab <- sprintf("%s (bp)", object$region$chrom)
@@ -295,8 +293,7 @@ autoplot.jbrowse_alignments <- function(object,
   sequenced <- letters && !is.null(object$reference)
   if (inherits(features, "jbrowse_features")) features <- list(features)
   bands <- c(
-    lapply(features, function(f)
-      autoplot(f, figure_width_mm = figure_width_mm) + no_x),
+    lapply(features, function(f) autoplot(f) + no_x),
     if (spliced) list(junctions_plot(object, colors, min_junction_reads, xlim,
       xlab) + no_x),
     list(coverage_plot(object, colors, min_allele_frequency, xlim, xlab) + no_x),

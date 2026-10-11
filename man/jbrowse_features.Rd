@@ -36,7 +36,9 @@ expressions) and \code{displayDirectionalChevrons}}
 
 \item{width}{the width in pixels the display lays the region out across:
 whether a name fits beside its feature, which chevrons and arrows draw and
-how the \code{auto} modes resolve all follow from it}
+how the \code{auto} modes resolve all follow from it. \code{\link[=autoplot]{autoplot()}} scales those
+pixels to the panel, so a smaller \code{width} gives larger labels in a figure
+of the same size}
 
 \item{reference}{the reference FASTA (indexed) or 2bit, path or URL, for
 \code{color_by_cds}}

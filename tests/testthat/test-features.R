@@ -57,3 +57,19 @@ test_that("autoplot draws every box, line and label", {
   expect_equal(rows[length(rows)], nrow(g$labels))
   expect_setequal(unique(p$data[[3]]$fill), unique(g$rects$color))
 })
+
+test_that("labels take the display's pixel size at the panel's scale", {
+  p <- ggplot2::autoplot(g)
+  text <- ggplot2::layer_grob(p, i = length(p$layers))[[1]]
+  expect_s3_class(text, "ggjbrowse_display_text")
+  font_at <- function(w, h) {
+    grDevices::pdf(NULL)
+    on.exit(grDevices::dev.off())
+    grid::pushViewport(grid::viewport(width = grid::unit(w, "mm"),
+      height = grid::unit(h, "mm")))
+    unique(grid::makeContent(text)$children[[1]]$gp$fontsize)
+  }
+  pt <- g$glyph$fontSize * ggplot2::.pt
+  expect_equal(font_at(100, 1000), pt * 100 / 800)
+  expect_equal(font_at(1000, 10), pt * 10 / g$height)
+})

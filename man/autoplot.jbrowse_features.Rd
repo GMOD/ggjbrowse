@@ -4,13 +4,10 @@
 \alias{autoplot.jbrowse_features}
 \title{Draw features as JBrowse's feature track}
 \usage{
-\method{autoplot}{jbrowse_features}(object, figure_width_mm = 170, ...)
+\method{autoplot}{jbrowse_features}(object, ...)
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_features]{jbrowse_features()}} result}
-
-\item{figure_width_mm}{the width the figure is printed at, which sets how
-large the display's pixels are and so the labels' text size}
 
 \item{...}{unused}
 }
@@ -22,9 +19,10 @@ patchwork
 Each feature's glyph on its row: the boxes in the colors the display's
 \code{color} object paints, the intron lines with their strand chevrons, the
 strand arrows, and the labels, at the pixel sizes the display draws them.
-The y axis is the display's pixels, so the track reads as the browser
-shows it when the panel is about \code{height} pixels tall at the figure's
-scale.
+The y axis is the display's pixels. Labels scale with the panel: at draw
+time they take the display's pixel size across the panel's width or down
+its height, whichever is smaller, so they keep inside the room the layout
+left them at any output size.
 }
 \examples{
 gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")

@@ -2,6 +2,7 @@
 
 S3method(ggplot2::autoplot,jbrowse_alignments)
 S3method(ggplot2::autoplot,jbrowse_features)
+S3method(grid::makeContent,ggjbrowse_display_text)
 S3method(print,jbrowse_alignments)
 S3method(print,jbrowse_features)
 export(autoplot)
