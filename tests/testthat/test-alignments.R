@@ -79,7 +79,8 @@ test_that("a file overwritten in place is read again", {
 })
 
 test_that("a path with %, ? and # in it reads", {
-  dir <- file.path(tempfile(), "dir 50%41 a?b#c")
+  odd <- if (.Platform$OS.type == "windows") "dir 50%41 a#c" else "dir 50%41 a?b#c"
+  dir <- file.path(tempfile(), odd)
   dir.create(dir, recursive = TRUE)
   path <- file.path(dir, "x.bam")
   file.copy(extdata("volvox-sorted.bam"), path)
