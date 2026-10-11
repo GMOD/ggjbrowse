@@ -46,9 +46,7 @@ jbrowse_wiggle <- function(file, chrom, start, end, display = NULL,
     region = list(refName = chrom, start = start, end = end),
     bpPerPx = (end - start) / width)
   if (!is.null(display)) {
-    if (!is.null(display$color) && is.list(display$color)) {
-      display$color <- color_object(display$color)
-    }
+    display$color <- config_color(display$color)
     args$display <- display
   }
   t <- call_engine("wiggle", args)

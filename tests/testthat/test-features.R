@@ -32,7 +32,10 @@ test_that("the display's settings reach the tables", {
     display = list(showOnlyGenes = TRUE))
   expect_true(all(genes$features$gene))
   typed <- jbrowse_features(gff, "ctgA", 0, 25000,
-    display = list(color = "type"))
+    display = list(color = list(field = "type")))
+  purple <- jbrowse_features(gff, "ctgA", 0, 25000,
+    display = list(color = "purple"))
+  expect_equal(unique(as.character(purple$rects$color)), "#800080")
   expect_gt(nrow(typed$legend), 1)
   expect_true(all(typed$legend$color %in% typed$rects$color))
   expect_equal(attr(typed$legend, "title"), "type")

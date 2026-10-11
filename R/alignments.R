@@ -133,8 +133,8 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
                                read_connections = NULL, display = NULL,
                                byte_limit = 2e8) {
   display <- display %||% list()
-  if (!is.null(color)) display$color <- color
-  if (!is.null(display$color)) display$color <- color_object(display$color)
+  display$color <- if (is.null(color)) config_color(display$color)
+    else color_object(color)
   if (!is.null(filter)) display$filter <- filter
   if (!is.null(base_color)) {
     display$baseColor <- if (is.character(base_color))
@@ -259,10 +259,16 @@ facet_object <- function(facet) {
   facet
 }
 
-# The display's color object from a field name or a list of its slots; a
-# slot that is a list stays one in JSON, however many values it holds.
+# The display's color object from a field name or a list of its slots
 color_object <- function(color) {
   if (is.character(color) && length(color) == 1) return(list(field = color))
+  config_color(color)
+}
+
+# A config's color as it writes it, a bare string its constant, and a list
+# slot staying a list in JSON however many values it holds
+config_color <- function(color) {
+  if (!is.list(color)) return(color)
   for (slot in intersect(c("domain", "range", "labels"), names(color))) {
     color[[slot]] <- I(color[[slot]])
   }

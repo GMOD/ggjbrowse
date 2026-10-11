@@ -55,7 +55,7 @@ jbrowse_variants <- function(file, chrom, start, end, display = NULL,
     region = list(refName = chrom, start = start, end = end),
     byteLimit = byte_limit)
   if (!is.null(display)) {
-    if (!is.null(display$color)) display$color <- color_object(display$color)
+    display$color <- config_color(display$color)
     if (!is.null(display$filter)) display$filter <- I(display$filter)
     args$display <- display
   }

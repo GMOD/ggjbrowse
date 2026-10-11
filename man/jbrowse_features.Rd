@@ -27,8 +27,8 @@ index beside it) or a BigBed, a path or a URL; or a JBrowse track's
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearBasicDisplay}: a list with any of
-\code{color} (a field name such as \code{"type"} or \code{"score"}, or a list of the
-color object's slots), \code{displayMode} (\code{"normal"}, \code{"compact"},
+\code{color} (a constant such as \code{"purple"}, or the color object's slots,
+such as \code{list(field = "type")}), \code{displayMode} (\code{"normal"}, \code{"compact"},
 \code{"superCompact"}, \code{"collapsed"}), \code{showLabels} (\code{"auto"}, \code{"name"},
 \code{"nameAndDescription"}, \code{"description"}, \code{"none"}), \code{geneGlyphMode}
 (\code{"auto"}, \code{"all"}, \code{"longestCoding"}), \code{subfeatureLabels} (\code{"none"},

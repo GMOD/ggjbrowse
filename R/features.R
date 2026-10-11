@@ -41,8 +41,8 @@ features_adapter <- function(file, index) {
 #' @param chrom,start,end the region, 0-based half-open
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearBasicDisplay`: a list with any of
-#'   `color` (a field name such as `"type"` or `"score"`, or a list of the
-#'   color object's slots), `displayMode` (`"normal"`, `"compact"`,
+#'   `color` (a constant such as `"purple"`, or the color object's slots,
+#'   such as `list(field = "type")`), `displayMode` (`"normal"`, `"compact"`,
 #'   `"superCompact"`, `"collapsed"`), `showLabels` (`"auto"`, `"name"`,
 #'   `"nameAndDescription"`, `"description"`, `"none"`), `geneGlyphMode`
 #'   (`"auto"`, `"all"`, `"longestCoding"`), `subfeatureLabels` (`"none"`,
@@ -107,7 +107,7 @@ jbrowse_features <- function(file, chrom, start, end, display = NULL,
     byteLimit = byte_limit)
   if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
   if (!is.null(display)) {
-    if (!is.null(display$color)) display$color <- color_object(display$color)
+    display$color <- config_color(display$color)
     if (!is.null(display$filter)) display$filter <- I(display$filter)
     args$display <- display
   }
