@@ -16,13 +16,12 @@ a ggplot, to extend or to stack over an alignments track with
 patchwork
 }
 \description{
-Each feature's glyph on its row: the boxes in the colors the display's
-\code{color} object paints, the intron lines with their strand chevrons, the
-strand arrows, and the labels, at the pixel sizes the display draws them.
-The y axis is the display's pixels. Labels scale with the panel: at draw
-time they take the display's pixel size across the panel's width or down
-its height, whichever is smaller, so they keep inside the room the layout
-left them at any output size.
+Each feature's glyph on its row (\code{\link[=geom_jbrowse_glyphs]{geom_jbrowse_glyphs()}}) and the labels
+the display shows (\code{\link[=geom_jbrowse_labels]{geom_jbrowse_labels()}}), keyed by the display's
+\code{color} object. The y axis is the display's pixels. Labels scale with the
+panel: at draw time they take the display's pixel size across the panel's
+width or down its height, whichever is smaller, so they keep inside the
+room the layout left them at any output size.
 }
 \examples{
 gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")

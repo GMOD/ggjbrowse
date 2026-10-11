@@ -1,0 +1,123 @@
+# ggjbrowse in grammar-of-graphics terms. Every table the engine returns is
+# data, every mark kind is a geom that draws one table, and the display's
+# colors are a column of each table, classed so ggplot gives them an identity
+# scale. The defaults draw what the display draws; map any other column and
+# ggplot's own scales take over. `autoplot()` only composes these pieces.
+
+#' The color the display paints a mark
+#'
+#' A `#rrggbb` column that ggplot maps through an identity scale whenever an
+#' aesthetic names it, so `aes(fill = color)` paints the display's colors with
+#' no scale written. [scale_fill_jbrowse()] adds the display's key.
+#' @param x color strings
+#' @return `x`, classed `jbrowse_color`
+#' @export
+jbrowse_color <- function(x) structure(as.character(x), class = "jbrowse_color")
+
+#' @export
+`[.jbrowse_color` <- function(x, i) jbrowse_color(unclass(x)[i])
+
+#' @export
+as.character.jbrowse_color <- function(x, ...) unclass(x)
+
+#' @export
+print.jbrowse_color <- function(x, ...) print(unclass(x), ...)
+
+#' @exportS3Method ggplot2::scale_type
+scale_type.jbrowse_color <- function(x) "identity"
+
+# What a geom draws: the jbrowse result its plot or its `data` holds, read
+# through `pick`, or a data frame the caller handed it as is
+table_from <- function(data, pick) {
+  if (inherits(data, "jbrowse_result")) {
+    return(pick(data))
+  }
+  if (is.null(data)) {
+    return(function(plot_data) {
+      model <- attr(plot_data, "jbrowse")
+      if (is.null(model)) {
+        stop("a jbrowse geom needs ggplot(<jbrowse result>) or data = <jbrowse result>",
+          call. = FALSE)
+      }
+      pick(model)
+    })
+  }
+  data
+}
+
+with_defaults <- function(mapping, defaults) {
+  for (name in names(mapping)) defaults[[name]] <- mapping[[name]]
+  defaults
+}
+
+# A layer of a jbrowse table. One whose display colors no key lists stays
+# out of the legend until the caller maps an aesthetic of their own.
+jbrowse_layer <- function(geom, data, pick, mapping, defaults, params,
+                          keyed = TRUE) {
+  ggplot2::layer(geom = geom, stat = "identity", position = "identity",
+    data = table_from(data, pick), mapping = with_defaults(mapping, defaults),
+    inherit.aes = FALSE,
+    show.legend = if (keyed || !is.null(mapping)) NA else FALSE,
+    params = params)
+}
+
+#' @exportS3Method ggplot2::fortify
+fortify.jbrowse_result <- function(model, data, ...) {
+  structure(model[[attr(model, "primary")]], jbrowse = model)
+}
+
+# A key frame as an identity scale's breaks and labels, its line swatches
+# drawn solid whatever width the data maps
+key_scale <- function(scale, key, title) {
+  keyed <- key[!duplicated(key$color), , drop = FALSE]
+  scale(name = title, breaks = as.character(keyed$color),
+    labels = keyed$label, guide = if (nrow(keyed)) {
+      ggplot2::guide_legend(override.aes = list(linewidth = 1.5))
+    } else "none")
+}
+
+# The key a result's colors are read through, by name
+key_of <- function(object, key) {
+  keys <- object$keys
+  key <- key %||% names(keys)[1]
+  k <- keys[[key]]
+  if (is.null(k)) {
+    stop("no key ", key, "; this result keys ", paste(names(keys),
+      collapse = ", "), call. = FALSE)
+  }
+  k
+}
+
+#' The display's key as a ggplot scale
+#'
+#' An identity scale over the display's colors whose legend lists the
+#' display's key: what each fill or line color means, under the display's
+#' title. A result can have several keys (an alignments track keys its
+#' reads, its mismatch bases, its read connections and its splice
+#' junctions), and `key` picks one.
+#' @param object a ggjbrowse result
+#' @param key which of its keys: for alignments `"reads"`, `"bases"`,
+#'   `"arcs"` or `"junctions"`; `NULL` takes its first
+#' @return a ggplot scale
+#' @export
+scale_fill_jbrowse <- function(object, key = NULL) {
+  k <- key_of(object, key)
+  key_scale(ggplot2::scale_fill_identity, k, attr(k, "title"))
+}
+
+#' @rdname scale_fill_jbrowse
+#' @export
+scale_colour_jbrowse <- function(object, key = NULL) {
+  k <- key_of(object, key)
+  key_scale(ggplot2::scale_colour_identity, k, attr(k, "title"))
+}
+
+#' @rdname scale_fill_jbrowse
+#' @export
+scale_color_jbrowse <- scale_colour_jbrowse
+
+# A key frame from labels and colors, under a title
+key_frame <- function(label, color, title) {
+  structure(data.frame(label = label, color = jbrowse_color(color)),
+    title = title)
+}

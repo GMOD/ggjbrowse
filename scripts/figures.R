@@ -44,3 +44,7 @@ save("wiggle.png", patchwork::wrap_plots(ncol = 1,
     display = list(mark = "line", interpolate = "linear"))),
   autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000,
     display = list(mark = "span")))), 6)
+
+dogs <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"), "chr30",
+  38258000, 38265000)
+save("variants.png", autoplot(dogs, layout = "columns"), 6)

@@ -175,26 +175,60 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
     d$row <- reads$row[d$read]
     d
   }
+  colors <- jbrowse_colors()
+  reads$color <- jbrowse_color(reads$color)
+  mismatches <- on_read(t$mismatches)
+  mismatches$color <- jbrowse_color(colors$bases[mismatches$base])
+  gaps <- on_read(t$gaps)
+  gaps$color <- jbrowse_color(ifelse(gaps$type == "skip", colors$skip,
+    colors$deletion))
+  insertions <- on_read(t$insertions)
+  insertions$color <- jbrowse_color(rep(colors$insertion, nrow(insertions)))
+  clips <- on_read(t$clips)
+  clips$color <- jbrowse_color(ifelse(clips$type == "soft", colors$softclip,
+    colors$hardclip))
+  modifications <- on_read(t$modifications)
+  modifications$color <- jbrowse_color(modifications$color)
+  coverage <- frame(t$coverage)
+  coverage$color <- jbrowse_color(rep(colors$coverage, nrow(coverage)))
+  alleles <- frame(t$alleleCoverage)
+  alleles$color <- jbrowse_color(colors$bases[alleles$base])
+  modification_coverage <- frame(t$modificationCoverage)
+  modification_coverage$color <- jbrowse_color(modification_coverage$color)
+  junctions <- frame(t$junctions)
+  strand_colors <- c("1" = colors$forward, "-1" = colors$reverse,
+    "0" = colors$read)
+  junctions$color <- jbrowse_color(strand_colors[as.character(junctions$strand)])
+  arcs <- frame(t$arcs)
+  arcs$color <- jbrowse_color(arcs$color)
+  arc_ticks <- frame(t$arcTicks)
+  arc_ticks$color <- jbrowse_color(arc_ticks$color)
   legend <- frame(t$legend)
   attr(legend, "title") <- t$legendTitle
   arc_legend <- frame(t$arcLegend)
   attr(arc_legend, "title") <- t$arcLegendTitle
+  base_key <- key_frame(names(colors$bases), colors$bases, "Base")
+  junction_key <- key_frame(c("Forward", "Reverse", "Unknown"), strand_colors,
+    "Junction strand")
+  junction_key <- junction_key[strand_colors %in% junctions$color, ,
+    drop = FALSE]
+  attr(junction_key, "title") <- "Junction strand"
   structure(
-    list(reads = reads, mismatches = on_read(t$mismatches),
-      gaps = on_read(t$gaps), insertions = on_read(t$insertions),
-      clips = on_read(t$clips), modifications = on_read(t$modifications),
-      coverage = frame(t$coverage),
-      allele_coverage = frame(t$alleleCoverage),
-      modification_coverage = frame(t$modificationCoverage),
-      junctions = frame(t$junctions), legend = legend,
-      arcs = frame(t$arcs), arc_ticks = frame(t$arcTicks),
+    list(reads = reads, mismatches = mismatches, gaps = gaps,
+      insertions = insertions, clips = clips, modifications = modifications,
+      coverage = coverage, allele_coverage = alleles,
+      modification_coverage = modification_coverage, junctions = junctions,
+      legend = legend, arcs = arcs, arc_ticks = arc_ticks,
       arc_legend = arc_legend, arc_span_max = t$arcSpanMax,
       read_connections = display$readConnections %||% "off",
       sections = sections,
+      keys = list(reads = legend, bases = base_key, arcs = arc_legend,
+        junctions = junction_key),
       region = list(chrom = chrom, start = start, end = end),
       reference = if (is.null(reference)) NULL else
         list(file = reference, chrom = reference_chrom)),
-    class = "jbrowse_alignments")
+    primary = "reads",
+    class = c("jbrowse_alignments", "jbrowse_result"))
 }
 
 #' Read a region of the reference

@@ -38,7 +38,7 @@ test_that("insertions and clips sit on their reads, in the track's layers", {
   p <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup"))
   layers <- vapply(p$data, nrow, 1L)
   expect_equal(layers[6], nrow(l$insertions))
-  expect_equal(layers[7] + layers[8], nrow(l$clips))
+  expect_equal(layers[7], nrow(l$clips))
   # sequencing-error insertions on 20 long reads fade toward the floor
   faded <- p$data[[6]]$alpha
   expect_true(any(faded < 1))

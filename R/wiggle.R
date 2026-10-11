@@ -51,15 +51,21 @@ jbrowse_wiggle <- function(file, chrom, start, end, display = NULL,
     args$display <- display
   }
   t <- call_engine("wiggle", args)
+  marks <- as_frame(t$marks)
+  marks$color <- jbrowse_color(marks$color)
+  rules <- as_frame(t$rules)
+  rules$color <- jbrowse_color(ifelse(rules$color == "", "grey50",
+    rules$color))
   structure(
-    list(bins = as_frame(t$bins), marks = as_frame(t$marks),
-      sources = as_frame(t$sources), rules = as_frame(t$rules),
+    list(bins = as_frame(t$bins), marks = marks,
+      sources = as_frame(t$sources), rules = rules, keys = list(),
       domain = unlist(t$domain), scale_type = t$scaleType,
       symlog_constant = t$symlogConstant, rendering = t$rendering,
       origin = t$origin, row_layout = t$rowLayout,
       gap_limit_bp = t$gapLimitBp,
       region = list(chrom = chrom, start = start, end = end)),
-    class = "jbrowse_wiggle")
+    primary = "marks",
+    class = c("jbrowse_wiggle", "jbrowse_result"))
 }
 
 #' @export
@@ -86,12 +92,74 @@ y_scale <- function(x) {
     ggplot2::scale_y_continuous())
 }
 
+#' A quantitative track's marks as ggplot layers
+#'
+#' `geom_jbrowse_wiggle()` draws the marks as the display's plot type draws
+#' them: bars from the origin, a stepped or interpolated line with its
+#' whisker band, points, or density, each in the display's color. Map
+#' `score`, `source` or any other column of the marks table to draw it your
+#' own way. `geom_jbrowse_rules()` draws the reference lines `scales$y$rules`
+#' declares.
+#' @param mapping aesthetics that override the defaults
+#' @param data a [jbrowse_wiggle()] result, or `NULL` for the plot's
+#' @param ... passed to [ggplot2::layer()] params
+#' @return a list of ggplot layers
+#' @export
+#' @examples
+#' bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+#'   package = "ggjbrowse")
+#' w <- jbrowse_wiggle(bw, "ctgA", 0, 50000)
+#' library(ggplot2)
+#' ggplot(w) + geom_jbrowse_wiggle(aes(fill = abs(score))) +
+#'   scale_fill_viridis_c()
+geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
+  of <- function(rendering, pick) function(x) {
+    d <- pick(x)
+    if (x$rendering %in% rendering) d else d[0, , drop = FALSE]
+  }
+  marks <- function(x) x$marks[!x$marks$band, , drop = FALSE]
+  band <- function(x) x$marks[x$marks$band, , drop = FALSE]
+  list(
+    jbrowse_layer(ggplot2::GeomRect, data, band,
+      for_geom(mapping, ggplot2::GeomRect),
+      ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
+        fill = color, alpha = I(opacity)), list(...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomRect, data, of("xyplot", marks),
+      for_geom(mapping, ggplot2::GeomRect),
+      ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
+        fill = color), list(...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomRect, data, of("density", marks),
+      for_geom(mapping, ggplot2::GeomRect),
+      ggplot2::aes(xmin = start, xmax = end, ymin = 0, ymax = 1,
+        fill = color), list(...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomPoint, data, of("scatter", marks),
+      for_geom(mapping, ggplot2::GeomPoint),
+      ggplot2::aes(x = (start + end) / 2, y = score, colour = color),
+      list(size = 0.6, ...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomSegment, data, of("line", marks),
+      for_geom(mapping, ggplot2::GeomSegment),
+      ggplot2::aes(x = start, xend = end, y = score, yend = score,
+        colour = color), list(...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomPath, data,
+      of("linecenter", function(x) line_runs(marks(x), x$gap_limit_bp)),
+      for_geom(mapping, ggplot2::GeomPath),
+      ggplot2::aes(x = (start + end) / 2, y = score, colour = color,
+        group = run), list(...), keyed = FALSE))
+}
+
+#' @rdname geom_jbrowse_wiggle
+#' @export
+geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
+  jbrowse_layer(ggplot2::GeomHline, data, function(x) {
+    if (x$rendering == "density") x$rules[0, ] else x$rules
+  }, mapping, ggplot2::aes(yintercept = value, colour = color),
+    list(linetype = "dashed", ...), keyed = FALSE)
+}
+
 #' Draw a BigWig as JBrowse's quantitative track
 #'
-#' The marks the display draws, in its colors and paint order: bars from the
-#' origin, a stepped or interpolated line with its whisker band, points, or
-#' density, on the score axis the display autoscales to, with its reference
-#' lines.
+#' [geom_jbrowse_wiggle()] and [geom_jbrowse_rules()] on the score axis the
+#' display autoscales to, a row per source where the display gives each one.
 #'
 #' @param object a [jbrowse_wiggle()] result
 #' @param ... unused
@@ -103,40 +171,13 @@ y_scale <- function(x) {
 #'   package = "ggjbrowse")
 #' autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000))
 autoplot.jbrowse_wiggle <- function(object, ...) {
-  m <- object$marks
-  xlim <- c(object$region$start, object$region$end)
   density <- object$rendering == "density"
-  band <- m[m$band, , drop = FALSE]
-  marks <- m[!m$band, , drop = FALSE]
-  rules <- object$rules
-  rules$color[rules$color == ""] <- "grey50"
-  drawn <- switch(object$rendering,
-    density = ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end,
-      ymin = 0, ymax = 1, fill = color), marks),
-    scatter = ggplot2::geom_point(ggplot2::aes(x = (start + end) / 2,
-      y = score, colour = color), marks, size = 0.6),
-    line = ggplot2::geom_segment(ggplot2::aes(x = start, xend = end,
-      y = score, yend = score, colour = color), marks),
-    linecenter = ggplot2::geom_path(ggplot2::aes(x = (start + end) / 2,
-      y = score, colour = color, group = run),
-      line_runs(marks, object$gap_limit_bp)),
-    ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = low,
-      ymax = score, fill = color), marks))
-  p <- ggplot2::ggplot() +
-    ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = low,
-      ymax = score, fill = color, alpha = opacity), band) +
-    drawn
-  if (!density) {
-    p <- p +
-      ggplot2::geom_hline(ggplot2::aes(yintercept = value, colour = color),
-        rules, linetype = "dashed") +
-      y_scale(object)
-  }
-  p <- p +
-    ggplot2::scale_fill_identity() +
-    ggplot2::scale_colour_identity() +
-    ggplot2::scale_alpha_identity() +
-    ggplot2::coord_cartesian(xlim = xlim,
+  p <- ggplot2::ggplot(object) +
+    geom_jbrowse_wiggle() +
+    geom_jbrowse_rules() +
+    (if (density) NULL else y_scale(object)) +
+    ggplot2::coord_cartesian(
+      xlim = c(object$region$start, object$region$end),
       ylim = if (density) c(0, 1) else object$domain, expand = FALSE) +
     ggplot2::labs(x = sprintf("%s (bp)", object$region$chrom), y = NULL) +
     ggplot2::theme_minimal()

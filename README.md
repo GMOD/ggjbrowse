@@ -4,14 +4,16 @@
 > [!CAUTION]
 > Very early results from work in progress!
 
-Genome browser tracks as data frames for ggplot2. `jbrowse_alignments()` reads
-a region of a BAM or CRAM through the [JBrowse 2](https://jbrowse.org) genome
-browser's own data engine, run in V8, and returns what its alignments display
-draws: each read on its pileup row, filled as the display's `color` setting
-paints it, with its mismatches, deletions, insertions, clips and splice gaps,
-the coverage, the splice junctions and the display's key. `autoplot()` draws
-the browser's track from them, and a plot is an ordinary ggplot: themes,
-scales, `patchwork` and `ggsave()` all work.
+Genome browser tracks as ggplot2 layers.
+
+- **In:** a region of a BAM, CRAM, GFF3, GTF, BED, BigBed, BigWig or VCF.
+- **Out:** the tables the [JBrowse 2](https://jbrowse.org) genome browser's
+  own display draws from, run in V8: each read on its pileup row, each gene's
+  glyph, each bin's score, each sample's genotype, with the color the
+  display paints it.
+- **Drawn with:** a geom per table, so a figure is an ordinary ggplot that
+  `+` changes piece by piece. `autoplot()` composes the geoms into the
+  browser's track.
 
 ```r
 remotes::install_github("GMOD/ggjbrowse")
@@ -72,16 +74,41 @@ autoplot(inv)
 Each band is its own ggplot too (`autoplot(a, "pileup")`,
 `"coverage"`, `"junctions"`, `"arcs"`), to restyle or stack with patchwork.
 
-The tables are plain data frames, so a figure can be any ggplot over them:
+## The grammar
+
+`autoplot()` only composes pieces you can use yourself:
+
+- **Data:** `ggplot(a)` holds a result, and each table is a data frame
+  (`a$reads`, `a$mismatches`, `a$coverage`, ...).
+- **Geoms:** one per table: `geom_jbrowse_reads()`,
+  `geom_jbrowse_mismatches()`, `geom_jbrowse_coverage()`,
+  `geom_jbrowse_arcs()`, `geom_jbrowse_glyphs()`, `geom_jbrowse_wiggle()`,
+  `geom_jbrowse_genotypes()` and the rest. Each draws as the display does
+  and takes any column of its table in `aes()`.
+- **Scales:** each table's `color` column is the display's color, which
+  ggplot paints through an identity scale. Map another column and ggplot's
+  own scales take over. `scale_fill_jbrowse(a)` adds the display's key.
+- **Facets:** the `section` column is the display's facet, so
+  `facet_grid(section ~ .)` splits a plot the way `facet =` splits the track.
 
 ```r
 library(ggplot2)
 
+ggplot(a) +
+  geom_jbrowse_reads(aes(fill = mapq)) +
+  geom_jbrowse_mismatches() +
+  scale_fill_viridis_c() +
+  scale_y_reverse()
+```
+
+The tables work without the geoms as well:
+
+```r
 cram <- jbrowse_alignments("reads.cram", "chr1", 1e6, 1.002e6,
   reference = "hg38.fa")
-ggplot(cram$mismatches, aes(position, frequency, colour = base)) +
+ggplot(cram$mismatches, aes(position, frequency, colour = color)) +
   geom_point() +
-  scale_colour_manual(values = jbrowse_colors()$bases)
+  scale_colour_jbrowse(cram, "bases")
 ```
 
 `color`, `filter`, `base_color`, `modifications`, `sort` and `facet` are the
@@ -141,13 +168,28 @@ autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = "span")))
 
 ![A signed volvox microarray track three ways: min-max bars, an interpolated line over its min-max band, and density](man/figures/wiggle.png)
 
+## Variant matrices
+
+`jbrowse_variants()` reads a multi-sample VCF through JBrowse's variant
+display: the records its filters keep, each sample's genotype at each, and
+the fill the display paints it, its hue shaded by the alt dosage. `display`
+takes the display's settings (`unit = "haplotype"` for a row per haplotype,
+`color`, `filter`, `minorAlleleFrequencyFilter`, ...):
+
+```r
+v <- jbrowse_variants("dogs.vcf.gz", "chr30", 38258000, 38265000)
+autoplot(v, layout = "columns")
+```
+
+![39 dogs genotyped at 490 SNVs across CYP1A2, a column per record, hets pale and homs dark, the breeds in blocks](man/figures/variants.png)
+
 `tracks` stacks BigWigs and feature tracks above reads alike:
 `autoplot(reads, tracks = list(genes, jbrowse_wiggle(bw, "ctgA", 1000, 10000)))`.
 
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There
-is no Bioconductor dependency: the BAM, CRAM, FASTA, GFF3, BED, BigBed and
-BigWig readers are JBrowse's.
+is no Bioconductor dependency: the BAM, CRAM, FASTA, GFF3, BED, BigBed,
+BigWig and VCF readers are JBrowse's.
 
 ## The engine
 
@@ -174,7 +216,8 @@ committed bundle once R CMD check passes.
 
 ## Not yet
 
-VCF; a multi-BigWig track's dealt palette; per-base quality and bisulfite layers; a legend for a
+A multi-BigWig track's dealt palette; the variant display's row arrangement
+and its zoomed-out density fade; per-base quality and bisulfite layers; a legend for a
 linear color ramp; facets on a feature track; the amino-acid
 overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.

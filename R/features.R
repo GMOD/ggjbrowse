@@ -109,9 +109,14 @@ jbrowse_features <- function(file, chrom, start, end, display = NULL,
     args$display <- display
   }
   t <- call_engine("features", args)
+  features <- as_frame(t$features)
   on_feature <- function(table) {
     d <- as_frame(table)
     d$feature <- d$feature + 1
+    for (column in setdiff(c("name", "type", "strand"), names(d))) {
+      d[[column]] <- features[[column]][d$feature]
+    }
+    if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
     d
   }
   arrows <- on_feature(t$arrows)
@@ -119,22 +124,27 @@ jbrowse_features <- function(file, chrom, start, end, display = NULL,
   legend <- as_frame(t$legend)
   attr(legend, "title") <- t$legendTitle
   structure(
-    list(features = as_frame(t$features),
+    list(features = features,
       subfeatures = on_feature(t$subfeatures), rects = on_feature(t$rects),
       lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
       arrows = arrows, labels = on_feature(t$labels), legend = legend,
+      keys = list(features = legend),
       glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
       region = list(chrom = chrom, start = start, end = end)),
-    class = "jbrowse_features")
+    primary = "features",
+    class = c("jbrowse_features", "jbrowse_result"))
 }
 
-# Text sized in the display's pixels, scaled to the panel when it draws
+# Text sized in the display's pixels, scaled to the panel when it draws:
+# `px_wide` and `px_tall` are the display's extent in pixels
 GeomDisplayText <- ggplot2::ggproto("GeomDisplayText", ggplot2::GeomText,
-  draw_panel = function(self, data, panel_params, coord, px_wide, px_tall) {
+  default_aes = ggplot2::aes(!!!ggplot2::GeomText$default_aes,
+    px_wide = NA, px_tall = NA),
+  draw_panel = function(self, data, panel_params, coord) {
     text <- ggplot2::ggproto_parent(ggplot2::GeomText, self)$draw_panel(data,
       panel_params, coord)
-    grid::gTree(children = grid::gList(text), px_wide = px_wide,
-      px_tall = px_tall, cl = "ggjbrowse_display_text")
+    grid::gTree(children = grid::gList(text), px_wide = data$px_wide[1],
+      px_tall = data$px_tall[1], cl = "ggjbrowse_display_text")
   })
 
 #' @exportS3Method grid::makeContent
@@ -157,15 +167,115 @@ print.jbrowse_features <- function(x, ...) {
   invisible(x)
 }
 
+# A chevron's two arms, each a segment, at the display's px sizes
+chevron_arms <- function(x) {
+  chev <- x$chevrons
+  half_w <- x$glyph$chevronWidth / 2 * x$bp_per_px
+  half_h <- x$glyph$chevronHeight / 2
+  rbind(
+    transform(chev, x = position - half_w * direction, y0 = y - half_h,
+      xend = position + half_w * direction, yend = y),
+    transform(chev, x = position + half_w * direction, y0 = y,
+      xend = position - half_w * direction, yend = y + half_h))
+}
+
+# A strand arrow's stem, as a box in data units
+arrow_stems <- function(x) {
+  a <- x$arrows
+  stem_end <- a$position + x$glyph$arrowLength / 2 * x$bp_per_px * a$direction
+  half <- x$glyph$arrowStemHalfHeight
+  transform(a, xmin = pmin(position, stem_end), xmax = pmax(position, stem_end),
+    ymin = y - half, ymax = y + half)
+}
+
+# A strand arrow's head, as a triangle's three corners
+arrow_heads <- function(x) {
+  a <- x$arrows
+  length <- x$glyph$arrowLength * x$bp_per_px
+  rows <- rep(seq_len(nrow(a)), each = 3)
+  h <- a[rows, , drop = FALSE]
+  corner <- rep(1:3, nrow(a))
+  h$id <- rows
+  h$x <- h$position + length * h$direction * ifelse(corner == 3, 1, 0.5)
+  h$y <- h$y + c(-1, 1, 0)[corner] * h$head_half_height
+  h
+}
+
+# The entries of `mapping` a geom draws
+for_geom <- function(mapping, geom) {
+  if (is.null(mapping)) return(NULL)
+  mapping[intersect(names(mapping), geom$aesthetics())]
+}
+
+#' A feature track's marks as ggplot layers
+#'
+#' `geom_jbrowse_glyphs()` draws each feature's glyph as the display does:
+#' the intron and connector lines with their strand chevrons, the boxes, and
+#' the strand arrows. `geom_jbrowse_labels()` writes the names and
+#' descriptions the display shows at this zoom, at its text size scaled to the
+#' panel. Each mark table carries its feature's `name`, `type` and `strand`
+#' beside the display's `color`, so `aes(fill = type)` colors the boxes by
+#' feature type through ggplot's own scales; a `fill` mapping reaches the
+#' boxes and a `colour` mapping the lines.
+#' @param mapping aesthetics that override the defaults
+#' @param data a [jbrowse_features()] result, or `NULL` for the plot's
+#' @param ... passed to [ggplot2::layer()] params
+#' @return a list of ggplot layers
+#' @export
+#' @examples
+#' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
+#' g <- jbrowse_features(gff, "ctgA", 0, 25000)
+#' library(ggplot2)
+#' ggplot(g) + geom_jbrowse_glyphs(aes(fill = type)) + scale_y_reverse()
+geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
+  list(
+    jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$lines,
+      for_geom(mapping, ggplot2::GeomSegment),
+      ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = color),
+      list(linewidth = 0.3, ...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomSegment, data, chevron_arms,
+      for_geom(mapping, ggplot2::GeomSegment),
+      ggplot2::aes(x = x, xend = xend, y = y0, yend = yend, colour = color),
+      list(linewidth = 0.3, ...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomRect, data, function(x) x$rects,
+      for_geom(mapping, ggplot2::GeomRect),
+      ggplot2::aes(xmin = start, xmax = end, ymin = top, ymax = top + height,
+        fill = color), list(...)),
+    jbrowse_layer(ggplot2::GeomRect, data, arrow_stems,
+      for_geom(mapping, ggplot2::GeomRect),
+      ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
+        fill = color), list(...), keyed = FALSE),
+    jbrowse_layer(ggplot2::GeomPolygon, data, arrow_heads,
+      for_geom(mapping, ggplot2::GeomPolygon),
+      ggplot2::aes(x = x, y = y, group = id, fill = color), list(...),
+      keyed = FALSE))
+}
+
+#' @rdname geom_jbrowse_glyphs
+#' @export
+geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
+  labels <- function(x) {
+    d <- x$labels
+    n <- nrow(d)
+    d$size <- rep(x$glyph$fontSize, n)
+    d$px_wide <- rep((x$region$end - x$region$start) / x$bp_per_px, n)
+    d$px_tall <- rep(x$height, n)
+    d
+  }
+  jbrowse_layer(GeomDisplayText, data, labels, mapping,
+    ggplot2::aes(x = position, y = y, label = text, colour = color,
+      size = I(size), px_wide = I(px_wide), px_tall = I(px_tall)),
+    list(hjust = 0, vjust = 1, ...), keyed = FALSE)
+}
+
 #' Draw features as JBrowse's feature track
 #'
-#' Each feature's glyph on its row: the boxes in the colors the display's
-#' `color` object paints, the intron lines with their strand chevrons, the
-#' strand arrows, and the labels, at the pixel sizes the display draws them.
-#' The y axis is the display's pixels. Labels scale with the panel: at draw
-#' time they take the display's pixel size across the panel's width or down
-#' its height, whichever is smaller, so they keep inside the room the layout
-#' left them at any output size.
+#' Each feature's glyph on its row ([geom_jbrowse_glyphs()]) and the labels
+#' the display shows ([geom_jbrowse_labels()]), keyed by the display's
+#' `color` object. The y axis is the display's pixels. Labels scale with the
+#' panel: at draw time they take the display's pixel size across the panel's
+#' width or down its height, whichever is smaller, so they keep inside the
+#' room the layout left them at any output size.
 #'
 #' @param object a [jbrowse_features()] result
 #' @param ... unused
@@ -177,56 +287,14 @@ print.jbrowse_features <- function(x, ...) {
 #' g <- jbrowse_features(gff, "ctgA", 0, 25000)
 #' autoplot(g)
 autoplot.jbrowse_features <- function(object, ...) {
-  bp <- object$bp_per_px
-  glyph <- object$glyph
-  xlim <- c(object$region$start, object$region$end)
-  legend <- object$legend
-  keyed <- legend[!duplicated(legend$color), , drop = FALSE]
-  chev <- object$chevrons
-  half_w <- glyph$chevronWidth / 2 * bp
-  half_h <- glyph$chevronHeight / 2
-  chevron_arms <- rbind(
-    data.frame(x = chev$position - half_w * chev$direction, y = chev$y - half_h,
-      xend = chev$position + half_w * chev$direction, yend = chev$y,
-      color = chev$color),
-    data.frame(x = chev$position + half_w * chev$direction, y = chev$y,
-      xend = chev$position - half_w * chev$direction, yend = chev$y + half_h,
-      color = chev$color))
-  a <- object$arrows
-  stem_end <- a$position + glyph$arrowLength / 2 * bp * a$direction
-  tip <- a$position + glyph$arrowLength * bp * a$direction
-  heads <- do.call(rbind, lapply(seq_len(nrow(a)), function(i) data.frame(
-    id = i, x = c(stem_end[i], stem_end[i], tip[i]),
-    y = a$y[i] + c(-1, 1, 0) * a$head_half_height[i], color = a$color[i])))
-  heads <- heads %||% data.frame(id = integer(0), x = numeric(0),
-    y = numeric(0), color = character(0))
-  labels <- object$labels
-  ggplot2::ggplot() +
-    ggplot2::geom_segment(ggplot2::aes(x = start, xend = end, y = y, yend = y,
-      colour = color), object$lines, linewidth = 0.3) +
-    ggplot2::geom_segment(ggplot2::aes(x = x, xend = xend, y = y, yend = yend,
-      colour = color), chevron_arms, linewidth = 0.3) +
-    ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = top,
-      ymax = top + height, fill = color), object$rects) +
-    ggplot2::scale_fill_identity(name = attr(legend, "title"),
-      breaks = keyed$color, labels = keyed$label,
-      guide = if (nrow(keyed)) "legend" else "none") +
-    ggplot2::geom_rect(ggplot2::aes(xmin = pmin(position, stem_end),
-      xmax = pmax(position, stem_end), ymin = y - glyph$arrowStemHalfHeight,
-      ymax = y + glyph$arrowStemHalfHeight, fill = color),
-      cbind(a, stem_end = stem_end)) +
-    ggplot2::geom_polygon(ggplot2::aes(x = x, y = y, group = id, fill = color),
-      heads) +
-    ggplot2::layer(geom = GeomDisplayText, stat = "identity",
-      position = "identity", data = labels,
-      mapping = ggplot2::aes(x = position, y = y, label = text,
-        colour = color),
-      params = list(hjust = 0, vjust = 1, size = glyph$fontSize,
-        px_wide = diff(xlim) / bp, px_tall = object$height)) +
-    ggplot2::scale_colour_identity() +
+  ggplot2::ggplot(object) +
+    geom_jbrowse_glyphs() +
+    scale_fill_jbrowse(object) +
+    geom_jbrowse_labels() +
     ggplot2::scale_y_reverse() +
-    ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, object$height),
-      expand = FALSE) +
+    ggplot2::coord_cartesian(
+      xlim = c(object$region$start, object$region$end),
+      ylim = c(0, object$height), expand = FALSE) +
     ggplot2::labs(x = sprintf("%s (bp)", object$region$chrom), y = NULL) +
     ggplot2::theme_minimal() +
     no_y

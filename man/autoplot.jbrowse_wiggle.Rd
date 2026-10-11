@@ -16,10 +16,8 @@ a ggplot, to extend or to stack over an alignments track with
 patchwork
 }
 \description{
-The marks the display draws, in its colors and paint order: bars from the
-origin, a stepped or interpolated line with its whisker band, points, or
-density, on the score axis the display autoscales to, with its reference
-lines.
+\code{\link[=geom_jbrowse_wiggle]{geom_jbrowse_wiggle()}} and \code{\link[=geom_jbrowse_rules]{geom_jbrowse_rules()}} on the score axis the
+display autoscales to, a row per source where the display gives each one.
 }
 \examples{
 bw <- system.file("extdata", "volvox_microarray_posneg.bw",

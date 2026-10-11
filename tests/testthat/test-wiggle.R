@@ -35,7 +35,7 @@ test_that("each plot type draws every mark", {
     x <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = mark,
       extent = "none"))
     built <- ggplot2::ggplot_build(ggplot2::autoplot(x))
-    expect_equal(nrow(built$data[[2]]), nrow(x$marks))
+    expect_equal(sum(vapply(built$data[2:6], nrow, 1L)), nrow(x$marks))
   }
 })
 
