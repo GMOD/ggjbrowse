@@ -27,6 +27,60 @@ test_that("a CRAM reads as the same tables as its BAM", {
   expect_equal(mm(cram), mm(bam))
 })
 
+test_that("insertions and clips sit on their reads, in the track's layers", {
+  l <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000, 20000)
+  expect_gt(nrow(l$insertions), 0)
+  expect_true(all(l$insertions$position >= l$reads$start[l$insertions$read] &
+    l$insertions$position <= l$reads$end[l$insertions$read]))
+  expect_equal(nchar(l$insertions$sequence), l$insertions$length)
+  expect_setequal(unique(l$clips$type), c("soft", "hard"))
+  expect_equal(l$clips$row, l$reads$row[l$clips$read])
+  p <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup"))
+  layers <- vapply(p$data, nrow, 1L)
+  expect_equal(layers[5], nrow(l$insertions))
+  expect_equal(layers[6] + layers[7], nrow(l$clips))
+  # sequencing-error insertions on 20 long reads fade toward the floor
+  faded <- p$data[[5]]$alpha
+  expect_true(any(faded < 1))
+  expect_true(all(faded >= (1200 / 19000)^2 - 1e-9))
+  opaque <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup",
+    fade_low_frequency = FALSE))$data[[5]]$alpha
+  expect_true(all(opaque == 1))
+})
+
+test_that("the coverage band stacks each position's alleles", {
+  cov <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage"))
+  alleles <- cov$data[[2]]
+  expect_gt(nrow(alleles), 0)
+  covered <- bam$mismatches[bam$mismatches$position >= min(bam$coverage$start) &
+    bam$mismatches$position < max(bam$coverage$end), ]
+  expect_equal(nrow(alleles), nrow(unique(covered[c("position", "base")])))
+  expect_true(all(alleles$ymin >= 0 & alleles$ymax > alleles$ymin))
+  depth <- bam$coverage$depth[findInterval(alleles$xmin, bam$coverage$start)]
+  expect_true(all(alleles$ymax <= depth + 1e-9))
+  strict <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage",
+    min_allele_frequency = 0.5))$data[[2]]
+  expect_lt(nrow(strict), nrow(alleles))
+  share <- (strict$ymax - strict$ymin) /
+    bam$coverage$depth[findInterval(strict$xmin, bam$coverage$start)]
+  expect_true(all(share >= 0.5))
+})
+
+test_that("splice junctions arc over the coverage, counted and stranded", {
+  s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300,
+    reference = extdata("volvox.fa"))
+  expect_equal(nrow(s$junctions), 2)
+  expect_equal(sum(s$junctions$count), sum(s$gaps$type == "skip"))
+  expect_true(all(s$junctions$strand %in% c(1, -1, 0)))
+  arcs <- ggplot2::ggplot_build(ggplot2::autoplot(s, "junctions",
+    min_junction_reads = 1))
+  expect_equal(length(unique(arcs$data[[1]]$group)), 2)
+  expect_equal(nrow(arcs$data[[2]]), 2)
+  track <- ggplot2::autoplot(s)
+  expect_s3_class(track, "patchwork")
+  expect_s3_class(ggplot2::autoplot(bam), "patchwork")
+})
+
 test_that("a spliced read splits into its blocks at its skips", {
   s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300)
   skips <- s$gaps[s$gaps$type == "skip", ]

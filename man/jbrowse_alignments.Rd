@@ -53,14 +53,24 @@ a \code{jbrowse_alignments} list of data frames:
 as \verb{#rrggbb}) and \code{category} (the bucket the display files the read
 under: \code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...)
 \item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{row}, \code{frequency} (how many
-reads carry that base there, over the depth), \code{quality}
-\item \code{gaps}: \code{start}, \code{end}, \code{type} (\code{"deletion"} or \code{"skip"}), \code{read}, \code{row}
+reads carry that base there, over the depth), \code{quality}, \code{fade}
+\item \code{gaps}: \code{start}, \code{end}, \code{type} (\code{"deletion"} or \code{"skip"}), \code{read}, \code{row},
+\code{fade}
+\item \code{insertions}: \code{position}, \code{length}, \code{sequence}, \code{read}, \code{row}, \code{fade}
+\item \code{clips}: \code{position}, \code{length}, \code{type} (\code{"soft"} or \code{"hard"}), \code{read},
+\code{row}, \code{fade}
 \item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}
+\item \code{junctions}: the reads' splice gaps merged, each once: \code{start}, \code{end},
+\code{count} (the reads supporting it), \code{strand} (1, -1, or 0 where neither
+the reads' tags nor the splice motif says) and \code{motif} (\code{"GT-AG (canonical)"}, \code{"non-canonical"}, or \code{""} where the region's sequence
+does not cover both ends)
 \item \code{legend}: \code{label} and \code{color}, the key the display shows for \code{color},
 its title as the frame's \code{"title"} attribute
 }
 
-\code{read} is a row number of \code{reads}.
+\code{read} is a row number of \code{reads}. \code{fade} is the share of the depth a
+mark's site holds, zeroed under the display's depth-dependent threshold,
+which the pileup fades a sub-pixel mark by.
 }
 \description{
 Runs JBrowse's own alignments engine in V8: the reads it fetches, the

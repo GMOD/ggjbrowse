@@ -8,9 +8,10 @@ Genome browser tracks as data frames for ggplot2. `jbrowse_alignments()` reads
 a region of a BAM or CRAM through the [JBrowse 2](https://jbrowse.org) genome
 browser's own data engine, run in V8, and returns what its alignments display
 draws: each read on its pileup row, filled as the display's `color` setting
-paints it, with its mismatches, deletions and splice gaps, the coverage, and
-the display's key. A plot is an ordinary ggplot: themes, scales, `patchwork`
-and `ggsave()` all work.
+paints it, with its mismatches, deletions, insertions, clips and splice gaps,
+the coverage, the splice junctions and the display's key. `autoplot()` draws
+the browser's track from them, and a plot is an ordinary ggplot: themes,
+scales, `patchwork` and `ggsave()` all work.
 
 ```r
 remotes::install_github("GMOD/ggjbrowse")
@@ -18,13 +19,37 @@ remotes::install_github("GMOD/ggjbrowse")
 
 ```r
 library(ggjbrowse)
-library(patchwork)
 
 a <- jbrowse_alignments("rnaseq.bam", "ctgA", 400, 1300, color = "strand")
-autoplot(a, "coverage") / autoplot(a)
+autoplot(a)
 ```
 
-![RNA-seq reads over two exons of volvox ctgA, split at their introns](man/figures/spliced.png)
+![RNA-seq reads over two exons of volvox ctgA: junction arcs, the coverage band and the pileup, split at the introns](man/figures/spliced.png)
+
+The track is the display's stack: splice-junction arcs where the reads
+splice, each counted and colored by strand; the coverage band with every
+mismatch position's alleles stacked in their base colors; and the pileup,
+each read filled as the browser fills it, with its mismatches, deletions,
+insertions and soft or hard clips, each faded as the browser fades it where
+it is narrower than a pixel and rarer than the depth there warrants, so
+sequencing errors recede and shared variants stand. Zoomed in far enough, the
+bases and insertion lengths are written out.
+
+```r
+l <- jbrowse_alignments("long-reads.bam", "ctgA", 1000, 2700, color = "strand")
+autoplot(l)
+```
+
+![Long reads over a volvox structural variant: soft clips at the breakpoints, insertions along the reads](man/figures/long-reads.png)
+
+```r
+autoplot(jbrowse_alignments("reads.bam", "ctgA", 1000, 1120, color = "mapq"))
+```
+
+![120 bp of volvox reads, colored by mapping quality, with the mismatched bases written out](man/figures/zoom.png)
+
+Each band is its own ggplot too (`autoplot(a, "pileup")`,
+`"coverage"`, `"junctions"`), to restyle or stack with patchwork.
 
 The tables are plain data frames, so a figure can be any ggplot over them:
 
@@ -74,10 +99,10 @@ committed bundle once R CMD check passes.
 
 ## Not yet
 
-Feature tracks (GFF3, BED, BigBed gene models), BigWig and VCF; insertions,
-clips, modifications and per-base colors on reads; a legend for a linear
-color ramp. A CRAN release, which needs the bundle's own dependencies credited
-(`cph` and a LICENSE.note) and its source named.
+Feature tracks (GFF3, BED, BigBed gene models), BigWig and VCF;
+modifications and per-base colors on reads; read-pair arcs; a legend for a
+linear color ramp. A CRAN release, which needs the bundle's own dependencies
+credited (`cph` and a LICENSE.note) and its source named.
 
 ## See also
 

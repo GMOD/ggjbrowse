@@ -7,7 +7,8 @@
 jbrowse_colors()
 }
 \description{
-\code{read} (the plain fill), \code{forward} and \code{reverse} (each strand), \code{skip},
-\code{deletion}, \code{coverage} and \code{bases} (a named vector, one per mismatch base),
-read from the engine's own palette.
+\code{read} (the plain fill), \code{forward} and \code{reverse} (each strand, a splice
+junction's too), \code{skip}, \code{deletion}, \code{insertion}, \code{softclip}, \code{hardclip},
+\code{coverage} and \code{bases} (a named vector, one per mismatch base), read from
+the engine's own palette.
 }

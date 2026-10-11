@@ -7,5 +7,6 @@ NULL
 
 utils::globalVariables(c(
   "start", "end", "row", "strand", "position", "base", "type", "depth",
-  "color"
+  "color", "ymin", "ymax", "x", "y", "id", "width", "label", "length",
+  "alpha"
 ))

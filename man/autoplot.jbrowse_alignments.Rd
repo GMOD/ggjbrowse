@@ -2,28 +2,60 @@
 % Please edit documentation in R/autoplot.R
 \name{autoplot.jbrowse_alignments}
 \alias{autoplot.jbrowse_alignments}
-\title{Draw alignments as JBrowse's pileup or coverage band}
+\title{Draw alignments as JBrowse's alignments track, or one band of it}
 \usage{
-\method{autoplot}{jbrowse_alignments}(object, what = c("pileup", "coverage"), ...)
+\method{autoplot}{jbrowse_alignments}(
+  object,
+  what = c("track", "pileup", "coverage", "junctions"),
+  min_allele_frequency = 0,
+  min_junction_reads = 2,
+  letters = NULL,
+  fade_low_frequency = TRUE,
+  px_per_bp = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result}
 
-\item{what}{\code{"pileup"} (each read on its row, split at its splice gaps, with
-its deletions and mismatches, filled as the display's \code{color} object
-paints it and keyed as the display keys it) or \code{"coverage"}}
+\item{what}{\code{"track"}: the display's stack, splice-junction arcs where the
+reads splice, the coverage band and the pileup, one above the other on a
+shared axis; \code{"pileup"}: each read on its row, split at its splice gaps,
+filled as the display's \code{color} object paints it and keyed as the display
+keys it, with its mismatches, deletions, insertions and clips;
+\code{"coverage"}: the depth, each mismatch position's alleles stacked in its
+bases' colors; \code{"junctions"}: the arcs alone}
+
+\item{min_allele_frequency}{hide a coverage-band allele segment whose share
+of the depth there is below this, the display's \code{coverageSnpMinFrequency}}
+
+\item{min_junction_reads}{hide a junction arc with fewer supporting reads,
+the display's \code{minSashimiScore}}
+
+\item{letters}{write each mismatch's base and each insertion's length on
+the pileup; \code{NULL} does so where the region is at most 300 bp, where a
+base is wide enough to read}
+
+\item{fade_low_frequency}{fade a mismatch, indel or clip narrower than a
+pixel by its site's share of the depth, as the display does
+(\code{fadeLowFrequencyMismatches}), so sequencing errors recede on a deep
+pileup; \code{FALSE} draws every mark opaque}
+
+\item{px_per_bp}{how many pixels a base spans, which that fade reads;
+\code{NULL} takes a figure about 1200 pixels wide}
 
 \item{...}{unused}
 }
 \value{
 a ggplot, to extend with layers, scales and themes or to stack with
-patchwork
+patchwork; a \code{"track"} is a patchwork of its bands
 }
 \description{
-Draw alignments as JBrowse's pileup or coverage band
+Draw alignments as JBrowse's alignments track, or one band of it
 }
 \examples{
-bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-a <- jbrowse_alignments(bam, "ctgA", 1000, 3000, color = "strand")
+bam <- system.file("extdata", "spliced.bam", package = "ggjbrowse")
+a <- jbrowse_alignments(bam, "ctgA", 400, 1300, color = "strand")
 autoplot(a)
+autoplot(a, "pileup") + ggplot2::theme_classic()
 }

@@ -51,13 +51,24 @@ sequence_adapter <- function(reference) {
 #'     as `#rrggbb`) and `category` (the bucket the display files the read
 #'     under: `fwdStrand`, `mapq`, `unmappedMate`, ...)
 #'   * `mismatches`: `position`, `base`, `read`, `row`, `frequency` (how many
-#'     reads carry that base there, over the depth), `quality`
-#'   * `gaps`: `start`, `end`, `type` (`"deletion"` or `"skip"`), `read`, `row`
+#'     reads carry that base there, over the depth), `quality`, `fade`
+#'   * `gaps`: `start`, `end`, `type` (`"deletion"` or `"skip"`), `read`, `row`,
+#'     `fade`
+#'   * `insertions`: `position`, `length`, `sequence`, `read`, `row`, `fade`
+#'   * `clips`: `position`, `length`, `type` (`"soft"` or `"hard"`), `read`,
+#'     `row`, `fade`
 #'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`
+#'   * `junctions`: the reads' splice gaps merged, each once: `start`, `end`,
+#'     `count` (the reads supporting it), `strand` (1, -1, or 0 where neither
+#'     the reads' tags nor the splice motif says) and `motif` (`"GT-AG
+#'     (canonical)"`, `"non-canonical"`, or `""` where the region's sequence
+#'     does not cover both ends)
 #'   * `legend`: `label` and `color`, the key the display shows for `color`,
 #'     its title as the frame's `"title"` attribute
 #'
-#'   `read` is a row number of `reads`.
+#'   `read` is a row number of `reads`. `fade` is the share of the depth a
+#'   mark's site holds, zeroed under the display's depth-dependent threshold,
+#'   which the pileup fades a sub-pixel mark by.
 #' @export
 #' @examples
 #' bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
@@ -89,7 +100,9 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
   attr(legend, "title") <- t$legendTitle
   structure(
     list(reads = reads, mismatches = on_read(t$mismatches),
-      gaps = on_read(t$gaps), coverage = as_frame(t$coverage), legend = legend,
+      gaps = on_read(t$gaps), insertions = on_read(t$insertions),
+      clips = on_read(t$clips), coverage = as_frame(t$coverage),
+      junctions = as_frame(t$junctions), legend = legend,
       region = list(chrom = chrom, start = start, end = end)),
     class = "jbrowse_alignments")
 }
@@ -107,8 +120,9 @@ color_object <- function(color) {
 #' @export
 print.jbrowse_alignments <- function(x, ...) {
   cat(sprintf(
-    "<jbrowse_alignments> %s:%.0f-%.0f, %d reads on %d rows, %d mismatches, %d gaps\n",
+    "<jbrowse_alignments> %s:%.0f-%.0f, %d reads on %d rows, %d mismatches, %d gaps, %d insertions, %d clips, %d junctions\n",
     x$region$chrom, x$region$start, x$region$end, nrow(x$reads),
-    length(unique(x$reads$row)), nrow(x$mismatches), nrow(x$gaps)))
+    length(unique(x$reads$row)), nrow(x$mismatches), nrow(x$gaps),
+    nrow(x$insertions), nrow(x$clips), nrow(x$junctions)))
   invisible(x)
 }

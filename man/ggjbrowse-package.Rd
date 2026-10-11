@@ -6,7 +6,7 @@
 \alias{ggjbrowse-package}
 \title{ggjbrowse: Genome Browser Tracks as Data Frames for 'ggplot2'}
 \description{
-Reads a region of a BAM or CRAM file as the 'JBrowse 2' genome browser draws it, through the browser's own data engine run in 'V8': the reads on their pileup rows, their mismatches, deletions and splice gaps, and the coverage, each as a data frame to plot with 'ggplot2'.
+Reads a region of a BAM or CRAM file as the 'JBrowse 2' genome browser draws it, through the browser's own data engine run in 'V8': the reads on their pileup rows in the browser's colors, their mismatches, gaps, insertions and clips, the coverage and the splice junctions, each as a data frame, and draws the browser's track with 'ggplot2'.
 }
 \seealso{
 Useful links:
