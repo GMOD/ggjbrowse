@@ -26,3 +26,10 @@ meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
   reference = extdata("hg38_clip.fa"), base_color = "modifications",
   modifications = list(unmodified = "calls"))
 save("methylation.png", autoplot(meth), 4)
+
+genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA", 1000, 10000,
+  display = list(showOnlyGenes = TRUE))
+reads <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 1000, 10000,
+  reference = extdata("volvox.fa"), color = "strand")
+save("genes-over-reads.png",
+  autoplot(reads, features = genes, figure_width_mm = 254), 7)

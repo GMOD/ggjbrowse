@@ -12,13 +12,16 @@
   letters = NULL,
   fade_low_frequency = TRUE,
   px_per_bp = NULL,
+  features = NULL,
+  figure_width_mm = 170,
   ...
 )
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result}
 
-\item{what}{\code{"track"}: the display's stack, splice-junction arcs where the
+\item{what}{\code{"track"}: the display's stack, any \code{features} tracks on top,
+then splice-junction arcs where the
 reads splice, the coverage band, the reference's bases where they are
 wide enough to read and the pileup, one above the other on a shared
 axis; \code{"pileup"}: each read on its row, split at its splice gaps, filled
@@ -46,6 +49,12 @@ pileup; \code{FALSE} draws every mark opaque}
 \item{px_per_bp}{how many pixels a base spans, which that fade reads;
 \code{NULL} takes a figure about 1200 pixels wide}
 
+\item{features}{feature tracks to draw above a \code{"track"}, each a
+\code{\link[=jbrowse_features]{jbrowse_features()}} result over the same region, or a list of them}
+
+\item{figure_width_mm}{the width the figure is printed at, which sizes the
+feature tracks' labels (see \code{\link[=autoplot.jbrowse_features]{autoplot.jbrowse_features()}})}
+
 \item{...}{unused}
 }
 \value{
@@ -60,4 +69,6 @@ bam <- system.file("extdata", "spliced.bam", package = "ggjbrowse")
 a <- jbrowse_alignments(bam, "ctgA", 400, 1300, color = "strand")
 autoplot(a)
 autoplot(a, "pileup") + ggplot2::theme_classic()
+gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
+autoplot(a, features = jbrowse_features(gff, "ctgA", 400, 1300))
 }

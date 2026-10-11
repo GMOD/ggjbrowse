@@ -82,9 +82,34 @@ display paints it and the bucket it files it under, each modification call
 with its color and opacity, the coverage band's stacks as the display stacks
 them, and `a$legend` is the display's key.
 
+## Feature tracks
+
+`jbrowse_features()` reads a GFF3, GTF, BED or BigBed region through
+JBrowse's feature display and returns what it draws: each feature on its
+row, its gene glyph's boxes, intron lines, strand chevrons and arrows in
+their colors, its transcripts, and the labels the display shows at that
+zoom. `display` takes the display's own settings (`color`, `displayMode`,
+`showLabels`, `geneGlyphMode`, `showOnlyGenes`, ...), and `width` is the
+pixel width the display lays the region out across, which decides which
+names fit. Draw it over reads with `features`:
+
+```r
+genes <- jbrowse_features("genes.gff3.gz", "ctgA", 1000, 10000,
+  display = list(showOnlyGenes = TRUE))
+reads <- jbrowse_alignments("rnaseq.bam", "ctgA", 1000, 10000,
+  color = "strand")
+autoplot(reads, features = genes, figure_width_mm = 254)
+```
+
+![EDEN's three isoforms and two smaller genes over spliced RNA-seq reads on volvox ctgA](man/figures/genes-over-reads.png)
+
+The y axis of a feature track is the display's pixels, and text is drawn at
+the display's label size for a figure `figure_width_mm` wide.
+
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There
-is no Bioconductor dependency: the BAM, CRAM and FASTA readers are JBrowse's.
+is no Bioconductor dependency: the BAM, CRAM, FASTA, GFF3, BED and BigBed
+readers are JBrowse's.
 
 ## The engine
 
@@ -111,9 +136,9 @@ committed bundle once R CMD check passes.
 
 ## Not yet
 
-Feature tracks (GFF3, BED, BigBed gene models), BigWig and VCF; per-base
-quality and bisulfite layers; read-pair arcs; a legend for a linear color
-ramp. A CRAN release, which needs the bundle's own dependencies credited
+BigWig and VCF; per-base quality and bisulfite layers; read-pair arcs; a
+legend for a linear color ramp; facets on a feature track; the amino-acid
+overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.
 
 ## See also

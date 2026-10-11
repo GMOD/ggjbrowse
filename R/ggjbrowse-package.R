@@ -8,5 +8,6 @@ NULL
 utils::globalVariables(c(
   "start", "end", "row", "strand", "position", "base", "type", "depth",
   "color", "ymin", "ymax", "x", "y", "id", "width", "label", "length",
-  "alpha", "opacity", "tint", "from", "to"
+  "alpha", "opacity", "tint", "from", "to", "top", "height", "xend", "yend",
+  "stem_end", "text"
 ))
