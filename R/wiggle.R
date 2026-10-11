@@ -214,6 +214,7 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
 #'   package = "ggjbrowse")
 #' autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000))
 autoplot.jbrowse_wiggle <- function(object, ...) {
+  object <- on_axis(object)
   density <- object$rendering == "density"
   p <- ggplot2::ggplot(object) +
     geom_jbrowse_wiggle() +

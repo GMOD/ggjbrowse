@@ -38,8 +38,11 @@ engine <- local({
       fresh <- V8::v8()
       fresh$eval(paste(
         "var jbrowseHost = { readRange: function(url, start, end) {",
-        "return console.r.call('ggjbrowse:::read_range',",
-        "{ url: url, start: start, end: end }) } }"))
+        "return console.r.call('ggjbrowse:::read_range_deferring',",
+        "{ url: url, start: start, end: end }) } };",
+        "var ggjbrowseWarnings = [];",
+        "console.warn = console.error = function() {",
+        "ggjbrowseWarnings.push(Array.prototype.join.call(arguments, ' ')) }"))
       fresh$source(system.file("js", "jbrowse-tables.js", package = "ggjbrowse"))
       ctx <<- fresh
     }
@@ -55,8 +58,30 @@ engine <- local({
 #' @export
 jbrowse_reset <- function() engine(reset = TRUE)
 
+# V8 raises console.warn as an R warning and console.error as an R error from
+# inside its own frames, and a handler that unwinds through them (tryCatch,
+# options(warn = 2)) leaves the context broken, so the next call aborts R.
+# The engine's warnings and read_range()'s wait in a queue and are raised
+# here, once the call has returned.
+deferred <- new.env()
+deferred$warnings <- character(0)
+
+read_range_deferring <- function(url, start, end) {
+  withCallingHandlers(read_range(url, start, end), warning = function(w) {
+    deferred$warnings <- c(deferred$warnings, conditionMessage(w))
+    invokeRestart("muffleWarning")
+  })
+}
+
 call_engine <- function(table, args) {
-  json <- engine()$call(sprintf("jbrowse.%s", table),
+  ctx <- engine()
+  on.exit({
+    queued <- c(deferred$warnings, unlist(ctx$get("ggjbrowseWarnings")))
+    deferred$warnings <- character(0)
+    ctx$eval("ggjbrowseWarnings = []")
+    for (w in unique(queued)) warning(w, call. = FALSE)
+  })
+  json <- ctx$call(sprintf("jbrowse.%s", table),
     as.character(jsonlite::toJSON(args, auto_unbox = TRUE)), await = TRUE)
   jsonlite::fromJSON(json, simplifyVector = TRUE, simplifyDataFrame = FALSE)
 }

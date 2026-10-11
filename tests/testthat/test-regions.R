@@ -11,19 +11,22 @@ test_that("a locus reads as JBrowse's location box writes it, 1-based", {
   expect_error(jbrowse_features(gff, "ctgA"), "ctgA:1,001-9,000")
 })
 
-test_that("several regions lie end to end, each read as it reads alone", {
+test_that("several regions keep their genomic positions and draw end to end", {
   loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
   both <- jbrowse_alignments(bam, loci)
   alone <- jbrowse_alignments(bam, loci[2])
   r <- both$regions
   second <- both$reads[both$reads$.region == 2, ]
-  expect_equal(nrow(second), nrow(alone$reads))
-  expect_equal(min(second$start), max(min(alone$reads$start), 6000) -
-    r$start[2] + r$offset[2])
+  expect_equal(second$start, alone$reads$start)
+  expect_equal(unique(second$chrom), "ctgA")
   m <- both$mismatches
   expect_true(all(m$position >= both$reads$start[m$read] &
     m$position < both$reads$end[m$read]))
   expect_true(all(m$.region == both$reads$.region[m$read]))
+  drawn <- on_axis(both)$reads
+  expect_equal(min(drawn$start[drawn$.region == 2]),
+    max(min(alone$reads$start), 6000) - r$start[2] + r$offset[2])
+  expect_equal(ggplot2::fortify(both)$start, drawn$start)
   expect_equal(c(both$region$start, both$region$end),
     c(min(r$cum_start), max(r$cum_end)))
 })

@@ -28,11 +28,11 @@ print.jbrowse_color <- function(x, ...) print(unclass(x), ...)
 #' @exportS3Method ggplot2::scale_type
 scale_type.jbrowse_color <- function(x) "identity"
 
-# What a geom draws: the jbrowse result its plot or its `data` holds, read
-# through `pick`, or a data frame the caller handed it as is
+# What a geom draws: the jbrowse result its plot or its `data` holds, on its
+# axis and read through `pick`, or a data frame the caller handed it as is
 table_from <- function(data, pick) {
   if (inherits(data, "jbrowse_result")) {
-    return(pick(data))
+    return(pick(on_axis(data)))
   }
   if (is.null(data)) {
     return(function(plot_data) {
@@ -41,7 +41,7 @@ table_from <- function(data, pick) {
         stop("a jbrowse geom needs ggplot(<jbrowse result>) or data = <jbrowse result>",
           call. = FALSE)
       }
-      pick(model)
+      pick(on_axis(model))
     })
   }
   data
@@ -65,7 +65,7 @@ jbrowse_layer <- function(geom, data, pick, mapping, defaults, params,
 
 #' @exportS3Method ggplot2::fortify
 fortify.jbrowse_result <- function(model, data, ...) {
-  structure(model[[attr(model, "primary")]], jbrowse = model)
+  structure(on_axis(model)[[attr(model, "primary")]], jbrowse = model)
 }
 
 # A key frame as an identity scale's breaks and labels, its line swatches

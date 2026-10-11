@@ -318,6 +318,7 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 #' g <- jbrowse_features(gff, "ctgA", 0, 25000)
 #' autoplot(g)
 autoplot.jbrowse_features <- function(object, ...) {
+  object <- on_axis(object)
   ggplot2::ggplot(object) +
     geom_jbrowse_glyphs() +
     scale_fill_jbrowse(object) +

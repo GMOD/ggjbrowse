@@ -167,6 +167,7 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
 autoplot.jbrowse_variants <- function(object,
                                       layout = c("genomic", "columns"), ...) {
   layout <- match.arg(layout)
+  object <- on_axis(object)
   rows <- object$rows$name
   genomic <- layout == "genomic"
   ggplot2::ggplot(object) +

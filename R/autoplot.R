@@ -221,6 +221,7 @@ autoplot.jbrowse_alignments <- function(object,
                                         px_per_bp = NULL, tracks = NULL,
                                         ...) {
   what <- match.arg(what)
+  object <- on_axis(object)
   o <- alignment_options(object, min_allele_frequency, min_junction_reads,
     letters, fade_low_frequency, px_per_bp)
   xlab <- axis_label(object)
@@ -265,6 +266,7 @@ alignment_options <- function(object, min_allele_frequency = NULL,
 
 # An alignments track's bands, top to bottom, and their relative heights
 alignment_bands <- function(object, o = alignment_options(object)) {
+  object <- on_axis(object)
   xlab <- axis_label(object)
   xlim <- xlim_of(object)
   sections <- nrow(object$sections)
