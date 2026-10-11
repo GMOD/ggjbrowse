@@ -16,6 +16,7 @@ jbrowse_alignments(
   filter = NULL,
   base_color = NULL,
   modifications = NULL,
+  sort = NULL,
   byte_limit = 2e+08
 )
 }
@@ -56,6 +57,12 @@ probability under which a call is hidden, 10), \code{unmodified} (\code{"hidden"
 \code{cytosineContext} (\code{"CG"}, \code{"CHG"}, \code{"CHH"} or \code{"all"}) and
 \code{shownModifications} (the type codes drawn, every one when empty)}
 
+\item{sort}{how the rows are laid out, as the display's \code{sort} object: a
+whole-window order (\code{"position"}, \code{"length"}, \code{"spliced"}, \code{"split"}), or
+a list with \code{type} (\code{"strand"}, \code{"basePair"}, \code{"tag"}, \code{"insertion"},
+\code{"softclip"} or \code{"hardclip"}) and \code{pos}, the 0-based column the reads
+are ranked over, plus \code{tag} under \code{"tag"}}
+
 \item{byte_limit}{the most compressed bytes the region may need, refused off
 the index before any read is fetched; the whole table is held in memory}
 }
@@ -79,6 +86,11 @@ reads carry that base there, over the depth), \code{quality}, \code{fade}
 modified), and the \code{color} and \code{opacity} the display paints it at;
 empty without \code{base_color}
 \item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}
+\item \code{allele_coverage}: the coverage band's stack at each mismatch position,
+as the display stacks it: \code{position}, \code{base}, \code{from} and \code{to} (the
+allele's share of the bar, from the bottom) and the \code{depth} there
+\item \code{modification_coverage}: the band's stack of modification states under
+\code{base_color}: \code{position}, \code{from}, \code{to}, \code{depth}, \code{color}, \code{opacity}
 \item \code{junctions}: the reads' splice gaps merged, each once: \code{start}, \code{end},
 \code{count} (the reads supporting it), \code{strand} (1, -1, or 0 where neither
 the reads' tags nor the splice motif says) and \code{motif} (\code{"GT-AG (canonical)"}, \code{"non-canonical"}, or \code{""} where the region's sequence

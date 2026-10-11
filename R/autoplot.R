@@ -39,30 +39,6 @@ read_blocks <- function(x) {
   do.call(rbind, c(list(reads[!spliced, , drop = FALSE]), blocks))
 }
 
-# A mismatch position's alleles as the coverage band stacks them: each base's
-# read count at the position, from the bottom of the bar up, with the share of
-# the depth it holds; a segment under `min_frequency` is left out and the grey
-# depth shows through, as the display's coverageSnpMinFrequency hides it.
-allele_stack <- function(x, min_frequency) {
-  m <- x$mismatches
-  none <- data.frame(position = numeric(0), base = character(0),
-    ymin = numeric(0), ymax = numeric(0))
-  if (!nrow(m)) return(none)
-  counts <- stats::aggregate(list(n = rep(1, nrow(m))),
-    m[c("position", "base")], sum)
-  cov <- x$coverage
-  bin <- findInterval(counts$position, cov$start)
-  depth <- ifelse(bin > 0 & counts$position < cov$end[pmax(bin, 1)],
-    cov$depth[pmax(bin, 1)], NA)
-  counts <- counts[!is.na(depth) & counts$n / depth >= min_frequency, ,
-    drop = FALSE]
-  if (!nrow(counts)) return(none)
-  counts <- counts[order(counts$position, counts$base), ]
-  counts$ymax <- stats::ave(counts$n, counts$position, FUN = cumsum)
-  counts$ymin <- counts$ymax - counts$n
-  counts
-}
-
 # The points of each junction's arc: a half ellipse from its start to its end,
 # its height following the junction's genomic span on the display's fixed log
 # scale, so a long intron arcs higher than a short one whatever else is drawn.
@@ -93,10 +69,12 @@ no_x <- ggplot2::theme(axis.text.x = ggplot2::element_blank(),
 # A base's width on a figure about 170 mm wide, never thinner than a tick
 cell_width <- function(xlim) max(0.3, 170 / (xlim[2] - xlim[1]))
 
-# One scale for every base drawn, so the bands share one key
-base_scale <- function(colors) {
-  ggplot2::scale_colour_manual(values = colors$bases, name = "Base",
-    breaks = names(colors$bases))
+# One scale for every base drawn, the same in every band so they share one
+# key: the modification coverage's own colors ride along off the key
+base_scale <- function(colors, x) {
+  own <- unique(x$modification_coverage$color)
+  ggplot2::scale_colour_manual(values = c(colors$bases, stats::setNames(own, own)),
+    name = "Base", breaks = names(colors$bases))
 }
 
 # The display's fade of a sub-pixel mark: at `px` pixels wide it blends from
@@ -110,15 +88,27 @@ mark_alpha <- function(px, fade, on) {
   ifelse(px < 1, px + fade * (1 - px), 1)
 }
 
+# The coverage band: the depth, with the display's own stacks over it, each
+# mismatch position's alleles in their base colors (a segment under
+# `min_allele_frequency` left out, as the display's coverageSnpMinFrequency
+# hides it) and, under the modifications layer, each position's modification
+# states in the colors and opacities the display paints them.
 coverage_plot <- function(x, colors, min_allele_frequency, xlim, xlab) {
-  alleles <- allele_stack(x, min_allele_frequency)
+  a <- x$allele_coverage
+  alleles <- a[a$to - a$from >= min_allele_frequency, , drop = FALSE]
+  mods <- x$modification_coverage
   ggplot2::ggplot(x$coverage) +
     ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = 0,
       ymax = depth), fill = colors$coverage) +
     ggplot2::geom_segment(ggplot2::aes(x = position + 0.5, xend = position + 0.5,
-      y = ymin, yend = ymax, colour = base), alleles,
+      y = depth * from, yend = depth * to, colour = base), alleles,
       linewidth = cell_width(xlim), lineend = "butt") +
-    base_scale(colors) +
+    base_scale(colors, x) +
+    ggplot2::geom_segment(ggplot2::aes(x = position + 0.5, xend = position + 0.5,
+      y = depth * from, yend = depth * to, colour = color, alpha = opacity),
+      mods, linewidth = cell_width(xlim), lineend = "butt",
+      show.legend = FALSE) +
+    ggplot2::scale_alpha_identity() +
     ggplot2::coord_cartesian(xlim = xlim, expand = FALSE) +
     ggplot2::labs(x = xlab, y = "depth") +
     ggplot2::theme_minimal()
@@ -176,7 +166,7 @@ pileup_plot <- function(x, colors, letters, xlim, xlab, px, fade) {
     ggplot2::geom_segment(ggplot2::aes(x = position + 0.5, xend = position + 0.5,
       y = row + 0.1, yend = row + 0.9, colour = base, alpha = alpha),
       mismatches, linewidth = cell, lineend = "butt") +
-    base_scale(colors) +
+    base_scale(colors, x) +
     ggplot2::geom_segment(ggplot2::aes(x = position, xend = position,
       y = row + 0.05, yend = row + 0.95, alpha = alpha), ins,
       colour = colors$insertion, linewidth = 0.4) +

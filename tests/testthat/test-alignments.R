@@ -48,22 +48,36 @@ test_that("insertions and clips sit on their reads, in the track's layers", {
   expect_true(all(opaque == 1))
 })
 
-test_that("the coverage band stacks each position's alleles", {
+test_that("the coverage band stacks each position's alleles as the display does", {
+  a <- bam$allele_coverage
+  expect_gt(nrow(a), 0)
+  expect_true(all(a$position %in% bam$mismatches$position))
+  expect_true(all(a$from >= 0 & a$to > a$from & a$to <= 1 + 1e-6))
   cov <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage"))
   alleles <- cov$data[[2]]
-  expect_gt(nrow(alleles), 0)
-  covered <- bam$mismatches[bam$mismatches$position >= min(bam$coverage$start) &
-    bam$mismatches$position < max(bam$coverage$end), ]
-  expect_equal(nrow(alleles), nrow(unique(covered[c("position", "base")])))
-  expect_true(all(alleles$ymin >= 0 & alleles$ymax > alleles$ymin))
-  depth <- bam$coverage$depth[findInterval(alleles$xmin, bam$coverage$start)]
-  expect_true(all(alleles$ymax <= depth + 1e-9))
+  expect_equal(nrow(alleles), nrow(a))
+  expect_true(all(alleles$y >= 0 & alleles$yend > alleles$y))
+  depth <- bam$coverage$depth[findInterval(alleles$x, bam$coverage$start)]
+  expect_true(all(alleles$yend <= depth + 1e-6))
   strict <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage",
     min_allele_frequency = 0.5))$data[[2]]
   expect_lt(nrow(strict), nrow(alleles))
-  share <- (strict$ymax - strict$ymin) /
-    bam$coverage$depth[findInterval(strict$xmin, bam$coverage$start)]
-  expect_true(all(share >= 0.5))
+  expect_true(all((strict$yend - strict$y) /
+    bam$coverage$depth[findInterval(strict$x, bam$coverage$start)] >= 0.5))
+})
+
+test_that("the display's sort object lays the rows out", {
+  site <- bam$mismatches$position[1]
+  s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+    sort = list(type = "basePair", pos = site))
+  covering <- which(s$reads$start <= site & s$reads$end > site)
+  mismatched <- unique(s$mismatches$read[s$mismatches$position == site])
+  expect_gt(length(mismatched), 0)
+  expect_lt(max(s$reads$row[mismatched]),
+    min(s$reads$row[setdiff(covering, mismatched)]))
+  l <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+    sort = "length")
+  expect_false(identical(l$reads$row, bam$reads$row))
 })
 
 test_that("splice junctions arc over the coverage, counted and stranded", {
@@ -93,6 +107,9 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   expect_true(all(m$modifications$opacity >= 0.1 & m$modifications$opacity <= 1))
   expect_true("5mC" %in% m$legend$label)
   expect_setequal(unique(m$reads$category), c("modFwd", "modRev"))
+  expect_gt(nrow(m$modification_coverage), 0)
+  band <- ggplot2::ggplot_build(ggplot2::autoplot(m, "coverage"))$data[[3]]
+  expect_equal(nrow(band), nrow(m$modification_coverage))
   p <- ggplot2::ggplot_build(ggplot2::autoplot(m, "pileup"))
   expect_equal(nrow(p$data[[4]]), nrow(m$modifications))
   expect_true(all(p$data[[4]]$fill %in% m$legend$color))

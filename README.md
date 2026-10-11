@@ -71,13 +71,16 @@ ggplot(cram$mismatches, aes(position, frequency, colour = base)) +
   scale_colour_manual(values = jbrowse_colors()$bases)
 ```
 
-`color`, `filter`, `base_color` and `modifications` are the display's own
-settings objects, so what JBrowse can color, filter or paint by, this can:
-`color = "mapq"`, `color = list(field = "insertSize", domain = c(200, 600))`,
+`color`, `filter`, `base_color`, `modifications` and `sort` are the
+display's own settings objects, so what JBrowse can color, filter, paint or
+sort by, this can: `color = "mapq"`,
+`color = list(field = "insertSize", domain = c(200, 600))`,
 `filter = list(flagExclude = 1796, tagFilters = list(list(tag = "HP", value = "1")))`,
-`base_color = "modifications"`. Each read comes back with the fill the
+`base_color = "modifications"`, `sort = list(type = "basePair", pos = 1055)`.
+Each read comes back on the row the display lays it on, with the fill the
 display paints it and the bucket it files it under, each modification call
-with its color and opacity, and `a$legend` is the display's key.
+with its color and opacity, the coverage band's stacks as the display stacks
+them, and `a$legend` is the display's key.
 
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There

@@ -53,6 +53,11 @@ sequence_adapter <- function(reference) {
 #'   `"calls"` or `"all"`: which unmodified sites are painted too),
 #'   `cytosineContext` (`"CG"`, `"CHG"`, `"CHH"` or `"all"`) and
 #'   `shownModifications` (the type codes drawn, every one when empty)
+#' @param sort how the rows are laid out, as the display's `sort` object: a
+#'   whole-window order (`"position"`, `"length"`, `"spliced"`, `"split"`), or
+#'   a list with `type` (`"strand"`, `"basePair"`, `"tag"`, `"insertion"`,
+#'   `"softclip"` or `"hardclip"`) and `pos`, the 0-based column the reads
+#'   are ranked over, plus `tag` under `"tag"`
 #' @param byte_limit the most compressed bytes the region may need, refused off
 #'   the index before any read is fetched; the whole table is held in memory
 #' @return a `jbrowse_alignments` list of data frames:
@@ -73,6 +78,11 @@ sequence_adapter <- function(reference) {
 #'     modified), and the `color` and `opacity` the display paints it at;
 #'     empty without `base_color`
 #'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`
+#'   * `allele_coverage`: the coverage band's stack at each mismatch position,
+#'     as the display stacks it: `position`, `base`, `from` and `to` (the
+#'     allele's share of the bar, from the bottom) and the `depth` there
+#'   * `modification_coverage`: the band's stack of modification states under
+#'     `base_color`: `position`, `from`, `to`, `depth`, `color`, `opacity`
 #'   * `junctions`: the reads' splice gaps merged, each once: `start`, `end`,
 #'     `count` (the reads supporting it), `strand` (1, -1, or 0 where neither
 #'     the reads' tags nor the splice motif says) and `motif` (`"GT-AG
@@ -93,7 +103,8 @@ sequence_adapter <- function(reference) {
 jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
                                reference_chrom = chrom, index = NULL,
                                color = NULL, filter = NULL, base_color = NULL,
-                               modifications = NULL, byte_limit = 2e8) {
+                               modifications = NULL, sort = NULL,
+                               byte_limit = 2e8) {
   args <- list(
     adapterConfig = alignments_adapter(file, index),
     region = list(refName = chrom, originalRefName = reference_chrom,
@@ -112,6 +123,9 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
     }
     args$modifications <- modifications
   }
+  if (!is.null(sort)) {
+    args$sort <- if (is.character(sort)) list(type = sort) else sort
+  }
   t <- call_engine("alignments", args)
   reads <- as_frame(t$reads)
   names(reads)[names(reads) == "insertSize"] <- "insert_size"
@@ -128,8 +142,10 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
     list(reads = reads, mismatches = on_read(t$mismatches),
       gaps = on_read(t$gaps), insertions = on_read(t$insertions),
       clips = on_read(t$clips), modifications = on_read(t$modifications),
-      coverage = as_frame(t$coverage), junctions = as_frame(t$junctions),
-      legend = legend,
+      coverage = as_frame(t$coverage),
+      allele_coverage = as_frame(t$alleleCoverage),
+      modification_coverage = as_frame(t$modificationCoverage),
+      junctions = as_frame(t$junctions), legend = legend,
       region = list(chrom = chrom, start = start, end = end),
       reference = if (is.null(reference)) NULL else
         list(file = reference, chrom = reference_chrom)),
