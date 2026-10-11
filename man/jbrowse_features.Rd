@@ -19,8 +19,8 @@ jbrowse_features(
 )
 }
 \arguments{
-\item{file}{a GFF3, GTF or BED file (plain, or bgzipped with a tabix or CSI
-index beside it) or a BigBed, a path or a URL; or a JBrowse track's
+\item{file}{a GFF3, GTF, BED or VCF file (plain, or bgzipped with a tabix
+or CSI index beside it) or a BigBed, a path or a URL; or a JBrowse track's
 \code{adapter} config, as a list, for an adapter's own settings}
 
 \item{region}{the region: a locus as JBrowse's location box writes it

@@ -20,9 +20,11 @@ features_adapter <- function(file, index) {
   if (grepl("\\.gtf\\.gz$", name)) return(tabix("GtfTabixAdapter", "gtfGzLocation"))
   if (grepl("\\.gtf$", name)) return(plain("GtfAdapter", "gtfLocation"))
   if (grepl("\\.bed\\.gz$", name)) return(tabix("BedTabixAdapter", "bedGzLocation"))
+  if (grepl("\\.vcf\\.gz$", name)) return(tabix("VcfTabixAdapter", "vcfGzLocation"))
+  if (grepl("\\.vcf$", name)) return(plain("VcfAdapter", "vcfLocation"))
   if (grepl("\\.bed$", name)) return(plain("BedAdapter", "bedLocation"))
   stop("cannot tell the format of ", file,
-    ": expected .gff3, .gtf or .bed (each optionally .gz with an index) or .bb",
+    ": expected .gff3, .gtf, .bed or .vcf (each optionally .gz with an index) or .bb",
     call. = FALSE)
 }
 
@@ -35,8 +37,8 @@ features_adapter <- function(file, index) {
 #' Coordinates are 0-based, half-open, on the reference; vertical positions
 #' are the display's pixels, down from the track's top.
 #'
-#' @param file a GFF3, GTF or BED file (plain, or bgzipped with a tabix or CSI
-#'   index beside it) or a BigBed, a path or a URL; or a JBrowse track's
+#' @param file a GFF3, GTF, BED or VCF file (plain, or bgzipped with a tabix
+#'   or CSI index beside it) or a BigBed, a path or a URL; or a JBrowse track's
 #'   `adapter` config, as a list, for an adapter's own settings
 #' @param region the region: a locus as JBrowse's location box writes it
 #'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which

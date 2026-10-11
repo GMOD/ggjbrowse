@@ -96,3 +96,10 @@ test_that("labels take the display's pixel size at the panel's scale", {
   expect_equal(font_at(100, 1000), pt * 100 / 800)
   expect_equal(font_at(1000, 10), pt * 10 / g$height)
 })
+
+test_that("a VCF reads as a variant track's feature display draws it", {
+  v <- jbrowse_features(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
+    "chr30:38,258,001-38,265,000")
+  expect_gt(nrow(v$features), 100)
+  expect_gt(nrow(v$rects), 0)
+})
