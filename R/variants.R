@@ -16,7 +16,7 @@ variants_adapter <- function(file, index) {
 #' half-open, on the reference.
 #'
 #' @param file a VCF, bgzipped with a tabix or CSI index beside it, or plain;
-#'   a path or a URL
+#'   a path or a URL; or a JBrowse track's `adapter` config, as a list
 #' @param chrom,start,end the region, 0-based half-open
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearMultiSampleVariantDisplay`: a list with
@@ -50,7 +50,8 @@ variants_adapter <- function(file, index) {
 jbrowse_variants <- function(file, chrom, start, end, display = NULL,
                              index = NULL, byte_limit = 2e8) {
   args <- list(
-    adapterConfig = variants_adapter(file, index),
+    adapterConfig = adapter_of(file, function()
+      variants_adapter(file, index)),
     region = list(refName = chrom, start = start, end = end),
     byteLimit = byte_limit)
   if (!is.null(display)) {

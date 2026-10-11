@@ -26,7 +26,8 @@ sequence_adapter <- function(reference) {
 #' reference, their deletions and splice gaps, and the coverage. Coordinates
 #' are 0-based, half-open, on the reference.
 #'
-#' @param file a BAM or CRAM file, a path or a URL
+#' @param file a BAM or CRAM file, a path or a URL; or a JBrowse track's
+#'   `adapter` config, as a list
 #' @param chrom,start,end the region, 0-based half-open
 #' @param reference the reference FASTA (indexed) or 2bit, path or URL; a CRAM
 #'   needs it, and a BAM read without an MD tag is compared against it
@@ -151,7 +152,8 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
   if (!is.null(facet)) display$facet <- facet_object(facet)
   if (!is.null(read_connections)) display$readConnections <- read_connections
   args <- list(
-    adapterConfig = alignments_adapter(file, index),
+    adapterConfig = adapter_of(file, function()
+      alignments_adapter(file, index)),
     region = list(refName = chrom, originalRefName = reference_chrom,
       start = start, end = end),
     byteLimit = byte_limit)

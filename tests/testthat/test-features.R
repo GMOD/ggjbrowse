@@ -49,6 +49,17 @@ test_that("a BigBed reads through the same display", {
   expect_gt(nrow(b$rects), 0)
 })
 
+test_that("a track's adapter config reads with its own settings", {
+  bb <- list(type = "BigBedAdapter",
+    bigBedLocation = list(localPath = extdata("volvox.bb")),
+    aggregateField = "geneName")
+  b <- jbrowse_features(bb, "ctgA", 0, 25000)
+  eden <- which(b$features$name == "EDEN")
+  expect_equal(b$features$type[eden], "gene")
+  expect_setequal(b$subfeatures$name[b$subfeatures$feature == eden],
+    c("EDEN.1", "EDEN.2", "EDEN.3"))
+})
+
 test_that("autoplot draws every box, line and label", {
   p <- ggplot2::ggplot_build(ggplot2::autoplot(g))
   rows <- vapply(p$data, nrow, 1L)

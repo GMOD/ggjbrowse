@@ -36,7 +36,8 @@ features_adapter <- function(file, index) {
 #' are the display's pixels, down from the track's top.
 #'
 #' @param file a GFF3, GTF or BED file (plain, or bgzipped with a tabix or CSI
-#'   index beside it) or a BigBed, a path or a URL
+#'   index beside it) or a BigBed, a path or a URL; or a JBrowse track's
+#'   `adapter` config, as a list, for an adapter's own settings
 #' @param chrom,start,end the region, 0-based half-open
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearBasicDisplay`: a list with any of
@@ -97,7 +98,8 @@ jbrowse_features <- function(file, chrom, start, end, display = NULL,
                              reference_chrom = chrom, color_by_cds = FALSE,
                              index = NULL, byte_limit = 2e8) {
   args <- list(
-    adapterConfig = features_adapter(file, index),
+    adapterConfig = adapter_of(file, function()
+      features_adapter(file, index)),
     region = list(refName = chrom, originalRefName = reference_chrom,
       start = start, end = end),
     bpPerPx = (end - start) / width,

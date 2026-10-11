@@ -5,7 +5,8 @@
 #' in and the score axis it autoscales to. Coordinates are 0-based,
 #' half-open, on the reference.
 #'
-#' @param file a BigWig, a path or a URL
+#' @param file a BigWig, a path or a URL; or a JBrowse track's `adapter`
+#'   config, as a list, such as a `MultiWiggleAdapter`'s
 #' @param chrom,start,end the region, 0-based half-open
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearWiggleDisplay`: a list with any of `mark`
@@ -40,8 +41,8 @@
 jbrowse_wiggle <- function(file, chrom, start, end, display = NULL,
                            width = 800) {
   args <- list(
-    adapterConfig = list(type = "BigWigAdapter",
-      bigWigLocation = location(file)),
+    adapterConfig = adapter_of(file, function()
+      list(type = "BigWigAdapter", bigWigLocation = location(file))),
     region = list(refName = chrom, start = start, end = end),
     bpPerPx = (end - start) / width)
   if (!is.null(display)) {

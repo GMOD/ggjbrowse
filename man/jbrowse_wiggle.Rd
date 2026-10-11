@@ -7,7 +7,8 @@
 jbrowse_wiggle(file, chrom, start, end, display = NULL, width = 800)
 }
 \arguments{
-\item{file}{a BigWig, a path or a URL}
+\item{file}{a BigWig, a path or a URL; or a JBrowse track's \code{adapter}
+config, as a list, such as a \code{MultiWiggleAdapter}'s}
 
 \item{chrom, start, end}{the region, 0-based half-open}
 

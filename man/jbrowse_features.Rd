@@ -20,7 +20,8 @@ jbrowse_features(
 }
 \arguments{
 \item{file}{a GFF3, GTF or BED file (plain, or bgzipped with a tabix or CSI
-index beside it) or a BigBed, a path or a URL}
+index beside it) or a BigBed, a path or a URL; or a JBrowse track's
+\code{adapter} config, as a list, for an adapter's own settings}
 
 \item{chrom, start, end}{the region, 0-based half-open}
 

@@ -77,6 +77,20 @@ location <- function(path) {
   list(uri = uri, locationType = "UriLocation")
 }
 
+# The adapter config the engine reads `file` through: a track's own adapter
+# config as given, each of its locations a path or URL made readable, or else
+# the one `guess` makes of a path or URL
+adapter_of <- function(file, guess) {
+  if (!is.list(file)) return(guess())
+  readable <- function(x) {
+    if (!is.list(x)) return(x)
+    path <- x[["uri"]] %||% x[["localPath"]]
+    if (is.character(path) && length(path) == 1) location(path)
+    else lapply(x, readable)
+  }
+  readable(file)
+}
+
 # A table's columns as a data frame, an empty column read as an empty vector
 as_frame <- function(columns) {
   as.data.frame(lapply(columns, function(x)

@@ -24,7 +24,8 @@ jbrowse_alignments(
 )
 }
 \arguments{
-\item{file}{a BAM or CRAM file, a path or a URL}
+\item{file}{a BAM or CRAM file, a path or a URL; or a JBrowse track's
+\code{adapter} config, as a list}
 
 \item{chrom, start, end}{the region, 0-based half-open}
 

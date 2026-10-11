@@ -16,7 +16,7 @@ jbrowse_variants(
 }
 \arguments{
 \item{file}{a VCF, bgzipped with a tabix or CSI index beside it, or plain;
-a path or a URL}
+a path or a URL; or a JBrowse track's \code{adapter} config, as a list}
 
 \item{chrom, start, end}{the region, 0-based half-open}
 
