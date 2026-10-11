@@ -6,9 +6,9 @@
 \usage{
 jbrowse_variants(
   file,
-  chrom,
-  start,
-  end,
+  region,
+  start = NULL,
+  end = NULL,
   display = NULL,
   index = NULL,
   byte_limit = 2e+08
@@ -18,7 +18,14 @@ jbrowse_variants(
 \item{file}{a VCF, bgzipped with a tabix or CSI index beside it, or plain;
 a path or a URL; or a JBrowse track's \code{adapter} config, as a list}
 
-\item{chrom, start, end}{the region, 0-based half-open}
+\item{region}{the region: a locus as JBrowse's location box writes it
+(\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
+are read in turn and drawn end to end on one axis as a JBrowse view lays
+them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
+with \code{start} and \code{end}}
+
+\item{start, end}{with a contig name as \code{region}, the region's bounds,
+0-based half-open}
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearMultiSampleVariantDisplay}: a list with

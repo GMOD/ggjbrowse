@@ -17,7 +17,13 @@ variants_adapter <- function(file, index) {
 #'
 #' @param file a VCF, bgzipped with a tabix or CSI index beside it, or plain;
 #'   a path or a URL; or a JBrowse track's `adapter` config, as a list
-#' @param chrom,start,end the region, 0-based half-open
+#' @param region the region: a locus as JBrowse's location box writes it
+#'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
+#'   are read in turn and drawn end to end on one axis as a JBrowse view lays
+#'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
+#'   with `start` and `end`
+#' @param start,end with a contig name as `region`, the region's bounds,
+#'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearMultiSampleVariantDisplay`: a list with
 #'   any of `unit` (`"allele"` for a row per sample, `"haplotype"` for a row
@@ -47,8 +53,14 @@ variants_adapter <- function(file, index) {
 #'   package = "ggjbrowse")
 #' v <- jbrowse_variants(vcf, "chr30", 38258000, 38265000)
 #' head(v$cells)
-jbrowse_variants <- function(file, chrom, start, end, display = NULL,
-                             index = NULL, byte_limit = 2e8) {
+jbrowse_variants <- function(file, region, start = NULL, end = NULL,
+                             display = NULL, index = NULL, byte_limit = 2e8) {
+  read_regions(region, start, end, function(chrom, start, end, share, i)
+    variants_region(file, chrom, start, end, display, index, byte_limit))
+}
+
+variants_region <- function(file, chrom, start, end, display, index,
+                            byte_limit) {
   args <- list(
     adapterConfig = adapter_of(file, function()
       variants_adapter(file, index)),
@@ -77,7 +89,8 @@ jbrowse_variants <- function(file, chrom, start, end, display = NULL,
   structure(
     list(variants = variants, cells = cells, rows = rows, legend = legend,
       keys = list(genotypes = legend),
-      region = list(chrom = chrom, start = start, end = end)),
+      region = list(chrom = chrom, start = start, end = end),
+      missing_contig = t$missingContig),
     primary = "cells",
     class = c("jbrowse_variants", "jbrowse_result"))
 }
@@ -164,7 +177,8 @@ autoplot.jbrowse_variants <- function(object,
       xlim = if (genomic) c(object$region$start, object$region$end)
         else c(0.5, nrow(object$variants) + 0.5),
       expand = FALSE) +
-    ggplot2::labs(x = if (genomic) sprintf("%s (bp)", object$region$chrom)
+    (if (genomic) genomic_x(object)) +
+    ggplot2::labs(x = if (genomic) axis_label(object)
       else "record", y = NULL) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),

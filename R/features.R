@@ -38,7 +38,13 @@ features_adapter <- function(file, index) {
 #' @param file a GFF3, GTF or BED file (plain, or bgzipped with a tabix or CSI
 #'   index beside it) or a BigBed, a path or a URL; or a JBrowse track's
 #'   `adapter` config, as a list, for an adapter's own settings
-#' @param chrom,start,end the region, 0-based half-open
+#' @param region the region: a locus as JBrowse's location box writes it
+#'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
+#'   are read in turn and drawn end to end on one axis as a JBrowse view lays
+#'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
+#'   with `start` and `end`
+#' @param start,end with a contig name as `region`, the region's bounds,
+#'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearBasicDisplay`: a list with any of
 #'   `color` (a constant such as `"purple"`, or the color object's slots,
@@ -97,10 +103,19 @@ features_adapter <- function(file, index) {
 #' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
 #' g <- jbrowse_features(gff, "ctgA", 0, 25000)
 #' head(g$features)
-jbrowse_features <- function(file, chrom, start, end, display = NULL,
-                             width = 800, reference = NULL,
-                             reference_chrom = chrom, color_by_cds = FALSE,
+jbrowse_features <- function(file, region, start = NULL, end = NULL,
+                             display = NULL, width = 800, reference = NULL,
+                             reference_chrom = NULL, color_by_cds = FALSE,
                              index = NULL, byte_limit = 2e8) {
+  read_regions(region, start, end, function(chrom, start, end, share, i)
+    features_region(file, chrom, start, end, display, width * share,
+      reference, reference_chrom[i] %||% chrom, color_by_cds, index,
+      byte_limit))
+}
+
+features_region <- function(file, chrom, start, end, display, width,
+                            reference, reference_chrom, color_by_cds, index,
+                            byte_limit) {
   args <- list(
     adapterConfig = adapter_of(file, function()
       features_adapter(file, index)),
@@ -141,7 +156,8 @@ jbrowse_features <- function(file, chrom, start, end, display = NULL,
       arrows = arrows, labels = labels, legend = legend,
       keys = list(features = legend),
       glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
-      region = list(chrom = chrom, start = start, end = end)),
+      region = list(chrom = chrom, start = start, end = end),
+      missing_contig = t$missingContig),
     primary = "features",
     class = c("jbrowse_features", "jbrowse_result"))
 }
@@ -308,7 +324,8 @@ autoplot.jbrowse_features <- function(object, ...) {
     ggplot2::coord_cartesian(
       xlim = c(object$region$start, object$region$end),
       ylim = c(0, object$height), expand = FALSE) +
-    ggplot2::labs(x = sprintf("%s (bp)", object$region$chrom), y = NULL) +
+    genomic_x(object) +
+    ggplot2::labs(x = axis_label(object), y = NULL) +
     ggplot2::theme_minimal() +
     no_y
 }

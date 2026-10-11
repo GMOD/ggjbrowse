@@ -7,7 +7,13 @@
 #'
 #' @param file a BigWig, a path or a URL; or a JBrowse track's `adapter`
 #'   config, as a list, such as a `MultiWiggleAdapter`'s
-#' @param chrom,start,end the region, 0-based half-open
+#' @param region the region: a locus as JBrowse's location box writes it
+#'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
+#'   are read in turn and drawn end to end on one axis as a JBrowse view lays
+#'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
+#'   with `start` and `end`
+#' @param start,end with a contig name as `region`, the region's bounds,
+#'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearWiggleDisplay`: a list with any of `mark`
 #'   (`"bar"`, `"line"`, `"point"`, or `"span"` for density), `interpolate`
@@ -38,8 +44,13 @@
 #'   package = "ggjbrowse")
 #' w <- jbrowse_wiggle(bw, "ctgA", 0, 50000)
 #' head(w$marks)
-jbrowse_wiggle <- function(file, chrom, start, end, display = NULL,
-                           width = 800) {
+jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
+                           display = NULL, width = 800) {
+  read_regions(region, start, end, function(chrom, start, end, share, i)
+    wiggle_region(file, chrom, start, end, display, width * share))
+}
+
+wiggle_region <- function(file, chrom, start, end, display, width) {
   args <- list(
     adapterConfig = adapter_of(file, function()
       list(type = "BigWigAdapter", bigWigLocation = location(file))),
@@ -60,7 +71,8 @@ jbrowse_wiggle <- function(file, chrom, start, end, display = NULL,
       domain = unlist(t$domain), scale_type = t$scaleType,
       symlog_constant = t$symlogConstant, rendering = t$rendering,
       origin = t$origin, row_layout = t$rowLayout,
-      region = list(chrom = chrom, start = start, end = end)),
+      region = list(chrom = chrom, start = start, end = end),
+      missing_contig = t$missingContig),
     primary = "marks",
     class = c("jbrowse_wiggle", "jbrowse_result"))
 }
@@ -210,7 +222,8 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
     ggplot2::coord_cartesian(
       xlim = c(object$region$start, object$region$end),
       ylim = if (density) c(0, 1) else object$domain, expand = FALSE) +
-    ggplot2::labs(x = sprintf("%s (bp)", object$region$chrom), y = NULL) +
+    genomic_x(object) +
+    ggplot2::labs(x = axis_label(object), y = NULL) +
     ggplot2::theme_minimal()
   if (object$row_layout) {
     p <- p + ggplot2::facet_grid(rows = ggplot2::vars(source))

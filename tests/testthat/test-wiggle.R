@@ -43,7 +43,9 @@ test_that("each plot type draws every mark", {
 
 test_that("an empty region draws, whatever the plot type", {
   for (mark in c("bar", "line", "span")) {
-    empty <- jbrowse_wiggle(bw, "ctgB", 0, 1000, display = list(mark = mark))
+    expect_warning(
+      empty <- jbrowse_wiggle(bw, "ctgB", 0, 1000, display = list(mark = mark)),
+      "ctgB is not a contig of this file")
     expect_equal(nrow(empty$marks), 0)
     expect_s3_class(ggplot2::ggplot_build(ggplot2::autoplot(empty)),
       "ggplot_built")

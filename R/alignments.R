@@ -28,7 +28,13 @@ sequence_adapter <- function(reference) {
 #'
 #' @param file a BAM or CRAM file, a path or a URL; or a JBrowse track's
 #'   `adapter` config, as a list
-#' @param chrom,start,end the region, 0-based half-open
+#' @param region the region: a locus as JBrowse's location box writes it
+#'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
+#'   are read in turn and drawn end to end on one axis as a JBrowse view lays
+#'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
+#'   with `start` and `end`
+#' @param start,end with a contig name as `region`, the region's bounds,
+#'   0-based half-open
 #' @param reference the reference FASTA (indexed) or 2bit, path or URL; a CRAM
 #'   needs it, and a BAM read without an MD tag is compared against it
 #' @param reference_chrom the contig's name in `reference`, where the file
@@ -126,12 +132,28 @@ sequence_adapter <- function(reference) {
 #' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000, color = "strand")
 #' head(a$reads)
 #' a$legend
-jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
-                               reference_chrom = chrom, index = NULL,
-                               color = NULL, filter = NULL, base_color = NULL,
-                               modifications = NULL, sort = NULL, facet = NULL,
+jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
+                               reference = NULL, reference_chrom = NULL,
+                               index = NULL, color = NULL, filter = NULL,
+                               base_color = NULL, modifications = NULL,
+                               sort = NULL, facet = NULL,
                                read_connections = NULL, display = NULL,
                                byte_limit = 2e8) {
+  adapter <- adapter_of(file, function() alignments_adapter(file, index))
+  if (adapter$type == "CramAdapter" && is.null(reference)) {
+    stop("a CRAM stores its reads against the reference it was encoded with: ",
+      "pass that FASTA or 2bit as `reference =`", call. = FALSE)
+  }
+  read_regions(region, start, end, function(chrom, start, end, share, i)
+    alignments_region(adapter, chrom, start, end, reference,
+      reference_chrom[i] %||% chrom, color, filter, base_color,
+      modifications, sort, facet, read_connections, display, byte_limit))
+}
+
+alignments_region <- function(adapter, chrom, start, end, reference,
+                              reference_chrom, color, filter, base_color,
+                              modifications, sort, facet, read_connections,
+                              display, byte_limit) {
   display <- display %||% list()
   display$color <- if (is.null(color)) config_color(display$color)
     else color_object(color)
@@ -152,8 +174,7 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
   if (!is.null(facet)) display$facet <- facet_object(facet)
   if (!is.null(read_connections)) display$readConnections <- read_connections
   args <- list(
-    adapterConfig = adapter_of(file, function()
-      alignments_adapter(file, index)),
+    adapterConfig = adapter,
     region = list(refName = chrom, originalRefName = reference_chrom,
       start = start, end = end),
     byteLimit = byte_limit)
@@ -228,7 +249,8 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
         junctions = junction_key),
       region = list(chrom = chrom, start = start, end = end),
       reference = if (is.null(reference)) NULL else
-        list(file = reference, chrom = reference_chrom)),
+        list(file = reference, chrom = reference_chrom),
+      settings = t$settings, missing_contig = t$missingContig),
     primary = "reads",
     class = c("jbrowse_alignments", "jbrowse_result"))
 }
@@ -237,7 +259,7 @@ jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
 #'
 #' The bases of a region, read through JBrowse's own FASTA or 2bit reader.
 #' @param reference the reference FASTA (indexed) or 2bit, path or URL
-#' @inheritParams jbrowse_alignments
+#' @param chrom,start,end the region, 0-based half-open
 #' @return one string of `end - start` bases
 #' @export
 #' @examples
