@@ -208,6 +208,14 @@ chevron_arms <- function(x) {
       xend = position - half_w * direction, yend = y + half_h))
 }
 
+# The glyph's boxes, each at least a display pixel wide, as the display draws
+# a 1 bp feature at any zoom
+boxes <- function(x) {
+  d <- x$rects
+  d$end <- pmax(d$end, d$start + x$bp_per_px)
+  d
+}
+
 # A strand arrow's stem, as a box in data units
 arrow_stems <- function(x) {
   a <- x$arrows
@@ -268,7 +276,7 @@ geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
       for_geom(mapping, ggplot2::GeomSegment),
       ggplot2::aes(x = x, xend = xend, y = y0, yend = yend, colour = color),
       list(linewidth = 0.3, ...), keyed = FALSE),
-    jbrowse_layer(ggplot2::GeomRect, data, function(x) x$rects,
+    jbrowse_layer(ggplot2::GeomRect, data, boxes,
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = top, ymax = top + height,
         fill = color), list(...)),

@@ -75,6 +75,10 @@ by_section <- function(x, rows = FALSE) {
     space = if (rows) "free_y" else "fixed")
 }
 
+# Section labels read across, as the display writes them
+across <- ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0,
+  hjust = 0))
+
 # A base's width on a figure about 170 mm wide, never thinner than a tick
 cell_width <- function(xlim) max(0.3, 170 / (xlim[2] - xlim[1]))
 
@@ -97,7 +101,8 @@ band <- function(p, x, xlim, xlab, rows = FALSE, ylim = NULL) {
     by_section(x, rows) +
     genomic_x(x) +
     ggplot2::labs(x = xlab, y = NULL) +
-    ggplot2::theme_minimal()
+    ggplot2::theme_minimal() +
+    across
 }
 
 coverage_plot <- function(x, min_allele_frequency, xlim, xlab) {

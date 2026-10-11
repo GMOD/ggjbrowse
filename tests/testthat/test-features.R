@@ -103,3 +103,12 @@ test_that("a VCF reads as a variant track's feature display draws it", {
   expect_gt(nrow(v$features), 100)
   expect_gt(nrow(v$rects), 0)
 })
+
+test_that("a feature narrower than a pixel draws a display pixel wide", {
+  v <- jbrowse_features(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
+    "chr30:38,258,001-38,265,000", width = 500)
+  expect_true(all(v$rects$end - v$rects$start < v$bp_per_px))
+  boxes <- ggplot2::layer_data(ggplot2::ggplot(v) + geom_jbrowse_glyphs(), 3)
+  expect_equal(nrow(boxes), nrow(v$rects))
+  expect_true(all(boxes$xmax - boxes$xmin >= v$bp_per_px - 1e-9))
+})

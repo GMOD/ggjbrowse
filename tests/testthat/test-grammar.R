@@ -56,7 +56,9 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
   expect_equal(as.character(hom), as.character(v$variants$color[1]))
   for (layout in c("genomic", "columns")) {
     built <- ggplot_build(autoplot(v, layout = layout))
-    expect_equal(nrow(built$data[[1]]), nrow(v$cells))
+    expect_equal(as.character(built$data[[1]]$fill),
+      as.character(v$legend$color[1]))
+    expect_equal(nrow(built$data[[2]]), nrow(v$cells))
   }
   haplotypes <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
     "chr30", 38258000, 38265000, display = list(unit = "haplotype"))

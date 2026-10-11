@@ -150,6 +150,15 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
       fill = color), list(...))
 }
 
+# Every row's background in the reference call's grey, the key's first entry,
+# as the display paints a row behind the cells it draws
+reference_rows <- function(x) {
+  background <- data.frame(xmin = -Inf, xmax = Inf, ymin = 0.5,
+    ymax = nrow(x$rows) + 0.5, color = x$legend$color[1])
+  ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin,
+    ymax = ymax, fill = color), data = background, inherit.aes = FALSE)
+}
+
 #' Draw a multi-sample VCF as JBrowse's variant matrix
 #'
 #' [geom_jbrowse_genotypes()] with a row per sample (or haplotype) named on
@@ -171,6 +180,7 @@ autoplot.jbrowse_variants <- function(object,
   rows <- object$rows$name
   genomic <- layout == "genomic"
   ggplot2::ggplot(object) +
+    reference_rows(object) +
     geom_jbrowse_genotypes(layout = layout) +
     scale_fill_jbrowse(object) +
     ggplot2::scale_y_reverse(breaks = seq_along(rows), labels = rows) +
