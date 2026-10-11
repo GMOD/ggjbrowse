@@ -8,7 +8,9 @@
 #'
 #' @param ... [jbrowse_features()], [jbrowse_wiggle()], [jbrowse_variants()]
 #'   and [jbrowse_alignments()] results over the same regions, top to bottom,
-#'   or lists of them
+#'   or lists of them; or a ggplot of your own, drawn on the stack's x axis:
+#'   genomic positions over one region, and over several the axis that
+#'   `ggplot(<result>)` draws on
 #' @return a patchwork
 #' @export
 #' @examples
@@ -16,13 +18,54 @@
 #' locus <- "ctgA:1,001-9,000"
 #' genes <- jbrowse_features(e("volvox.sort.gff3.gz"), locus)
 #' signal <- jbrowse_wiggle(e("volvox_microarray_posneg.bw"), locus)
-#' reads <- jbrowse_alignments(e("volvox-sorted.bam"), locus, color = "strand")
+#' reads <- jbrowse_alignments(e("volvox-sorted.bam"), locus)
 #' jbrowse_stack(genes, signal, reads)
 jbrowse_stack <- function(...) {
   tracks <- list(...)
   tracks <- do.call(c, lapply(tracks, function(t)
-    if (inherits(t, "jbrowse_result")) list(t) else t))
-  stack_bands(lapply(tracks, track_bands))
+    if (inherits(t, "jbrowse_result") || ggplot2::is_ggplot(t)) list(t)
+    else t))
+  results <- Filter(function(t) inherits(t, "jbrowse_result"), tracks)
+  if (!length(results)) {
+    stop("jbrowse_stack needs at least one ggjbrowse reader's result",
+      call. = FALSE)
+  }
+  same_regions(results)
+  axis <- results[[1]]
+  stack_bands(lapply(tracks, function(t)
+    if (ggplot2::is_ggplot(t)) own_band(t, axis) else track_bands(t)))
+}
+
+# The loci a result reads, as JBrowse's location box writes them
+loci_of <- function(x) {
+  r <- x$regions %||% as.data.frame(x$region)
+  sprintf("%s:%s-%s", r$chrom, format(r$start + 1, big.mark = ",",
+    trim = TRUE), format(r$end, big.mark = ",", trim = TRUE))
+}
+
+# Stops where the results read different spans: tracks on one axis must read
+# the same regions. A contig may be spelt differently by each file.
+same_regions <- function(results) {
+  span <- function(x) {
+    r <- x$regions %||% as.data.frame(x$region)
+    paste(r$start, r$end, collapse = ";")
+  }
+  spans <- vapply(results, span, "")
+  differ <- which(spans != spans[1])
+  if (length(differ)) {
+    stop("jbrowse_stack draws its tracks over the same regions, but track ",
+      differ[1], " reads ", paste(loci_of(results[[differ[1]]]),
+        collapse = ", "), " and track 1 ", paste(loci_of(results[[1]]),
+        collapse = ", "), call. = FALSE)
+  }
+}
+
+# A ggplot of the caller's own as a band: on the stack's x range and its
+# region labels
+own_band <- function(p, axis) {
+  list(plots = list(p +
+    ggplot2::coord_cartesian(xlim = xlim_of(axis), expand = FALSE) +
+    genomic_x(axis)), heights = 1)
 }
 
 # A track's bands and their relative heights: a feature track as tall as its

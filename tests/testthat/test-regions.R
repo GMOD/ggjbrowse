@@ -59,3 +59,20 @@ test_that("an axis of several regions is labelled in each region's own positions
   expect_equal(b$layout$panel_params[[1]]$x$get_labels(),
     c("1,000", "2,000", "3,000", "7,000", "8,000", "9,000"))
 })
+
+test_that("jbrowse_stack refuses tracks over different regions", {
+  genes <- jbrowse_features(gff, "ctgB:1-5,000")
+  reads <- jbrowse_alignments(bam, "ctgA:1,001-9,000")
+  expect_error(jbrowse_stack(genes, reads),
+    "track 2 reads ctgA:1,001-9,000 and track 1 ctgB:1-5,000")
+})
+
+test_that("jbrowse_stack draws a ggplot of one's own on the tracks' axis", {
+  genes <- jbrowse_features(gff, "ctgA:1,001-9,000")
+  own <- ggplot2::ggplot(data.frame(x = c(2000, 5000), y = 1:2),
+    ggplot2::aes(x, y)) + ggplot2::geom_point()
+  fig <- jbrowse_stack(genes, own)
+  expect_length(fig, 2)
+  b <- ggplot2::ggplot_build(fig[[2]])
+  expect_equal(b$layout$panel_params[[1]]$x.range, c(1000, 9000))
+})
