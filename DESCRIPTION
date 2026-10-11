@@ -19,6 +19,7 @@ Imports:
     grid,
     jsonlite,
     patchwork,
+    scales,
     V8
 Suggests:
     testthat (>= 3.0.0)

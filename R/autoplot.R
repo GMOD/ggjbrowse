@@ -298,7 +298,7 @@ arcs_plot <- function(x, xlim, xlab) {
 #' Draw alignments as JBrowse's alignments track, or one band of it
 #'
 #' @param object a [jbrowse_alignments()] result
-#' @param what `"track"`: the display's stack, any `features` tracks on top,
+#' @param what `"track"`: the display's stack, any `tracks` on top,
 #'   then splice-junction arcs where the reads splice, the coverage band,
 #'   the read-connection band under `read_connections`, the reference's bases
 #'   where they are wide enough to read and the pileup, one above the other
@@ -323,8 +323,9 @@ arcs_plot <- function(x, xlim, xlab) {
 #'   pileup; `FALSE` draws every mark opaque
 #' @param px_per_bp how many pixels a base spans, which that fade reads;
 #'   `NULL` takes a figure about 1200 pixels wide
-#' @param features feature tracks to draw above a `"track"`, each a
-#'   [jbrowse_features()] result over the same region, or a list of them
+#' @param tracks tracks to draw above a `"track"`, each a
+#'   [jbrowse_features()] or [jbrowse_wiggle()] result over the same region,
+#'   or a list of them
 #' @param ... unused
 #' @return a ggplot, to extend with layers, scales and themes or to stack with
 #'   patchwork; a `"track"` is a patchwork of its bands
@@ -335,7 +336,7 @@ arcs_plot <- function(x, xlim, xlab) {
 #' autoplot(a)
 #' autoplot(a, "pileup") + ggplot2::theme_classic()
 #' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-#' autoplot(a, features = jbrowse_features(gff, "ctgA", 400, 1300))
+#' autoplot(a, tracks = jbrowse_features(gff, "ctgA", 400, 1300))
 autoplot.jbrowse_alignments <- function(object,
                                         what = c("track", "pileup", "coverage",
                                           "junctions", "arcs", "sequence"),
@@ -343,7 +344,7 @@ autoplot.jbrowse_alignments <- function(object,
                                         min_junction_reads = 2,
                                         letters = NULL,
                                         fade_low_frequency = TRUE,
-                                        px_per_bp = NULL, features = NULL,
+                                        px_per_bp = NULL, tracks = NULL,
                                         ...) {
   what <- match.arg(what)
   colors <- jbrowse_colors()
@@ -372,9 +373,9 @@ autoplot.jbrowse_alignments <- function(object,
   sections <- nrow(object$sections)
   spliced <- any(object$junctions$count >= min_junction_reads)
   sequenced <- letters && !is.null(object$reference)
-  if (inherits(features, "jbrowse_features")) features <- list(features)
+  if (!is.null(tracks$region)) tracks <- list(tracks)
   bands <- c(
-    lapply(features, function(f) autoplot(f) + no_x),
+    lapply(tracks, function(t) autoplot(t) + no_x),
     if (spliced) list(junctions_plot(object, colors, min_junction_reads, xlim,
       xlab) + no_x),
     list(coverage_plot(object, colors, min_allele_frequency, xlim, xlab) + no_x),
@@ -382,7 +383,8 @@ autoplot.jbrowse_alignments <- function(object,
     if (sequenced) list(sequence_plot(object, colors, xlim, xlab) + no_x),
     list(pileup()))
   # a feature track's height in pixels, against a pileup band of about 300
-  heights <- c(vapply(features, function(f) max(0.3, f$height / 100), 1),
+  heights <- c(vapply(tracks, function(t)
+      if (is.null(t$height)) 1 else max(0.3, t$height / 100), 1),
     if (spliced) 0.8 * sections, sections, if (connected) 0.8 * sections,
     if (sequenced) 0.25, 3)
   patchwork::wrap_plots(bands, ncol = 1, heights = heights, guides = "collect")

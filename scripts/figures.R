@@ -35,4 +35,12 @@ genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA", 1000, 10000,
   display = list(showOnlyGenes = TRUE))
 reads <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 1000, 10000,
   reference = extdata("volvox.fa"), color = "strand")
-save("genes-over-reads.png", autoplot(reads, features = genes), 7)
+save("genes-over-reads.png", autoplot(reads, tracks = genes), 7)
+
+bw <- extdata("volvox_microarray_posneg.bw")
+save("wiggle.png", patchwork::wrap_plots(ncol = 1,
+  autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100)),
+  autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100,
+    display = list(mark = "line", interpolate = "linear"))),
+  autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000,
+    display = list(mark = "span")))), 6)

@@ -1,0 +1,48 @@
+bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+  package = "ggjbrowse")
+w <- jbrowse_wiggle(bw, "ctgA", 0, 50000)
+
+test_that("a BigWig region reads as the wiggle display scales and colors it", {
+  expect_gt(nrow(w$bins), 100)
+  expect_equal(nrow(w$marks), nrow(w$bins))
+  expect_equal(w$rendering, "xyplot")
+  expect_lte(w$domain[1], min(w$bins$score))
+  expect_gte(w$domain[2], max(w$bins$score))
+  sides <- split(w$marks$color, w$marks$score < 0)
+  expect_equal(lengths(lapply(sides, unique)), c(`FALSE` = 1, `TRUE` = 1))
+  expect_false(identical(sides[[1]][1], sides[[2]][1]))
+  pinned <- jbrowse_wiggle(bw, "ctgA", 0, 50000,
+    display = list(scales = list(y = list(domainMin = -50, domainMax = 300))))
+  expect_equal(pinned$domain, c(-50, 300))
+})
+
+test_that("a zoomed-out min-max extent draws the max, mean and min bands on each side", {
+  wide <- jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100)
+  expect_equal(length(unique(wide$marks$layer)), 6)
+  expect_true(all(wide$bins$min <= wide$bins$score &
+    wide$bins$score <= wide$bins$max))
+  line <- jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100,
+    display = list(mark = "line"))
+  band <- line$marks[line$marks$band, ]
+  expect_equal(nrow(band), nrow(line$bins))
+  expect_true(all(band$opacity < 1))
+  layers <- ggplot2::ggplot_build(ggplot2::autoplot(line))$data
+  expect_equal(nrow(layers[[1]]), nrow(band))
+})
+
+test_that("each plot type draws every mark", {
+  for (mark in c("bar", "point", "line", "span")) {
+    x <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = mark,
+      extent = "none"))
+    built <- ggplot2::ggplot_build(ggplot2::autoplot(x))
+    expect_equal(nrow(built$data[[2]]), nrow(x$marks))
+  }
+})
+
+test_that("a BigWig stacks over reads as one of the track's tracks", {
+  bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
+  reads <- jbrowse_alignments(bam, "ctgA", 1000, 6000)
+  track <- ggplot2::autoplot(reads,
+    tracks = jbrowse_wiggle(bw, "ctgA", 1000, 6000))
+  expect_equal(length(track$patches$plots) + 1, 3)
+})

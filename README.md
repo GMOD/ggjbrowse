@@ -106,14 +106,14 @@ their colors, its transcripts, and the labels the display shows at that
 zoom. `display` takes the display's own settings (`color`, `displayMode`,
 `showLabels`, `geneGlyphMode`, `showOnlyGenes`, ...), and `width` is the
 pixel width the display lays the region out across, which decides which
-names fit. Draw it over reads with `features`:
+names fit. Draw it over reads with `tracks`:
 
 ```r
 genes <- jbrowse_features("genes.gff3.gz", "ctgA", 1000, 10000,
   display = list(showOnlyGenes = TRUE))
 reads <- jbrowse_alignments("rnaseq.bam", "ctgA", 1000, 10000,
   color = "strand")
-autoplot(reads, features = genes)
+autoplot(reads, tracks = genes)
 ```
 
 ![EDEN's three isoforms and two smaller genes over spliced RNA-seq reads on volvox ctgA](man/figures/genes-over-reads.png)
@@ -122,10 +122,32 @@ The y axis of a feature track is the display's pixels. Labels scale with the
 panel they land in, so they keep to the room the layout left them at any
 output size.
 
+## Quantitative tracks
+
+`jbrowse_wiggle()` reads a BigWig through JBrowse's quantitative display: the
+bins the file serves at that zoom, the marks the display draws from them in
+its colors, and the score axis it autoscales to. `display` takes its settings
+(`mark`, `aggregate`, `extent`, `color`, `scales`, ...), and `width` picks the
+zoom level that answers. Zoomed out, a min-max extent draws each bin's max and
+min around its mean:
+
+```r
+bw <- "signal.bw"
+autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100))
+autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100,
+  display = list(mark = "line", interpolate = "linear")))
+autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = "span")))
+```
+
+![A signed volvox microarray track three ways: min-max bars, an interpolated line over its min-max band, and density](man/figures/wiggle.png)
+
+`tracks` stacks BigWigs and feature tracks above reads alike:
+`autoplot(reads, tracks = list(genes, jbrowse_wiggle(bw, "ctgA", 1000, 10000)))`.
+
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There
-is no Bioconductor dependency: the BAM, CRAM, FASTA, GFF3, BED and BigBed
-readers are JBrowse's.
+is no Bioconductor dependency: the BAM, CRAM, FASTA, GFF3, BED, BigBed and
+BigWig readers are JBrowse's.
 
 ## The engine
 
@@ -152,7 +174,7 @@ committed bundle once R CMD check passes.
 
 ## Not yet
 
-BigWig and VCF; per-base quality and bisulfite layers; a legend for a
+VCF; a multi-BigWig track's dealt palette; per-base quality and bisulfite layers; a legend for a
 linear color ramp; facets on a feature track; the amino-acid
 overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.
