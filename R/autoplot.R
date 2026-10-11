@@ -66,6 +66,14 @@ no_y <- ggplot2::theme(axis.text.y = ggplot2::element_blank(),
 no_x <- ggplot2::theme(axis.text.x = ggplot2::element_blank(),
   axis.title.x = ggplot2::element_blank())
 
+# A band's sections stacked as the display stacks them, one panel each; rows
+# keep one height across sections where `rows` says the y axis counts rows
+by_section <- function(x, rows = FALSE) {
+  if (identical(x$sections$label, "")) return(NULL)
+  ggplot2::facet_grid(rows = ggplot2::vars(section), scales = "free_y",
+    space = if (rows) "free_y" else "fixed")
+}
+
 # A base's width on a figure about 170 mm wide, never thinner than a tick
 cell_width <- function(xlim) max(0.3, 170 / (xlim[2] - xlim[1]))
 
@@ -110,6 +118,7 @@ coverage_plot <- function(x, colors, min_allele_frequency, xlim, xlab) {
       show.legend = FALSE) +
     ggplot2::scale_alpha_identity() +
     ggplot2::coord_cartesian(xlim = xlim, expand = FALSE) +
+    by_section(x) +
     ggplot2::labs(x = xlab, y = "depth") +
     ggplot2::theme_minimal()
 }
@@ -189,6 +198,7 @@ pileup_plot <- function(x, colors, letters, xlim, xlab, px, fade) {
   p +
     ggplot2::scale_y_reverse() +
     ggplot2::coord_cartesian(xlim = xlim, expand = FALSE) +
+    by_section(x, rows = TRUE) +
     ggplot2::labs(x = xlab, y = NULL) +
     ggplot2::theme_minimal() +
     no_y
@@ -199,12 +209,14 @@ junctions_plot <- function(x, colors, min_junction_reads, xlim, xlab) {
   arcs <- junction_arcs(j)
   strand <- factor(j$strand, levels = c(1, -1, 0))
   arcs$strand <- strand[arcs$id]
+  arcs$section <- j$section[arcs$id]
   arcs$width <- pmin(4, pmax(0.4, log(j$count[arcs$id] + 1) / 2))
   # the count sits at the highest point of the arc that is in view
   shown <- arcs[arcs$x >= xlim[1] & arcs$x <= xlim[2], , drop = FALSE]
   top <- shown[order(shown$id, -shown$y), ]
   top <- top[!duplicated(top$id), , drop = FALSE]
-  apex <- data.frame(x = top$x, y = top$y, label = j$count[top$id])
+  apex <- data.frame(x = top$x, y = top$y, label = j$count[top$id],
+    section = top$section)
   ggplot2::ggplot() +
     ggplot2::geom_path(ggplot2::aes(x = x, y = y, group = id, colour = strand,
       linewidth = width), arcs, lineend = "round") +
@@ -216,24 +228,88 @@ junctions_plot <- function(x, colors, min_junction_reads, xlim, xlab) {
     ggplot2::geom_label(ggplot2::aes(x = x, y = y, label = label), apex,
       size = 2.6, linewidth = 0, label.padding = grid::unit(0.15, "lines")) +
     ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1.08), expand = FALSE) +
+    by_section(x) +
     ggplot2::labs(x = xlab, y = NULL) +
     ggplot2::theme_minimal() +
     no_y
+}
+
+# Each connection's arc as points: a half circle from foot to foot, its
+# height the genomic radius, as the display's band rises an arc as high as it
+# is wide
+connection_domes <- function(arcs, points = 48) {
+  t <- seq(0, pi, length.out = points)
+  do.call(rbind, lapply(seq_len(nrow(arcs)), function(i) {
+    data.frame(id = i, x = arcs$start[i] + (arcs$end[i] - arcs$start[i]) *
+      (1 - cos(t)) / 2, y = arcs$y[i] * sin(t), color = arcs$color[i],
+      width = arcs$width[i], section = arcs$section[i])
+  })) %||% data.frame(id = integer(0), x = numeric(0), y = numeric(0),
+    color = character(0), width = numeric(0), section = arcs$section)
+}
+
+# The read-connection band as the display draws it under the coverage: each
+# mate pair's or split read's arc hanging from the top, or, as the read
+# cloud, each pair a bar at its insert size on a log axis with a square at
+# each foot, split reads dashed; interchromosomal ticks span the band
+arcs_plot <- function(x, xlim, xlab) {
+  arcs <- x$arcs
+  ticks <- x$arc_ticks
+  legend <- x$arc_legend
+  keyed <- legend[!duplicated(legend$color), , drop = FALSE]
+  cloud <- x$read_connections == "cloud"
+  top <- if (cloud) max(2, x$arc_span_max) else max(1, arcs$y)
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_segment(ggplot2::aes(x = position, xend = position,
+      y = if (cloud) 1 else 0, yend = top, colour = color,
+      linewidth = width / ggplot2::.pt), ticks)
+  if (cloud) {
+    arcs$y <- pmax(1, arcs$y)
+    feet <- rbind(transform(arcs, x = start), transform(arcs, x = end))
+    p <- p +
+      ggplot2::geom_segment(ggplot2::aes(x = start, xend = end, y = y,
+        yend = y, colour = color, alpha = opacity,
+        linewidth = width / ggplot2::.pt,
+        linetype = shape == "flatSplit"), arcs) +
+      ggplot2::scale_linetype_manual(values = c("FALSE" = "solid",
+        "TRUE" = "22"), guide = "none") +
+      ggplot2::geom_point(ggplot2::aes(x = x, y = y, colour = color), feet,
+        shape = 15, size = 1.3) +
+      ggplot2::scale_y_log10() +
+      ggplot2::scale_alpha_identity()
+  } else {
+    p <- p +
+      ggplot2::geom_path(ggplot2::aes(x = x, y = y, group = id,
+        colour = color, linewidth = width / ggplot2::.pt),
+        connection_domes(arcs)) +
+      ggplot2::scale_y_reverse()
+  }
+  p +
+    ggplot2::scale_linewidth_identity() +
+    ggplot2::scale_colour_identity(name = attr(legend, "title"),
+      breaks = keyed$color, labels = keyed$label, guide = "legend") +
+    ggplot2::coord_cartesian(xlim = xlim,
+      ylim = if (cloud) c(1, top) else c(0, top), expand = FALSE) +
+    by_section(x) +
+    ggplot2::labs(x = xlab, y = if (cloud) "insert size (bp)" else NULL) +
+    ggplot2::theme_minimal() +
+    if (cloud) NULL else no_y
 }
 
 #' Draw alignments as JBrowse's alignments track, or one band of it
 #'
 #' @param object a [jbrowse_alignments()] result
 #' @param what `"track"`: the display's stack, any `features` tracks on top,
-#'   then splice-junction arcs where the
-#'   reads splice, the coverage band, the reference's bases where they are
-#'   wide enough to read and the pileup, one above the other on a shared
-#'   axis; `"pileup"`: each read on its row, split at its splice gaps, filled
+#'   then splice-junction arcs where the reads splice, the coverage band,
+#'   the read-connection band under `read_connections`, the reference's bases
+#'   where they are wide enough to read and the pileup, one above the other
+#'   on a shared axis, each band split into the `facet`'s sections; `"pileup"`: each read on its row, split at its splice gaps, filled
 #'   as the display's `color` object paints it and keyed as the display keys
 #'   it, with its mismatches, deletions, insertions, clips and base
 #'   modifications; `"coverage"`: the depth, each mismatch position's alleles
 #'   stacked in its bases' colors; `"junctions"`: the arcs alone;
-#'   `"sequence"`: the reference's bases alone
+#'   `"arcs"`: the read-connection band alone, mate-pair and split-read arcs
+#'   or the read cloud on a log insert-size axis; `"sequence"`: the
+#'   reference's bases alone
 #' @param min_allele_frequency hide a coverage-band allele segment whose share
 #'   of the depth there is below this, the display's `coverageSnpMinFrequency`
 #' @param min_junction_reads hide a junction arc with fewer supporting reads,
@@ -262,7 +338,7 @@ junctions_plot <- function(x, colors, min_junction_reads, xlim, xlab) {
 #' autoplot(a, features = jbrowse_features(gff, "ctgA", 400, 1300))
 autoplot.jbrowse_alignments <- function(object,
                                         what = c("track", "pileup", "coverage",
-                                          "junctions", "sequence"),
+                                          "junctions", "arcs", "sequence"),
                                         min_allele_frequency = 0,
                                         min_junction_reads = 2,
                                         letters = NULL,
@@ -286,9 +362,14 @@ autoplot.jbrowse_alignments <- function(object,
   if (what == "junctions") {
     return(junctions_plot(object, colors, min_junction_reads, xlim, xlab))
   }
+  if (what == "arcs") {
+    return(arcs_plot(object, xlim, xlab))
+  }
   if (what == "sequence") {
     return(sequence_plot(object, colors, xlim, xlab))
   }
+  connected <- nrow(object$arcs) + nrow(object$arc_ticks) > 0
+  sections <- nrow(object$sections)
   spliced <- any(object$junctions$count >= min_junction_reads)
   sequenced <- letters && !is.null(object$reference)
   if (inherits(features, "jbrowse_features")) features <- list(features)
@@ -297,10 +378,12 @@ autoplot.jbrowse_alignments <- function(object,
     if (spliced) list(junctions_plot(object, colors, min_junction_reads, xlim,
       xlab) + no_x),
     list(coverage_plot(object, colors, min_allele_frequency, xlim, xlab) + no_x),
+    if (connected) list(arcs_plot(object, xlim, xlab) + no_x),
     if (sequenced) list(sequence_plot(object, colors, xlim, xlab) + no_x),
     list(pileup()))
   # a feature track's height in pixels, against a pileup band of about 300
   heights <- c(vapply(features, function(f) max(0.3, f$height / 100), 1),
-    if (spliced) 0.8, 1, if (sequenced) 0.25, 3)
+    if (spliced) 0.8 * sections, sections, if (connected) 0.8 * sections,
+    if (sequenced) 0.25, 3)
   patchwork::wrap_plots(bands, ncol = 1, heights = heights, guides = "collect")
 }

@@ -56,8 +56,21 @@ autoplot(m)
 
 ![Nanopore reads over 12 kb of chr20, each CpG call painted red where methylated and blue where not](man/figures/methylation.png)
 
+`read_connections = "arc"` adds the display's read-pair band: each mate
+pair's and split read's arc, colored by insert size and pair orientation.
+`"cloud"` plots each abnormal pair at its insert size instead. `facet` splits
+the reads into the display's stacked sections, each packed separately:
+
+```r
+inv <- jbrowse_alignments("paired.bam", "ctgA", 18000, 32000,
+  read_connections = "arc", facet = "strand")
+autoplot(inv)
+```
+
+![Mate pairs across a volvox inversion, split by strand: both-forward pairs arc green over the forward reads, both-reverse pairs blue over the reverse](man/figures/inversion.png)
+
 Each band is its own ggplot too (`autoplot(a, "pileup")`,
-`"coverage"`, `"junctions"`), to restyle or stack with patchwork.
+`"coverage"`, `"junctions"`, `"arcs"`), to restyle or stack with patchwork.
 
 The tables are plain data frames, so a figure can be any ggplot over them:
 
@@ -71,12 +84,14 @@ ggplot(cram$mismatches, aes(position, frequency, colour = base)) +
   scale_colour_manual(values = jbrowse_colors()$bases)
 ```
 
-`color`, `filter`, `base_color`, `modifications` and `sort` are the
-display's own settings objects, so what JBrowse can color, filter, paint or
-sort by, this can: `color = "mapq"`,
+`color`, `filter`, `base_color`, `modifications`, `sort` and `facet` are the
+display's own settings objects, so what JBrowse can color, filter, paint,
+sort or split by, this can: `color = "mapq"`,
 `color = list(field = "insertSize", domain = c(200, 600))`,
 `filter = list(flagExclude = 1796, tagFilters = list(list(tag = "HP", value = "1")))`,
-`base_color = "modifications"`, `sort = list(type = "basePair", pos = 1055)`.
+`base_color = "modifications"`, `sort = list(type = "basePair", pos = 1055)`,
+`facet = "tags.HP"`. `display` takes any other slot of the display's config,
+such as `list(showOrdinaryPairs = FALSE)`.
 Each read comes back on the row the display lays it on, with the fill the
 display paints it and the bucket it files it under, each modification call
 with its color and opacity, the coverage band's stacks as the display stacks
@@ -137,8 +152,8 @@ committed bundle once R CMD check passes.
 
 ## Not yet
 
-BigWig and VCF; per-base quality and bisulfite layers; read-pair arcs; a
-legend for a linear color ramp; facets on a feature track; the amino-acid
+BigWig and VCF; per-base quality and bisulfite layers; a legend for a
+linear color ramp; facets on a feature track; the amino-acid
 overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.
 

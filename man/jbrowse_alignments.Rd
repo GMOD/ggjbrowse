@@ -17,6 +17,9 @@ jbrowse_alignments(
   base_color = NULL,
   modifications = NULL,
   sort = NULL,
+  facet = NULL,
+  read_connections = NULL,
+  display = NULL,
   byte_limit = 2e+08
 )
 }
@@ -63,6 +66,21 @@ a list with \code{type} (\code{"strand"}, \code{"basePair"}, \code{"tag"}, \code
 \code{"softclip"} or \code{"hardclip"}) and \code{pos}, the 0-based column the reads
 are ranked over, plus \code{tag} under \code{"tag"}}
 
+\item{facet}{what splits the reads into stacked sections, as the display's
+\code{facet} object: a field name (\code{"strand"}, \code{"pairOrientation"},
+\code{"tags.HP"}, ...) or a list with \code{field}, \code{domain} (the section keys in
+stacking order) and \code{hidden} (the section keys left out); each section
+lays out on its own}
+
+\item{read_connections}{the display's read-connection band: \code{"arc"} for
+each mate pair's and split read's arc, \code{"cloud"} for the read cloud's
+bars at each pair's insert size; \code{NULL} reads none}
+
+\item{display}{any other slots of the display's config, as a track's
+\code{displays} entry writes them for a \code{LinearAlignmentsDisplay}, such as
+\code{showOrdinaryPairs}, \code{showInterchrom}, \code{minInterchromSupport},
+\code{arcColor} or \code{readConnectionsLineWidth}}
+
 \item{byte_limit}{the most compressed bytes the region may need, refused off
 the index before any read is fetched; the whole table is held in memory}
 }
@@ -97,9 +115,22 @@ the reads' tags nor the splice motif says) and \code{motif} (\code{"GT-AG (canon
 does not cover both ends)
 \item \code{legend}: \code{label} and \code{color}, the key the display shows for \code{color},
 its title as the frame's \code{"title"} attribute
+\item \code{arcs}: under \code{read_connections}, each connection the band draws:
+\code{start} and \code{end} (its feet), \code{shape} (\code{"arc"}, or the read cloud's
+\code{"flat"}, \code{"flatSplit"} for a split read, and \code{"unplaced"} for one whose
+partner is outside the region), \code{category}, \code{color}, \code{opacity}, \code{y}
+(where the band plots it in bp: an arc's radius, or the read cloud's
+insert size, jittered as the display jitters it), \code{span} (the distance
+itself), \code{support} (the reads behind it) and \code{width} (the stroke in px)
+\item \code{arc_ticks}: the interchromosomal ticks: \code{position}, \code{support},
+\code{partners} (the contigs reached), \code{color}, \code{width}
+\item \code{arc_legend}: the band's key, its title as the \code{"title"} attribute
+\item \code{sections}: under \code{facet}, each section's \code{key} and \code{label} in stacking
+order; ungrouped, one section labelled \code{""}
 }
 
-\code{read} is a row number of \code{reads}. \code{fade} is the share of the depth a
+Every table but the keys carries \code{section}, a factor in stacking order,
+and each section's rows start at 0. \code{read} is a row number of \code{reads}. \code{fade} is the share of the depth a
 mark's site holds, zeroed under the display's depth-dependent threshold,
 which the pileup fades a sub-pixel mark by.
 }

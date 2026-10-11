@@ -22,6 +22,10 @@ zoom <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 1120,
   reference = extdata("volvox.fa"), color = "mapq")
 save("zoom.png", autoplot(zoom), 6)
 
+inv <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA",
+  18000, 32000, read_connections = "arc", facet = "strand")
+save("inversion.png", autoplot(inv), 7)
+
 meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
   reference = extdata("hg38_clip.fa"), base_color = "modifications",
   modifications = list(unmodified = "calls"))

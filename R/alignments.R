@@ -58,6 +58,18 @@ sequence_adapter <- function(reference) {
 #'   a list with `type` (`"strand"`, `"basePair"`, `"tag"`, `"insertion"`,
 #'   `"softclip"` or `"hardclip"`) and `pos`, the 0-based column the reads
 #'   are ranked over, plus `tag` under `"tag"`
+#' @param facet what splits the reads into stacked sections, as the display's
+#'   `facet` object: a field name (`"strand"`, `"pairOrientation"`,
+#'   `"tags.HP"`, ...) or a list with `field`, `domain` (the section keys in
+#'   stacking order) and `hidden` (the section keys left out); each section
+#'   lays out on its own
+#' @param read_connections the display's read-connection band: `"arc"` for
+#'   each mate pair's and split read's arc, `"cloud"` for the read cloud's
+#'   bars at each pair's insert size; `NULL` reads none
+#' @param display any other slots of the display's config, as a track's
+#'   `displays` entry writes them for a `LinearAlignmentsDisplay`, such as
+#'   `showOrdinaryPairs`, `showInterchrom`, `minInterchromSupport`,
+#'   `arcColor` or `readConnectionsLineWidth`
 #' @param byte_limit the most compressed bytes the region may need, refused off
 #'   the index before any read is fetched; the whole table is held in memory
 #' @return a `jbrowse_alignments` list of data frames:
@@ -90,8 +102,21 @@ sequence_adapter <- function(reference) {
 #'     does not cover both ends)
 #'   * `legend`: `label` and `color`, the key the display shows for `color`,
 #'     its title as the frame's `"title"` attribute
+#'   * `arcs`: under `read_connections`, each connection the band draws:
+#'     `start` and `end` (its feet), `shape` (`"arc"`, or the read cloud's
+#'     `"flat"`, `"flatSplit"` for a split read, and `"unplaced"` for one whose
+#'     partner is outside the region), `category`, `color`, `opacity`, `y`
+#'     (where the band plots it in bp: an arc's radius, or the read cloud's
+#'     insert size, jittered as the display jitters it), `span` (the distance
+#'     itself), `support` (the reads behind it) and `width` (the stroke in px)
+#'   * `arc_ticks`: the interchromosomal ticks: `position`, `support`,
+#'     `partners` (the contigs reached), `color`, `width`
+#'   * `arc_legend`: the band's key, its title as the `"title"` attribute
+#'   * `sections`: under `facet`, each section's `key` and `label` in stacking
+#'     order; ungrouped, one section labelled `""`
 #'
-#'   `read` is a row number of `reads`. `fade` is the share of the depth a
+#'   Every table but the keys carries `section`, a factor in stacking order,
+#'   and each section's rows start at 0. `read` is a row number of `reads`. `fade` is the share of the depth a
 #'   mark's site holds, zeroed under the display's depth-dependent threshold,
 #'   which the pileup fades a sub-pixel mark by.
 #' @export
@@ -103,49 +128,69 @@ sequence_adapter <- function(reference) {
 jbrowse_alignments <- function(file, chrom, start, end, reference = NULL,
                                reference_chrom = chrom, index = NULL,
                                color = NULL, filter = NULL, base_color = NULL,
-                               modifications = NULL, sort = NULL,
+                               modifications = NULL, sort = NULL, facet = NULL,
+                               read_connections = NULL, display = NULL,
                                byte_limit = 2e8) {
-  args <- list(
-    adapterConfig = alignments_adapter(file, index),
-    region = list(refName = chrom, originalRefName = reference_chrom,
-      start = start, end = end),
-    byteLimit = byte_limit)
-  if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
-  if (!is.null(color)) args$color <- color_object(color)
-  if (!is.null(filter)) args$filter <- filter
+  display <- display %||% list()
+  if (!is.null(color)) display$color <- color
+  if (!is.null(display$color)) display$color <- color_object(display$color)
+  if (!is.null(filter)) display$filter <- filter
   if (!is.null(base_color)) {
-    args$baseColor <- if (is.character(base_color)) list(field = base_color)
-      else base_color
+    display$baseColor <- if (is.character(base_color))
+      list(field = base_color) else base_color
   }
   if (!is.null(modifications)) {
     if (!is.null(modifications$shownModifications)) {
       modifications$shownModifications <- I(modifications$shownModifications)
     }
-    args$modifications <- modifications
+    display$modifications <- modifications
   }
   if (!is.null(sort)) {
-    args$sort <- if (is.character(sort)) list(type = sort) else sort
+    display$sort <- if (is.character(sort)) list(type = sort) else sort
   }
+  if (!is.null(facet)) display$facet <- facet_object(facet)
+  if (!is.null(read_connections)) display$readConnections <- read_connections
+  args <- list(
+    adapterConfig = alignments_adapter(file, index),
+    region = list(refName = chrom, originalRefName = reference_chrom,
+      start = start, end = end),
+    byteLimit = byte_limit)
+  if (length(display)) args$display <- display
+  if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
   t <- call_engine("alignments", args)
-  reads <- as_frame(t$reads)
+  sections <- as_frame(t$sections)
+  frame <- function(table) {
+    d <- as_frame(table)
+    if (!is.null(d$section)) {
+      d$section <- factor(d$section, levels = sections$label)
+    }
+    d
+  }
+  reads <- frame(t$reads)
   names(reads)[names(reads) == "insertSize"] <- "insert_size"
   names(reads)[names(reads) == "pairOrientation"] <- "pair_orientation"
   on_read <- function(table) {
-    d <- as_frame(table)
+    d <- frame(table)
     d$read <- d$read + 1
     d$row <- reads$row[d$read]
     d
   }
-  legend <- as_frame(t$legend)
+  legend <- frame(t$legend)
   attr(legend, "title") <- t$legendTitle
+  arc_legend <- frame(t$arcLegend)
+  attr(arc_legend, "title") <- t$arcLegendTitle
   structure(
     list(reads = reads, mismatches = on_read(t$mismatches),
       gaps = on_read(t$gaps), insertions = on_read(t$insertions),
       clips = on_read(t$clips), modifications = on_read(t$modifications),
-      coverage = as_frame(t$coverage),
-      allele_coverage = as_frame(t$alleleCoverage),
-      modification_coverage = as_frame(t$modificationCoverage),
-      junctions = as_frame(t$junctions), legend = legend,
+      coverage = frame(t$coverage),
+      allele_coverage = frame(t$alleleCoverage),
+      modification_coverage = frame(t$modificationCoverage),
+      junctions = frame(t$junctions), legend = legend,
+      arcs = frame(t$arcs), arc_ticks = frame(t$arcTicks),
+      arc_legend = arc_legend, arc_span_max = t$arcSpanMax,
+      read_connections = display$readConnections %||% "off",
+      sections = sections,
       region = list(chrom = chrom, start = start, end = end),
       reference = if (is.null(reference)) NULL else
         list(file = reference, chrom = reference_chrom)),
@@ -169,6 +214,15 @@ jbrowse_sequence <- function(reference, chrom, start, end) {
     auto_unbox = TRUE)), await = TRUE)
 }
 
+# The display's facet object from a field name or a list of its slots
+facet_object <- function(facet) {
+  if (is.character(facet) && length(facet) == 1) return(list(field = facet))
+  for (slot in intersect(c("domain", "hidden"), names(facet))) {
+    facet[[slot]] <- I(facet[[slot]])
+  }
+  facet
+}
+
 # The display's color object from a field name or a list of its slots; a
 # slot that is a list stays one in JSON, however many values it holds.
 color_object <- function(color) {
@@ -182,10 +236,10 @@ color_object <- function(color) {
 #' @export
 print.jbrowse_alignments <- function(x, ...) {
   cat(sprintf(
-    "<jbrowse_alignments> %s:%.0f-%.0f, %d reads on %d rows, %d mismatches, %d gaps, %d insertions, %d clips, %d modifications, %d junctions\n",
+    "<jbrowse_alignments> %s:%.0f-%.0f, %d reads in %d sections, %d mismatches, %d gaps, %d insertions, %d clips, %d modifications, %d junctions, %d arcs\n",
     x$region$chrom, x$region$start, x$region$end, nrow(x$reads),
-    length(unique(x$reads$row)), nrow(x$mismatches), nrow(x$gaps),
+    nrow(x$sections), nrow(x$mismatches), nrow(x$gaps),
     nrow(x$insertions), nrow(x$clips), nrow(x$modifications),
-    nrow(x$junctions)))
+    nrow(x$junctions), nrow(x$arcs)))
   invisible(x)
 }
