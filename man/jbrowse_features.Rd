@@ -33,7 +33,10 @@ such as \code{list(field = "type")}), \code{displayMode} (\code{"normal"}, \code
 \code{"nameAndDescription"}, \code{"description"}, \code{"none"}), \code{geneGlyphMode}
 (\code{"auto"}, \code{"all"}, \code{"longestCoding"}), \code{subfeatureLabels} (\code{"none"},
 \code{"below"}, \code{"overlay"}), \code{featureHeight}, \code{showOnlyGenes}, \code{filter} (jexl
-expressions) and \code{displayDirectionalChevrons}}
+expressions), \code{displayDirectionalChevrons}, and \code{heightMode} with
+\code{height}. A figure has no track height to fit, so \code{heightMode} defaults to
+\code{"grow"}, every feature at full size; \code{list(heightMode = "fit", height = 100)} gives up the labels, isoforms and row height the browser gives up to
+fit a 100 px track}
 
 \item{width}{the width in pixels the display lays the region out across:
 whether a name fits beside its feature, which chevrons and arrows draw and

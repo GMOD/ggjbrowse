@@ -47,7 +47,11 @@ features_adapter <- function(file, index) {
 #'   `"nameAndDescription"`, `"description"`, `"none"`), `geneGlyphMode`
 #'   (`"auto"`, `"all"`, `"longestCoding"`), `subfeatureLabels` (`"none"`,
 #'   `"below"`, `"overlay"`), `featureHeight`, `showOnlyGenes`, `filter` (jexl
-#'   expressions) and `displayDirectionalChevrons`
+#'   expressions), `displayDirectionalChevrons`, and `heightMode` with
+#'   `height`. A figure has no track height to fit, so `heightMode` defaults to
+#'   `"grow"`, every feature at full size; `list(heightMode = "fit", height =
+#'   100)` gives up the labels, isoforms and row height the browser gives up to
+#'   fit a 100 px track
 #' @param width the width in pixels the display lays the region out across:
 #'   whether a name fits beside its feature, which chevrons and arrows draw and
 #'   how the `auto` modes resolve all follow from it. [autoplot()] scales those
@@ -106,11 +110,11 @@ jbrowse_features <- function(file, chrom, start, end, display = NULL,
     colorByCDS = color_by_cds,
     byteLimit = byte_limit)
   if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
-  if (!is.null(display)) {
-    display$color <- config_color(display$color)
-    if (!is.null(display$filter)) display$filter <- I(display$filter)
-    args$display <- display
-  }
+  display <- display %||% list()
+  display$heightMode <- display$heightMode %||% "grow"
+  display$color <- config_color(display$color)
+  if (!is.null(display$filter)) display$filter <- I(display$filter)
+  args$display <- display
   t <- call_engine("features", args)
   features <- as_frame(t$features)
   on_feature <- function(table) {

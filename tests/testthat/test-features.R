@@ -41,6 +41,15 @@ test_that("the display's settings reach the tables", {
   expect_equal(attr(typed$legend, "title"), "type")
 })
 
+test_that("a fitted track gives up what the browser gives up to fit it", {
+  fit <- jbrowse_features(gff, "ctgA", 0, 25000,
+    display = list(heightMode = "fit", height = 100))
+  eden <- which(fit$features$name == "EDEN")
+  expect_lte(max(fit$features$bottom), 100)
+  expect_false("EDEN" %in% fit$labels$text)
+  expect_equal(sum(fit$subfeatures$feature == eden), 1)
+})
+
 test_that("a wider layout fits more names", {
   narrow <- jbrowse_features(gff, "ctgA", 0, 25000, width = 300)
   expect_lt(nrow(narrow$labels), nrow(g$labels))
