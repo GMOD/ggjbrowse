@@ -184,7 +184,7 @@ pileup_plot <- function(x, colors, letters, xlim, xlab, px, fade) {
       ggplot2::geom_label(ggplot2::aes(x = position, y = row + 0.5,
         label = length), ins, size = 2.2, fill = colors$insertion,
         colour = "white", label.padding = grid::unit(0.1, "lines"),
-        label.size = 0)
+        linewidth = 0)
   }
   p +
     ggplot2::scale_y_reverse() +
@@ -214,7 +214,7 @@ junctions_plot <- function(x, colors, min_junction_reads, xlim, xlab) {
       labels = c("1" = "Forward", "-1" = "Reverse", "0" = "Unknown"),
       name = "Junction strand", drop = TRUE) +
     ggplot2::geom_label(ggplot2::aes(x = x, y = y, label = label), apex,
-      size = 2.6, label.size = 0, label.padding = grid::unit(0.15, "lines")) +
+      size = 2.6, linewidth = 0, label.padding = grid::unit(0.15, "lines")) +
     ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1.08), expand = FALSE) +
     ggplot2::labs(x = xlab, y = NULL) +
     ggplot2::theme_minimal() +
