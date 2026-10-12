@@ -78,3 +78,7 @@ ggsave(file.path(out, "dotplot.png"), autoplot(jbrowse_dotplot(paf,
 ggsave(file.path(out, "whole-genome.png"),
   autoplot(jbrowse_dotplot(extdata("peach_grape.paf.gz"))),
   width = 6, height = 5.5, dpi = 120)
+
+multiway <- jbrowse_multiway(extdata("volvox_all_vs_all.paf"), "ctgA:1-50,001",
+  "volvox", display = list(ribbonColor = list(field = "strand")))
+save("multiway.png", autoplot(multiway), 3.2)

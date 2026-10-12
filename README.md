@@ -309,6 +309,26 @@ autoplot(jbrowse_dotplot(e("peach_grape.paf.gz")))
 
 ![Peach against grape, every chromosome of each along its axis, named](man/figures/whole-genome.png)
 
+### Several genomes
+
+`jbrowse_multiway()` reads an all-vs-all PAF (sequences named
+`sample#haplotype#contig`), an indexed PIF or a multi-genome adapter config
+through JBrowse's multi-way synteny display: an anchor lane over the locus
+given, a lane per other genome in the alignments' own coordinates, each at
+the zoom and orientation the display gives it, and the ribbons between
+adjacent lanes. `lanes` picks and orders the genomes, or pins a lane to a
+contig, and `display` takes the display's settings (`ribbonColor`,
+`drawCurves`, `bridgeSkippedLanes`, ...). Tracks over the anchor lane stack
+above it, as `autoplot(m, above = genes)`:
+
+```r
+m <- jbrowse_multiway(e("volvox_all_vs_all.paf"), "ctgA:1-50,001", "volvox",
+  display = list(ribbonColor = list(field = "strand")))
+autoplot(m)
+```
+
+![Volvox over its insertion and deletion simulations: three lanes, each with its own ruler, the ribbons between them opening at the indels](man/figures/multiway.png)
+
 ## From a JBrowse view
 
 - JBrowse's linear genome view is gaining an **Export R script** menu item,
@@ -365,7 +385,7 @@ committed bundle once R CMD check passes.
 The variant display's row arrangement
 and its zoomed-out density fade; the bisulfite layer; facets on a feature
 track; the amino-acid
-overlay on a zoomed-in CDS; the multi-way synteny display. A CRAN release, which needs the bundle's own dependencies credited
+overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.
 
 ## See also
