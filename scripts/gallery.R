@@ -259,6 +259,21 @@ examples <- list(
       subadapters = lapply(seq_along(cells), function(i) list(
         type = "BigWigAdapter", name = toupper(cells[i]),
         bigWigLocation = list(uri = dnase[i])))), "chr11:5,270,001-5,320,000"))),
+  dnase_clustered = list(
+    title = "The same DNase rows as density, clustered by their signal",
+    locus = "chr11:5,270,001-5,320,000", height = 4,
+    jbrowse = c(hg38, "--multiwig", rows_json(dnase, toupper(cells)),
+      "showLegend=true", "name:DNase", "mark=span", "runClustering=true",
+      "--loc", "chr11:5,270,001-5,320,000"),
+    r = function() {
+      rows <- jbrowse_wiggle(list(type = "MultiWiggleAdapter",
+        subadapters = lapply(seq_along(cells), function(i) list(
+          type = "BigWigAdapter", name = toupper(cells[i]),
+          bigWigLocation = list(uri = dnase[i])))),
+        "chr11:5,270,001-5,320,000", display = list(mark = "span"))
+      rows$tree <- hclust(dist(as.matrix(rows)), "average")
+      autoplot(rows)
+    }),
   conservation = list(
     title = "phyloP conservation across GAPDH as bars, a line and density",
     locus = gapdh, height = 6,
@@ -289,6 +304,18 @@ examples <- list(
       "1:155,000,001-155,050,000", samples = extdata("1000g_dcst2_samples.tsv"),
       display = list(rowColor = list(field = "superpopulation"))),
       layout = "columns")),
+  variants_clustered = list(
+    title = "The same people clustered by genotype, the tree beside the rows",
+    locus = "1:155,000,001-155,050,000", height = 7,
+    jbrowse = c("--hub", "hg19", "--tracks", population_tracks(), "--track",
+      "people", "runClustering=true", "--loc", "1:155,000,001-155,050,000"),
+    r = function() {
+      people <- jbrowse_variants(extdata("1000g_dcst2.vcf.gz"),
+        "1:155,000,001-155,050,000", samples = extdata("1000g_dcst2_samples.tsv"),
+        display = list(rowColor = list(field = "superpopulation")))
+      people$tree <- hclust(dist(as.matrix(people)), "average")
+      autoplot(people, layout = "columns")
+    }),
   collapsed_introns = list(
     title = "GAPDH's nine exons side by side, with the junctions between them as arcs",
     locus = "ENST00000229239.10's exons, each padded by 20 bp", height = 7,
