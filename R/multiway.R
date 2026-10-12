@@ -145,6 +145,7 @@ jbrowse_multiway <- function(file, locus, assembly = NULL, lanes = NULL,
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle)
   attr(key, "override") <- list(alpha = 0.6)
+  attr(key, "complete") <- TRUE
   structure(
     list(lanes = lane_frame, segments = segments,
       blocks = one_based(snake(as_frame(r$blocks)), "lane"),
@@ -267,7 +268,7 @@ geom_jbrowse_lane_ribbons <- function(mapping = NULL, data = NULL,
     jbrowse_layer(ggplot2::GeomPolygon, data, filled,
       for_geom(mapping, ggplot2::GeomPolygon),
       ggplot2::aes(x = x, y = y, group = ribbon, fill = color,
-        alpha = I(alpha)), list(colour = NA, ...)),
+        alpha = I(alpha)), list(colour = NA, ...), keyed = "complete"),
     jbrowse_layer(ggplot2::GeomPath, data, lines,
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = y, group = ribbon, colour = color,

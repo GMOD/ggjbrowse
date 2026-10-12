@@ -172,3 +172,18 @@ test_that("comparative axes lay their regions end to end with no gap, as the bro
   fig <- autoplot(two, target = genes)
   expect_equal(length(fig$patches$plots) + 1, 2)
 })
+
+test_that("a binned key lists every bin, present in the data or not", {
+  mapq <- jbrowse_synteny(paf, query, target,
+    view = list(color = list(field = "mapq")))
+  expect_equal(nrow(mapq$legend), 4)
+  expect_equal(length(unique(mapq$alignments$color)), 1)
+  built <- ggplot2::ggplot_build(autoplot(mapq))
+  fill <- built$plot$scales$get_scales("fill")
+  expect_setequal(fill$get_breaks(), as.character(mapq$legend$color))
+  expect_true(all(as.character(mapq$legend$color) %in% fill$get_limits()))
+  reads <- jbrowse_alignments(system.file("extdata", "spliced.bam",
+    package = "ggjbrowse"), "ctgA:401-1,300")
+  fill <- ggplot2::ggplot_build(autoplot(reads, "pileup"))$plot$scales$get_scales("fill")
+  expect_true(all(fill$get_limits() %in% as.character(reads$reads$color)))
+})

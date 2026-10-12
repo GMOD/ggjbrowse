@@ -259,6 +259,7 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle)
   attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
+  attr(key, "complete") <- TRUE
   structure(
     list(alignments = alignments, ribbons = ribbons, offscreen = offscreen,
       offscreen_contigs = colored_frame(r$offscreenContigs),
@@ -401,7 +402,7 @@ geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
     jbrowse_layer(ggplot2::GeomPolygon, data, filled,
       for_geom(mapping, ggplot2::GeomPolygon),
       ggplot2::aes(x = x, y = y, group = ribbon, fill = color,
-        alpha = I(alpha)), list(colour = NA, ...)),
+        alpha = I(alpha)), list(colour = NA, ...), keyed = "complete"),
     jbrowse_layer(ggplot2::GeomPath, data, lines,
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = y, group = ribbon, colour = color,
@@ -749,6 +750,7 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle)
   attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
+  attr(key, "complete") <- TRUE
   structure(
     list(alignments = alignments, segments = segments, legend = key,
       keys = list(segments = key), ramps = ramp_frames(r$ramps),
@@ -808,7 +810,7 @@ geom_jbrowse_dotplot <- function(mapping = NULL, data = NULL, ...) {
     ggplot2::aes(x = x_start, xend = x_end, y = y_start, yend = y_end,
       colour = color, alpha = I(alpha)),
     with_defaults(list(...), list(linewidth = px_to_mm(2.5),
-      lineend = "round")))
+      lineend = "round")), keyed = "complete")
 }
 
 # An axis of regions laid end to end: breaks at round positions in each,

@@ -69,7 +69,7 @@ jbrowse_layer <- function(geom, data, pick, mapping, defaults, params,
     data = table_from(data, pick, finish),
     mapping = with_defaults(mapping, defaults),
     inherit.aes = FALSE,
-    show.legend = if (keyed || !is.null(mapping)) NA else FALSE,
+    show.legend = legend_of(with_defaults(mapping, defaults), keyed, mapping),
     params = params)
 }
 
@@ -86,6 +86,7 @@ key_scale <- function(scale, key, title) {
   labels <- vapply(breaks, function(c) paste(key$label[color == c],
     collapse = " / "), "")
   scale(name = title, breaks = breaks, labels = unname(labels),
+    limits = if (isTRUE(attr(key, "complete"))) function(x) union(x, breaks),
     guide = if (length(breaks)) {
       ggplot2::guide_legend(override.aes = c(list(linewidth = 1.5),
         attr(key, "override")))
@@ -136,4 +137,19 @@ scale_color_jbrowse <- scale_colour_jbrowse
 key_frame <- function(label, color, title) {
   structure(data.frame(label = label, color = jbrowse_color(color)),
     title = title)
+}
+
+# Whether a layer joins the legends: a layer drawn through a `complete` key
+# draws a chip for every entry of it, present in the data or not, as the
+# view lists its fixed key; a keyed layer or one the caller maps joins as
+# ggplot decides, and one with neither stays out
+legend_of <- function(mapping, keyed, own) {
+  if (identical(keyed, "complete")) {
+    keys <- names(mapping)[vapply(mapping, function(m)
+      rlang::is_quosure(m) && identical(rlang::quo_get_expr(m), quote(color)),
+      TRUE)]
+    if (length(keys)) return(stats::setNames(rep(TRUE, length(keys)), keys))
+  }
+  if (isTRUE(keyed) || identical(keyed, "complete") || !is.null(own)) NA
+  else FALSE
 }

@@ -20,6 +20,7 @@ Imports:
     grid,
     jsonlite,
     patchwork,
+    rlang,
     scales,
     V8
 Suggests:
