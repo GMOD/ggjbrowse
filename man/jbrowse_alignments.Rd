@@ -53,7 +53,8 @@ one constant color, as in a track config; unset fills every read plain
 \item \code{baseColor}: the per-base layer painted over the reads:
 \code{list(field = "modifications")} for the reads' MM/ML base
 modifications, \code{list(field = "baseQuality")} for each base's Phred
-score; unset paints none
+score; unset paints none. Under \code{"modifications"} or \code{"bisulfite"} the
+display greys every mismatched base so the calls stand out
 \item \code{modifications}: what that layer reads: any of \code{threshold} (the
 percent probability under which a call is hidden, 10), \code{unmodified}
 (\code{"hidden"}, \code{"calls"} or \code{"all"}), \code{cytosineContext} (\code{"CG"},

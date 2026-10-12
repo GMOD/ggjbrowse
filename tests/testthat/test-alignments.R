@@ -118,6 +118,25 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
     display = list(baseColor = list(field = "modifications"),
       modifications = list(unmodified = "calls")))
   expect_gt(sum(calls$modifications$unmodified), 0)
+  every <- jbrowse_alignments(bam, "20", 10000, 20000,
+    display = list(baseColor = list(field = "modifications"),
+      modifications = list(unmodified = "all")))
+  expect_gt(sum(every$modifications$unmodified),
+    10 * sum(calls$modifications$unmodified))
+})
+
+test_that("modification coloring greys the mismatched bases and drops their key", {
+  bam <- extdata("methylation_clip.bam")
+  fa <- extdata("hg38_clip.fa")
+  plain <- jbrowse_alignments(bam, "20", 10000, 12000, reference = fa)
+  expect_gt(length(unique(plain$mismatches$color)), 1)
+  expect_equal(nrow(plain$keys$bases), 5)
+  m <- jbrowse_alignments(bam, "20", 10000, 12000, reference = fa,
+    display = list(baseColor = list(field = "modifications")))
+  expect_gt(nrow(m$mismatches), 0)
+  expect_setequal(as.character(m$mismatches$color), "#888")
+  expect_setequal(as.character(m$allele_coverage$color), "#888")
+  expect_equal(nrow(m$keys$bases), 0)
 })
 
 test_that("base quality paints each aligned base on its read, keyed as a bar", {

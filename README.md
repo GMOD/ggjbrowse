@@ -66,7 +66,7 @@ autoplot(jbrowse_alignments(e("volvox-sorted.bam"), "ctgA:1,001-1,120",
 m <- jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
   reference = e("hg38_clip.fa"),
   display = list(baseColor = list(field = "modifications"),
-    modifications = list(unmodified = "calls")))
+    modifications = list(unmodified = "all")))
 autoplot(m)
 ```
 

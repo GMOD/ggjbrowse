@@ -55,7 +55,8 @@ sequence_adapter <- function(reference) {
 #'   * `baseColor`: the per-base layer painted over the reads:
 #'     `list(field = "modifications")` for the reads' MM/ML base
 #'     modifications, `list(field = "baseQuality")` for each base's Phred
-#'     score; unset paints none
+#'     score; unset paints none. Under `"modifications"` or `"bisulfite"` the
+#'     display greys every mismatched base so the calls stand out
 #'   * `modifications`: what that layer reads: any of `threshold` (the
 #'     percent probability under which a call is hidden, 10), `unmodified`
 #'     (`"hidden"`, `"calls"` or `"all"`), `cytosineContext` (`"CG"`,
@@ -185,6 +186,8 @@ alignments_region <- function(adapter, chrom, start, end, reference,
     d
   }
   colors <- jbrowse_colors()
+  muted <- paints_modifications(display)
+  if (muted) colors$bases[] <- MUTED_BASE
   reads$color <- jbrowse_color(reads$color)
   mismatches <- on_read(t$mismatches)
   mismatches$color <- jbrowse_color(colors$bases[mismatches$base])
@@ -218,7 +221,8 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   attr(legend, "title") <- t$legendTitle
   arc_legend <- frame(t$arcLegend)
   attr(arc_legend, "title") <- t$arcLegendTitle
-  base_key <- key_frame(names(colors$bases), colors$bases, "Base")
+  base_key <- if (muted) key_frame(character(0), character(0), "Base")
+    else key_frame(names(colors$bases), colors$bases, "Base")
   junction_key <- key_frame(c("Forward", "Reverse", "Unknown"), strand_colors,
     "Junction strand")
   junction_key <- junction_key[junction_key$color %in% junctions$color, ,
@@ -259,6 +263,15 @@ jbrowse_sequence <- function(reference, chrom, start, end) {
     region = list(refName = chrom, start = start, end = end))
   in_engine(function(ctx) ctx$call("jbrowse.sequence",
     as.character(jsonlite::toJSON(args, auto_unbox = TRUE)), await = TRUE))
+}
+
+# The grey JBrowse paints every mismatched base in while the per-base layer
+# paints modifications, its palette's mutedSnpBase
+MUTED_BASE <- "#888"
+
+paints_modifications <- function(display) {
+  is.list(display$baseColor) &&
+    isTRUE(display$baseColor$field %in% c("modifications", "bisulfite"))
 }
 
 # A config object whose vector slots stay JSON arrays however many values

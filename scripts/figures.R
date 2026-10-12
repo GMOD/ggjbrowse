@@ -33,7 +33,7 @@ save("inversion.png", autoplot(inv))
 meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
   reference = extdata("hg38_clip.fa"),
   display = list(baseColor = list(field = "modifications"),
-    modifications = list(unmodified = "calls")))
+    modifications = list(unmodified = "all")))
 save("methylation.png", autoplot(meth))
 
 genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA", 1000, 10000,
