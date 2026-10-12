@@ -90,7 +90,15 @@ row_names <- function(labels, y, gap_pt = 2.2) {
       inherit.aes = FALSE, show.legend = FALSE,
       params = list(rows = length(y), gap_pt = gap_pt, colour = "grey30")),
     ggplot2::theme(axis.text.y = ggplot2::element_text(size = ROW_LABEL_PT,
-      colour = NA, margin = ggplot2::margin(r = gap_pt))))
+      colour = NA)),
+    axis_gap(gap_pt))
+}
+
+# Room of `pt` between a panel and its y axis labels, held by unseen ticks:
+# ggplot2 widens the axis by its ticks' length, not by its text's margin
+axis_gap <- function(pt) {
+  ggplot2::theme(axis.ticks.y = ggplot2::element_line(colour = NA),
+    axis.ticks.length.y = grid::unit(pt, "pt"))
 }
 
 ROW_LABEL_PT <- 8
