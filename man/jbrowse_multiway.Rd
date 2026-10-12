@@ -7,7 +7,7 @@ it}
 \usage{
 jbrowse_multiway(
   file,
-  locus,
+  region,
   assembly = NULL,
   lanes = NULL,
   display = NULL,
@@ -23,7 +23,7 @@ config, as a list, such as a \code{MultiGenomePAFAdapter} declaring its
 \code{attributeColumns}, an \code{MCScanBlocksAdapter} or a
 \code{MultiPairwiseSyntenyAdapter}}
 
-\item{locus}{the anchor lane's regions: a locus as JBrowse's location box
+\item{region}{the anchor lane's regions: a locus as JBrowse's location box
 writes it (\code{"ctgA:1-50,001"}, 1-based and inclusive), several of them,
 drawn end to end, or a data frame of \code{chrom}, \code{start} and \code{end}}
 
@@ -81,7 +81,7 @@ anchor alone, as a star of pairwise files states it.
 }
 \description{
 Runs JBrowse's own multi-way synteny display in V8 under a linear genome
-view of \code{locus}: the anchor lane on top, then one lane per other genome,
+view of \code{region}: the anchor lane on top, then one lane per other genome,
 each in its own coordinates. Each lane picks its contig, its block, its
 zoom and its orientation from the alignments as the display does, and a
 lane opens a hole where its sequence lacks a stretch of the anchor. Ribbons

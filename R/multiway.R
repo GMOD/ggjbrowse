@@ -50,7 +50,7 @@ lane_pin <- function(locus) {
 #' it
 #'
 #' Runs JBrowse's own multi-way synteny display in V8 under a linear genome
-#' view of `locus`: the anchor lane on top, then one lane per other genome,
+#' view of `region`: the anchor lane on top, then one lane per other genome,
 #' each in its own coordinates. Each lane picks its contig, its block, its
 #' zoom and its orientation from the alignments as the display does, and a
 #' lane opens a hole where its sequence lacks a stretch of the anchor. Ribbons
@@ -64,7 +64,7 @@ lane_pin <- function(locus) {
 #'   config, as a list, such as a `MultiGenomePAFAdapter` declaring its
 #'   `attributeColumns`, an `MCScanBlocksAdapter` or a
 #'   `MultiPairwiseSyntenyAdapter`
-#' @param locus the anchor lane's regions: a locus as JBrowse's location box
+#' @param region the anchor lane's regions: a locus as JBrowse's location box
 #'   writes it (`"ctgA:1-50,001"`, 1-based and inclusive), several of them,
 #'   drawn end to end, or a data frame of `chrom`, `start` and `end`
 #' @param assembly the anchor's assembly, the PanSN sample name for a PAF;
@@ -116,13 +116,13 @@ lane_pin <- function(locus) {
 #' m <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox")
 #' m$lanes
 #' head(m$ribbons)
-jbrowse_multiway <- function(file, locus, assembly = NULL, lanes = NULL,
+jbrowse_multiway <- function(file, region, assembly = NULL, lanes = NULL,
                              display = NULL, width = 800, index = NULL) {
   if (is.null(assembly) && !is.list(file)) {
     stop("name the anchor lane's assembly, the PanSN sample its sequences ",
       "are named after", call. = FALSE)
   }
-  regions <- regions_of(locus, NULL, NULL)
+  regions <- regions_of(region, NULL, NULL)
   choice <- lane_choice(lanes)
   display <- display %||% list()
   if (!is.null(choice$rows)) display$rows <- choice$rows
