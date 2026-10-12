@@ -195,22 +195,28 @@ autoplot.jbrowse_variants <- function(object,
   genomic <- layout == "genomic"
   xlim <- if (genomic) c(object$region$start, object$region$end)
     else c(0.5, nrow(object$variants) + 0.5)
+  inner <- if (any(object$rows$color != "")) 9 else 2.2
+  tree <- object$tree
+  outer <- if (is.null(tree)) inner else inner + TREE_PT + 3
+  named <- length(rows) <= MAX_NAMED_ROWS
   ggplot2::ggplot(object) +
     reference_rows(object) +
     geom_jbrowse_genotypes(layout = layout) +
     scale_fill_jbrowse(object) +
     guides_jbrowse(object) +
     row_bars(object, xlim) +
-    ggplot2::scale_y_reverse(breaks = seq_along(rows), labels = rows) +
+    (if (!is.null(tree)) tree_layer(tree, inner + 1, TREE_PT)) +
+    ggplot2::scale_y_reverse(breaks = seq_along(rows),
+      labels = if (named) rows else rep("", length(rows))) +
     ggplot2::coord_cartesian(xlim = xlim, expand = FALSE, clip = "off") +
     (if (genomic) genomic_x(object)) +
     ggplot2::labs(x = if (genomic) axis_label(object)
       else "record", y = NULL) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid = ggplot2::element_blank()) +
-    if (length(rows) <= MAX_NAMED_ROWS) {
-      row_names(rows, seq_along(rows),
-        gap_pt = if (any(object$rows$color != "")) 9 else 2.2)
+    if (named) row_names(rows, seq_along(rows), gap_pt = outer)
+    else if (!is.null(tree)) {
+      ggplot2::theme(axis.text.y = ggplot2::element_blank()) + axis_gap(outer)
     } else no_y
 }
 

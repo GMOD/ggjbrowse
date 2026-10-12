@@ -62,6 +62,8 @@ save("stack.png", jbrowse_stack(tracks))
 dogs <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"), "chr30",
   38258000, 38265000)
 save("variants.png", autoplot(dogs, layout = "columns"), 6)
+save("variants-clustered.png",
+  autoplot(jbrowse_cluster(dogs), layout = "columns"), 6)
 
 paf <- extdata("volvox_inv_indels.paf")
 synteny <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001",

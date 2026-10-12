@@ -201,6 +201,17 @@ autoplot(v, layout = "columns")
 
 ![39 dogs genotyped at 490 SNVs across CYP1A2, a column per record, hets pale and homs dark, the breeds in blocks](man/figures/variants.png)
 
+`jbrowse_cluster()` orders the rows by genotype, as the display's "Cluster
+rows by genotype" does: average-linkage `hclust()` over each row's alt
+dosages. `autoplot()` draws the tree beside the rows, and `v$tree` is the
+`hclust` result:
+
+```r
+autoplot(jbrowse_cluster(v), layout = "columns")
+```
+
+![The same dogs clustered: the boxers and a block of homozygous dogs split from the rest, the tree beside the rows](man/figures/variants-clustered.png)
+
 ## A view of several tracks
 
 `jbrowse_stack()` stacks tracks as a JBrowse view does: each track's plot,
@@ -400,8 +411,8 @@ committed bundle once R CMD check passes.
 
 ## Not yet
 
-The variant display's row arrangement
-and its zoomed-out density fade; the bisulfite layer; facets on a feature
+The variant display's row arrangements other than clustering (bands, a
+saved order) and its zoomed-out density fade; the bisulfite layer; facets on a feature
 track; the amino-acid
 overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.

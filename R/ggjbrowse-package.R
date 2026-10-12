@@ -12,5 +12,6 @@ utils::globalVariables(c(
   "stem_end", "text", "section", "shape", "low", "score", "run", "value",
   "source", "bottom", "count", "direction", "px_tall", "px_wide", "size",
   "xmax", "xmin", "y0", "mapq", "type", "ribbon", "px_start", "px_end",
-  "x_start", "x_end", "y_start", "y_end", "inset", "x1", "x2", "bp"
+  "x_start", "x_end", "y_start", "y_end", "inset", "x1", "x2", "bp", "h",
+  "hend"
 ))
