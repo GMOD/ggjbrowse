@@ -20,8 +20,7 @@ Genome browser tracks as ggplot2 layers.
 remotes::install_github("GMOD/ggjbrowse")
 ```
 
-How the V8 engine, file reads and tables fit together:
-[docs/how-does-this-work.md](docs/how-does-this-work.md).
+See [Docs](#docs) for how the engine works.
 
 Every example here runs as written, on test data installed with the
 package: clips of public human data, and JBrowse's simulated volvox genome
@@ -439,6 +438,13 @@ saved order) and its zoomed-out density fade; the bisulfite layer; facets on a f
 track; the amino-acid
 overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.
+
+## Docs
+
+- [docs/how-does-this-work.md](docs/how-does-this-work.md): the V8 engine, how
+  it reads files through R, and which side decides colors and geometry
+- [agent-docs/engine-owns-display-decisions.md](agent-docs/engine-owns-display-decisions.md):
+  the plan to move the rules R still copies into the engine
 
 ## See also
 
