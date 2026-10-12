@@ -9,5 +9,5 @@ cd "$here"
 scripts/build-js.sh
 lib=$(mktemp -d)
 R CMD INSTALL -l "$lib" .
-R_LIBS="$lib" Rscript -e 'library(testthat); library(ggjbrowse)
-  test_dir("tests/testthat", stop_on_failure = TRUE)'
+R_LIBS="$lib" Rscript -e 'testthat::test_dir("tests/testthat",
+  package = "ggjbrowse", load_package = "installed", stop_on_failure = TRUE)'
