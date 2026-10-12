@@ -323,45 +323,49 @@ edge_points <- function(x0, x1, y0, y1, curves, n = 16) {
   list(x = x0 + (x1 - x0) * s, y = y0 + (y1 - y0) * t)
 }
 
-# Each filled ribbon's outline, top to bottom on its first edge and back up
-# its second, one `ribbon` group each
-ribbon_polygons <- function(r, curves) {
+# Where each ribbon's feet sit: px along its upper and lower edges, and the
+# heights of those edges. The band's query row is at y = 1, its target at 0.
+band_feet <- function(r) {
+  list(top1 = r$query_px_start, top2 = r$query_px_end,
+    bottom1 = r$target_px_start, bottom2 = r$target_px_end,
+    y_top = rep(1, nrow(r)), y_bottom = rep(0, nrow(r)))
+}
+
+# The pieces `pts` of ribbons `r` as one frame, each piece a `ribbon` group
+# in its ribbon's color, alpha, kind and alignment
+ribbon_marks <- function(r, pts) {
   if (!nrow(r)) {
     return(data.frame(x = numeric(0), y = numeric(0), ribbon = integer(0),
       color = jbrowse_color(character(0)), alpha = numeric(0)))
   }
-  pts <- lapply(seq_len(nrow(r)), function(i) {
-    down <- edge_points(r$query_px_start[i], r$target_px_start[i], 1, 0,
-      curves)
-    up <- edge_points(r$target_px_end[i], r$query_px_end[i], 0, 1, curves)
-    data.frame(x = c(down$x, up$x), y = c(down$y, up$y), ribbon = i)
-  })
   d <- do.call(rbind, pts)
-  d$color <- r$color[d$ribbon]
-  d$alpha <- r$alpha[d$ribbon]
-  d$kind <- r$kind[d$ribbon]
-  d$alignment <- r$alignment[d$ribbon]
+  for (column in c("color", "alpha", "kind", "alignment")) {
+    d[[column]] <- r[[column]][d$ribbon]
+  }
   d
+}
+
+# Each filled ribbon's outline, top to bottom on its first edge and back up
+# its second
+ribbon_polygons <- function(r, curves, feet = band_feet(r)) {
+  ribbon_marks(r, lapply(seq_len(nrow(r)), function(i) {
+    down <- edge_points(feet$top1[i], feet$bottom1[i], feet$y_top[i],
+      feet$y_bottom[i], curves)
+    up <- edge_points(feet$bottom2[i], feet$top2[i], feet$y_bottom[i],
+      feet$y_top[i], curves)
+    data.frame(x = c(down$x, up$x), y = c(down$y, up$y), ribbon = i)
+  }))
 }
 
 # Each thin ribbon's centerline, from the middle of its top edge to the
 # middle of its bottom edge
-ribbon_lines <- function(r, curves) {
-  if (!nrow(r)) {
-    return(data.frame(x = numeric(0), y = numeric(0), ribbon = integer(0),
-      color = jbrowse_color(character(0)), alpha = numeric(0)))
-  }
-  pts <- lapply(seq_len(nrow(r)), function(i) {
-    e <- edge_points((r$query_px_start[i] + r$query_px_end[i]) / 2,
-      (r$target_px_start[i] + r$target_px_end[i]) / 2, 1, 0, curves)
+ribbon_lines <- function(r, curves, feet = band_feet(r)) {
+  ribbon_marks(r, lapply(seq_len(nrow(r)), function(i) {
+    e <- edge_points((feet$top1[i] + feet$top2[i]) / 2,
+      (feet$bottom1[i] + feet$bottom2[i]) / 2, feet$y_top[i],
+      feet$y_bottom[i], curves)
     data.frame(x = e$x, y = e$y, ribbon = i)
-  })
-  d <- do.call(rbind, pts)
-  d$color <- r$color[d$ribbon]
-  d$alpha <- r$alpha[d$ribbon]
-  d$kind <- r$kind[d$ribbon]
-  d$alignment <- r$alignment[d$ribbon]
-  d
+  }))
 }
 
 #' A synteny band's ribbons as ggplot layers
