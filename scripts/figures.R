@@ -57,8 +57,9 @@ people <- jbrowse_variants(extdata("1000g_dcst2.vcf.gz"),
   "1:155,000,001-155,050,000", samples = extdata("1000g_dcst2_samples.tsv"),
   display = list(rowColor = list(field = "superpopulation")))
 save("variants.png", autoplot(people, layout = "columns"), 7)
-save("variants-clustered.png",
-  autoplot(jbrowse_cluster(people), layout = "columns"), 7)
+people$tree <- hclust(dist(xtabs(dosage ~ row + variant, people$cells)),
+  "average")
+save("variants-clustered.png", autoplot(people, layout = "columns"), 7)
 
 paf <- extdata("volvox_inv_indels.paf")
 synteny <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001",

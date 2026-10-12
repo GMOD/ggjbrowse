@@ -205,13 +205,16 @@ autoplot(v, layout = "columns")
 
 ![100 people of the 1000 Genomes, 20 from each superpopulation, genotyped at 249 variants across DCST2 (GRCh37), a column per record, each row marked by its superpopulation](man/figures/variants.png)
 
-`jbrowse_cluster()` orders the rows by genotype, as the display's "Cluster
-rows by genotype" does: average-linkage `hclust()` over each row's alt
-dosages. `autoplot()` draws the tree beside the rows, and `v$tree` is the
-`hclust` result:
+The matrix draws its rows in `v$rows`' order: reorder or filter that table
+to rearrange them. A tree in `v$tree` puts the rows in its leaf order, and
+`autoplot()` draws it beside them (`geom_jbrowse_tree()`). Any clustering
+that gives an `hclust`, or anything `as.hclust()` takes, labelled by row
+name, will do. This one is the `hclust(dist())` call the display's "Cluster
+rows by genotype" dialog writes as R, over the cells' alt dosages:
 
 ```r
-autoplot(jbrowse_cluster(v), layout = "columns")
+v$tree <- hclust(dist(xtabs(dosage ~ row + variant, v$cells)), "average")
+autoplot(v, layout = "columns")
 ```
 
 ![The same people clustered: most East Asians gather near the top, the Africans and Europeans further down, the tree beside the rows](man/figures/variants-clustered.png)

@@ -216,7 +216,7 @@ autoplot.jbrowse_variants <- function(object,
     scale_fill_jbrowse(object) +
     guides_jbrowse(object) +
     row_bars(object, xlim) +
-    (if (!is.null(tree)) tree_layer(tree, inner + 1, TREE_PT)) +
+    (if (!is.null(tree)) geom_jbrowse_tree(gap = inner + 1, span = TREE_PT)) +
     (if (length(rows)) ggplot2::scale_y_reverse(breaks = seq_along(rows),
       labels = if (named) rows else rep("", length(rows)))
     else ggplot2::scale_y_reverse(breaks = NULL)) +
