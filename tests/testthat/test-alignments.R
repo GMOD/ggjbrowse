@@ -349,6 +349,19 @@ test_that("the display's filter object keeps the reads it keeps", {
   expect_lt(nrow(r$reads), nrow(bam$reads))
 })
 
+test_that("svSignal only and exclude split the reads between them", {
+  locus <- "chr3:25,357,600-25,361,000"
+  bam <- extdata("colo829_tumor_chr3.bam")
+  read <- function(level) jbrowse_alignments(bam, locus,
+    display = list(filter = list(svSignal = level)))
+  all <- jbrowse_alignments(bam, locus)
+  only <- read("only")
+  none <- read("exclude")
+  expect_gt(nrow(only$reads), 0)
+  expect_gt(nrow(none$reads), 0)
+  expect_equal(nrow(only$reads) + nrow(none$reads), nrow(all$reads))
+})
+
 test_that("a remote BAM reads over HTTP", {
   skip_on_cran()
   skip_if_offline("jbrowse.org")

@@ -57,8 +57,9 @@ sequence_adapter <- function(reference) {
 #'     one constant color, as in a track config; unset fills every read plain
 #'   * `filter`: which reads are kept: any of `flagInclude`, `flagExclude`
 #'     (1540 by default), `readName`, `tagFilters` (a list of
-#'     `list(tag = , value = )`), `spliced`, `properPairs`, `singletons` and
-#'     `split` (each `"only"` or `"exclude"`)
+#'     `list(tag = , value = )`), `spliced`, `svSignal` (SV evidence: a split
+#'     read, an insertion or deletion of 50 bp or more, or a discordant pair),
+#'     `singletons` and `split` (each `"only"` or `"exclude"`)
 #'   * `baseColor`: the per-base layer painted over the reads:
 #'     `list(field = "modifications")` for the reads' MM/ML base
 #'     modifications, `list(field = "baseQuality")` for each base's Phred
@@ -70,7 +71,8 @@ sequence_adapter <- function(reference) {
 #'     `"CHG"`, `"CHH"` or `"all"`) and `shownModifications` (the type codes
 #'     drawn, every one when empty)
 #'   * `sort`: how the rows are laid out: `list(type = "position")` (or
-#'     `"length"`, `"spliced"`, `"split"`), or a column sort, `type`
+#'     `"length"`, `"spliced"`, `"split"`, `"svSignal"`: SV evidence first,
+#'     split reads above SV-size indels above discordant pairs), or a column sort, `type`
 #'     (`"strand"`, `"basePair"`, `"tag"`, `"insertion"`, `"softclip"`,
 #'     `"hardclip"`) with `pos`, the 0-based column ranked over, and `tag`
 #'   * `facet`: what splits the reads into stacked sections, each laid out on

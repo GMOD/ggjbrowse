@@ -50,8 +50,9 @@ writes it for a \code{LinearAlignmentsDisplay}, which is what JBrowse's
 one constant color, as in a track config; unset fills every read plain
 \item \code{filter}: which reads are kept: any of \code{flagInclude}, \code{flagExclude}
 (1540 by default), \code{readName}, \code{tagFilters} (a list of
-\code{list(tag = , value = )}), \code{spliced}, \code{properPairs}, \code{singletons} and
-\code{split} (each \code{"only"} or \code{"exclude"})
+\code{list(tag = , value = )}), \code{spliced}, \code{svSignal} (SV evidence: a split
+read, an insertion or deletion of 50 bp or more, or a discordant pair),
+\code{singletons} and \code{split} (each \code{"only"} or \code{"exclude"})
 \item \code{baseColor}: the per-base layer painted over the reads:
 \code{list(field = "modifications")} for the reads' MM/ML base
 modifications, \code{list(field = "baseQuality")} for each base's Phred
@@ -63,7 +64,8 @@ percent probability under which a call is hidden, 10), \code{unmodified}
 \code{"CHG"}, \code{"CHH"} or \code{"all"}) and \code{shownModifications} (the type codes
 drawn, every one when empty)
 \item \code{sort}: how the rows are laid out: \code{list(type = "position")} (or
-\code{"length"}, \code{"spliced"}, \code{"split"}), or a column sort, \code{type}
+\code{"length"}, \code{"spliced"}, \code{"split"}, \code{"svSignal"}: SV evidence first,
+split reads above SV-size indels above discordant pairs), or a column sort, \code{type}
 (\code{"strand"}, \code{"basePair"}, \code{"tag"}, \code{"insertion"}, \code{"softclip"},
 \code{"hardclip"}) with \code{pos}, the 0-based column ranked over, and \code{tag}
 \item \code{facet}: what splits the reads into stacked sections, each laid out on
