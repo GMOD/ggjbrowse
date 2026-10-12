@@ -17,8 +17,9 @@ save("genes-over-reads.png", autoplot(rna,
   above = jbrowse_features(extdata("gapdh_gencode.gff3.gz"), gapdh)))
 
 long <- jbrowse_alignments(extdata("colo829_tumor_chr3.bam"),
-  "chr3:25,357,600-25,361,000",
-  display = list(color = list(field = "strand")))
+  "chr3:25,358,500-25,359,800",
+  display = list(unit = "chain", readConnections = "arc",
+    color = list(field = "strand"), filter = list(split = "only")))
 save("long-reads.png", autoplot(long))
 
 deletion <- jbrowse_alignments(extdata("hg008t_cuzd1_deletion.bam"),

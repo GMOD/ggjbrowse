@@ -93,13 +93,15 @@ examples <- list(
       extdata("colo829_tumor_chr3.bam"), "chr3:25,357,600-25,361,000",
       display = list(facet = list(field = "strand"))))),
   long_reads_sv = list(
-    title = "Long reads colored by strand across two breakpoints of the COLO829 der(3)",
-    locus = "chr3:25,357,600-25,361,000",
+    title = "COLO829 der(3) split reads chained across its two chr3 breakpoints",
+    locus = "chr3:25,358,500-25,359,800",
     jbrowse = c(hg38, "--bam", extdata("colo829_tumor_chr3.bam"),
-      "color.field=strand", "--loc", "chr3:25,357,600-25,361,000"),
+      "arcs:down", "unit=chain", "color.field=strand", "filter.split=only",
+      "--loc", "chr3:25,358,500-25,359,800"),
     r = function() autoplot(jbrowse_alignments(
-      extdata("colo829_tumor_chr3.bam"), "chr3:25,357,600-25,361,000",
-      display = list(color = list(field = "strand"))))),
+      extdata("colo829_tumor_chr3.bam"), "chr3:25,358,500-25,359,800",
+      display = list(unit = "chain", readConnections = "arc",
+        color = list(field = "strand"), filter = list(split = "only"))))),
   deletion = list(
     title = "Reads sorted by the base at the center, over a somatic deletion",
     locus = "chr10:122,831,700-122,840,800",

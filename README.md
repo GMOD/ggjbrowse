@@ -52,12 +52,13 @@ bases and insertion lengths are written out.
 
 ```r
 l <- jbrowse_alignments(e("colo829_tumor_chr3.bam"),
-  "chr3:25,357,600-25,361,000",
-  display = list(color = list(field = "strand")))
+  "chr3:25,358,500-25,359,800",
+  display = list(unit = "chain", readConnections = "arc",
+    color = list(field = "strand"), filter = list(split = "only")))
 autoplot(l)
 ```
 
-![COLO829 nanopore reads over two chr3 breakpoints: reads clipped where the tumor chromosome continues on chr12 and chr10](man/figures/long-reads.png)
+![COLO829 nanopore split reads chained across two chr3 breakpoints, each arc ending where the read continues on chr10 or chr12](man/figures/long-reads.png)
 
 ```r
 d <- jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
@@ -477,8 +478,8 @@ autoplot(m)
 <tr><td width="50%"><img src="gallery/sashimi-jbrowse.webp" alt="Splice junctions over direct RNA reads in JBrowse" width="100%"></td><td width="50%"><img src="gallery/sashimi-r.webp" alt="Splice junctions over direct RNA reads drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>COLO829 long reads split into forward and reverse strand sections</b> <code>chr3:25,357,600-25,361,000</code></td></tr>
 <tr><td width="50%"><img src="gallery/strand_sections-jbrowse.webp" alt="COLO829 long reads split into forward and reverse strand sections in JBrowse" width="100%"></td><td width="50%"><img src="gallery/strand_sections-r.webp" alt="COLO829 long reads split into forward and reverse strand sections drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Long reads colored by strand across two breakpoints of the COLO829 der(3)</b> <code>chr3:25,357,600-25,361,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/long_reads_sv-jbrowse.webp" alt="Long reads colored by strand across two breakpoints of the COLO829 der(3) in JBrowse" width="100%"></td><td width="50%"><img src="gallery/long_reads_sv-r.webp" alt="Long reads colored by strand across two breakpoints of the COLO829 der(3) drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>COLO829 der(3) split reads chained across its two chr3 breakpoints</b> <code>chr3:25,358,500-25,359,800</code></td></tr>
+<tr><td width="50%"><img src="gallery/long_reads_sv-jbrowse.webp" alt="COLO829 der(3) split reads chained across its two chr3 breakpoints in JBrowse" width="100%"></td><td width="50%"><img src="gallery/long_reads_sv-r.webp" alt="COLO829 der(3) split reads chained across its two chr3 breakpoints drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>Reads sorted by the base at the center, over a somatic deletion</b> <code>chr10:122,831,700-122,840,800</code></td></tr>
 <tr><td width="50%"><img src="gallery/deletion-jbrowse.webp" alt="Reads sorted by the base at the center, over a somatic deletion in JBrowse" width="100%"></td><td width="50%"><img src="gallery/deletion-r.webp" alt="Reads sorted by the base at the center, over a somatic deletion drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>Compact reads over the same deletion</b> <code>chr10:122,831,700-122,840,800</code></td></tr>
