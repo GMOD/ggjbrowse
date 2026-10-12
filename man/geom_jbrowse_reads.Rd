@@ -2,6 +2,7 @@
 % Please edit documentation in R/geoms-alignments.R
 \name{geom_jbrowse_reads}
 \alias{geom_jbrowse_reads}
+\alias{geom_jbrowse_chains}
 \alias{geom_jbrowse_skips}
 \alias{geom_jbrowse_deletions}
 \alias{geom_jbrowse_modifications}
@@ -22,6 +23,8 @@
 \title{The alignments track's marks as ggplot layers}
 \usage{
 geom_jbrowse_reads(mapping = NULL, data = NULL, ...)
+
+geom_jbrowse_chains(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_skips(mapping = NULL, data = NULL, ...)
 
@@ -128,6 +131,9 @@ aligned base in its quality's color; \code{aes(fill = score)} maps the Phred
 score through a scale of your own
 \item \code{geom_jbrowse_skips()}, \code{geom_jbrowse_deletions()}: the splice gaps'
 lines and the deletions' boxes
+\item \code{geom_jbrowse_chains()}: under \code{unit = "chain"}, the hairline across a
+row from the first to the last read of a chain, a read's mate or split
+segments sharing it
 \item \code{geom_jbrowse_mismatches()}, \code{geom_jbrowse_insertions()},
 \code{geom_jbrowse_clips()}, \code{geom_jbrowse_modifications()}: the marks on the
 reads; \code{geom_jbrowse_letters()} writes the mismatched bases and the

@@ -33,8 +33,8 @@ save("zoom.png", autoplot(zoom))
 
 inv <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
   "chr1:197,786,900-197,789,700",
-  display = list(readConnections = "arc", color = list(field = "strand"),
-    facet = list(field = "split")))
+  display = list(unit = "chain", readConnections = "arc",
+    color = list(field = "pairOrientation"), facet = list(field = "split")))
 save("inversion.png", autoplot(inv))
 
 meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,

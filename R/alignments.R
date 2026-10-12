@@ -79,6 +79,9 @@ sequence_adapter <- function(reference) {
 #'     its own: `list(field = "strand")` (or `"pairOrientation"`,
 #'     `"tags.HP"`, ...), with optional `domain` (section keys in stacking
 #'     order) and `hidden` (keys left out)
+#'   * `unit`: what one row stands for, `"read"`, or `"chain"` for a read
+#'     with its mate and split segments on one row, a hairline across it, and
+#'     the strand colors framed against the chain's own
 #'   * `readConnections`: the read-connection band, `"arc"` for each mate
 #'     pair's and split read's arc or `"cloud"` for the read cloud; unset
 #'     reads none
@@ -97,6 +100,9 @@ sequence_adapter <- function(reference) {
 #'     reads carry that base there, over the depth), `quality`, `fade`
 #'   * `gaps`: `start`, `end`, `type` (`"deletion"` or `"skip"`), `read`, `row`,
 #'     `fade`
+#'   * `chains`: under `unit = "chain"`, each chain of more than one read:
+#'     `start`, `end`, `row`, and the `color` and `opacity` of the hairline
+#'     across it; empty otherwise
 #'   * `insertions`: `position`, `length`, `sequence`, `read`, `row`, `fade`
 #'   * `clips`: `position`, `length`, `type` (`"soft"` or `"hard"`), `read`,
 #'     `row`, `fade`
@@ -214,6 +220,8 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   reads$color <- jbrowse_color(reads$color)
   mismatches <- on_read(t$mismatches)
   mismatches$color <- jbrowse_color(colors$bases[mismatches$base])
+  chains <- frame(t$chains)
+  chains$color <- jbrowse_color(chains$color)
   gaps <- on_read(t$gaps)
   gaps$color <- jbrowse_color(ifelse(gaps$type == "skip", colors$skip,
     colors$deletion))
@@ -264,7 +272,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
     drop = FALSE]
   attr(junction_key, "title") <- "Junction strand"
   structure(
-    list(reads = reads, mismatches = mismatches, gaps = gaps,
+    list(reads = reads, mismatches = mismatches, gaps = gaps, chains = chains,
       insertions = insertions, clips = clips, modifications = modifications,
       qualities = qualities,
       coverage = coverage, allele_coverage = alleles,

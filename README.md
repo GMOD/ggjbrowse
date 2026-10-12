@@ -94,12 +94,15 @@ the reads into the display's stacked sections, each packed separately:
 ```r
 inv <- jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
   "chr1:197,786,900-197,789,700",
-  display = list(readConnections = "arc", color = list(field = "strand"),
-    facet = list(field = "split")))
+  display = list(unit = "chain", readConnections = "arc",
+    color = list(field = "pairOrientation"), facet = list(field = "split")))
 autoplot(inv)
 ```
 
-![HG00151 nanopore reads over a 1.2 kb chr1 inversion, split by whether a read has an SA tag: the split reads' arcs join the breakpoints, a reverse-strand core running between forward flanks](man/figures/inversion.png)
+![HG00151 nanopore reads over a 1.2 kb chr1 inversion, split by whether a read has an SA tag: each split read's segments chained on one row, a blue inverted core between red same-strand flanks, the arcs over the breakpoints](man/figures/inversion.png)
+
+`unit = "chain"` puts a read's mate or split segments on one row, joined by a
+hairline, and colors each segment by its strand against its chain's.
 
 Each band is its own ggplot too (`autoplot(a, "pileup")`,
 `"coverage"`, `"junctions"`, `"arcs"`), to restyle or stack with patchwork.
@@ -482,8 +485,8 @@ autoplot(m)
 <tr><td width="50%"><img src="gallery/compact_reads-jbrowse.webp" alt="Compact reads over the same deletion in JBrowse" width="100%"></td><td width="50%"><img src="gallery/compact_reads-r.webp" alt="Compact reads over the same deletion drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>Base-level zoom at the deletion's left edge</b> <code>chr10:122,835,300-122,835,420</code></td></tr>
 <tr><td width="50%"><img src="gallery/base_zoom-jbrowse.webp" alt="Base-level zoom at the deletion's left edge in JBrowse" width="100%"></td><td width="50%"><img src="gallery/base_zoom-r.webp" alt="Base-level zoom at the deletion's left edge drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Split reads across an inversion, with their arcs</b> <code>chr1:197,786,900-197,789,700</code></td></tr>
-<tr><td width="50%"><img src="gallery/inversion-jbrowse.webp" alt="Split reads across an inversion, with their arcs in JBrowse" width="100%"></td><td width="50%"><img src="gallery/inversion-r.webp" alt="Split reads across an inversion, with their arcs drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Split reads chained across an inversion, with their arcs</b> <code>chr1:197,786,900-197,789,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/inversion-jbrowse.webp" alt="Split reads chained across an inversion, with their arcs in JBrowse" width="100%"></td><td width="50%"><img src="gallery/inversion-r.webp" alt="Split reads chained across an inversion, with their arcs drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>CpG methylation from MM/ML tags</b> <code>20:10,001-22,000</code></td></tr>
 <tr><td width="50%"><img src="gallery/methylation-jbrowse.webp" alt="CpG methylation from MM/ML tags in JBrowse" width="100%"></td><td width="50%"><img src="gallery/methylation-r.webp" alt="CpG methylation from MM/ML tags drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>DNase in twelve cell lines over the beta-globin locus</b> <code>chr11:5,270,001-5,320,000</code></td></tr>

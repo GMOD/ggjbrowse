@@ -39,6 +39,9 @@ with_inset <- function(d, model) {
 #'   score through a scale of your own
 #' * `geom_jbrowse_skips()`, `geom_jbrowse_deletions()`: the splice gaps'
 #'   lines and the deletions' boxes
+#' * `geom_jbrowse_chains()`: under `unit = "chain"`, the hairline across a
+#'   row from the first to the last read of a chain, a read's mate or split
+#'   segments sharing it
 #' * `geom_jbrowse_mismatches()`, `geom_jbrowse_insertions()`,
 #'   `geom_jbrowse_clips()`, `geom_jbrowse_modifications()`: the marks on the
 #'   reads; `geom_jbrowse_letters()` writes the mismatched bases and the
@@ -94,6 +97,16 @@ geom_jbrowse_reads <- function(mapping = NULL, data = NULL, ...) {
     ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
       ymax = row + 1 - inset,
       fill = color), list(...), rows = TRUE)
+}
+
+#' @rdname geom_jbrowse_reads
+#' @export
+geom_jbrowse_chains <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "chains", "geom_jbrowse_chains")
+  jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$chains, mapping,
+    ggplot2::aes(x = start, xend = end, y = row + 0.5, yend = row + 0.5,
+      colour = color, alpha = I(opacity)), list(linewidth = 0.3, ...),
+    keyed = FALSE)
 }
 
 #' @rdname geom_jbrowse_reads

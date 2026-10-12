@@ -64,3 +64,28 @@ test_that("an arc rises as high as it is wide, the band reaching its pixels at t
   }
   expect_equal(reach(3000), arc_top(a) / 2)
 })
+
+test_that("a chain puts a read's mates and split segments on one row, a hairline across it", {
+  plain <- read()
+  chained <- read(display = list(unit = "chain"))
+  expect_equal(nrow(plain$chains), 0)
+  expect_gt(nrow(chained$chains), 10)
+  expect_equal(chained$reads$start, plain$reads$start)
+  rows <- tapply(chained$reads$row, chained$reads$name, function(r) length(unique(r)))
+  expect_true(all(rows == 1))
+  expect_true(all(chained$chains$end > chained$chains$start))
+  built <- ggplot2::ggplot_build(ggplot2::autoplot(chained, "pileup"))$data
+  lines <- Filter(function(d) all(c("xend", "yend") %in% names(d)) &&
+    nrow(d) == nrow(chained$chains), built)
+  expect_length(lines, 1)
+  expect_equal(-lines[[1]]$yend, chained$chains$row + 0.5)
+})
+
+test_that("a chain over an inversion frames the split segments' strands against each other", {
+  chained <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
+    "chr1:197,786,900-197,789,700", display = list(unit = "chain",
+      color = list(field = "pairOrientation")))
+  expect_gt(length(unique(chained$reads$color)), 2)
+  expect_true(any(grepl("same strand", chained$legend$label)))
+  expect_true(any(grepl("inverted", chained$legend$label)))
+})

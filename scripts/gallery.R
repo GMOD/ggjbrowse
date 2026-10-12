@@ -121,14 +121,16 @@ examples <- list(
       "chr10:122,835,300-122,835,420",
       display = list(sort = list(type = "basePair", pos = 122835344))))),
   inversion = list(
-    title = "Split reads across an inversion, with their arcs",
+    title = "Split reads chained across an inversion, with their arcs",
     locus = "chr1:197,786,900-197,789,700",
     jbrowse = c(hg38, "--bam", extdata("hg00151_chr1_inversion.bam"),
-      "arcs:down", "facet=split", "coverageHeight=80", "--loc",
+      "arcs:down", "unit=chain", "color.field=pairOrientation",
+      "facet=split", "coverageHeight=80", "--loc",
       "chr1:197,786,900-197,789,700"),
     r = function() autoplot(jbrowse_alignments(
       extdata("hg00151_chr1_inversion.bam"), "chr1:197,786,900-197,789,700",
-      display = list(readConnections = "arc", color = list(field = "strand"),
+      display = list(unit = "chain", readConnections = "arc",
+        color = list(field = "pairOrientation"),
         facet = list(field = "split"))))),
   methylation = list(
     title = "CpG methylation from MM/ML tags", locus = "20:10,001-22,000",

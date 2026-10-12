@@ -72,6 +72,9 @@ split reads above SV-size indels above discordant pairs), or a column sort, \cod
 its own: \code{list(field = "strand")} (or \code{"pairOrientation"},
 \code{"tags.HP"}, ...), with optional \code{domain} (section keys in stacking
 order) and \code{hidden} (keys left out)
+\item \code{unit}: what one row stands for, \code{"read"}, or \code{"chain"} for a read
+with its mate and split segments on one row, a hairline across it, and
+the strand colors framed against the chain's own
 \item \code{readConnections}: the read-connection band, \code{"arc"} for each mate
 pair's and split read's arc or \code{"cloud"} for the read cloud; unset
 reads none
@@ -95,6 +98,9 @@ under: \code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...)
 reads carry that base there, over the depth), \code{quality}, \code{fade}
 \item \code{gaps}: \code{start}, \code{end}, \code{type} (\code{"deletion"} or \code{"skip"}), \code{read}, \code{row},
 \code{fade}
+\item \code{chains}: under \code{unit = "chain"}, each chain of more than one read:
+\code{start}, \code{end}, \code{row}, and the \code{color} and \code{opacity} of the hairline
+across it; empty otherwise
 \item \code{insertions}: \code{position}, \code{length}, \code{sequence}, \code{read}, \code{row}, \code{fade}
 \item \code{clips}: \code{position}, \code{length}, \code{type} (\code{"soft"} or \code{"hard"}), \code{read},
 \code{row}, \code{fade}
