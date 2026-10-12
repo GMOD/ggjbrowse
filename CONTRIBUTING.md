@@ -8,6 +8,10 @@
 - Run `devtools::document()` after editing a roxygen comment. `man/` and
   `NAMESPACE` are generated.
 - `scripts/figures.R` redraws the figures in `man/figures`.
+- `scripts/gallery.R` redraws the README's JBrowse-and-R gallery. Each entry
+  holds the `jb2export` arguments and the ggjbrowse call, so adding an example
+  is adding one entry. It needs a built jbrowse-components checkout
+  (`JBROWSE_COMPONENTS`), the installed package and ImageMagick.
 
 ## Updating the engine
 

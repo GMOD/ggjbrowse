@@ -461,46 +461,47 @@ autoplot(m)
 - JBrowse's linear genome view is gaining an **Export R script** menu item,
   not yet in a release. It writes one ggjbrowse reader per open track, then
   `jbrowse_stack()` and `ggsave(height = jbrowse_height(fig))`.
-- Each figure on the right is that script, downloaded from the view on the
-  left and run unchanged with `Rscript`.
+- Each figure on the left is JBrowse's own renderer, `jb2export` from
+  `@jbrowse/img`, run on the same files; each on the right is ggjbrowse.
+  `scripts/gallery.R` redraws both.
 
+<!-- gallery -->
 <table>
 <tr><th width="50%">JBrowse</th><th width="50%">R</th></tr>
-<tr><td colspan="2"><b>Genes over a BAM</b> <code>ctgA:1,000-9,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/genes-and-reads-jbrowse.webp" alt="Genes over a BAM in JBrowse" width="100%"></td><td width="50%"><img src="gallery/genes-and-reads-r.webp" alt="Genes over a BAM drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Base-level zoom, reads colored by MAPQ</b> <code>ctgA:1,000-1,150</code></td></tr>
-<tr><td width="50%"><img src="gallery/mapq-zoom-jbrowse.webp" alt="Base-level zoom, reads colored by MAPQ in JBrowse" width="100%"></td><td width="50%"><img src="gallery/mapq-zoom-r.webp" alt="Base-level zoom, reads colored by MAPQ drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Compact reads over a deep region</b> <code>ctgA:1-20,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/compact-reads-jbrowse.webp" alt="Compact reads over a deep region in JBrowse" width="100%"></td><td width="50%"><img src="gallery/compact-reads-r.webp" alt="Compact reads over a deep region drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Super-compact long reads</b> <code>ctgA:1,000-2,700</code></td></tr>
-<tr><td width="50%"><img src="gallery/super-compact-reads-jbrowse.webp" alt="Super-compact long reads in JBrowse" width="100%"></td><td width="50%"><img src="gallery/super-compact-reads-r.webp" alt="Super-compact long reads drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>RNA-seq with splice junctions</b> <code>ctgA:1,000-10,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/rnaseq-sashimi-jbrowse.webp" alt="RNA-seq with splice junctions in JBrowse" width="100%"></td><td width="50%"><img src="gallery/rnaseq-sashimi-r.webp" alt="RNA-seq with splice junctions drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Reads split into strand sections</b> <code>ctgA:2,000-5,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/facet-strand-jbrowse.webp" alt="Reads split into strand sections in JBrowse" width="100%"></td><td width="50%"><img src="gallery/facet-strand-r.webp" alt="Reads split into strand sections drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Paired reads across an inversion</b> <code>ctgA:18,000-32,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/inversion-arcs-jbrowse.webp" alt="Paired reads across an inversion in JBrowse" width="100%"></td><td width="50%"><img src="gallery/inversion-arcs-r.webp" alt="Paired reads across an inversion drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Long reads split across a structural variant</b> <code>ctgA:1,800-3,000 ctgA:33,900-35,100</code></td></tr>
-<tr><td width="50%"><img src="gallery/long-reads-sv-jbrowse.webp" alt="Long reads split across a structural variant in JBrowse" width="100%"></td><td width="50%"><img src="gallery/long-reads-sv-r.webp" alt="Long reads split across a structural variant drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>CpG methylation from MM/ML tags</b> <code>20:10,000-22,000</code></td></tr>
+<tr><td colspan="2"><b>GENCODE genes over direct RNA reads</b> <code>chr12:6,534,201-6,538,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/genes_and_reads-jbrowse.webp" alt="GENCODE genes over direct RNA reads in JBrowse" width="100%"></td><td width="50%"><img src="gallery/genes_and_reads-r.webp" alt="GENCODE genes over direct RNA reads drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Splice junctions over direct RNA reads</b> <code>chr12:6,534,201-6,538,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/sashimi-jbrowse.webp" alt="Splice junctions over direct RNA reads in JBrowse" width="100%"></td><td width="50%"><img src="gallery/sashimi-r.webp" alt="Splice junctions over direct RNA reads drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Reads split into strand sections</b> <code>chr12:6,534,201-6,538,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/strand_sections-jbrowse.webp" alt="Reads split into strand sections in JBrowse" width="100%"></td><td width="50%"><img src="gallery/strand_sections-r.webp" alt="Reads split into strand sections drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Long reads across two breakpoints of the COLO829 der(3)</b> <code>chr3:25,357,600-25,361,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/long_reads_sv-jbrowse.webp" alt="Long reads across two breakpoints of the COLO829 der(3) in JBrowse" width="100%"></td><td width="50%"><img src="gallery/long_reads_sv-r.webp" alt="Long reads across two breakpoints of the COLO829 der(3) drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Reads sorted by the base at the center, over a somatic deletion</b> <code>chr10:122,831,700-122,840,800</code></td></tr>
+<tr><td width="50%"><img src="gallery/deletion-jbrowse.webp" alt="Reads sorted by the base at the center, over a somatic deletion in JBrowse" width="100%"></td><td width="50%"><img src="gallery/deletion-r.webp" alt="Reads sorted by the base at the center, over a somatic deletion drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Compact reads over the same deletion</b> <code>chr10:122,831,700-122,840,800</code></td></tr>
+<tr><td width="50%"><img src="gallery/compact_reads-jbrowse.webp" alt="Compact reads over the same deletion in JBrowse" width="100%"></td><td width="50%"><img src="gallery/compact_reads-r.webp" alt="Compact reads over the same deletion drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Base-level zoom at the deletion's left edge</b> <code>chr10:122,835,300-122,835,420</code></td></tr>
+<tr><td width="50%"><img src="gallery/base_zoom-jbrowse.webp" alt="Base-level zoom at the deletion's left edge in JBrowse" width="100%"></td><td width="50%"><img src="gallery/base_zoom-r.webp" alt="Base-level zoom at the deletion's left edge drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Split reads across an inversion, with their arcs</b> <code>chr1:197,786,900-197,789,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/inversion-jbrowse.webp" alt="Split reads across an inversion, with their arcs in JBrowse" width="100%"></td><td width="50%"><img src="gallery/inversion-r.webp" alt="Split reads across an inversion, with their arcs drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>CpG methylation from MM/ML tags</b> <code>20:10,001-22,000</code></td></tr>
 <tr><td width="50%"><img src="gallery/methylation-jbrowse.webp" alt="CpG methylation from MM/ML tags in JBrowse" width="100%"></td><td width="50%"><img src="gallery/methylation-r.webp" alt="CpG methylation from MM/ML tags drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Multi-BigWig rows</b> <code>ctgA:1-50,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/multi-bigwig-jbrowse.webp" alt="Multi-BigWig rows in JBrowse" width="100%"></td><td width="50%"><img src="gallery/multi-bigwig-r.webp" alt="Multi-BigWig rows drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>200 BigWig rows</b> <code>ctgA:1-50,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/many-rows-200-jbrowse.webp" alt="200 BigWig rows in JBrowse" width="100%"></td><td width="50%"><img src="gallery/many-rows-200-r.webp" alt="200 BigWig rows drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>1,000 BigWig rows as density</b> <code>ctgA:1-50,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/many-rows-1000-jbrowse.webp" alt="1,000 BigWig rows as density in JBrowse" width="100%"></td><td width="50%"><img src="gallery/many-rows-1000-r.webp" alt="1,000 BigWig rows as density drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Quantitative renderings</b> <code>ctgA:1-50,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/wiggle-renderings-jbrowse.webp" alt="Quantitative renderings in JBrowse" width="100%"></td><td width="50%"><img src="gallery/wiggle-renderings-r.webp" alt="Quantitative renderings drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Two regions end to end</b> <code>ctgA:1,001-4,000 ctgA:6,001-9,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/two-regions-jbrowse.webp" alt="Two regions end to end in JBrowse" width="100%"></td><td width="50%"><img src="gallery/two-regions-r.webp" alt="Two regions end to end drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Variants beside genes</b> <code>ctgA:1-25,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/variants-and-genes-jbrowse.webp" alt="Variants beside genes in JBrowse" width="100%"></td><td width="50%"><img src="gallery/variants-and-genes-r.webp" alt="Variants beside genes drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Genes colored by a config expression</b> <code>ctgA:1-25,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/jexl-colors-jbrowse.webp" alt="Genes colored by a config expression in JBrowse" width="100%"></td><td width="50%"><img src="gallery/jexl-colors-r.webp" alt="Genes colored by a config expression drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Structural variants across 1,800 dogs</b> <code>chr6:47,340,000-47,420,000</code></td></tr>
-<tr><td width="50%"><img src="gallery/dog-sv-matrix-jbrowse.webp" alt="Structural variants across 1,800 dogs in JBrowse" width="100%"></td><td width="50%"><img src="gallery/dog-sv-matrix-r.webp" alt="Structural variants across 1,800 dogs drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>DNase in twelve cell lines over the beta-globin locus</b> <code>chr11:5,270,001-5,320,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/dnase_rows-jbrowse.webp" alt="DNase in twelve cell lines over the beta-globin locus in JBrowse" width="100%"></td><td width="50%"><img src="gallery/dnase_rows-r.webp" alt="DNase in twelve cell lines over the beta-globin locus drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>phyloP conservation across GAPDH</b> <code>chr12:6,534,201-6,538,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/conservation-jbrowse.webp" alt="phyloP conservation across GAPDH in JBrowse" width="100%"></td><td width="50%"><img src="gallery/conservation-r.webp" alt="phyloP conservation across GAPDH drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Genes, conservation and reads over two regions end to end</b> <code>chr12:6,534,201-6,535,700 chr12:6,537,201-6,538,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/two_regions-jbrowse.webp" alt="Genes, conservation and reads over two regions end to end in JBrowse" width="100%"></td><td width="50%"><img src="gallery/two_regions-r.webp" alt="Genes, conservation and reads over two regions end to end drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>100 people's genotypes across DCST2 (GRCh37)</b> <code>1:155,000,001-155,050,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/genotype_matrix-jbrowse.webp" alt="100 people's genotypes across DCST2 (GRCh37) in JBrowse" width="100%"></td><td width="50%"><img src="gallery/genotype_matrix-r.webp" alt="100 people's genotypes across DCST2 (GRCh37) drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>HG002's maternal chr8 over its paternal copy at 8p23.1</b> <code>chr8_MATERNAL:5,250,001-14,250,000 chr8_PATERNAL:5,250,001-14,250,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/inversion_synteny-jbrowse.webp" alt="HG002's maternal chr8 over its paternal copy at 8p23.1 in JBrowse" width="100%"></td><td width="50%"><img src="gallery/inversion_synteny-r.webp" alt="HG002's maternal chr8 over its paternal copy at 8p23.1 drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Peach against grape, every chromosome</b> <code>whole genome</code></td></tr>
+<tr><td width="50%"><img src="gallery/whole_genome-jbrowse.webp" alt="Peach against grape, every chromosome in JBrowse" width="100%"></td><td width="50%"><img src="gallery/whole_genome-r.webp" alt="Peach against grape, every chromosome drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>GRCh38 over HG00133 at the amylase genes</b> <code>GRCh38#0#chr1:103,520,894-103,832,637</code></td></tr>
+<tr><td width="50%"><img src="gallery/amylase_synteny-jbrowse.webp" alt="GRCh38 over HG00133 at the amylase genes in JBrowse" width="100%"></td><td width="50%"><img src="gallery/amylase_synteny-r.webp" alt="GRCh38 over HG00133 at the amylase genes drawn by ggjbrowse" width="100%"></td></tr>
 </table>
+<!-- /gallery -->
 
 ## The engine
 
