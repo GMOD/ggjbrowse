@@ -60,6 +60,23 @@ test_that("an axis of several regions is labelled in each region's own positions
     c("1,000", "2,000", "3,000", "7,000", "8,000", "9,000"))
 })
 
+test_that("each band of a stack marks the seam between regions with a bar", {
+  loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
+  genes <- jbrowse_features(gff, loci)
+  reads <- jbrowse_alignments(bam, loci)
+  r <- reads$regions
+  for (p in jbrowse_stack(genes, reads)$patches$plots) {
+    b <- ggplot2::ggplot_build(p)
+    bars <- Filter(function(d) !is.null(d$xintercept), b$data)
+    expect_length(bars, 1)
+    expect_true(bars[[1]]$xintercept > r$cum_end[1] &&
+      bars[[1]]$xintercept < r$offset[2])
+  }
+  one <- ggplot2::ggplot_build(ggplot2::autoplot(jbrowse_features(gff,
+    loci[1])))
+  expect_false(any(vapply(one$data, function(d) !is.null(d$xintercept), NA)))
+})
+
 test_that("jbrowse_stack refuses tracks over different regions", {
   genes <- jbrowse_features(gff, "ctgB:1-5,000")
   reads <- jbrowse_alignments(bam, "ctgA:1,001-9,000")

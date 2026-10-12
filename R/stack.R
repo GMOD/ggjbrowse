@@ -147,7 +147,8 @@ axis_label <- function(x) {
 # regions end to end round genomic positions in each region, about as many as
 # its share of the axis earns, each labelled with its position in its own
 # region, and none on an edge two regions face across their gap, where two
-# labels would collide
+# labels would collide. A bar in the view's separator grey marks each seam
+# across the band, over what the band draws, as the view masks its tracks.
 genomic_x <- function(x) {
   r <- x$regions
   if (is.null(r)) {
@@ -160,9 +161,15 @@ genomic_x <- function(x) {
     hi <- if (i == nrow(r)) r$end[i] else r$end[i] - 1
     b[b >= lo & b <= hi]
   })
-  ggplot2::scale_x_continuous(
-    breaks = unlist(lapply(seq_len(nrow(r)), function(i)
-      at[[i]] - r$start[i] + r$offset[i])),
-    labels = format(unlist(at), big.mark = ",", trim = TRUE,
-      scientific = FALSE))
+  seams <- (utils::head(r$cum_end, -1) + r$offset[-1]) / 2
+  list(ggplot2::scale_x_continuous(
+      breaks = unlist(lapply(seq_len(nrow(r)), function(i)
+        at[[i]] - r$start[i] + r$offset[i])),
+      labels = format(unlist(at), big.mark = ",", trim = TRUE,
+        scientific = FALSE)),
+    ggplot2::geom_vline(xintercept = seams, colour = REGION_SEPARATOR,
+      linewidth = 0.9))
 }
+
+# The view's seam between two regions, its palette's regionSeparator
+REGION_SEPARATOR <- "#757575"

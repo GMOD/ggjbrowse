@@ -33,8 +33,9 @@ regions_of <- function(region, start, end) {
 # of `gap_frac` of the axis between them; the first keeps its own
 # coordinates, so one region is drawn at its genomic position. JBrowse's
 # views lay regions out with no gap and paint a 3 px bar over each seam; a
-# stack keeps a gap in place of that bar, while a comparative axis lays its
-# regions as the synteny and dotplot workers do, with none.
+# stack keeps a gap, so labels either side of it stay apart, and paints the
+# bar in it (genomic_x()), while a comparative axis lays its regions as the
+# synteny and dotplot workers do, with none.
 region_layout <- function(regions, gap_frac = 0.012) {
   w <- regions$end - regions$start
   gap <- if (gap_frac > 0) max(1, round(sum(w) * gap_frac)) else 0
