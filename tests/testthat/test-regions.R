@@ -101,3 +101,16 @@ test_that("an alignments track refuses tracks above it over other regions", {
   expect_error(ggplot2::autoplot(jbrowse_alignments(bam, "ctgA:1,001-2,000"),
     tracks = jbrowse_features(gff, "ctgA:20,001-30,000")), "same regions")
 })
+
+test_that("a split read across two regions arcs over the gap, kept once", {
+  r <- jbrowse_alignments(
+    system.file("extdata", "volvox-long-reads-sv.bam", package = "ggjbrowse"),
+    c("ctgA:1,800-3,000", "ctgA:33,900-35,100"),
+    display = list(readConnections = "arc"))
+  drawn <- on_axis(r)$arcs
+  axis <- r$regions
+  feet <- cbind(pmin(drawn$start, drawn$end), pmax(drawn$start, drawn$end))
+  expect_true(all(feet[, 1] < axis$cum_end[1] & feet[, 2] > axis$cum_start[2]))
+  expect_equal(nrow(drawn), nrow(unique(r$arcs[c("start", "end")])))
+  expect_lt(nrow(drawn), nrow(r$arcs))
+})

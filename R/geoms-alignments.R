@@ -251,16 +251,16 @@ geom_jbrowse_junction_counts <- function(mapping = NULL, data = NULL,
       label.padding = grid::unit(0.15, "lines"), ...), keyed = FALSE)
 }
 
-# Each connection's arc as points: a half circle from foot to foot, its
-# height the genomic radius, as the display's band rises an arc as high as it
-# is wide
-connection_domes <- function(arcs, points = 48) {
+# Each connection's arc as points: a dome from foot to foot, its height the
+# genomic radius up to the band's reach `top`, as the display rises an arc as
+# high as it is wide and flattens one wider than its band
+connection_domes <- function(arcs, top, points = 48) {
   t <- rep(seq(0, pi, length.out = points), nrow(arcs))
   id <- rep(seq_len(nrow(arcs)), each = points)
   d <- arcs[id, , drop = FALSE]
   d$id <- id
   d$x <- d$start + (d$end - d$start) * (1 - cos(t)) / 2
-  d$height <- d$y
+  d$height <- pmin(d$y, top)
   d$y <- d$height * sin(t)
   d
 }
@@ -271,7 +271,7 @@ is_cloud <- function(x) x$read_connections == "cloud"
 #' @export
 geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, ...) {
   domes <- function(x) connection_domes(x$arcs[x$arcs$shape == "arc", ,
-    drop = FALSE])
+    drop = FALSE], arc_top(x))
   bars <- function(x) {
     b <- x$arcs[x$arcs$shape != "arc", , drop = FALSE]
     b$y <- pmax(1, b$y)

@@ -136,9 +136,33 @@ on_axis <- function(x) {
   r <- x$regions
   if (is.null(r)) return(x)
   for (name in names(x)) {
-    if (is.data.frame(x[[name]])) x[[name]] <- frame_on_axis(x[[name]], r)
+    if (!is.data.frame(x[[name]])) next
+    x[[name]] <- if (name == "arcs") arcs_on_axis(x[[name]], r)
+      else frame_on_axis(x[[name]], r)
   }
   x
+}
+
+# A read connection with each foot on the axis by the region holding it, so
+# a split read across two regions arcs over the gap between them, and a foot
+# outside every region at its own region's edge. Each region's fetch reports
+# a connection reaching the other, so it is kept once.
+arcs_on_axis <- function(d, regions) {
+  if (is.null(d$.region) || !is.null(d$.on_axis)) return(d)
+  r <- regions
+  place <- function(pos) {
+    i <- vapply(seq_along(pos), function(k) {
+      hit <- which(r$chrom == d$chrom[k] & pos[k] >= r$start &
+        pos[k] <= r$end)
+      if (length(hit)) hit[1] else d$.region[k]
+    }, 0)
+    pmin(pmax(pos, r$start[i]), r$end[i]) - r$start[i] + r$offset[i]
+  }
+  d$start <- place(d$start)
+  d$end <- place(d$end)
+  d <- d[!duplicated(d[setdiff(names(d), ".region")]), , drop = FALSE]
+  d$.on_axis <- rep(TRUE, nrow(d))
+  d
 }
 
 # A table's rows on the axis `regions` lays end to end: each moved by its
