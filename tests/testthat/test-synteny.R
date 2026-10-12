@@ -141,6 +141,8 @@ test_that("a file's contigs list with their lengths, and an axis with no regions
   grape <- system.file("extdata", "peach_grape.paf.gz", package = "ggjbrowse")
   d <- jbrowse_dotplot(grape)
   expect_equal(nrow(d$x), 13)
+  expect_equal(d$x$chrom[1:3], c("Pp01", "Pp02", "Pp03"))
+  expect_equal(d$y$chrom[c(1, 2, 10)], c("chr1", "chr2", "chr10"))
   expect_equal(nrow(d$y), 24)
   expect_gt(nrow(d$segments), 100)
   built <- ggplot2::ggplot_build(autoplot(d))

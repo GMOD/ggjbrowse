@@ -111,7 +111,7 @@ memo <- function(f) {
 }
 
 # The regions an axis shows: each locus given, each contig named alone whole,
-# and with none given every contig of the axis's assembly, in file order.
+# and with none given every contig of the axis's assembly, in natural order
 # `side` picks the file's side where the axis names no assembly the file has.
 axis_regions <- function(given, contigs, assembly, side) {
   if (is.data.frame(given)) return(regions_of(given, NULL, NULL))
@@ -122,7 +122,7 @@ axis_regions <- function(given, contigs, assembly, side) {
   own <- all[if (named) all$assembly == assembly else all$side == side, ]
   own <- own[!duplicated(own$chrom), ]
   if (!length(given)) {
-    given <- own$chrom
+    given <- own$chrom[natural_order(own$chrom)]
     whole <- rep(TRUE, length(given))
   }
   where <- if (named) paste("assembly", assembly) else paste(side, "side")
@@ -863,4 +863,14 @@ autoplot.jbrowse_dotplot <- function(object, ...) {
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
       panel.border = ggplot2::element_rect(fill = NA, colour = "grey70")) +
     upright_names(x$x, "x.bottom")
+}
+
+# Names in the order a reader expects them: chr2 before chr10, each run of
+# digits compared as a number
+natural_order <- function(x) {
+  parts <- regmatches(x, gregexpr("[0-9]+|[^0-9]+", x))
+  key <- vapply(parts, function(p) paste(vapply(p, function(s)
+    if (grepl("^[0-9]", s)) formatC(as.numeric(s), width = 12, flag = "0",
+      format = "d") else s, ""), collapse = ""), "")
+  order(key, x)
 }
