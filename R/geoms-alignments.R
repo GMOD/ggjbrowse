@@ -120,34 +120,34 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
     keyed = FALSE)
 }
 
+# A per-position table drawn as rects one pixel wide at least, over the row
+position_rects <- function(table, geom, data, mapping, width, params, ...,
+                           with_opacity = FALSE) {
+  data <- replacing(data, table, geom)
+  defaults <- ggplot2::aes(xmin = position, xmax = xmax, ymin = row + inset,
+    ymax = row + 1 - inset, fill = color)
+  if (with_opacity) defaults$alpha <- ggplot2::aes(alpha = I(opacity))$alpha
+  jbrowse_layer(ggplot2::GeomRect, data, function(x) {
+    d <- x[[table]]
+    d$xmax <- d$position + max(1, 1 / px_of(x, width))
+    d
+  }, mapping, defaults, params, ..., rows = TRUE)
+}
+
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
                                        width = NULL, ...) {
-  data <- replacing(data, "modifications", "geom_jbrowse_modifications")
-  jbrowse_layer(ggplot2::GeomRect, data, function(x) {
-    d <- x$modifications
-    d$xmax <- d$position + max(1, 1 / px_of(x, width))
-    d
-  }, mapping,
-    ggplot2::aes(xmin = position, xmax = xmax, ymin = row + inset,
-      ymax = row + 1 - inset, fill = color, alpha = I(opacity)), list(...),
-    rows = TRUE)
+  position_rects("modifications", "geom_jbrowse_modifications", data, mapping,
+    width, list(...), with_opacity = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_qualities <- function(mapping = NULL, data = NULL,
                                    width = NULL, ...) {
-  data <- replacing(data, "qualities", "geom_jbrowse_qualities")
-  jbrowse_layer(ggplot2::GeomRect, data, function(x) {
-    d <- x$qualities
-    d$xmax <- d$position + max(1, 1 / px_of(x, width))
-    d
-  }, mapping,
-    ggplot2::aes(xmin = position, xmax = xmax, ymin = row + inset,
-      ymax = row + 1 - inset, fill = color), list(...), keyed = FALSE,
-    rows = TRUE)
+  position_rects("qualities", "geom_jbrowse_qualities", data, mapping, width,
+    list(...), keyed = FALSE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -165,34 +165,34 @@ geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = TRUE,
     linewidth = I(width)), list(lineend = "butt", ...), rows = TRUE)
 }
 
+# A per-position table drawn as vertical ticks, faded as the pixels per base
+# raised to `power` shrink
+position_ticks <- function(table, geom, data, mapping, fade, width, params,
+                           power) {
+  data <- replacing(data, table, geom)
+  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
+    d <- x[[table]]
+    d$alpha <- mark_alpha(px_of(x, width)^power, d$fade, fade)
+    d
+  }, mapping, ggplot2::aes(x = position, xend = position,
+    y = row + inset / 2, yend = row + 1 - inset / 2, colour = color,
+    alpha = I(alpha)), params, keyed = FALSE, rows = TRUE)
+}
+
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_insertions <- function(mapping = NULL, data = NULL, fade = TRUE,
                                     width = NULL, ...) {
-  data <- replacing(data, "insertions", "geom_jbrowse_insertions")
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
-    d <- x$insertions
-    d$alpha <- mark_alpha(px_of(x, width)^2, d$fade, fade)
-    d
-  }, mapping, ggplot2::aes(x = position, xend = position,
-    y = row + inset / 2, yend = row + 1 - inset / 2, colour = color,
-    alpha = I(alpha)),
-    list(linewidth = 0.4, ...), keyed = FALSE, rows = TRUE)
+  position_ticks("insertions", "geom_jbrowse_insertions", data, mapping, fade,
+    width, list(linewidth = 0.4, ...), power = 2)
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_clips <- function(mapping = NULL, data = NULL, fade = TRUE,
                                width = NULL, ...) {
-  data <- replacing(data, "clips", "geom_jbrowse_clips")
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
-    d <- x$clips
-    d$alpha <- mark_alpha(px_of(x, width), d$fade, fade)
-    d
-  }, mapping, ggplot2::aes(x = position, xend = position,
-    y = row + inset / 2, yend = row + 1 - inset / 2, colour = color,
-    alpha = I(alpha)),
-    list(linewidth = 0.7, ...), keyed = FALSE, rows = TRUE)
+  position_ticks("clips", "geom_jbrowse_clips", data, mapping, fade, width,
+    list(linewidth = 0.7, ...), power = 1)
 }
 
 #' @rdname geom_jbrowse_reads
