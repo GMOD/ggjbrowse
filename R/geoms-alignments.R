@@ -38,7 +38,8 @@ with_inset <- function(d, model) {
 #'   aligned base in its quality's color; `aes(fill = score)` maps the Phred
 #'   score through a scale of your own
 #' * `geom_jbrowse_skips()`, `geom_jbrowse_deletions()`: the splice gaps'
-#'   lines and the deletions' boxes
+#'   lines and the deletions' boxes, and `geom_jbrowse_deletion_lengths()`
+#'   writes a deletion's length in it where the box is wide enough
 #' * `geom_jbrowse_chains()`: under `unit = "chain"`, the hairline across a
 #'   row from the first to the last read of a chain, a read's mate or split
 #'   segments sharing it
@@ -101,6 +102,37 @@ geom_jbrowse_reads <- function(mapping = NULL, data = NULL, ...) {
 
 #' @rdname geom_jbrowse_reads
 #' @export
+geom_jbrowse_deletion_lengths <- function(mapping = NULL, data = NULL,
+                                          width = NULL, ...) {
+  data <- replacing(data, "gaps", "geom_jbrowse_deletion_lengths")
+  jbrowse_layer(ggplot2::GeomText, data, function(x) {
+    rule <- x$glyph$label
+    d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
+    d$length <- d$end - d$start
+    tall <- (x$settings$featureHeight %||% 7) >= (rule$minHeight %||% Inf)
+    d$alpha <- label_fade((d$end - d$start) * px_of(x, width),
+      nchar(d$length) * (rule$digitPx %||% Inf), rule)
+    if (!tall) d$alpha[] <- 0
+    d[d$alpha > 0, , drop = FALSE]
+  }, mapping, ggplot2::aes(x = (start + end) / 2, y = row + 0.5,
+    label = length, alpha = I(alpha)),
+    list(size = 1.7, colour = "white", fontface = "bold", ...),
+    keyed = FALSE)
+}
+
+# A size label's opacity from the pixels its feature spans and the pixels its
+# digits need: none below `fadeLo` times the need, then `fadeFloor` ramping to
+# one at `fadeHi` times it, as the display fades a deletion's length
+label_fade <- function(span_px, need_px, rule) {
+  t <- pmin(1, pmax(0, (span_px - need_px) / (need_px * (rule$fadeHi %||% 2) -
+    need_px)))
+  ramp <- t * t * (3 - 2 * t)
+  ifelse(span_px < need_px * (rule$fadeLo %||% Inf), 0,
+    rule$fadeFloor + (1 - rule$fadeFloor) * ramp)
+}
+
+#' @rdname geom_jbrowse_reads
+#' @export
 geom_jbrowse_chains <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "chains", "geom_jbrowse_chains")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$chains, mapping,
@@ -113,10 +145,13 @@ geom_jbrowse_chains <- function(mapping = NULL, data = NULL, ...) {
 #' @export
 geom_jbrowse_skips <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "gaps", "geom_jbrowse_skips")
-  jbrowse_layer(ggplot2::GeomSegment, data,
-    function(x) x$gaps[x$gaps$type == "skip", , drop = FALSE], mapping,
-    ggplot2::aes(x = start, xend = end, y = row + 0.5, yend = row + 0.5,
-      colour = color), list(linewidth = 0.3, ...), keyed = FALSE)
+  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
+    d <- x$gaps[x$gaps$type == "skip", , drop = FALSE]
+    d$alpha <- rep(x$glyph$intronAlpha %||% 1, nrow(d))
+    d
+  }, mapping, ggplot2::aes(x = start, xend = end, y = row + 0.5,
+    yend = row + 0.5, colour = color, alpha = I(alpha)),
+    list(linewidth = 0.3, ...), keyed = FALSE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -129,9 +164,9 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
     d$alpha <- mark_alpha(((d$end - d$start) * px_of(x, width))^2,
       d$fade, fade)
     d
-  }, mapping, ggplot2::aes(xmin = start, xmax = end, ymin = row + 0.35,
-    ymax = row + 0.65, fill = color, alpha = I(alpha)), list(...),
-    keyed = FALSE)
+  }, mapping, ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
+    ymax = row + 1 - inset, fill = color, alpha = I(alpha)), list(...),
+    keyed = FALSE, rows = TRUE)
 }
 
 # A per-position table drawn as rects one base wide, a pixel at least, over

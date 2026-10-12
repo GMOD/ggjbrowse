@@ -2,6 +2,7 @@
 % Please edit documentation in R/geoms-alignments.R
 \name{geom_jbrowse_reads}
 \alias{geom_jbrowse_reads}
+\alias{geom_jbrowse_deletion_lengths}
 \alias{geom_jbrowse_chains}
 \alias{geom_jbrowse_skips}
 \alias{geom_jbrowse_deletions}
@@ -23,6 +24,8 @@
 \title{The alignments track's marks as ggplot layers}
 \usage{
 geom_jbrowse_reads(mapping = NULL, data = NULL, ...)
+
+geom_jbrowse_deletion_lengths(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_chains(mapping = NULL, data = NULL, ...)
 
@@ -98,12 +101,12 @@ result, such as a filtered copy of it}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 
-\item{fade}{fade a mark narrower than a pixel by its site's share of the
-depth, as the display does (\code{fadeLowFrequencyMismatches})}
-
 \item{width}{the pixels the figure spans across its region, which decide
 the fade, whether a one-base mark reaches a pixel and how high the
 read-connection band reaches; \code{NULL} takes 1,500}
+
+\item{fade}{fade a mark narrower than a pixel by its site's share of the
+depth, as the display does (\code{fadeLowFrequencyMismatches})}
 
 \item{min_allele_frequency}{leave out an allele segment whose share of the
 depth is below this, the display's \code{coverageSnpMinFrequency}}
@@ -130,7 +133,8 @@ gaps
 aligned base in its quality's color; \code{aes(fill = score)} maps the Phred
 score through a scale of your own
 \item \code{geom_jbrowse_skips()}, \code{geom_jbrowse_deletions()}: the splice gaps'
-lines and the deletions' boxes
+lines and the deletions' boxes, and \code{geom_jbrowse_deletion_lengths()}
+writes a deletion's length in it where the box is wide enough
 \item \code{geom_jbrowse_chains()}: under \code{unit = "chain"}, the hairline across a
 row from the first to the last read of a chain, a read's mate or split
 segments sharing it

@@ -214,7 +214,8 @@ pileup_plot <- function(x, o) {
     scale_colour_jbrowse(x, "bases") +
     geom_jbrowse_insertions(fade = o$fade, width = px) +
     geom_jbrowse_clips(fade = o$fade, width = px) +
-    geom_jbrowse_chains()
+    geom_jbrowse_chains() +
+    geom_jbrowse_deletion_lengths(width = px)
   if (o$letters) p <- p + geom_jbrowse_letters()
   band(p + ggplot2::scale_y_reverse(), x, rows = TRUE) + no_y
 }
