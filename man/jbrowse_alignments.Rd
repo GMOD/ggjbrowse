@@ -114,9 +114,11 @@ allele's share of the bar, from the bottom) and the \code{depth} there
 soft clips and hard clips at each position, stacked in that order:
 \code{position}, \code{type} (\code{"insertion"}, \code{"softclip"} or \code{"hardclip"}),
 \code{from} and \code{to} (in reads, from the band's top), \code{color}
-\item \code{indicators}: the positions where those events pass the display's
-share of the local depth: \code{position}, \code{type} (the most common there),
-\code{color}
+\item \code{indicators}: the positions the display marks with a triangle, where
+those events number over 30\% of a depth of 8 reads or more:
+\code{position}, \code{type} (the most common there), \code{color}
+\item \code{coverage_scale}: the band's depth axis as the display autoscales it,
+shared by every section: \code{domain}, \code{type} and \code{ticks}
 \item \code{junctions}: the reads' splice gaps merged, each once: \code{start}, \code{end},
 \code{count} (the reads supporting it), \code{strand} (1, -1, or 0 where neither
 the reads' tags nor the splice motif says) and \code{motif} (\code{"GT-AG (canonical)"}, \code{"non-canonical"}, or \code{""} where the region's sequence

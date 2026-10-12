@@ -134,9 +134,9 @@ mark_alpha <- function(px, fade, on) {
 
 # Each band is the geoms of its tables, the display's keys as scales, its y
 # axis, and its sections as facets
-band <- function(p, x, rows = FALSE, ylim = NULL) {
+band <- function(p, x, rows = FALSE, ylim = NULL, expand = FALSE) {
   p +
-    ggplot2::coord_cartesian(xlim = xlim_of(x), ylim = ylim, expand = FALSE) +
+    ggplot2::coord_cartesian(xlim = xlim_of(x), ylim = ylim, expand = expand) +
     by_section(x, rows) +
     genomic_x(x) +
     ggplot2::labs(x = axis_label(x), y = NULL) +
@@ -144,21 +144,40 @@ band <- function(p, x, rows = FALSE, ylim = NULL) {
     across
 }
 
-# The depth axis labels 0 and the peak, as the display does, so a band at its
-# 45 pixels stays legible
+# The depth axis the display draws: its autoscaled domain and ticks, shared
+# by every section, inset at both ends by the room the display keeps for its
+# labels, the triangles sitting in the top one
 coverage_plot <- function(x, o) {
+  scale <- x$coverage_scale
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_coverage() +
     geom_jbrowse_alleles(min_allele_frequency = o$min_allele_frequency,
       width = o$width) +
     geom_jbrowse_modification_coverage(width = o$width)
   if (!isFALSE(x$settings$showInterbaseIndicators)) {
-    p <- p + geom_jbrowse_interbase() + geom_jbrowse_indicators()
+    p <- p + geom_jbrowse_interbase() + geom_jbrowse_indicators() +
+      scale_fill_jbrowse(x, "interbase")
   }
-  band(p + scale_colour_jbrowse(x, "bases"), x) +
-    ggplot2::scale_y_continuous(breaks = function(l) unique(c(0,
-      floor(l[2])))) +
+  inset <- x$glyph$coverageInset
+  band(p + scale_colour_jbrowse(x, "bases"), x, ylim = scale$domain,
+    expand = c(top = TRUE, right = FALSE, bottom = TRUE, left = FALSE)) +
+    ggplot2::scale_y_continuous(breaks = scale$ticks,
+      transform = depth_transform(scale),
+      expand = ggplot2::expansion(mult = inset /
+        (x$settings$coverageHeight - 2 * inset))) +
     ggplot2::labs(y = "depth")
+}
+
+# The display's depth scale: log, linear, or its symlog,
+# sign(x) log(1 + |x| / C), which scales' asinh-based pseudo-log is not
+depth_transform <- function(scale) {
+  c <- scale$symlogConstant
+  switch(scale$type,
+    log = "log10",
+    symlog = scales::new_transform("symlog",
+      function(x) sign(x) * log1p(abs(x) / c),
+      function(y) sign(y) * c * expm1(abs(y))),
+    "identity")
 }
 
 # The reference under the pileup, each base a lettered cell in its color

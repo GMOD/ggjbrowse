@@ -116,9 +116,11 @@ sequence_adapter <- function(reference) {
 #'     soft clips and hard clips at each position, stacked in that order:
 #'     `position`, `type` (`"insertion"`, `"softclip"` or `"hardclip"`),
 #'     `from` and `to` (in reads, from the band's top), `color`
-#'   * `indicators`: the positions where those events pass the display's
-#'     share of the local depth: `position`, `type` (the most common there),
-#'     `color`
+#'   * `indicators`: the positions the display marks with a triangle, where
+#'     those events number over 30% of a depth of 8 reads or more:
+#'     `position`, `type` (the most common there), `color`
+#'   * `coverage_scale`: the band's depth axis as the display autoscales it,
+#'     shared by every section: `domain`, `type` and `ticks`
 #'   * `junctions`: the reads' splice gaps merged, each once: `start`, `end`,
 #'     `count` (the reads supporting it), `strand` (1, -1, or 0 where neither
 #'     the reads' tags nor the splice motif says) and `motif` (`"GT-AG
@@ -249,6 +251,11 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   attr(arc_legend, "title") <- t$arcLegendTitle
   base_key <- if (muted) key_frame(character(0), character(0), "Base")
     else key_frame(names(colors$bases), colors$bases, "Base")
+  interbase_key <- key_frame(c("Insertion", "Soft clip", "Hard clip"),
+    interbase_colors, "Insertions and clips")
+  interbase_key <- interbase_key[interbase_colors %in%
+    interbase_coverage$color, , drop = FALSE]
+  attr(interbase_key, "title") <- "Insertions and clips"
   junction_key <- key_frame(c("Forward", "Reverse", "Unknown"), strand_colors,
     "Junction strand")
   junction_key <- junction_key[junction_key$color %in% junctions$color, ,
@@ -267,7 +274,8 @@ alignments_region <- function(adapter, chrom, start, end, reference,
       read_connections = display$readConnections %||% "off",
       sections = sections,
       keys = list(reads = legend, bases = base_key, arcs = arc_legend,
-        junctions = junction_key), ramps = ramp_frames(t$ramps),
+        junctions = junction_key, interbase = interbase_key),
+      ramps = ramp_frames(t$ramps), coverage_scale = t$coverageScale,
       region = list(chrom = chrom, start = start, end = end),
       reference = if (is.null(reference)) NULL else
         list(file = reference, chrom = reference_chrom),
@@ -320,10 +328,10 @@ config_color <- function(color) in_json(color, c("domain", "range", "labels"))
 #' @export
 print.jbrowse_alignments <- function(x, ...) {
   cat(sprintf(
-    "<jbrowse_alignments> %s, %d reads in %d sections, %d mismatches, %d gaps, %d insertions, %d clips, %d modifications, %d junctions, %d arcs\n",
+    "<jbrowse_alignments> %s, %d reads in %d sections, %d mismatches, %d gaps, %d insertions, %d clips, %d indicators, %d modifications, %d junctions, %d arcs\n",
     print_loci(x), nrow(x$reads),
     nrow(x$sections), nrow(x$mismatches), nrow(x$gaps),
-    nrow(x$insertions), nrow(x$clips), nrow(x$modifications),
-    nrow(x$junctions), nrow(x$arcs)))
+    nrow(x$insertions), nrow(x$clips), nrow(x$indicators),
+    nrow(x$modifications), nrow(x$junctions), nrow(x$arcs)))
   invisible(x)
 }

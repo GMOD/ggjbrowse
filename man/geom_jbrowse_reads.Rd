@@ -136,8 +136,9 @@ insertion lengths
 \code{geom_jbrowse_modification_coverage()}: the coverage band's depth and its
 stacks
 \item \code{geom_jbrowse_interbase()}, \code{geom_jbrowse_indicators()}: the band's
-histogram of insertions and clips, hanging from its top at half a depth
-unit per read, and the triangles over the positions where they pile up
+histogram of insertions and clips, hanging from its top as the display
+hangs it (a stack as deep as the depth axis's top reaches halfway down),
+and the triangles over the positions where they pile up
 \item \code{geom_jbrowse_junctions()}, \code{geom_jbrowse_junction_counts()}: the
 sashimi arcs and their read counts
 \item \code{geom_jbrowse_arcs()}, \code{geom_jbrowse_arc_ticks()}: the read-connection

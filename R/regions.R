@@ -142,6 +142,11 @@ bind_regions <- function(regions, parts) {
     out$keys[[key]] <- unique(bound(function(x) x$keys[[key]]))
   }
   if (!is.null(out$domain)) out$domain <- range(lapply(parts, `[[`, "domain"))
+  if (!is.null(out$coverage_scale)) {
+    domain <- range(lapply(parts, function(p) p$coverage_scale$domain))
+    out$coverage_scale$domain <- domain
+    out$coverage_scale$ticks <- unique(c(domain[1], domain[2]))
+  }
   if (!is.null(out$height)) out$height <- max(sapply(parts, `[[`, "height"))
   out$missing_contig <- ""
   out$region <- list(chrom = "", start = min(regions$cum_start),

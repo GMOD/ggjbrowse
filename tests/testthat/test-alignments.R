@@ -66,23 +66,32 @@ test_that("the coverage band stacks each position's alleles as the display does"
     bam$coverage$depth[findInterval(strict$x, bam$coverage$start)] >= 0.5))
 })
 
-test_that("the coverage band hangs its insertions and clips from its top, half a depth unit per read", {
-  l <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000, 20000)
-  ib <- l$interbase_coverage
+sv <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000,
+  20000)
+
+test_that("the interbase tables count the reads' insertions and clips", {
+  ib <- sv$interbase_coverage
   expect_setequal(unique(ib$type), c("insertion", "softclip", "hardclip"))
-  events <- c(paste(l$insertions$position, "insertion"),
-    paste(l$clips$position, ifelse(l$clips$type == "soft", "softclip",
+  events <- c(paste(sv$insertions$position, "insertion"),
+    paste(sv$clips$position, ifelse(sv$clips$type == "soft", "softclip",
       "hardclip")))
   expect_equal(as.vector(table(events)[paste(ib$position, ib$type)]),
     ib$to - ib$from)
-  expect_equal(l$indicators$type, "softclip")
+  expect_equal(sv$indicators$type, "softclip")
+  expect_equal(sv$keys$interbase$label,
+    c("Insertion", "Soft clip", "Hard clip"))
+})
 
-  band <- ggplot2::ggplot_build(ggplot2::autoplot(l, "coverage"))$data
-  top <- max(l$coverage$depth)
-  expect_equal(band[[4]]$y, pmax(0, top - ib$from / 2))
-  expect_equal(band[[4]]$yend, pmax(0, top - ib$to / 2))
-  expect_equal(band[[5]]$x, l$indicators$position)
-  expect_equal(unclass(band[[5]]$fill), unclass(jbrowse_colors()$softclip))
+test_that("the coverage band draws on the display's depth axis, inset as the display insets it", {
+  scale <- sv$coverage_scale
+  built <- ggplot2::ggplot_build(ggplot2::autoplot(sv, "coverage"))
+  y <- built$layout$panel_params[[1]]$y
+  expect_equal(y$breaks[!is.na(y$breaks)], scale$ticks)
+  inset <- sv$glyph$coverageInset / (sv$settings$coverageHeight -
+    2 * sv$glyph$coverageInset)
+  span <- diff(scale$domain)
+  expect_equal(y$continuous_range,
+    scale$domain + c(-1, 1) * inset * span)
 
   hidden <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA",
     1000, 20000, display = list(showInterbaseIndicators = FALSE))
@@ -90,15 +99,69 @@ test_that("the coverage band hangs its insertions and clips from its top, half a
     "coverage"))$data, 3)
 })
 
-test_that("each section's histogram hangs from that section's own top", {
+# The panel the band draws in, 1 inch tall, and where the grob's `y` lands in
+# it, in points from the bottom
+grob_y_pt <- function(grob, y) {
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off())
+  grid::pushViewport(grid::viewport(height = grid::unit(1, "in")))
+  grid::convertY(y, "pt", valueOnly = TRUE)
+}
+
+test_that("a stack hangs from the triangles' tip, as deep a share of the depth area as the domain's top is twice", {
+  b <- ggplot2::ggplot_build(ggplot2::ggplot(sv) + geom_jbrowse_interbase() +
+    geom_jbrowse_coverage())
+  d <- b$data[[1]]
+  ib <- sv$interbase_coverage
+  top <- 2 * sv$coverage_scale$domain[2]
+  expect_equal(d$hang, ib$from / top)
+  expect_equal(d$hang_end, ib$to / top)
+  grob <- ggplot2::layer_grob(ggplot2::ggplot(sv) + geom_jbrowse_interbase() +
+    geom_jbrowse_coverage(), 1)[[1]]
+  # in a 1 inch panel: 72.27 points, a display px 1/150 of an inch
+  inch <- 72.27
+  pt <- function(px) px / 150 * inch
+  deepest <- which.max(ib$to)
+  expect_equal(grob_y_pt(grob, grob$y)[deepest],
+    inch - pt(4) - ib$from[deepest] / top * (inch - 2 * pt(5)))
+  expect_equal(grob_y_pt(grob, grob$height)[deepest],
+    (ib$to - ib$from)[deepest] / top * (inch - 2 * pt(5)))
+})
+
+test_that("a log depth axis leaves the hang linear", {
+  log <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000,
+    20000, display = list(scales = list(y = list(type = "log"))))
+  expect_equal(log$coverage_scale$domain[1], 1)
+  built <- ggplot2::ggplot_build(ggplot2::autoplot(log, "coverage"))
+  hang <- built$data[[4]]
+  expect_equal(hang$hang, log$interbase_coverage$from /
+    (2 * log$coverage_scale$domain[2]))
+  # an allele keeps its share of the bar's drawn height from the bar's base,
+  # one read: on a log axis its top is at depth^to
+  a <- ggplot2::layer_data(ggplot2::ggplot(log) + geom_jbrowse_alleles())
+  alleles <- log$allele_coverage
+  expect_gt(nrow(alleles), 0)
+  expect_equal(a$ymax, alleles$depth^alleles$to)
+  expect_equal(a$ymin, alleles$depth^alleles$from)
+})
+
+test_that("every section shares the display's one depth axis", {
   s <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000,
     20000, display = list(facet = "strand"))
   expect_gt(length(unique(s$interbase_coverage$section)), 1)
-  peak <- tapply(s$coverage$depth, s$coverage$section, max)
-  d <- ggplot2::layer_data(ggplot2::ggplot(s) + geom_jbrowse_interbase())
-  first <- s$interbase_coverage$from == 0
-  expect_equal(d$y[first],
-    as.vector(peak[as.character(s$interbase_coverage$section[first])]))
+  built <- ggplot2::ggplot_build(ggplot2::autoplot(s, "coverage"))
+  ranges <- lapply(built$layout$panel_params, function(p) p$y$continuous_range)
+  expect_true(all(vapply(ranges, identical, TRUE, ranges[[1]])))
+  expect_gte(s$coverage_scale$domain[2], max(s$coverage$depth))
+})
+
+test_that("several regions' indicators land on the axis that lays them end to end", {
+  m <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"),
+    c("ctgA:2600-2800", "ctgA:2690-2710"))
+  expect_equal(m$indicators$position, c(2700, 2700))
+  drawn <- ggplot2::layer_data(ggplot2::ggplot(m) + geom_jbrowse_indicators())
+  expect_equal(sort(drawn$x),
+    sort(2700 - m$regions$start + m$regions$offset))
 })
 
 test_that("the display's sort object lays the rows out", {

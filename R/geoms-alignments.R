@@ -47,8 +47,9 @@ with_inset <- function(d, model) {
 #'   `geom_jbrowse_modification_coverage()`: the coverage band's depth and its
 #'   stacks
 #' * `geom_jbrowse_interbase()`, `geom_jbrowse_indicators()`: the band's
-#'   histogram of insertions and clips, hanging from its top at half a depth
-#'   unit per read, and the triangles over the positions where they pile up
+#'   histogram of insertions and clips, hanging from its top as the display
+#'   hangs it (a stack as deep as the depth axis's top reaches halfway down),
+#'   and the triangles over the positions where they pile up
 #' * `geom_jbrowse_junctions()`, `geom_jbrowse_junction_counts()`: the
 #'   sashimi arcs and their read counts
 #' * `geom_jbrowse_arcs()`, `geom_jbrowse_arc_ticks()`: the read-connection
@@ -131,7 +132,7 @@ position_rects <- function(table, geom, data, mapping, width, params,
     xmax = xmax, ymin = row + inset, ymax = row + 1 - inset))
   jbrowse_layer(rect, data, function(x) {
     d <- x[[table]]
-    if (!is.null(prep)) d <- prep(d)
+    if (!is.null(prep)) d <- prep(d, x)
     d$xmax <- d$position + max(1, 1 / px_of(x, width))
     if (!is.null(fade)) d$alpha <- mark_alpha(px_of(x, width), d$fade, fade)
     d
@@ -214,8 +215,11 @@ geom_jbrowse_letters <- function(mapping = NULL, data = NULL, ...) {
 #' @export
 geom_jbrowse_coverage <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "coverage", "geom_jbrowse_coverage")
-  jbrowse_layer(ggplot2::GeomRect, data, function(x) x$coverage, mapping,
-    ggplot2::aes(xmin = start, xmax = end, ymin = 0, ymax = depth,
+  jbrowse_layer(ggplot2::GeomRect, data, function(x) {
+    d <- x$coverage
+    d$base <- rep(bar_base(x), nrow(d))
+    d[d$depth > d$base, , drop = FALSE]
+  }, mapping, ggplot2::aes(xmin = start, xmax = end, ymin = base, ymax = depth,
       fill = color), list(...), keyed = FALSE)
 }
 
@@ -226,10 +230,28 @@ geom_jbrowse_alleles <- function(mapping = NULL, data = NULL,
   position_rects("allele_coverage", "geom_jbrowse_alleles", data, mapping,
     width, list(...), with_defaults(ggplot2::aes(colour = color), stack_rect),
     rect = GeomSwatch, rows = FALSE,
-    prep = function(a) a[a$to - a$from >= min_allele_frequency, , drop = FALSE])
+    prep = function(a, x) on_bar(x, a[a$to - a$from >= min_allele_frequency, ,
+      drop = FALSE]))
 }
 
-stack_rect <- ggplot2::aes(ymin = depth * from, ymax = depth * to)
+stack_rect <- ggplot2::aes(ymin = low, ymax = high)
+
+# The depth the band's bars grow from: the axis's bottom, which a log axis
+# floors at one read
+bar_base <- function(x) x$coverage_scale$domain[1] %||% 0
+
+# A stack's `from` and `to` as the display places them, shares of its bar's
+# drawn height from the bar's base, so a share means the same length on a
+# log or symlog axis as on a linear one
+on_bar <- function(x, d) {
+  tr <- scales::as.transform(depth_transform(x$coverage_scale))
+  base <- tr$transform(bar_base(x))
+  at <- function(share) tr$inverse(base + share * (tr$transform(d$depth) -
+    base))
+  d$low <- at(d$from)
+  d$high <- at(d$to)
+  d
+}
 
 # Rects filled with their `colour`, as the segments these marks once were
 # painted, so a pileup's fill scale keys its reads alone
@@ -248,31 +270,47 @@ GeomSwatch <- ggplot2::ggproto("GeomSwatch", ggplot2::GeomRect,
     ggplot2::draw_key_polygon(data, params, size)
   })
 
-# The coverage band's top in each row of `d`: its section's peak depth, where
-# the band's y axis ends
-band_top <- function(x, d) {
-  cov <- x$coverage
-  if (!nrow(d)) return(numeric(0))
-  peak <- tapply(cov$depth, cov$section, max)
-  top <- unname(peak[match(as.character(d$section), names(peak))])
-  ifelse(is.na(top), 0, top)
-}
-
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_interbase <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "interbase_coverage", "geom_jbrowse_interbase")
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
+  jbrowse_layer(GeomInterbase, data, function(x) {
     d <- x$interbase_coverage
-    top <- band_top(x, d)
-    d$y <- pmax(0, top - d$from / 2)
-    d$yend <- pmax(0, top - d$to / 2)
-    d$width <- rep(px_to_pt(1) / ggplot2::.pt, nrow(d))
+    full <- 2 * x$coverage_scale$domain[2]
+    n <- nrow(d)
+    d$hang <- if (full > 0) d$from / full else rep(0, n)
+    d$hang_end <- if (full > 0) d$to / full else rep(0, n)
+    d$top <- rep(px_to_pt(x$glyph$interbaseTop), n)
+    d$inset <- rep(px_to_pt(x$glyph$coverageInset), n)
+    d$width <- rep(px_to_pt(1), n)
     d
-  }, mapping, ggplot2::aes(x = position, xend = position, y = y, yend = yend,
-    colour = color, linewidth = I(width)),
-    list(lineend = "butt", ...), keyed = FALSE)
+  }, mapping, ggplot2::aes(x = position, hang = hang, hang_end = hang_end,
+    top = I(top), inset = I(inset), width = I(width), fill = color),
+    list(...))
 }
+
+# Each position's stack as the display hangs it from the band's top, below
+# the indicator triangles' tip row: `hang` and `hang_end` are fractions of
+# the depth area, half of it for a stack as deep as the domain's top, so the
+# hang is linear on any y scale and trains none
+GeomInterbase <- ggplot2::ggproto("GeomInterbase", ggplot2::Geom,
+  required_aes = c("x", "hang", "hang_end", "top", "inset", "width"),
+  default_aes = ggplot2::aes(fill = "grey30", alpha = NA),
+  draw_key = ggplot2::draw_key_rect,
+  draw_panel = function(data, panel_params, coord) {
+    d <- coord$transform(data, panel_params)
+    if (!nrow(d)) return(grid::nullGrob())
+    area <- grid::unit(1, "npc") - grid::unit(2 * d$inset, "pt")
+    below <- function(f) {
+      grid::unit(1, "npc") - grid::unit(d$top, "pt") - f * area
+    }
+    grid::rectGrob(
+      x = grid::unit(d$x, "npc"), y = below(d$hang),
+      width = grid::unit(d$width, "pt"),
+      height = below(d$hang) - below(d$hang_end),
+      just = c("left", "top"),
+      gp = grid::gpar(fill = ggplot2::alpha(d$fill, d$alpha), col = NA))
+  })
 
 #' @rdname geom_jbrowse_reads
 #' @export
@@ -287,13 +325,14 @@ geom_jbrowse_indicators <- function(mapping = NULL, data = NULL, ...) {
     height = I(height)), list(...), keyed = FALSE)
 }
 
-px_to_pt <- function(px) px / PX_PER_INCH * 72
+# A display's px in grid's points, which are 72.27 to the inch
+px_to_pt <- function(px) px / PX_PER_INCH * 72.27
 
 # A triangle `width` by `height` points at each `x`, its apex pointing down
 # from the panel's top edge, whatever the y scale
 GeomIndicator <- ggplot2::ggproto("GeomIndicator", ggplot2::Geom,
   required_aes = c("x", "width", "height"),
-  default_aes = ggplot2::aes(fill = "grey30"),
+  default_aes = ggplot2::aes(fill = "grey30", alpha = NA),
   draw_key = ggplot2::draw_key_polygon,
   draw_panel = function(data, panel_params, coord) {
     d <- coord$transform(data, panel_params)
@@ -306,7 +345,7 @@ GeomIndicator <- ggplot2::ggproto("GeomIndicator", ggplot2::Geom,
       y = grid::unit(1, "npc") -
         grid::unit(rep(d$height, each = 3) * rep(c(0, 0, 1), n), "pt"),
       id = rep(seq_len(n), each = 3),
-      gp = grid::gpar(fill = d$fill, col = NA))
+      gp = grid::gpar(fill = ggplot2::alpha(d$fill, d$alpha), col = NA))
   })
 
 #' @rdname geom_jbrowse_reads
@@ -316,8 +355,10 @@ geom_jbrowse_modification_coverage <- function(mapping = NULL, data = NULL,
   position_rects("modification_coverage", "geom_jbrowse_modification_coverage",
     data, mapping, width, list(...),
     with_defaults(ggplot2::aes(fill = color, alpha = I(opacity)), stack_rect),
-    rows = FALSE, keyed = FALSE)
+    rows = FALSE, keyed = FALSE, prep = on_bar_of)
 }
+
+on_bar_of <- function(d, x) on_bar(x, d)
 
 junction_paths <- function(x, min_reads) {
   j <- x$junctions[x$junctions$count >= min_reads, , drop = FALSE]
