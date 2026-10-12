@@ -150,7 +150,7 @@ test_that("a result's table handed to a geom or stacked in a plot of one's own d
 
 test_that("an alignments track refuses tracks above it over other regions", {
   expect_error(ggplot2::autoplot(jbrowse_alignments(bam, "ctgA:1,001-2,000"),
-    tracks = jbrowse_features(gff, "ctgA:20,001-30,000")), "same regions")
+    above = jbrowse_features(gff, "ctgA:20,001-30,000")), "same regions")
 })
 
 test_that("a split read across two regions arcs over the gap, kept once", {

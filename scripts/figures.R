@@ -14,7 +14,7 @@ gapdh <- "chr12:6,534,201-6,538,700"
 rna <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"), gapdh)
 save("gapdh.png", autoplot(rna))
 save("genes-over-reads.png", autoplot(rna,
-  tracks = jbrowse_features(extdata("gapdh_gencode.gff3.gz"), gapdh)))
+  above = jbrowse_features(extdata("gapdh_gencode.gff3.gz"), gapdh)))
 
 long <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA",
   1000, 2700, reference = extdata("volvox.fa"),
@@ -66,7 +66,7 @@ synteny <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001",
   view = list(color = list(field = "strand")))
 target_genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1-50,001",
   display = list(showOnlyGenes = TRUE))
-save("synteny.png", autoplot(synteny, target = target_genes))
+save("synteny.png", autoplot(synteny, below = target_genes))
 save("synteny-zoom.png", autoplot(jbrowse_synteny(paf, "ctgA:26,801-30,000",
   "ctgA:27,201-30,500", width = 1500)), 2.2)
 ggsave(file.path(out, "dotplot.png"), autoplot(jbrowse_dotplot(paf,

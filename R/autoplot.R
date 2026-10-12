@@ -233,11 +233,10 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #' Draw alignments as JBrowse's alignments track, or one band of it
 #'
 #' @param object a [jbrowse_alignments()] result
-#' @param what `"track"`: the display's stack, any `tracks` on top,
+#' @param what `"track"`: the display's stack, any `above` on top,
 #'   then splice-junction arcs where the reads splice, the coverage band,
 #'   the read-connection band under `display$readConnections` and the
-#'   pileup, one above the other
-#'   on a shared axis, each band split into the `facet`'s sections, and each
+#'   pileup, one above the other, then any `below`, all on a shared axis, each band split into the `facet`'s sections, and each
 #'   drawn where the display's `showCoverage`, `showPileup` and
 #'   `showSashimiArcs` draw it; `"pileup"`: each read on its row, split at
 #'   its splice gaps, filled as the display's `color` object paints it and
@@ -260,9 +259,9 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   deep pileup; `NULL` takes the display's `fadeLowFrequencyMismatches`
 #' @param px_per_bp how many pixels a base spans, which that fade reads;
 #'   `NULL` takes a figure 1,500 pixels wide
-#' @param tracks tracks to draw above a `"track"`, each a
-#'   [jbrowse_features()] or [jbrowse_wiggle()] result over the same region,
-#'   or a list of them, as [jbrowse_stack()] stacks them
+#' @param above,below tracks to draw above and below a `"track"`, each a
+#'   ggjbrowse result over the same regions or a ggplot, or a list of them, as
+#'   [jbrowse_stack()] stacks them
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot, to extend with layers, scales and themes or to stack with
 #'   patchwork; a `"track"` is a patchwork of its bands
@@ -274,7 +273,7 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #' autoplot(a)
 #' autoplot(a, "pileup") + ggplot2::theme_classic()
 #' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-#' autoplot(a, tracks = jbrowse_features(gff, "ctgA:401-1,300"))
+#' autoplot(a, above = jbrowse_features(gff, "ctgA:401-1,300"))
 autoplot.jbrowse_alignments <- function(object,
                                         what = c("track", "pileup", "coverage",
                                           "junctions", "arcs", "sequence"),
@@ -282,18 +281,20 @@ autoplot.jbrowse_alignments <- function(object,
                                         min_junction_reads = NULL,
                                         letters = NULL,
                                         fade_low_frequency = NULL,
-                                        px_per_bp = NULL, tracks = NULL,
-                                        ...) {
+                                        px_per_bp = NULL, above = NULL,
+                                        below = NULL, ...) {
   rlang::check_dots_empty()
   what <- match.arg(what)
   object <- on_axis(object)
   o <- alignment_options(object, min_allele_frequency, min_junction_reads,
     letters, fade_low_frequency, px_per_bp)
   if (what != "track") return(BAND_PLOTS[[what]](object, o))
-  if (!is.null(tracks$region)) tracks <- list(tracks)
-  same_regions(c(list(object), tracks))
-  stack_bands(c(lapply(tracks, track_bands),
-    list(alignment_bands(object, o))))
+  above <- listed_tracks(above)
+  below <- listed_tracks(below)
+  same_regions(Filter(function(t) inherits(t, "jbrowse_result"),
+    c(above, list(object), below)))
+  stack_bands(c(lapply(above, band_of, object), list(alignment_bands(object,
+    o)), lapply(below, band_of, object)))
 }
 
 # What the alignments bands draw: the caller's settings, else the display's

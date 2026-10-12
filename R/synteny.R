@@ -652,12 +652,13 @@ row_tracks <- function(tracks, layout, row) {
 #' and the target row's below, and any tracks over each row: a
 #' [jbrowse_features()], [jbrowse_wiggle()], [jbrowse_variants()] or
 #' [jbrowse_alignments()] result over that row's regions, drawn as
-#' [jbrowse_stack()] draws it, the query's tracks above the band and the
-#' target's below.
+#' [jbrowse_stack()] draws it, the top row's tracks above the band and the
+#' bottom row's below.
 #'
 #' @param object a [jbrowse_synteny()] result
-#' @param query,target tracks over each row's regions, a result or a list of
-#'   them
+#' @param above,below tracks over the top row's regions, drawn above the
+#'   band, and over the bottom row's, drawn below it: each a result or a
+#'   list of them
 #' @param curves draw each ribbon edge as a curve, as the view's `drawCurves`
 #'   does
 #' @param ... must be empty, so a misspelt argument errors
@@ -671,13 +672,13 @@ row_tracks <- function(tracks, layout, row) {
 #' autoplot(s)
 #' genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1-50,001",
 #'   display = list(showOnlyGenes = TRUE))
-#' autoplot(s, target = genes)
-autoplot.jbrowse_synteny <- function(object, query = NULL, target = NULL,
+#' autoplot(s, below = genes)
+autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
                                      curves = FALSE, ...) {
   rlang::check_dots_empty()
   band <- synteny_band(object, curves)
-  above <- row_tracks(query, object$query, "query")
-  below <- row_tracks(target, object$target, "target")
+  above <- row_tracks(above, object$query, "top")
+  below <- row_tracks(below, object$target, "bottom")
   if (!length(above) && !length(below)) return(band)
   bands <- c(lapply(above, track_bands),
     list(list(plots = list(band), heights = object$height)),

@@ -389,10 +389,8 @@ autoplot.jbrowse_multiway <- function(object, above = NULL, below = NULL,
                                       curves = NULL, ...) {
   rlang::check_dots_empty()
   stack <- multiway_stack(object, curves)
-  listed <- function(tracks) if (inherits(tracks, "jbrowse_result"))
-    list(tracks) else tracks %||% list()
-  top <- lapply(listed(above), lane_band, object, 1, "above")
-  bottom <- lapply(listed(below), lane_band, object, nrow(object$lanes),
+  top <- lapply(listed_tracks(above), lane_band, object, 1, "above")
+  bottom <- lapply(listed_tracks(below), lane_band, object, nrow(object$lanes),
     "below")
   if (!length(top) && !length(bottom)) return(stack)
   n <- nrow(object$lanes)

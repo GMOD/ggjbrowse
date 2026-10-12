@@ -12,18 +12,18 @@
   letters = NULL,
   fade_low_frequency = NULL,
   px_per_bp = NULL,
-  tracks = NULL,
+  above = NULL,
+  below = NULL,
   ...
 )
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result}
 
-\item{what}{\code{"track"}: the display's stack, any \code{tracks} on top,
+\item{what}{\code{"track"}: the display's stack, any \code{above} on top,
 then splice-junction arcs where the reads splice, the coverage band,
 the read-connection band under \code{display$readConnections} and the
-pileup, one above the other
-on a shared axis, each band split into the \code{facet}'s sections, and each
+pileup, one above the other, then any \code{below}, all on a shared axis, each band split into the \code{facet}'s sections, and each
 drawn where the display's \code{showCoverage}, \code{showPileup} and
 \code{showSashimiArcs} draw it; \code{"pileup"}: each read on its row, split at
 its splice gaps, filled as the display's \code{color} object paints it and
@@ -52,9 +52,9 @@ deep pileup; \code{NULL} takes the display's \code{fadeLowFrequencyMismatches}}
 \item{px_per_bp}{how many pixels a base spans, which that fade reads;
 \code{NULL} takes a figure 1,500 pixels wide}
 
-\item{tracks}{tracks to draw above a \code{"track"}, each a
-\code{\link[=jbrowse_features]{jbrowse_features()}} or \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result over the same region,
-or a list of them, as \code{\link[=jbrowse_stack]{jbrowse_stack()}} stacks them}
+\item{above, below}{tracks to draw above and below a \code{"track"}, each a
+ggjbrowse result over the same regions or a ggplot, or a list of them, as
+\code{\link[=jbrowse_stack]{jbrowse_stack()}} stacks them}
 
 \item{...}{must be empty, so a misspelt argument errors}
 }
@@ -72,5 +72,5 @@ a <- jbrowse_alignments(bam, "ctgA:401-1,300",
 autoplot(a)
 autoplot(a, "pileup") + ggplot2::theme_classic()
 gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-autoplot(a, tracks = jbrowse_features(gff, "ctgA:401-1,300"))
+autoplot(a, above = jbrowse_features(gff, "ctgA:401-1,300"))
 }

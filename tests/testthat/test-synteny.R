@@ -49,11 +49,11 @@ test_that("the band draws every ribbon between the rows, with both rulers", {
 
 test_that("tracks over each row stack around the band", {
   genes <- jbrowse_features(gff, target, display = list(showOnlyGenes = TRUE))
-  fig <- autoplot(s, target = genes)
+  fig <- autoplot(s, below = genes)
   expect_equal(length(fig$patches$plots) + 1, 2)
   expect_equal(fig$patches$layout$heights[1], s$height)
   expect_gt(jbrowse_height(fig), 1)
-  expect_error(autoplot(s, query = genes), "query row's regions")
+  expect_error(autoplot(s, above = genes), "top row.s regions")
 })
 
 test_that("a PAF reads as the dotplot lays out and colors it", {
@@ -171,7 +171,7 @@ test_that("comparative axes lay their regions end to end with no gap, as the bro
   two <- jbrowse_synteny(paf, query, halves)
   expect_equal(two$target$cum_start[2], two$target$cum_end[1])
   genes <- jbrowse_features(gff, halves)
-  fig <- autoplot(two, target = genes)
+  fig <- autoplot(two, below = genes)
   expect_equal(length(fig$patches$plots) + 1, 2)
 })
 

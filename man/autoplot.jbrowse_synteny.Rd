@@ -4,13 +4,14 @@
 \alias{autoplot.jbrowse_synteny}
 \title{Draw a pairwise alignment as JBrowse's linear synteny view}
 \usage{
-\method{autoplot}{jbrowse_synteny}(object, query = NULL, target = NULL, curves = FALSE, ...)
+\method{autoplot}{jbrowse_synteny}(object, above = NULL, below = NULL, curves = FALSE, ...)
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_synteny]{jbrowse_synteny()}} result}
 
-\item{query, target}{tracks over each row's regions, a result or a list of
-them}
+\item{above, below}{tracks over the top row's regions, drawn above the
+band, and over the bottom row's, drawn below it: each a result or a
+list of them}
 
 \item{curves}{draw each ribbon edge as a curve, as the view's \code{drawCurves}
 does}
@@ -26,8 +27,8 @@ The band of ribbons between the two rows, the query row's ruler above it
 and the target row's below, and any tracks over each row: a
 \code{\link[=jbrowse_features]{jbrowse_features()}}, \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}}, \code{\link[=jbrowse_variants]{jbrowse_variants()}} or
 \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result over that row's regions, drawn as
-\code{\link[=jbrowse_stack]{jbrowse_stack()}} draws it, the query's tracks above the band and the
-target's below.
+\code{\link[=jbrowse_stack]{jbrowse_stack()}} draws it, the top row's tracks above the band and the
+bottom row's below.
 }
 \examples{
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")
@@ -36,5 +37,5 @@ s <- jbrowse_synteny(e("volvox_inv_indels.paf"), "ctgA:1-49,186",
 autoplot(s)
 genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1-50,001",
   display = list(showOnlyGenes = TRUE))
-autoplot(s, target = genes)
+autoplot(s, below = genes)
 }

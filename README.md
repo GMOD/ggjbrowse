@@ -154,12 +154,12 @@ their colors, its transcripts, and the labels the display shows at that
 zoom. `display` takes the display's own settings (`color`, `displayMode`,
 `showLabels`, `geneGlyphMode`, `showOnlyGenes`, ...), and `width` is the
 pixel width the display lays the region out across, which decides which
-names fit. Draw it over reads with `tracks`:
+names fit. Draw it above reads with `above`:
 
 ```r
 genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"),
   "chr12:6,534,201-6,538,700")
-autoplot(a, tracks = genes)
+autoplot(a, above = genes)
 ```
 
 ![GENCODE's GAPDH transcripts over the direct RNA reads, each read's exons lining up under the transcripts' boxes](man/figures/genes-over-reads.png)
@@ -279,7 +279,7 @@ s <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001",
   view = list(color = list(field = "strand")))
 genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1-50,001",
   display = list(showOnlyGenes = TRUE))
-autoplot(s, target = genes)
+autoplot(s, below = genes)
 ```
 
 ![A simulated volvox with two inversions over volvox ctgA: forward blocks in tomato, the inverted ones crossing in blue, the genes under the target row](man/figures/synteny.png)

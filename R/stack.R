@@ -21,18 +21,27 @@
 #' reads <- jbrowse_alignments(e("volvox-sorted.bam"), locus)
 #' jbrowse_stack(genes, signal, reads)
 jbrowse_stack <- function(...) {
-  tracks <- do.call(c, lapply(list(...), function(t)
-    if (inherits(t, "jbrowse_result") || ggplot2::is_ggplot(t)) list(t)
-    else t))
+  tracks <- do.call(c, lapply(list(...), listed_tracks))
   results <- Filter(function(t) inherits(t, "jbrowse_result"), tracks)
   if (!length(results)) {
     stop("jbrowse_stack needs at least one ggjbrowse reader's result",
       call. = FALSE)
   }
   same_regions(results)
-  axis <- results[[1]]
-  stack_bands(lapply(tracks, function(t)
-    if (ggplot2::is_ggplot(t)) own_band(t, axis) else track_bands(t)))
+  stack_bands(lapply(tracks, band_of, results[[1]]))
+}
+
+# Tracks as a list: one result or ggplot, or a list of them
+listed_tracks <- function(tracks) {
+  if (inherits(tracks, "jbrowse_result") || ggplot2::is_ggplot(tracks)) {
+    list(tracks)
+  } else as.list(tracks)
+}
+
+# A track's bands on the axis of `axis`, a result: a ggplot of one's own as
+# one band, a result as its display's
+band_of <- function(track, axis) {
+  if (ggplot2::is_ggplot(track)) own_band(track, axis) else track_bands(track)
 }
 
 #' The figure height that draws a stack at its display's sizes

@@ -86,7 +86,7 @@ test_that("a BigWig stacks over reads as one of the track's tracks", {
   bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
   reads <- jbrowse_alignments(bam, "ctgA", 1000, 6000)
   track <- ggplot2::autoplot(reads,
-    tracks = jbrowse_wiggle(bw, "ctgA", 1000, 6000))
+    above = jbrowse_wiggle(bw, "ctgA", 1000, 6000))
   expect_equal(length(track$patches$plots) + 1, 3)
 })
 
