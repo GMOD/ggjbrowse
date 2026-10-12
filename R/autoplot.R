@@ -79,6 +79,45 @@ by_section <- function(x, rows = FALSE) {
 across <- ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0,
   hjust = 0))
 
+# Each row named left of the panel at its `y`, in text as tall as the row
+# the panel gives it at draw time, up to ROW_LABEL_PT, and none under
+# MIN_ROW_LABEL_PT. The axis writes the same labels at full size, unseen, so
+# the margin fits them; the caller's y scale gives it those labels.
+row_names <- function(labels, y, gap_pt = 2.2) {
+  list(ggplot2::layer(geom = GeomRowLabels, stat = "identity",
+      position = "identity", data = data.frame(y = y, label = labels),
+      mapping = ggplot2::aes(x = -Inf, y = y, label = label),
+      inherit.aes = FALSE, show.legend = FALSE,
+      params = list(rows = length(y), gap_pt = gap_pt, colour = "grey30")),
+    ggplot2::theme(axis.text.y = ggplot2::element_text(size = ROW_LABEL_PT,
+      colour = NA, margin = ggplot2::margin(r = gap_pt))))
+}
+
+ROW_LABEL_PT <- 8
+MIN_ROW_LABEL_PT <- 3
+
+GeomRowLabels <- ggplot2::ggproto("GeomRowLabels", ggplot2::GeomText,
+  extra_params = c("na.rm", "rows", "gap_pt"),
+  draw_panel = function(self, data, panel_params, coord, rows, gap_pt) {
+    text <- ggplot2::ggproto_parent(ggplot2::GeomText, self)$draw_panel(data,
+      panel_params, coord)
+    grid::gTree(children = grid::gList(text), rows = rows, gap_pt = gap_pt,
+      cl = "ggjbrowse_row_labels")
+  })
+
+#' @exportS3Method grid::makeContent
+makeContent.ggjbrowse_row_labels <- function(x) {
+  row_pt <- grid::convertHeight(grid::unit(1, "npc"), "pt",
+    valueOnly = TRUE) / x$rows
+  size <- min(ROW_LABEL_PT, 0.85 * row_pt)
+  if (size < MIN_ROW_LABEL_PT) return(grid::setChildren(x, grid::gList()))
+  text <- x$children[[1]]
+  text$gp$fontsize <- size
+  text$x <- grid::unit(0, "npc") - grid::unit(x$gap_pt, "pt")
+  text$hjust <- 1
+  grid::setChildren(x, grid::gList(text))
+}
+
 # A base's width on a figure about 170 mm wide, never thinner than a tick
 cell_width <- function(xlim) max(0.3, 170 / (xlim[2] - xlim[1]))
 

@@ -250,7 +250,7 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
     ggplot2::coord_cartesian(
       xlim = c(object$region$start, object$region$end),
       ylim = if (rows) c(0, n) else if (density) c(0, 1) else object$domain,
-      expand = FALSE) +
+      expand = FALSE, clip = if (rows) "off" else "on") +
     genomic_x(object) +
     ggplot2::labs(x = axis_label(object), y = NULL) +
     ggplot2::theme_minimal() +
@@ -258,16 +258,12 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
   if (density && !rows) p + no_y else p
 }
 
-# A row layout's y axis: each source named at its row, in text as tall as
-# the row's share of the display's height allows, and none where a row is
-# under 3 pixels
+# A row layout's y axis: each source named at its row, and none where a row
+# is under 3 of the display's pixels
 row_labels <- function(x) {
   n <- nrow(x$sources)
-  row_px <- x$height / n
-  list(ggplot2::scale_y_continuous(breaks = n - seq_len(n) + 0.5,
-      labels = x$sources$label),
-    ggplot2::theme(panel.grid = ggplot2::element_blank(),
-      axis.text.y = if (row_px < 3) ggplot2::element_blank()
-        else ggplot2::element_text(size = min(8,
-          0.85 * row_px / PX_PER_INCH * 72))))
+  y <- n - seq_len(n) + 0.5
+  list(ggplot2::scale_y_continuous(breaks = y, labels = x$sources$label),
+    ggplot2::theme(panel.grid = ggplot2::element_blank()),
+    if (x$height / n < 3) no_y else row_names(x$sources$label, y))
 }

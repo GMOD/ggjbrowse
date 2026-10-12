@@ -60,8 +60,28 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
       as.character(v$legend$color[1]))
     expect_equal(nrow(built$data[[2]]), nrow(v$cells))
   }
-  row_pt <- jbrowse_height(jbrowse_stack(v)) * 72 / nrow(v$rows)
-  expect_lt(autoplot(v)$theme$axis.text.y$size, row_pt)
+  p <- autoplot(v, layout = "columns")
+  expect_equal(ggplot_build(p)$data[[3]]$label, v$rows$name)
+  pdf(NULL)
+  on.exit(dev.off(), add = TRUE)
+  find_labels <- function(g) {
+    if (inherits(g, "ggjbrowse_row_labels")) return(g)
+    for (child in c(g$grobs, g$children)) {
+      found <- find_labels(child)
+      if (!is.null(found)) return(found)
+    }
+    NULL
+  }
+  grob <- find_labels(ggplotGrob(p))
+  drawn_pt <- function(row_pt) {
+    grid::pushViewport(grid::viewport(height = grid::unit(39 * row_pt, "pt")))
+    on.exit(grid::popViewport())
+    drawn <- grid::makeContent(grob)$children
+    if (length(drawn)) drawn[[1]]$gp$fontsize else 0
+  }
+  expect_equal(drawn_pt(20), 8)
+  expect_equal(drawn_pt(5), 0.85 * 5)
+  expect_equal(drawn_pt(2), 0)
   haplotypes <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
     "chr30", 38258000, 38265000, display = list(unit = "haplotype"))
   expect_equal(nrow(haplotypes$rows), 78)
@@ -121,5 +141,6 @@ test_that("rows take their samples file's colors under rowColor, keyed by the at
   plain <- jbrowse_variants(extdata("dog10k_amy2b_svs.vcf.gz"),
     "chr6:47,340,001-47,420,000")
   expect_true(all(plain$rows$color == ""))
-  expect_length(autoplot(plain)$layers, 2)
+  expect_false(any(vapply(autoplot(plain)$layers, function(l)
+    inherits(l$geom, "GeomSegment"), NA)))
 })

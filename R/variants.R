@@ -207,12 +207,16 @@ autoplot.jbrowse_variants <- function(object,
     ggplot2::labs(x = if (genomic) axis_label(object)
       else "record", y = NULL) +
     ggplot2::theme_minimal() +
-    ggplot2::theme(panel.grid = ggplot2::element_blank(),
-      axis.text.y = ggplot2::element_text(size = min(6,
-        0.85 * row_px(object) / PX_PER_INCH * 72),
-        margin = ggplot2::margin(r = if (any(object$rows$color != "")) 9
-          else 2.2)))
+    ggplot2::theme(panel.grid = ggplot2::element_blank()) +
+    if (length(rows) <= MAX_NAMED_ROWS) {
+      row_names(rows, seq_along(rows),
+        gap_pt = if (any(object$rows$color != "")) 9 else 2.2)
+    } else no_y
 }
+
+# The most rows a matrix names. Past it, rows carry only their group's color,
+# as the display's rows do once they are too short for text.
+MAX_NAMED_ROWS <- 150
 
 # Each row's color as a bar beside its label, outside the matrix, as the
 # display marks a row by its rowColor, keyed under the attribute
