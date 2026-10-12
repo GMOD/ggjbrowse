@@ -4,24 +4,24 @@
 \alias{jbrowse_height}
 \title{The figure height that draws a stack at its display's sizes}
 \usage{
-jbrowse_height(...)
+jbrowse_height(fig)
 }
 \arguments{
-\item{...}{the tracks given to \code{\link[=jbrowse_stack]{jbrowse_stack()}}}
+\item{fig}{a \code{\link[=jbrowse_stack]{jbrowse_stack()}} figure, restyled or not}
 }
 \value{
 inches, from 2 to 49
 }
 \description{
-The inches a \code{\link[=jbrowse_stack]{jbrowse_stack()}} of these tracks needs to give each band the
-pixels the JBrowse display gives it, at 150 pixels an inch (a 1,500 pixel
-view across a 10 inch figure), with room for the x axis and for the keys
-beside the stack: a compact pileup makes a shorter figure than a normal
-one. Pass it as \code{ggsave()}'s \code{height}.
+The inches a \code{\link[=jbrowse_stack]{jbrowse_stack()}} figure needs to give each band the pixels
+the JBrowse display gives it, at 150 pixels an inch (a 1,500 pixel view
+across a 10 inch figure), with room for the x axis and for the keys beside
+the stack, measured as ggplot2 lays them out: a compact pileup makes a
+shorter figure than a normal one. Pass it as \code{ggsave()}'s \code{height}.
 }
 \examples{
 bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
 reads <- jbrowse_alignments(bam, "ctgA:1,001-3,000",
   display = list(featureHeight = 3))
-jbrowse_height(reads)
+jbrowse_height(jbrowse_stack(reads))
 }

@@ -234,8 +234,7 @@ so a compact pileup saves as a shorter figure:
 compact <- jbrowse_alignments(e("volvox-sorted.bam"), loci,
   display = list(featureHeight = 3, color = list(field = "strand")))
 fig <- jbrowse_stack(genes, signal, compact)
-ggsave("stack.png", fig, width = 10,
-  height = jbrowse_height(genes, signal, compact))
+ggsave("stack.png", fig, width = 10, height = jbrowse_height(fig))
 ```
 
 A file can be a path or a URL; a remote file is read in byte ranges through

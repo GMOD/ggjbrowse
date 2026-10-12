@@ -21,7 +21,9 @@
 #' reads <- jbrowse_alignments(e("volvox-sorted.bam"), locus)
 #' jbrowse_stack(genes, signal, reads)
 jbrowse_stack <- function(...) {
-  tracks <- flat_tracks(list(...))
+  tracks <- do.call(c, lapply(list(...), function(t)
+    if (inherits(t, "jbrowse_result") || ggplot2::is_ggplot(t)) list(t)
+    else t))
   results <- Filter(function(t) inherits(t, "jbrowse_result"), tracks)
   if (!length(results)) {
     stop("jbrowse_stack needs at least one ggjbrowse reader's result",
@@ -35,57 +37,41 @@ jbrowse_stack <- function(...) {
 
 #' The figure height that draws a stack at its display's sizes
 #'
-#' The inches a [jbrowse_stack()] of these tracks needs to give each band the
-#' pixels the JBrowse display gives it, at 150 pixels an inch (a 1,500 pixel
-#' view across a 10 inch figure), with room for the x axis and for the keys
-#' beside the stack: a compact pileup makes a shorter figure than a normal
-#' one. Pass it as `ggsave()`'s `height`.
-#' @param ... the tracks given to [jbrowse_stack()]
+#' The inches a [jbrowse_stack()] figure needs to give each band the pixels
+#' the JBrowse display gives it, at 150 pixels an inch (a 1,500 pixel view
+#' across a 10 inch figure), with room for the x axis and for the keys beside
+#' the stack, measured as ggplot2 lays them out: a compact pileup makes a
+#' shorter figure than a normal one. Pass it as `ggsave()`'s `height`.
+#' @param fig a [jbrowse_stack()] figure, restyled or not
 #' @return inches, from 2 to 49
 #' @export
 #' @examples
 #' bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
 #' reads <- jbrowse_alignments(bam, "ctgA:1,001-3,000",
 #'   display = list(featureHeight = 3))
-#' jbrowse_height(reads)
-jbrowse_height <- function(...) {
-  tracks <- Filter(function(t) inherits(t, "jbrowse_result"),
-    flat_tracks(list(...)))
-  heights <- unlist(lapply(tracks, track_heights))
-  bands <- sum(heights) * 100 / PX_PER_INCH + 0.08 * length(heights) + 0.7
-  keys <- sum(vapply(tracks, key_inches, 0)) + 0.3
-  min(49, max(2, bands, keys))
-}
-
-# The inches a track's keys take in the column of keys beside the stack: a
-# title and a row per entry of each key its bands draw
-key_inches <- function(x) {
-  keys <- x$keys
-  if (inherits(x, "jbrowse_alignments")) {
-    x <- on_axis(x)
-    shown <- alignment_shown(x, alignment_options(x))
-    keys <- keys[intersect(names(keys), c(
-      if (shown[["pileup"]]) "reads",
-      if (shown[["coverage"]] || shown[["pileup"]]) "bases",
-      if (shown[["arcs"]]) "arcs",
-      if (shown[["junctions"]]) "junctions"))]
+#' jbrowse_height(jbrowse_stack(reads))
+jbrowse_height <- function(fig) {
+  heights <- fig$patches$layout$heights
+  if (is.null(heights)) {
+    stop("jbrowse_height() measures a jbrowse_stack() figure", call. = FALSE)
   }
-  sum(vapply(keys, function(k) if (nrow(k)) 0.45 + 0.24 * nrow(k) else 0, 0))
+  bands <- sum(heights) / PX_PER_INCH + 0.08 * length(heights) + 0.7
+  grob <- patchwork::patchworkGrob(fig)
+  keys <- vapply(grob$grobs[startsWith(grob$layout$name, "guide-box")],
+    function(g) grid::convertHeight(grid::grobHeight(g), "in",
+      valueOnly = TRUE), 0)
+  min(49, max(2, bands, max(0, keys) + 0.3))
 }
 
 # The display pixels a figure gives an inch: a 1,500 pixel view across 10
 # inches
 PX_PER_INCH <- 150
 
-flat_tracks <- function(tracks) {
-  do.call(c, lapply(tracks, function(t)
-    if (inherits(t, "jbrowse_result") || ggplot2::is_ggplot(t)) list(t)
-    else t))
-}
+regions_read <- function(x) x$regions %||% as.data.frame(x$region)
 
 # The loci a result reads, as JBrowse's location box writes them
 loci_of <- function(x) {
-  r <- x$regions %||% as.data.frame(x$region)
+  r <- regions_read(x)
   sprintf("%s:%s-%s", r$chrom, format(r$start + 1, big.mark = ",",
     trim = TRUE), format(r$end, big.mark = ",", trim = TRUE))
 }
@@ -94,7 +80,7 @@ loci_of <- function(x) {
 # the same regions. A contig may be spelt differently by each file.
 same_regions <- function(results) {
   span <- function(x) {
-    r <- x$regions %||% as.data.frame(x$region)
+    r <- regions_read(x)
     paste(r$start, r$end, collapse = ";")
   }
   spans <- vapply(results, span, "")
@@ -124,27 +110,19 @@ own_band <- function(p, axis) {
   p <- suppressMessages(p + ggplot2::coord_cartesian(xlim = xlim_of(axis),
     ylim = ylim, expand = FALSE))
   if (is.null(p$scales$get_scales("x"))) p <- p + genomic_x(axis)
-  list(plots = list(p), heights = 1)
+  list(plots = list(p), heights = 100)
 }
 
-# A track's bands and their heights in hundreds of display pixels: a feature
-# track as tall as its laid-out pixels, an alignments track's bands as its
-# display sizes them
+# A track's bands and their heights in display pixels: a feature track as
+# tall as its laid-out pixels, an alignments track's bands as its display
+# sizes them
 track_bands <- function(x) {
   if (inherits(x, "jbrowse_alignments")) return(alignment_bands(x))
-  list(plots = list(ggplot2::autoplot(x)), heights = track_heights(x))
-}
-
-track_heights <- function(x) {
-  if (inherits(x, "jbrowse_alignments")) {
-    x <- on_axis(x)
-    return(unname(alignment_px(x, alignment_shown(x,
-      alignment_options(x)))) / 100)
-  }
-  if (inherits(x, "jbrowse_features")) max(0.3, x$height / 100)
-  else if (inherits(x, "jbrowse_variants")) row_px(x) * nrow(x$rows) / 100
-  else if (isTRUE(x$row_layout)) 0.6 * nrow(x$sources)
-  else 1
+  height <- if (inherits(x, "jbrowse_features")) max(30, x$height)
+    else if (inherits(x, "jbrowse_variants")) row_px(x) * nrow(x$rows)
+    else if (isTRUE(x$row_layout)) 60 * nrow(x$sources)
+    else 100
+  list(plots = list(ggplot2::autoplot(x)), heights = height)
 }
 
 stack_bands <- function(bands) {
@@ -159,11 +137,8 @@ stack_bands <- function(bands) {
 # The x axis's title: the contig, or every region of an axis that lays
 # several end to end
 axis_label <- function(x) {
-  r <- x$regions
-  if (is.null(r)) return(sprintf("%s (bp)", x$region$chrom))
-  sprintf("%s (bp, end to end)", paste(sprintf("%s:%s-%s", r$chrom,
-    format(r$start + 1, big.mark = ",", trim = TRUE),
-    format(r$end, big.mark = ",", trim = TRUE)), collapse = ", "))
+  if (is.null(x$regions)) return(sprintf("%s (bp)", x$region$chrom))
+  sprintf("%s (bp, end to end)", paste(loci_of(x), collapse = ", "))
 }
 
 # The x scale of an axis laying several regions end to end: round genomic

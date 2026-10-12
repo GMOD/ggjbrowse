@@ -249,14 +249,20 @@ test_that("reads draw at the display's read height, and the pileup band is as ta
   expect_equal(body(normal), 7 / 8)
   expect_equal(body(compact), 1)
   rows <- max(normal$reads$row) + 1
-  expect_equal(track_heights(normal), c(45, rows * 8) / 100)
-  expect_equal(track_heights(compact), c(45, rows * 3) / 100)
-  expect_lt(jbrowse_height(compact), jbrowse_height(normal))
+  tall <- jbrowse_stack(normal)
+  short <- jbrowse_stack(compact)
+  expect_equal(tall$patches$layout$heights, c(45, rows * 8))
+  expect_equal(short$patches$layout$heights, c(45, rows * 3))
+  expect_lt(jbrowse_height(short), jbrowse_height(tall))
 })
 
 test_that("a short pileup's figure is still tall enough for its keys", {
   r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-1,400",
     display = list(featureHeight = 1, color = list(field = "strand")))
-  expect_gt(key_inches(r), 2)
-  expect_gte(jbrowse_height(r), key_inches(r) + 0.3)
+  fig <- jbrowse_stack(r)
+  bands <- sum(fig$patches$layout$heights) / 150 + 0.86
+  expect_lt(bands, 2)
+  expect_gt(jbrowse_height(fig), 2.2)
+  expect_equal(jbrowse_height(fig & ggplot2::theme_classic()),
+    jbrowse_height(fig), tolerance = 0.2)
 })

@@ -60,7 +60,7 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
       as.character(v$legend$color[1]))
     expect_equal(nrow(built$data[[2]]), nrow(v$cells))
   }
-  row_pt <- jbrowse_height(v) * 72 / nrow(v$rows)
+  row_pt <- jbrowse_height(jbrowse_stack(v)) * 72 / nrow(v$rows)
   expect_lt(autoplot(v)$theme$axis.text.y$size, row_pt)
   haplotypes <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
     "chr30", 38258000, 38265000, display = list(unit = "haplotype"))
