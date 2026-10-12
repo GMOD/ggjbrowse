@@ -168,7 +168,7 @@ sequence_plot <- function(x, o) {
   bases$base <- toupper(strsplit(jbrowse_sequence(x$reference$file,
     x$reference$chrom, xlim[1], xlim[2]), "")[[1]])
   bases$cell <- max(1, 1 / px_of(x, o$width))
-  bases$tint <-ggplot2::alpha(jbrowse_colors()$bases[bases$base], 0.35)
+  bases$tint <- ggplot2::alpha(jbrowse_colors()$bases[bases$base], 0.35)
   ggplot2::ggplot(bases) +
     ggplot2::geom_rect(ggplot2::aes(xmin = position, xmax = position + cell,
       ymin = 0, ymax = 1, fill = tint)) +

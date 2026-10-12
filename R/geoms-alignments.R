@@ -120,18 +120,16 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
     keyed = FALSE)
 }
 
-# A per-position table drawn as rects one base wide, a pixel at least. The
-# rects cover the read's row and fill with `color` unless `defaults` says
-# otherwise; `prep` adjusts the table first and `fade` fades the rects by the
-# pixels per base.
+# A per-position table drawn as rects one base wide, a pixel at least, over
+# the read's row unless `defaults` says otherwise, painted by `rect`; `prep`
+# adjusts the table first and `fade` fades the rects by the pixels per base
 position_rects <- function(table, geom, data, mapping, width, params,
-                           defaults = NULL, prep = NULL, fade = NULL, ...,
-                           rows = TRUE) {
+                           defaults, rect = ggplot2::GeomRect, prep = NULL,
+                           fade = NULL, ..., rows = TRUE) {
   data <- replacing(data, table, geom)
-  base <- ggplot2::aes(xmin = position, xmax = xmax, ymin = row + inset,
-    ymax = row + 1 - inset, fill = color)
-  defaults <- with_defaults(defaults, base)
-  jbrowse_layer(ggplot2::GeomRect, data, function(x) {
+  defaults <- with_defaults(defaults, ggplot2::aes(xmin = position,
+    xmax = xmax, ymin = row + inset, ymax = row + 1 - inset))
+  jbrowse_layer(rect, data, function(x) {
     d <- x[[table]]
     if (!is.null(prep)) d <- prep(d)
     d$xmax <- d$position + max(1, 1 / px_of(x, width))
@@ -145,7 +143,7 @@ position_rects <- function(table, geom, data, mapping, width, params,
 geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
                                        width = NULL, ...) {
   position_rects("modifications", "geom_jbrowse_modifications", data, mapping,
-    width, list(...), defaults = ggplot2::aes(alpha = I(opacity)))
+    width, list(...), ggplot2::aes(fill = color, alpha = I(opacity)))
 }
 
 #' @rdname geom_jbrowse_reads
@@ -153,7 +151,7 @@ geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
 geom_jbrowse_qualities <- function(mapping = NULL, data = NULL,
                                    width = NULL, ...) {
   position_rects("qualities", "geom_jbrowse_qualities", data, mapping, width,
-    list(...), keyed = FALSE)
+    list(...), ggplot2::aes(fill = color), keyed = FALSE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -161,9 +159,8 @@ geom_jbrowse_qualities <- function(mapping = NULL, data = NULL,
 geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = TRUE,
                                     width = NULL, ...) {
   position_rects("mismatches", "geom_jbrowse_mismatches", data, mapping,
-    width, list(linewidth = 0, ...), fade = fade, key_glyph = draw_key_swatch,
-    defaults = ggplot2::aes(colour = color, fill = I(color),
-      alpha = I(alpha)))
+    width, list(...), ggplot2::aes(colour = color, alpha = I(alpha)),
+    rect = GeomSwatch, fade = fade)
 }
 
 # A per-position table drawn as vertical ticks, faded as the pixels per base
@@ -227,20 +224,29 @@ geom_jbrowse_coverage <- function(mapping = NULL, data = NULL, ...) {
 geom_jbrowse_alleles <- function(mapping = NULL, data = NULL,
                                  min_allele_frequency = 0, width = NULL, ...) {
   position_rects("allele_coverage", "geom_jbrowse_alleles", data, mapping,
-    width, list(linewidth = 0, ...), rows = FALSE, key_glyph = draw_key_swatch,
-    defaults = with_defaults(ggplot2::aes(colour = color), stack_rect),
+    width, list(...), with_defaults(ggplot2::aes(colour = color), stack_rect),
+    rect = GeomSwatch, rows = FALSE,
     prep = function(a) a[a$to - a$from >= min_allele_frequency, , drop = FALSE])
 }
 
 stack_rect <- ggplot2::aes(ymin = depth * from, ymax = depth * to)
 
-# A legend chip filled with the layer's `colour`, which keys rects whose
-# fill the plot's other scale owns
-draw_key_swatch <- function(data, params, size) {
-  data$fill <- data$colour
-  data$colour <- NA
-  ggplot2::draw_key_polygon(data, params, size)
-}
+# Rects filled with their `colour`, as the segments these marks once were
+# painted, so a pileup's fill scale keys its reads alone
+GeomSwatch <- ggplot2::ggproto("GeomSwatch", ggplot2::GeomRect,
+  default_aes = ggplot2::aes(colour = "grey30", alpha = NA, linewidth = 0,
+    linetype = 1),
+  draw_panel = function(self, data, panel_params, coord, ...) {
+    data$fill <- data$colour
+    data$colour <- NA
+    ggplot2::ggproto_parent(ggplot2::GeomRect, self)$draw_panel(data,
+      panel_params, coord, ...)
+  },
+  draw_key = function(data, params, size) {
+    data$fill <- data$colour
+    data$colour <- NA
+    ggplot2::draw_key_polygon(data, params, size)
+  })
 
 # The coverage band's top in each row of `d`: its section's peak depth, where
 # the band's y axis ends
@@ -308,8 +314,9 @@ GeomIndicator <- ggplot2::ggproto("GeomIndicator", ggplot2::Geom,
 geom_jbrowse_modification_coverage <- function(mapping = NULL, data = NULL,
                                                width = NULL, ...) {
   position_rects("modification_coverage", "geom_jbrowse_modification_coverage",
-    data, mapping, width, list(...), rows = FALSE, keyed = FALSE,
-    defaults = with_defaults(ggplot2::aes(alpha = I(opacity)), stack_rect))
+    data, mapping, width, list(...),
+    with_defaults(ggplot2::aes(fill = color, alpha = I(opacity)), stack_rect),
+    rows = FALSE, keyed = FALSE)
 }
 
 junction_paths <- function(x, min_reads) {

@@ -67,6 +67,22 @@ test_that("a data frame as a geom's data stands in for the table it draws", {
     "replaces one of the plot's result's tables")
 })
 
+test_that("a mismatch is a base-wide rect painted by its colour, not the reads' fill", {
+  d <- layer_data(ggplot(bam) + geom_jbrowse_mismatches(), 1)
+  expect_equal(d$xmax - d$xmin, rep(max(1, 1 / px_of(bam, NULL)), nrow(d)))
+  expect_false("fill" %in% names(ggplot(bam) +
+    geom_jbrowse_mismatches())$layers[[1]]$computed_mapping)
+  own <- layer_data(ggplot(bam) + geom_jbrowse_mismatches(aes(colour = base)) +
+    scale_colour_manual(values = c(A = "black", C = "black", G = "black",
+      T = "black")), 1)
+  expect_equal(unique(own$colour), "black")
+  grob <- ggplot2::ggplotGrob(ggplot(bam) +
+    geom_jbrowse_mismatches(aes(colour = base)) +
+    scale_colour_manual(values = c(A = "black", C = "black", G = "black",
+      T = "black")))
+  expect_s3_class(grob, "gtable")
+})
+
 test_that("the display's keys are scales, each listing what was painted", {
   p <- ggplot(bam) + geom_jbrowse_mismatches() + scale_colour_jbrowse(bam, "bases")
   scale <- ggplot_build(p)$plot$scales$get_scales("colour")
