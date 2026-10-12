@@ -45,9 +45,12 @@ variants_adapter <- function(file, index, samples) {
 #'   * `variants`: each record the display keeps: `start`, `end`, `id`,
 #'     `name`, `ref`, `alt`, `type` and `color`, its lane color
 #'   * `cells`: each row's cell at a record: `variant` (a row number of
-#'     `variants`), `start`, `end`, `row` (a factor in the display's row
-#'     order), `sample`, `genotype`, `dosage` (the alt share of the called
-#'     alleles) and `color`, the fill the display paints; under
+#'     `variants`), `start`, `end`, `row` (a factor in `rows`' order),
+#'     `sample`, `genotype`, `dosage` (the share of the called alleles that
+#'     are an ALT, as the display's clustering reads it; under `unit =
+#'     "haplotype"` the row's allele, 1 for an ALT; `NA` for a no-call or a
+#'     haplotype of an unphased call) and `color`, the fill the display
+#'     paints; under
 #'     `referenceDrawingMode = "skip"`, the default, a reference call has no
 #'     cell
 #'   * `rows`: `name`, `sample`, `haplotype`, `ploidy` and `color`, the bar

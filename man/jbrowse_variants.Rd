@@ -52,9 +52,11 @@ a \code{jbrowse_variants} list of data frames:
 \item \code{variants}: each record the display keeps: \code{start}, \code{end}, \code{id},
 \code{name}, \code{ref}, \code{alt}, \code{type} and \code{color}, its lane color
 \item \code{cells}: each row's cell at a record: \code{variant} (a row number of
-\code{variants}), \code{start}, \code{end}, \code{row} (a factor in the display's row
-order), \code{sample}, \code{genotype}, \code{dosage} (the alt share of the called
-alleles) and \code{color}, the fill the display paints; under
+\code{variants}), \code{start}, \code{end}, \code{row} (a factor in \code{rows}' order),
+\code{sample}, \code{genotype}, \code{dosage} (the share of the called alleles that
+are an ALT, as the display's clustering reads it; under \code{unit = "haplotype"} the row's allele, 1 for an ALT; \code{NA} for a no-call or a
+haplotype of an unphased call) and \code{color}, the fill the display
+paints; under
 \code{referenceDrawingMode = "skip"}, the default, a reference call has no
 cell
 \item \code{rows}: \code{name}, \code{sample}, \code{haplotype}, \code{ploidy} and \code{color}, the bar
