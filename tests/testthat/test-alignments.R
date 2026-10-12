@@ -120,7 +120,7 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   expect_gt(sum(calls$modifications$unmodified), 0)
 })
 
-test_that("the reference reads as its bases, and lines the pileup zoomed in", {
+test_that("the reference reads as its bases, drawn as a band only when asked", {
   fa <- extdata("volvox.fa")
   seq <- jbrowse_sequence(fa, "ctgA", 1000, 1020)
   expect_match(seq, "^[ACGTNacgtn]{20}$")
@@ -131,7 +131,7 @@ test_that("the reference reads as its bases, and lines the pileup zoomed in", {
   expect_equal(nrow(s$data[[2]]), 100)
   track <- ggplot2::autoplot(z)
   expect_s3_class(track, "patchwork")
-  expect_equal(length(track$patches$plots) + 1, 3)
+  expect_equal(length(track$patches$plots) + 1, 2)
 })
 
 test_that("a spliced read splits into its blocks at its skips", {

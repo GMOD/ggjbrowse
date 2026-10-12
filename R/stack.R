@@ -125,10 +125,13 @@ track_bands <- function(x) {
   list(plots = list(ggplot2::autoplot(x)), heights = height)
 }
 
+# Bands sit close, as the display stacks its tracks and a track its bands
 stack_bands <- function(bands) {
   plots <- do.call(c, lapply(bands, `[[`, "plots"))
   heights <- unlist(lapply(bands, `[[`, "heights"))
   last <- length(plots)
+  plots <- lapply(plots, function(p)
+    p + ggplot2::theme(plot.margin = ggplot2::margin(1, 5.5, 1, 5.5)))
   plots[-last] <- lapply(plots[-last], function(p) p + no_x)
   patchwork::wrap_plots(plots, ncol = 1, heights = heights,
     guides = "collect")
@@ -141,13 +144,16 @@ axis_label <- function(x) {
   sprintf("%s (bp, end to end)", paste(loci_of(x), collapse = ", "))
 }
 
-# The x scale of an axis laying several regions end to end: round genomic
-# positions in each region, about as many as its share of the axis earns,
-# each labelled with its position in its own region, and none on an edge two
-# regions face across their gap, where two labels would collide
+# The x scale: positions written with commas, and on an axis laying several
+# regions end to end round genomic positions in each region, about as many as
+# its share of the axis earns, each labelled with its position in its own
+# region, and none on an edge two regions face across their gap, where two
+# labels would collide
 genomic_x <- function(x) {
   r <- x$regions
-  if (is.null(r)) return(NULL)
+  if (is.null(r)) {
+    return(ggplot2::scale_x_continuous(labels = scales::label_comma()))
+  }
   w <- r$end - r$start
   at <- lapply(seq_len(nrow(r)), function(i) {
     b <- pretty(c(r$start[i], r$end[i]), n = max(2, round(6 * w[i] / sum(w))))

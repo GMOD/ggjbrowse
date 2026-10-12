@@ -145,7 +145,7 @@ pileup_plot <- function(x, o) {
     scale_fill_jbrowse(x, "reads") +
     geom_jbrowse_skips() +
     geom_jbrowse_deletions(fade = o$fade, px_per_bp = px) +
-    geom_jbrowse_modifications() +
+    geom_jbrowse_modifications(px_per_bp = px) +
     geom_jbrowse_mismatches(fade = o$fade, px_per_bp = px) +
     scale_colour_jbrowse(x, "bases") +
     geom_jbrowse_insertions(fade = o$fade, px_per_bp = px) +
@@ -187,8 +187,8 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #' @param object a [jbrowse_alignments()] result
 #' @param what `"track"`: the display's stack, any `tracks` on top,
 #'   then splice-junction arcs where the reads splice, the coverage band,
-#'   the read-connection band under `display$readConnections`, the reference's bases
-#'   where they are wide enough to read and the pileup, one above the other
+#'   the read-connection band under `display$readConnections` and the
+#'   pileup, one above the other
 #'   on a shared axis, each band split into the `facet`'s sections, and each
 #'   drawn where the display's `showCoverage`, `showPileup` and
 #'   `showSashimiArcs` draw it; `"pileup"`: each read on its row, split at
@@ -279,19 +279,46 @@ alignment_px <- function(object, o) {
       any(object$junctions$count >= o$min_junction_reads),
     coverage = o$coverage,
     arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
-    sequence = o$pileup && o$letters && !is.null(object$reference) &&
-      is.null(object$regions),
     pileup = o$pileup)
   c(junctions = s$sashimiArcsHeight * sections,
     coverage = s$coverageHeight * sections,
     arcs = s$readConnectionsHeight * sections,
-    sequence = 25,
     pileup = max(30, rows * (h + (h > 3))))[shown]
 }
 
+# A section's bands one after another, as the display stacks each section's
+# coverage over its own reads, the section named once, on its first band
 alignment_bands <- function(object, o = alignment_options(object)) {
   object <- on_axis(object)
-  px <- alignment_px(object, o)
-  list(plots = lapply(names(px), function(b) BAND_PLOTS[[b]](object, o)),
-    heights = unname(px))
+  labels <- object$sections$label
+  sections <- if (length(labels) > 1) {
+    lapply(labels, function(l) section_of(object, l))
+  } else {
+    list(object)
+  }
+  bands <- lapply(sections, function(x) {
+    px <- alignment_px(x, o)
+    plots <- lapply(names(px), function(b) BAND_PLOTS[[b]](x, o))
+    plots[-1] <- lapply(plots[-1], function(p)
+      p + ggplot2::theme(strip.text.y = ggplot2::element_blank()))
+    list(plots = plots, heights = unname(px))
+  })
+  list(plots = do.call(c, lapply(bands, `[[`, "plots")),
+    heights = unlist(lapply(bands, `[[`, "heights")))
+}
+
+# The result with one section's rows: its reads, their marks, renumbered to
+# the reads kept, and its coverage
+section_of <- function(object, label) {
+  kept <- which(object$reads$section == label)
+  for (name in setdiff(names(object), "sections")) {
+    d <- object[[name]]
+    if (!is.data.frame(d) || is.null(d$section)) next
+    d <- d[d$section == label, , drop = FALSE]
+    if (!is.null(d$read) && name != "reads") d$read <- match(d$read, kept)
+    object[[name]] <- d
+  }
+  object$sections <- object$sections[object$sections$label == label, ,
+    drop = FALSE]
+  object
 }

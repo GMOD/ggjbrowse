@@ -110,11 +110,16 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_modifications <- function(mapping = NULL, data = NULL, ...) {
-  jbrowse_layer(ggplot2::GeomRect, data,
-    function(x) x$modifications, mapping,
-    ggplot2::aes(xmin = position, xmax = position + 1, ymin = row + inset,
-      ymax = row + 1 - inset, fill = color, alpha = I(opacity)), list(...), rows = TRUE)
+geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
+                                       px_per_bp = NULL, ...) {
+  jbrowse_layer(ggplot2::GeomRect, data, function(x) {
+    d <- x$modifications
+    d$xmax <- d$position + max(1, 1 / px_of(x, px_per_bp))
+    d
+  }, mapping,
+    ggplot2::aes(xmin = position, xmax = xmax, ymin = row + inset,
+      ymax = row + 1 - inset, fill = color, alpha = I(opacity)), list(...),
+    rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads

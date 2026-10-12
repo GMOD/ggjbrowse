@@ -20,6 +20,10 @@ test_that("a facet splits the reads into sections, each packed on its own", {
   expect_equal(flipped$sections$label, rev(s$sections$label))
   p <- ggplot2::ggplot_build(ggplot2::autoplot(s, "pileup"))
   expect_equal(nrow(p$layout$layout), 2)
+  heights <- jbrowse_stack(s)$patches$layout$heights
+  expect_equal(heights[c(1, 3)], c(45, 45))
+  rows <- vapply(split(s$reads$row, s$reads$section), max, 0) + 1
+  expect_equal(heights[c(2, 4)], unname(rows) * 8)
 })
 
 test_that("read connections come back as the display's band draws them", {
@@ -45,5 +49,6 @@ test_that("read connections come back as the display's band draws them", {
     cloud$sections$label)
   track <- ggplot2::autoplot(cloud)
   expect_s3_class(track, "patchwork")
-  expect_equal(length(track$patches$plots) + 1, 3)
+  expect_equal(length(track$patches$plots) + 1,
+    3 * nrow(cloud$sections))
 })
