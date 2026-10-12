@@ -77,7 +77,10 @@ loci_of <- function(x) {
 }
 
 # Stops where the results read different spans: tracks on one axis must read
-# the same regions. A contig may be spelt differently by each file.
+# the same regions. A contig may be spelt differently by each file, as an
+# exported view spells each track's (`1` beside `chr1`), so a `chr` prefix
+# passes, another spelling warns, and contigs that do not pair one to one
+# across the tracks stop.
 same_regions <- function(results) {
   span <- function(x) {
     r <- regions_read(x)
@@ -90,6 +93,24 @@ same_regions <- function(results) {
       differ[1], " reads ", paste(loci_of(results[[differ[1]]]),
         collapse = ", "), " and track 1 ", paste(loci_of(results[[1]]),
         collapse = ", "), call. = FALSE)
+  }
+  bare <- function(chrom) sub("^chr", "", chrom, ignore.case = TRUE)
+  first <- regions_read(results[[1]])$chrom
+  for (i in seq_along(results)[-1]) {
+    chrom <- regions_read(results[[i]])$chrom
+    pairs <- unique(data.frame(a = first, b = chrom))
+    if (anyDuplicated(pairs$a) || anyDuplicated(pairs$b)) {
+      stop("jbrowse_stack draws its tracks over the same contigs, but track ",
+        i, " reads ", paste(loci_of(results[[i]]), collapse = ", "),
+        " and track 1 ", paste(loci_of(results[[1]]), collapse = ", "),
+        call. = FALSE)
+    }
+    renamed <- pairs[bare(pairs$a) != bare(pairs$b), , drop = FALSE]
+    if (nrow(renamed)) {
+      warning("track ", i, " reads ", renamed$b[1], " where track 1 reads ",
+        renamed$a[1], "; jbrowse_stack draws them as one contig, as it ",
+        "would two spellings of one", call. = FALSE)
+    }
   }
 }
 

@@ -88,12 +88,26 @@ jbrowse_layer <- function(geom, data, pick, mapping, defaults, params,
                           keyed = TRUE, rows = FALSE) {
   inset <- if (rows) with_inset else function(d, model) d
   finish <- function(d, model) display_colors(inset(d, model))
-  ggplot2::layer(geom = geom, stat = "identity", position = "identity",
-    data = table_from(data, pick, finish),
+  layer <- ggplot2::layer(geom = geom, stat = "identity",
+    position = "identity", data = table_from(data, pick, finish),
     mapping = with_defaults(mapping, defaults),
     inherit.aes = FALSE,
     show.legend = legend_of(with_defaults(mapping, defaults), keyed, mapping),
     params = params)
+  ggplot2::ggproto(NULL, layer, setup_layer = function(self, data, plot) {
+    warn_plot_mapping(plot$mapping)
+    ggplot2::ggproto_parent(layer, self)$setup_layer(data, plot)
+  })
+}
+
+# Each jbrowse geom draws its own table, so it takes no plot-level mapping;
+# say so rather than let `ggplot(a, aes(fill = mapq))` draw nothing new
+warn_plot_mapping <- function(mapping) {
+  if (!length(mapping)) return(invisible())
+  rlang::warn(paste0("jbrowse geoms draw their own tables and take no ",
+    "ggplot(aes(", paste(names(mapping), collapse = ", "), ")); map in the ",
+    "geom instead, as geom_jbrowse_reads(aes(fill = mapq))"),
+    .frequency = "regularly", .frequency_id = "ggjbrowse_plot_mapping")
 }
 
 #' @exportS3Method ggplot2::fortify

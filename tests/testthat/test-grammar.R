@@ -2,6 +2,14 @@ extdata <- function(f) system.file("extdata", f, package = "ggjbrowse")
 bam <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 3000)
 library(ggplot2)
 
+test_that("a plot-level mapping warns that jbrowse geoms map in the geom", {
+  rlang::local_options(rlib_warning_verbosity = "verbose")
+  expect_warning(ggplot_build(ggplot(bam, aes(fill = mapq)) +
+    geom_jbrowse_reads()), "geom_jbrowse_reads\\(aes\\(fill = mapq\\)\\)")
+  expect_no_warning(ggplot_build(ggplot(bam) +
+    geom_jbrowse_reads(aes(fill = mapq))))
+})
+
 test_that("autoplot refuses an argument it does not take", {
   genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1,001-3,000")
   expect_error(autoplot(genes, tracks = bam), "tracks")

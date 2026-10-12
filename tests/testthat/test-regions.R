@@ -77,6 +77,19 @@ test_that("each band of a stack marks the seam between regions with a bar", {
   expect_false(any(vapply(one$data, function(d) !is.null(d$xintercept), NA)))
 })
 
+test_that("jbrowse_stack takes a contig's other spelling and warns at another contig", {
+  a <- jbrowse_features(gff, "ctgA:1,001-3,000")
+  b <- jbrowse_features(gff, "ctgB:1,001-3,000")
+  expect_warning(jbrowse_stack(a, b), "track 2 reads ctgB where track 1 reads ctgA")
+  prefixed <- a
+  prefixed$region$chrom <- "chrctgA"
+  expect_no_warning(jbrowse_stack(a, prefixed))
+  loci <- c("ctgA:1,001-2,000", "ctgA:3,001-4,000")
+  two <- jbrowse_features(gff, loci)
+  mixed <- jbrowse_features(gff, c("ctgA:1,001-2,000", "ctgB:3,001-4,000"))
+  expect_error(jbrowse_stack(two, mixed), "same contigs")
+})
+
 test_that("jbrowse_stack refuses tracks over different regions", {
   genes <- jbrowse_features(gff, "ctgB:1-5,000")
   reads <- jbrowse_alignments(bam, "ctgA:1,001-9,000")
