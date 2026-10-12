@@ -13,6 +13,10 @@ alignments_adapter <- function(file, index) {
 sequence_adapter <- function(reference) {
   if (grepl("\\.2bit$", reference, ignore.case = TRUE)) {
     list(type = "TwoBitAdapter", twoBitLocation = location(reference))
+  } else if (grepl("\\.gz$", reference)) {
+    list(type = "BgzipFastaAdapter", fastaLocation = location(reference),
+      faiLocation = location(paste0(reference, ".fai")),
+      gziLocation = location(paste0(reference, ".gzi")))
   } else {
     list(type = "IndexedFastaAdapter", fastaLocation = location(reference),
       faiLocation = location(paste0(reference, ".fai")))
@@ -35,8 +39,9 @@ sequence_adapter <- function(reference) {
 #'   with `start` and `end`
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
-#' @param reference the reference FASTA (indexed) or 2bit, path or URL; a CRAM
-#'   needs it, and a BAM read without an MD tag is compared against it
+#' @param reference the reference: an indexed FASTA, plain or bgzipped, or a
+#'   2bit, path or URL; a CRAM needs it, and a BAM read without an MD tag is
+#'   compared against it
 #' @param reference_chrom the contig's name in `reference`, where the file
 #'   spells it another way (`1` in the BAM, `chr1` in the FASTA)
 #' @param index the BAI, CSI or CRAI, if not beside `file` under its usual name
@@ -251,7 +256,8 @@ alignments_region <- function(adapter, chrom, start, end, reference,
 #' Read a region of the reference
 #'
 #' The bases of a region, read through JBrowse's own FASTA or 2bit reader.
-#' @param reference the reference FASTA (indexed) or 2bit, path or URL
+#' @param reference an indexed FASTA, plain or bgzipped, or a 2bit, path or
+#'   URL
 #' @param chrom,start,end the region, 0-based half-open
 #' @return one string of `end - start` bases
 #' @export

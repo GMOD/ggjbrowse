@@ -155,6 +155,24 @@ test_that("base quality paints each aligned base on its read, keyed as a bar", {
   expect_equal(nrow(jbrowse_alignments(bam, "20", 10000, 10300)$qualities), 0)
 })
 
+test_that("a bgzipped FASTA reads as a reference, and MD tags stand in for one", {
+  fa <- extdata("gapdh_hg38.fa.gz")
+  expect_equal(jbrowse_sequence(fa, "chr12", 6499990, 6500000),
+    strrep("N", 10))
+  expect_match(jbrowse_sequence(fa, "chr12", 6534500, 6534600),
+    "^[ACGTacgt]{100}$")
+  bam <- extdata("gapdh_direct_rna.bam")
+  locus <- "chr12:6,534,201-6,538,700"
+  tagged <- jbrowse_alignments(bam, locus)
+  expect_gt(nrow(tagged$mismatches), 1000)
+  expect_true(all(tagged$junctions$motif == ""))
+  read <- jbrowse_alignments(bam, locus, reference = fa)
+  expect_equal(read$mismatches, tagged$mismatches)
+  common <- read$junctions[read$junctions$count >= 10, ]
+  expect_gt(nrow(common), 5)
+  expect_true(all(common$motif == "GT-AG (canonical)"))
+})
+
 test_that("the reference reads as its bases, drawn as a band only when asked", {
   fa <- extdata("volvox.fa")
   seq <- jbrowse_sequence(fa, "ctgA", 1000, 1020)

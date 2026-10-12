@@ -7,7 +7,8 @@
 jbrowse_sequence(reference, chrom, start, end)
 }
 \arguments{
-\item{reference}{the reference FASTA (indexed) or 2bit, path or URL}
+\item{reference}{an indexed FASTA, plain or bgzipped, or a 2bit, path or
+URL}
 
 \item{chrom, start, end}{the region, 0-based half-open}
 }

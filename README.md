@@ -20,23 +20,24 @@ Genome browser tracks as ggplot2 layers.
 remotes::install_github("GMOD/ggjbrowse")
 ```
 
-Every example here runs as written, on the volvox test data the package
-carries:
+Every example here runs as written, on test data installed with the
+package: clips of public human data, and JBrowse's simulated volvox genome
+where an example needs a simulated structural variant or synteny.
+`scripts/extdata-*.sh` make the human clips.
 
 ```r
 library(ggjbrowse)
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")
 
-a <- jbrowse_alignments(e("spliced.bam"), "ctgA:401-1,300",
-  display = list(color = list(field = "strand")))
+a <- jbrowse_alignments(e("gapdh_direct_rna.bam"), "chr12:6,534,201-6,538,700")
 autoplot(a)
 ```
 
 A region is a locus as JBrowse's location box writes it, 1-based:
-`"ctgA:401-1,300"`, or `"ctgA", 400, 1300` in 0-based half-open
-coordinates.
+`"chr12:6,534,201-6,538,700"`, or `"chr12", 6534200, 6538700` in 0-based
+half-open coordinates.
 
-![RNA-seq reads over two exons of volvox ctgA: junction arcs, the coverage band and the pileup, split at the introns](man/figures/spliced.png)
+![Nanopore direct RNA reads from NA12878 across GAPDH: junction arcs counting each splice, the coverage band and the reads split at the introns](man/figures/gapdh.png)
 
 The track is the display's stack: splice-junction arcs where the reads
 splice, each counted and colored by strand; the coverage band with every
@@ -153,14 +154,12 @@ pixel width the display lays the region out across, which decides which
 names fit. Draw it over reads with `tracks`:
 
 ```r
-genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1,001-10,000",
-  display = list(showOnlyGenes = TRUE))
-reads <- jbrowse_alignments(e("spliced.bam"), "ctgA:1,001-10,000",
-  reference = e("volvox.fa"), display = list(color = list(field = "strand")))
-autoplot(reads, tracks = genes)
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"),
+  "chr12:6,534,201-6,538,700")
+autoplot(a, tracks = genes)
 ```
 
-![EDEN's three isoforms and two smaller genes over spliced RNA-seq reads on volvox ctgA](man/figures/genes-over-reads.png)
+![GENCODE's GAPDH transcripts over the direct RNA reads, each read's exons lining up under the transcripts' boxes](man/figures/genes-over-reads.png)
 
 The y axis of a feature track is the display's pixels. Labels scale with the
 panel they land in, so they keep to the room the layout left them at any
@@ -191,15 +190,17 @@ autoplot(jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "span")))
 display: the records its filters keep, each sample's genotype at each, and
 the fill the display paints it, its hue shaded by the alt dosage. `display`
 takes the display's settings (`unit = "haplotype"` for a row per haplotype,
-`color`, `filter`, `minorAlleleFrequencyFilter`, ...):
+`color`, `filter`, `minorAlleleFrequencyFilter`, ...), and `samples` a table
+of the samples' attributes, which `rowColor` marks the rows by:
 
 ```r
-v <- jbrowse_variants(e("dog10k_cyp1a2_snvs.vcf.gz"),
-  "chr30:38,258,001-38,265,000")
+v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
+  samples = e("1000g_dcst2_samples.tsv"),
+  display = list(rowColor = list(field = "superpopulation")))
 autoplot(v, layout = "columns")
 ```
 
-![39 dogs genotyped at 490 SNVs across CYP1A2, a column per record, hets pale and homs dark, the breeds in blocks](man/figures/variants.png)
+![100 people of the 1000 Genomes, 20 from each superpopulation, genotyped at 249 variants across DCST2 (GRCh37), a column per record, each row marked by its superpopulation](man/figures/variants.png)
 
 `jbrowse_cluster()` orders the rows by genotype, as the display's "Cluster
 rows by genotype" does: average-linkage `hclust()` over each row's alt
@@ -210,7 +211,7 @@ dosages. `autoplot()` draws the tree beside the rows, and `v$tree` is the
 autoplot(jbrowse_cluster(v), layout = "columns")
 ```
 
-![The same dogs clustered: the boxers and a block of homozygous dogs split from the rest, the tree beside the rows](man/figures/variants-clustered.png)
+![The same people clustered: most East Asians gather near the top, the Africans and Europeans further down, the tree beside the rows](man/figures/variants-clustered.png)
 
 ## A view of several tracks
 
@@ -250,9 +251,10 @@ ggsave("stack.png", fig, width = 10, height = jbrowse_height(fig))
 ```
 
 A file can be a path or a URL; a remote file is read in byte ranges through
-`curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There
-is no Bioconductor dependency: the BAM, CRAM, FASTA, GFF3, BED, BigBed,
-BigWig and VCF readers are JBrowse's.
+`curl`. CRAM needs the reference: a FASTA with its `.fai`, a bgzipped one
+with its `.fai` and `.gzi`, or a 2bit. There is no Bioconductor dependency:
+the BAM, CRAM, FASTA, GFF3, BED, BigBed, BigWig and VCF readers are
+JBrowse's.
 
 ## Synteny
 

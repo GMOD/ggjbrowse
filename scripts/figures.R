@@ -10,10 +10,11 @@ save <- function(name, plot, height = jbrowse_height(plot)) {
   ggsave(file.path(out, name), plot, width = 10, height = height, dpi = 120)
 }
 
-spliced <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300,
-  reference = extdata("volvox.fa"),
-  display = list(color = list(field = "strand")))
-save("spliced.png", autoplot(spliced))
+gapdh <- "chr12:6,534,201-6,538,700"
+rna <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"), gapdh)
+save("gapdh.png", autoplot(rna))
+save("genes-over-reads.png", autoplot(rna,
+  tracks = jbrowse_features(extdata("gapdh_gencode.gff3.gz"), gapdh)))
 
 long <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA",
   1000, 2700, reference = extdata("volvox.fa"),
@@ -36,13 +37,6 @@ meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
     modifications = list(unmodified = "all")))
 save("methylation.png", autoplot(meth))
 
-genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA", 1000, 10000,
-  display = list(showOnlyGenes = TRUE))
-reads <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 1000, 10000,
-  reference = extdata("volvox.fa"),
-  display = list(color = list(field = "strand")))
-save("genes-over-reads.png", autoplot(reads, tracks = genes))
-
 bw <- extdata("volvox_microarray_posneg.bw")
 save("wiggle.png", patchwork::wrap_plots(ncol = 1,
   autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100)),
@@ -59,11 +53,12 @@ tracks <- list(
     display = list(color = list(field = "strand"))))
 save("stack.png", jbrowse_stack(tracks))
 
-dogs <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"), "chr30",
-  38258000, 38265000)
-save("variants.png", autoplot(dogs, layout = "columns"), 6)
+people <- jbrowse_variants(extdata("1000g_dcst2.vcf.gz"),
+  "1:155,000,001-155,050,000", samples = extdata("1000g_dcst2_samples.tsv"),
+  display = list(rowColor = list(field = "superpopulation")))
+save("variants.png", autoplot(people, layout = "columns"), 7)
 save("variants-clustered.png",
-  autoplot(jbrowse_cluster(dogs), layout = "columns"), 6)
+  autoplot(jbrowse_cluster(people), layout = "columns"), 7)
 
 paf <- extdata("volvox_inv_indels.paf")
 synteny <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001",

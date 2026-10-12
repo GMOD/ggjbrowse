@@ -29,8 +29,9 @@ with \code{start} and \code{end}}
 \item{start, end}{with a contig name as \code{region}, the region's bounds,
 0-based half-open}
 
-\item{reference}{the reference FASTA (indexed) or 2bit, path or URL; a CRAM
-needs it, and a BAM read without an MD tag is compared against it}
+\item{reference}{the reference: an indexed FASTA, plain or bgzipped, or a
+2bit, path or URL; a CRAM needs it, and a BAM read without an MD tag is
+compared against it}
 
 \item{reference_chrom}{the contig's name in \code{reference}, where the file
 spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA)}
