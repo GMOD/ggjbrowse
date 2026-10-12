@@ -299,6 +299,15 @@ edge for those blocks, and `autoplot()` keys each contig with the line the
 strip's hover prints, from `s$offscreen_contigs`. A file guessed from its extension names
 its sides `query` and `target`; a JBrowse adapter config names assemblies,
 and `assemblies = c(query, target)` picks which goes on which row.
+`swap = TRUE` puts the file's target on the top row instead. With no regions
+given, a row shows every contig of its assembly, in the file's order, and a
+contig named alone shows whole, so a whole-genome dotplot is one call:
+
+```r
+autoplot(jbrowse_dotplot(e("peach_grape.paf.gz")))
+```
+
+![Peach against grape, every chromosome of each along its axis, named](man/figures/whole-genome.png)
 
 ## From a JBrowse view
 

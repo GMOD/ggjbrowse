@@ -129,3 +129,46 @@ test_that("the off-screen strip draws as the band paints it and keys its contigs
   expect_false(is.null(offscreen_guides(t)))
   expect_null(offscreen_guides(s))
 })
+
+test_that("a file's contigs list with their lengths, and an axis with no regions shows them all", {
+  contigs <- jbrowse_contigs(paf)
+  expect_equal(contigs$side, c("query", "target"))
+  expect_equal(contigs$chrom, c("ctgA", "ctgA"))
+  expect_equal(contigs$length, c(49186, 50001))
+  whole <- jbrowse_synteny(paf)
+  expect_equal(c(whole$query$end, whole$target$end), c(49186, 50001))
+  expect_equal(nrow(whole$alignments), 7)
+  grape <- system.file("extdata", "peach_grape.paf.gz", package = "ggjbrowse")
+  d <- jbrowse_dotplot(grape)
+  expect_equal(nrow(d$x), 13)
+  expect_equal(nrow(d$y), 24)
+  expect_gt(nrow(d$segments), 100)
+  built <- ggplot2::ggplot_build(autoplot(d))
+  labels <- built$layout$panel_params[[1]]$x$get_labels()
+  expect_true(all(labels %in% d$x$chrom))
+  named <- jbrowse_dotplot(grape, "Pp01", "chr1")
+  expect_equal(named$x$end, jbrowse_contigs(grape)$length[
+    jbrowse_contigs(grape)$chrom == "Pp01"])
+  expect_equal(nrow(named$y), 1)
+})
+
+test_that("swap puts the file's target on the top row and the x axis", {
+  swapped <- jbrowse_synteny(paf, swap = TRUE)
+  expect_equal(swapped$assemblies, c("target", "query"))
+  expect_equal(swapped$query$end, 50001)
+  expect_equal(nrow(swapped$alignments), 7)
+  expect_error(jbrowse_synteny(list(type = "PAFAdapter",
+    pafLocation = list(uri = paf), assemblyNames = "one"), swap = TRUE),
+    "two assembly names")
+  d <- jbrowse_dotplot(paf, swap = TRUE)
+  expect_equal(d$x$end, 50001)
+})
+
+test_that("comparative axes lay their regions end to end with no gap, as the browser does", {
+  halves <- c("ctgA:1-25,000", "ctgA:25,001-50,001")
+  two <- jbrowse_synteny(paf, query, halves)
+  expect_equal(two$target$cum_start[2], two$target$cum_end[1])
+  genes <- jbrowse_features(gff, halves)
+  fig <- autoplot(two, target = genes)
+  expect_equal(length(fig$patches$plots) + 1, 2)
+})

@@ -74,3 +74,7 @@ save("synteny-zoom.png", autoplot(jbrowse_synteny(paf, "ctgA:26,801-30,000",
 ggsave(file.path(out, "dotplot.png"), autoplot(jbrowse_dotplot(paf,
   "ctgA:1-49,186", "ctgA:1-50,001", view = list(color = list(field = "strand")))),
   width = 6, height = 5.5, dpi = 120)
+
+ggsave(file.path(out, "whole-genome.png"),
+  autoplot(jbrowse_dotplot(extdata("peach_grape.paf.gz"))),
+  width = 6, height = 5.5, dpi = 120)
