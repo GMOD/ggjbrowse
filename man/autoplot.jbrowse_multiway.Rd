@@ -15,7 +15,7 @@ result or a list of them}
 \item{curves}{draw each ribbon edge as a curve, as the display's
 \code{drawCurves} does; unset, as the result's settings say}
 
-\item{...}{unused}
+\item{...}{must be empty, so a misspelt argument errors}
 }
 \value{
 a ggplot of the stack alone, or with tracks a patchwork, whose

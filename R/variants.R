@@ -180,7 +180,7 @@ reference_rows <- function(x) {
 #' @param object a [jbrowse_variants()] result
 #' @param layout `"genomic"` for cells at their records' positions,
 #'   `"columns"` for the genotype matrix, a column per record
-#' @param ... unused
+#' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot
 #' @exportS3Method ggplot2::autoplot
 #' @examples
@@ -189,6 +189,7 @@ reference_rows <- function(x) {
 #' autoplot(jbrowse_variants(vcf, "chr30", 38258000, 38265000))
 autoplot.jbrowse_variants <- function(object,
                                       layout = c("genomic", "columns"), ...) {
+  rlang::check_dots_empty()
   layout <- match.arg(layout)
   object <- on_axis(object)
   rows <- object$rows$name

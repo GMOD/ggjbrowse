@@ -656,7 +656,7 @@ row_tracks <- function(tracks, layout, row) {
 #'   them
 #' @param curves draw each ribbon edge as a curve, as the view's `drawCurves`
 #'   does
-#' @param ... unused
+#' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot of the band alone, or with tracks a patchwork, whose
 #'   height [jbrowse_height()] measures
 #' @exportS3Method ggplot2::autoplot
@@ -670,6 +670,7 @@ row_tracks <- function(tracks, layout, row) {
 #' autoplot(s, target = genes)
 autoplot.jbrowse_synteny <- function(object, query = NULL, target = NULL,
                                      curves = FALSE, ...) {
+  rlang::check_dots_empty()
   band <- synteny_band(object, curves)
   above <- row_tracks(query, object$query, "query")
   below <- row_tracks(target, object$target, "target")
@@ -833,7 +834,7 @@ layout_seams <- function(layout) {
 #' its regions' positions, with a line at each seam where an axis lays
 #' several regions end to end.
 #' @param object a [jbrowse_dotplot()] result
-#' @param ... unused
+#' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot
 #' @exportS3Method ggplot2::autoplot
 #' @examples
@@ -841,6 +842,7 @@ layout_seams <- function(layout) {
 #' autoplot(jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001",
 #'   view = list(color = list(field = "strand"))))
 autoplot.jbrowse_dotplot <- function(object, ...) {
+  rlang::check_dots_empty()
   x <- on_axis(object)
   seams <- data.frame(x = layout_seams(x$x))
   rows <- data.frame(y = layout_seams(x$y))

@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{a \code{\link[=jbrowse_features]{jbrowse_features()}} result}
 
-\item{...}{unused}
+\item{...}{must be empty, so a misspelt argument errors}
 }
 \value{
 a ggplot, to extend or to stack over an alignments track with

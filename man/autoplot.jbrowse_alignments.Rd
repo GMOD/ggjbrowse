@@ -56,7 +56,7 @@ deep pileup; \code{NULL} takes the display's \code{fadeLowFrequencyMismatches}}
 \code{\link[=jbrowse_features]{jbrowse_features()}} or \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result over the same region,
 or a list of them, as \code{\link[=jbrowse_stack]{jbrowse_stack()}} stacks them}
 
-\item{...}{unused}
+\item{...}{must be empty, so a misspelt argument errors}
 }
 \value{
 a ggplot, to extend with layers, scales and themes or to stack with

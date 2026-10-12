@@ -326,7 +326,7 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 #' room the layout left them at any output size.
 #'
 #' @param object a [jbrowse_features()] result
-#' @param ... unused
+#' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot, to extend or to stack over an alignments track with
 #'   patchwork
 #' @exportS3Method ggplot2::autoplot
@@ -335,6 +335,7 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 #' g <- jbrowse_features(gff, "ctgA", 0, 25000)
 #' autoplot(g)
 autoplot.jbrowse_features <- function(object, ...) {
+  rlang::check_dots_empty()
   object <- on_axis(object)
   ggplot2::ggplot(object) +
     geom_jbrowse_glyphs() +

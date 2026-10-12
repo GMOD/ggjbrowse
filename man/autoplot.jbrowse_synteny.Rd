@@ -15,7 +15,7 @@ them}
 \item{curves}{draw each ribbon edge as a curve, as the view's \code{drawCurves}
 does}
 
-\item{...}{unused}
+\item{...}{must be empty, so a misspelt argument errors}
 }
 \value{
 a ggplot of the band alone, or with tracks a patchwork, whose

@@ -2,6 +2,14 @@ extdata <- function(f) system.file("extdata", f, package = "ggjbrowse")
 bam <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 3000)
 library(ggplot2)
 
+test_that("autoplot refuses an argument it does not take", {
+  genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1,001-3,000")
+  expect_error(autoplot(genes, tracks = bam), "tracks")
+  expect_error(autoplot(bam, trakcs = genes), "trakcs")
+  expect_error(autoplot(jbrowse_wiggle(extdata("volvox_microarray_posneg.bw"),
+    "ctgA:1,001-3,000"), layout = "columns"), "layout")
+})
+
 test_that("a display color column takes an identity scale, any other column its own", {
   default <- ggplot_build(ggplot(bam) + geom_jbrowse_reads())
   expect_s3_class(default$plot$scales$get_scales("fill"),

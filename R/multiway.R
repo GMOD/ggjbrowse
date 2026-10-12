@@ -369,7 +369,7 @@ lane_band <- function(track, x, lane, where) {
 #'   result or a list of them
 #' @param curves draw each ribbon edge as a curve, as the display's
 #'   `drawCurves` does; unset, as the result's settings say
-#' @param ... unused
+#' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot of the stack alone, or with tracks a patchwork, whose
 #'   height [jbrowse_height()] measures
 #' @exportS3Method ggplot2::autoplot
@@ -383,6 +383,7 @@ lane_band <- function(track, x, lane, where) {
 #' autoplot(m, above = genes)
 autoplot.jbrowse_multiway <- function(object, above = NULL, below = NULL,
                                       curves = NULL, ...) {
+  rlang::check_dots_empty()
   stack <- multiway_stack(object, curves)
   listed <- function(tracks) if (inherits(tracks, "jbrowse_result"))
     list(tracks) else tracks %||% list()

@@ -232,7 +232,7 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
 #' display autoscales to, a row per source where the display gives each one.
 #'
 #' @param object a [jbrowse_wiggle()] result
-#' @param ... unused
+#' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot, to extend or to stack over an alignments track with
 #'   patchwork
 #' @exportS3Method ggplot2::autoplot
@@ -241,6 +241,7 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
 #'   package = "ggjbrowse")
 #' autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000))
 autoplot.jbrowse_wiggle <- function(object, ...) {
+  rlang::check_dots_empty()
   object <- on_axis(object)
   density <- object$rendering == "density"
   rows <- isTRUE(object$row_layout)

@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{a \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}} result}
 
-\item{...}{unused}
+\item{...}{must be empty, so a misspelt argument errors}
 }
 \value{
 a ggplot

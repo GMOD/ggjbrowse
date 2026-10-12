@@ -263,7 +263,7 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #' @param tracks tracks to draw above a `"track"`, each a
 #'   [jbrowse_features()] or [jbrowse_wiggle()] result over the same region,
 #'   or a list of them, as [jbrowse_stack()] stacks them
-#' @param ... unused
+#' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot, to extend with layers, scales and themes or to stack with
 #'   patchwork; a `"track"` is a patchwork of its bands
 #' @exportS3Method ggplot2::autoplot
@@ -284,6 +284,7 @@ autoplot.jbrowse_alignments <- function(object,
                                         fade_low_frequency = NULL,
                                         px_per_bp = NULL, tracks = NULL,
                                         ...) {
+  rlang::check_dots_empty()
   what <- match.arg(what)
   object <- on_axis(object)
   o <- alignment_options(object, min_allele_frequency, min_junction_reads,

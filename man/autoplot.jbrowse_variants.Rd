@@ -12,7 +12,7 @@
 \item{layout}{\code{"genomic"} for cells at their records' positions,
 \code{"columns"} for the genotype matrix, a column per record}
 
-\item{...}{unused}
+\item{...}{must be empty, so a misspelt argument errors}
 }
 \value{
 a ggplot
