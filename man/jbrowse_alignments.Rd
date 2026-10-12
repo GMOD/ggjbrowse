@@ -103,7 +103,7 @@ reads carry that base there, over the depth), \code{quality}, \code{fade}
 across it; empty otherwise
 \item \code{overlaps}: under \code{unit = "chain"}, each span where two reads of one row
 both align: \code{start}, \code{end}, \code{row} and the neutral \code{color} the display
-fills it with, as it does not take either read's; empty otherwise
+fills it with, which is neither read's color; empty otherwise
 \item \code{insertions}: \code{position}, \code{length}, \code{sequence}, \code{read}, \code{row}, \code{fade}
 \item \code{clips}: \code{position}, \code{length}, \code{type} (\code{"soft"} or \code{"hard"}), \code{read},
 \code{row}, \code{fade}

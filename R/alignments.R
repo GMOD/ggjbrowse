@@ -105,7 +105,7 @@ sequence_adapter <- function(reference) {
 #'     across it; empty otherwise
 #'   * `overlaps`: under `unit = "chain"`, each span where two reads of one row
 #'     both align: `start`, `end`, `row` and the neutral `color` the display
-#'     fills it with, as it does not take either read's; empty otherwise
+#'     fills it with, which is neither read's color; empty otherwise
 #'   * `insertions`: `position`, `length`, `sequence`, `read`, `row`, `fade`
 #'   * `clips`: `position`, `length`, `type` (`"soft"` or `"hard"`), `read`,
 #'     `row`, `fade`
@@ -281,7 +281,8 @@ alignments_region <- function(adapter, chrom, start, end, reference,
     drop = FALSE]
   attr(junction_key, "title") <- "Junction strand"
   structure(
-    list(reads = reads, mismatches = mismatches, gaps = gaps, chains = chains, overlaps = overlaps,
+    list(reads = reads, mismatches = mismatches, gaps = gaps, chains = chains,
+      overlaps = overlaps,
       insertions = insertions, clips = clips, modifications = modifications,
       qualities = qualities,
       coverage = coverage, allele_coverage = alleles,
@@ -356,8 +357,6 @@ print.jbrowse_alignments <- function(x, ...) {
   invisible(x)
 }
 
-# The spans where two or more reads of one row both align, merged, as the
-# display marks the overlap between a chain's segments
 read_overlaps <- function(reads, chained, color) {
   none <- data.frame(start = numeric(0), end = numeric(0), row = numeric(0))
   if (!chained || !nrow(reads)) {
