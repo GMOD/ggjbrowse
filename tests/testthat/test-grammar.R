@@ -18,6 +18,17 @@ test_that("a display color column takes an identity scale, any other column its 
   mapped <- ggplot_build(ggplot(bam) + geom_jbrowse_reads(aes(fill = mapq)))
   expect_s3_class(mapped$plot$scales$get_scales("fill"), "ScaleContinuous")
   expect_gt(length(unique(mapped$data[[1]]$fill)), 1)
+  recolored <- bam
+  recolored$reads$color <- ifelse(bam$reads$strand == 1, "#ff0000", "navy")
+  expect_false(inherits(recolored$reads$color, "jbrowse_color"))
+  b <- ggplot_build(ggplot(recolored) + geom_jbrowse_reads())
+  expect_s3_class(b$plot$scales$get_scales("fill"), "ScaleDiscreteIdentity")
+  expect_setequal(b$data[[1]]$fill, c("#ff0000", "navy"))
+  labelled <- bam
+  labelled$reads$color <- ifelse(bam$reads$strand == 1, "fwd", "rev")
+  b <- ggplot_build(ggplot(labelled) + geom_jbrowse_reads())
+  expect_false(inherits(b$plot$scales$get_scales("fill"),
+    "ScaleDiscreteIdentity"))
 })
 
 test_that("a geom reads its table from the plot's result or from its own data", {

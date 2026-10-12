@@ -17,6 +17,7 @@ Roxygen: list(markdown = TRUE)
 Imports:
     curl,
     ggplot2 (>= 4.0.0),
+    grDevices,
     grid,
     jsonlite,
     patchwork,

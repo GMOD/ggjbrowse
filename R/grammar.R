@@ -54,6 +54,19 @@ table_from <- function(data, pick, finish = function(d, model) d) {
   data
 }
 
+# A table's `color` column back as the display's colors where something on
+# the way dropped the class, such as an ifelse() in a mutate(), so ggplot
+# still paints it through an identity scale rather than its hue palette
+display_colors <- function(d) {
+  color <- d$color
+  if (is.character(color) && !inherits(color, "jbrowse_color") &&
+    all(is.na(color) | grepl("^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$", color) |
+      color %in% grDevices::colors())) {
+    d$color <- jbrowse_color(color)
+  }
+  d
+}
+
 with_defaults <- function(mapping, defaults) {
   for (name in names(mapping)) defaults[[name]] <- mapping[[name]]
   defaults
@@ -64,7 +77,8 @@ with_defaults <- function(mapping, defaults) {
 # pileup `rows` draws each at the display's read height.
 jbrowse_layer <- function(geom, data, pick, mapping, defaults, params,
                           keyed = TRUE, rows = FALSE) {
-  finish <- if (rows) with_inset else function(d, model) d
+  inset <- if (rows) with_inset else function(d, model) d
+  finish <- function(d, model) display_colors(inset(d, model))
   ggplot2::layer(geom = geom, stat = "identity", position = "identity",
     data = table_from(data, pick, finish),
     mapping = with_defaults(mapping, defaults),
