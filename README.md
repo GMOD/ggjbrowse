@@ -205,7 +205,7 @@ autoplot(jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700",
   display = list(mark = "span")))
 ```
 
-![UCSC's phyloP conservation across GAPDH three ways: min-max bars, an interpolated line over its min-max band, and density; the exons stand out as conserved](man/figures/wiggle.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 A track of several BigWigs, read through a `MultiWiggleAdapter` config,
 draws a row per source in `w$sources`' order. Reorder or filter that table
@@ -289,7 +289,7 @@ reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
 jbrowse_stack(genes, signal, reads)
 ```
 
-![GAPDH genes, phyloP conservation and strand-colored direct RNA reads over the gene's 5' and 3' ends laid end to end](man/figures/stack.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 Each band is an ordinary ggplot. Restyle every band with patchwork's `&`,
 `jbrowse_stack(genes, signal, reads) & theme_classic()`, or draw one on its
@@ -488,10 +488,10 @@ autoplot(m)
 <tr><td width="50%"><img src="gallery/methylation-jbrowse.webp" alt="CpG methylation from MM/ML tags in JBrowse" width="100%"></td><td width="50%"><img src="gallery/methylation-r.webp" alt="CpG methylation from MM/ML tags drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>DNase in twelve cell lines over the beta-globin locus</b> <code>chr11:5,270,001-5,320,000</code></td></tr>
 <tr><td width="50%"><img src="gallery/dnase_rows-jbrowse.webp" alt="DNase in twelve cell lines over the beta-globin locus in JBrowse" width="100%"></td><td width="50%"><img src="gallery/dnase_rows-r.webp" alt="DNase in twelve cell lines over the beta-globin locus drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>phyloP conservation across GAPDH</b> <code>chr12:6,534,201-6,538,700</code></td></tr>
-<tr><td width="50%"><img src="gallery/conservation-jbrowse.webp" alt="phyloP conservation across GAPDH in JBrowse" width="100%"></td><td width="50%"><img src="gallery/conservation-r.webp" alt="phyloP conservation across GAPDH drawn by ggjbrowse" width="100%"></td></tr>
-<tr><td colspan="2"><b>Genes, conservation and reads over two regions end to end</b> <code>chr12:6,534,201-6,535,700 chr12:6,537,201-6,538,700</code></td></tr>
-<tr><td width="50%"><img src="gallery/two_regions-jbrowse.webp" alt="Genes, conservation and reads over two regions end to end in JBrowse" width="100%"></td><td width="50%"><img src="gallery/two_regions-r.webp" alt="Genes, conservation and reads over two regions end to end drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>phyloP conservation across GAPDH as bars, a line and density</b> <code>chr12:6,534,201-6,538,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/conservation-jbrowse.webp" alt="phyloP conservation across GAPDH as bars, a line and density in JBrowse" width="100%"></td><td width="50%"><img src="gallery/conservation-r.webp" alt="phyloP conservation across GAPDH as bars, a line and density drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Genes, conservation and strand-colored reads over two regions end to end</b> <code>chr12:6,534,201-6,535,700 chr12:6,537,201-6,538,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/two_regions-jbrowse.webp" alt="Genes, conservation and strand-colored reads over two regions end to end in JBrowse" width="100%"></td><td width="50%"><img src="gallery/two_regions-r.webp" alt="Genes, conservation and strand-colored reads over two regions end to end drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>100 people's genotypes across DCST2 (GRCh37)</b> <code>1:155,000,001-155,050,000</code></td></tr>
 <tr><td width="50%"><img src="gallery/genotype_matrix-jbrowse.webp" alt="100 people's genotypes across DCST2 (GRCh37) in JBrowse" width="100%"></td><td width="50%"><img src="gallery/genotype_matrix-r.webp" alt="100 people's genotypes across DCST2 (GRCh37) drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>HG002's maternal chr8 over its paternal copy at 8p23.1</b> <code>chr8_MATERNAL:5,250,001-14,250,000 chr8_PATERNAL:5,250,001-14,250,000</code></td></tr>

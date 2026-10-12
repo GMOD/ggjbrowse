@@ -14,13 +14,6 @@ gapdh <- "chr12:6,534,201-6,538,700"
 rna <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"), gapdh)
 save("gapdh.png", autoplot(rna))
 
-bw <- extdata("gapdh_phylop100way.bw")
-save("wiggle.png", patchwork::wrap_plots(ncol = 1,
-  autoplot(jbrowse_wiggle(bw, gapdh, width = 100)),
-  autoplot(jbrowse_wiggle(bw, gapdh, width = 100,
-    display = list(mark = "line", interpolate = "linear"))),
-  autoplot(jbrowse_wiggle(bw, gapdh, display = list(mark = "span")))), 6)
-
 cells <- c("gm12878", "k562", "hepg2", "huvec", "hmec", "nhek", "helas3",
   "a549", "mcf7", "hsmm", "hcm", "hct116")
 dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
@@ -30,14 +23,6 @@ hbb <- "chr11:5,270,001-5,320,000"
 clustered <- jbrowse_wiggle(dnase, hbb, display = list(mark = "span"))
 clustered$tree <- hclust(dist(as.matrix(clustered)), "average")
 save("multi-wiggle-clustered.png", autoplot(clustered), 4)
-
-loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
-tracks <- list(
-  jbrowse_features(extdata("gapdh_gencode.gff3.gz"), loci),
-  jbrowse_wiggle(extdata("gapdh_phylop100way.bw"), loci),
-  jbrowse_alignments(extdata("gapdh_direct_rna.bam"), loci,
-    display = list(color = list(field = "strand"))))
-save("stack.png", jbrowse_stack(tracks))
 
 gff <- read.delim(gzfile(extdata("gapdh_gencode.gff3.gz")), header = FALSE,
   comment.char = "#")
