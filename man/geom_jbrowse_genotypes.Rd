@@ -20,7 +20,7 @@ geom_jbrowse_genotypes(
 \item{layout}{\code{"genomic"} or \code{"columns"}}
 
 \item{px_per_bp}{how many pixels a base spans at genomic positions; \code{NULL}
-takes a figure about 1200 pixels wide}
+takes a figure 1,500 pixels wide}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 }

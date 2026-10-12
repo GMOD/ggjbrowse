@@ -211,7 +211,7 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   pixel by its site's share of the depth, so sequencing errors recede on a
 #'   deep pileup; `NULL` takes the display's `fadeLowFrequencyMismatches`
 #' @param px_per_bp how many pixels a base spans, which that fade reads;
-#'   `NULL` takes a figure about 1200 pixels wide
+#'   `NULL` takes a figure 1,500 pixels wide
 #' @param tracks tracks to draw above a `"track"`, each a
 #'   [jbrowse_features()] or [jbrowse_wiggle()] result over the same region,
 #'   or a list of them, as [jbrowse_stack()] stacks them

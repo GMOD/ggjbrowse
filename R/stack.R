@@ -120,8 +120,7 @@ track_bands <- function(x) {
   if (inherits(x, "jbrowse_alignments")) return(alignment_bands(x))
   height <- if (inherits(x, "jbrowse_features")) max(30, x$height)
     else if (inherits(x, "jbrowse_variants")) row_px(x) * nrow(x$rows)
-    else if (isTRUE(x$row_layout)) 60 * nrow(x$sources)
-    else 100
+    else x$height
   list(plots = list(ggplot2::autoplot(x)), heights = height)
 }
 
@@ -131,7 +130,7 @@ stack_bands <- function(bands) {
   heights <- unlist(lapply(bands, `[[`, "heights"))
   last <- length(plots)
   plots <- lapply(plots, function(p)
-    p + ggplot2::theme(plot.margin = ggplot2::margin(1, 5.5, 1, 5.5)))
+    p + ggplot2::theme(plot.margin = ggplot2::margin(1, 14, 1, 5.5)))
   plots[-last] <- lapply(plots[-last], function(p) p + no_x)
   patchwork::wrap_plots(plots, ncol = 1, heights = heights,
     guides = "collect")

@@ -30,7 +30,7 @@ geom_jbrowse_deletions(
   ...
 )
 
-geom_jbrowse_modifications(mapping = NULL, data = NULL, ...)
+geom_jbrowse_modifications(mapping = NULL, data = NULL, px_per_bp = NULL, ...)
 
 geom_jbrowse_mismatches(
   mapping = NULL,
@@ -88,7 +88,7 @@ geom_jbrowse_arc_ticks(mapping = NULL, data = NULL, ...)
 depth, as the display does (\code{fadeLowFrequencyMismatches})}
 
 \item{px_per_bp}{how many pixels a base spans, which the fade and a
-mismatch's line width read; \code{NULL} takes a figure about 1200 pixels wide}
+mismatch's line width read; \code{NULL} takes a figure 1,500 pixels wide}
 
 \item{min_allele_frequency}{leave out an allele segment whose share of the
 depth is below this, the display's \code{coverageSnpMinFrequency}}

@@ -70,7 +70,7 @@ wiggle_region <- function(file, chrom, start, end, display, width) {
       sources = as_frame(t$sources), rules = rules, keys = list(),
       domain = unlist(t$domain), scale_type = t$scaleType,
       symlog_constant = t$symlogConstant, rendering = t$rendering,
-      origin = t$origin, row_layout = t$rowLayout,
+      origin = t$origin, row_layout = t$rowLayout, height = t$height,
       region = list(chrom = chrom, start = start, end = end),
       missing_contig = t$missingContig),
     primary = "marks",
@@ -136,13 +136,33 @@ scale_y_jbrowse <- function(object) {
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle(aes(fill = abs(score))) +
 #'   scale_fill_viridis_c()
+# Marks as the display stacks its rows: under a row layout each source's
+# scores fill its own slice of the axis, first source on top, with no gap
+# between rows, on the display's own scale; `base` is the slice's floor
+in_rows <- function(x, d) {
+  n <- nrow(x$sources)
+  d$base <- if (isTRUE(x$row_layout)) n - 1 - d$row else rep(0, nrow(d))
+  if (isTRUE(x$row_layout)) {
+    t <- switch(x$scale_type, log = scales::transform_log10(),
+      symlog = symlog_transform(x$symlog_constant),
+      scales::transform_identity())
+    lim <- t$transform(x$domain)
+    at <- function(v) {
+      d$base + pmin(1, pmax(0, (t$transform(v) - lim[1]) / diff(lim)))
+    }
+    d$low <- at(d$low)
+    d$score <- at(d$score)
+  }
+  d
+}
+
 geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
   of <- function(rendering, pick) function(x) {
     d <- pick(x)
     if (x$rendering %in% rendering) d else d[0, , drop = FALSE]
   }
-  marks <- function(x) x$marks[!x$marks$band, , drop = FALSE]
-  band <- function(x) x$marks[x$marks$band, , drop = FALSE]
+  marks <- function(x) in_rows(x, x$marks[!x$marks$band, , drop = FALSE])
+  band <- function(x) in_rows(x, x$marks[x$marks$band, , drop = FALSE])
   steps <- function(x) {
     m <- marks(x)
     d <- m[rep(seq_len(nrow(m)), each = 2), , drop = FALSE]
@@ -160,7 +180,7 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
         fill = color), list(...), keyed = FALSE),
     jbrowse_layer(ggplot2::GeomRect, data, of("density", marks),
       for_geom(mapping, ggplot2::GeomRect),
-      ggplot2::aes(xmin = start, xmax = end, ymin = 0, ymax = 1,
+      ggplot2::aes(xmin = start, xmax = end, ymin = base, ymax = base + 1,
         fill = color), list(...), keyed = FALSE),
     jbrowse_layer(ggplot2::GeomPoint, data, of("scatter", marks),
       for_geom(mapping, ggplot2::GeomPoint),
@@ -180,7 +200,8 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
 #' @export
 geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
   rules <- function(x) {
-    r <- if (x$rendering == "density") x$rules[0, ] else x$rules
+    r <- if (x$rendering == "density" || isTRUE(x$row_layout)) x$rules[0, ]
+      else x$rules
     r$x <- rep(x$region$start, nrow(r))
     r
   }
@@ -216,18 +237,33 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
 autoplot.jbrowse_wiggle <- function(object, ...) {
   object <- on_axis(object)
   density <- object$rendering == "density"
+  rows <- isTRUE(object$row_layout)
+  n <- nrow(object$sources)
   p <- ggplot2::ggplot(object) +
     geom_jbrowse_wiggle() +
     geom_jbrowse_rules() +
-    (if (density) NULL else scale_y_jbrowse(object)) +
+    (if (!rows && !density) scale_y_jbrowse(object)) +
     ggplot2::coord_cartesian(
       xlim = c(object$region$start, object$region$end),
-      ylim = if (density) c(0, 1) else object$domain, expand = FALSE) +
+      ylim = if (rows) c(0, n) else if (density) c(0, 1) else object$domain,
+      expand = FALSE) +
     genomic_x(object) +
     ggplot2::labs(x = axis_label(object), y = NULL) +
-    ggplot2::theme_minimal()
-  if (object$row_layout) {
-    p <- p + ggplot2::facet_grid(rows = ggplot2::vars(source))
-  }
-  if (density) p + no_y else p
+    ggplot2::theme_minimal() +
+    (if (rows) row_labels(object))
+  if (density && !rows) p + no_y else p
+}
+
+# A row layout's y axis: each source named at its row, in text as tall as
+# the row's share of the display's height allows, and none where a row is
+# under 3 pixels
+row_labels <- function(x) {
+  n <- nrow(x$sources)
+  row_px <- x$height / n
+  list(ggplot2::scale_y_continuous(breaks = n - seq_len(n) + 0.5,
+      labels = x$sources$label),
+    ggplot2::theme(panel.grid = ggplot2::element_blank(),
+      axis.text.y = if (row_px < 3) ggplot2::element_blank()
+        else ggplot2::element_text(size = min(8,
+          0.85 * row_px / PX_PER_INCH * 72))))
 }

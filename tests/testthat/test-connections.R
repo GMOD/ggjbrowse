@@ -52,3 +52,11 @@ test_that("read connections come back as the display's band draws them", {
   expect_equal(length(track$patches$plots) + 1,
     3 * nrow(cloud$sections))
 })
+
+test_that("an arc rises as high as it is wide, the band reaching its pixels at the figure's scale", {
+  a <- read(display = list(readConnections = "arc"))
+  span <- 32000 - 18000
+  expect_equal(arc_top(a), a$settings$readConnectionsHeight / (1500 / span))
+  expect_lt(median(a$arcs$y), arc_top(a))
+  expect_gt(max(a$arcs$y), arc_top(a))
+})

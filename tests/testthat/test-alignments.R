@@ -266,3 +266,11 @@ test_that("a short pileup's figure is still tall enough for its keys", {
   expect_equal(jbrowse_height(fig & ggplot2::theme_classic()),
     jbrowse_height(fig), tolerance = 0.2)
 })
+
+test_that("a base modification call draws at least a display pixel wide", {
+  m <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
+    reference = extdata("hg38_clip.fa"),
+    display = list(baseColor = list(field = "modifications")))
+  d <- ggplot2::layer_data(ggplot2::ggplot(m) + geom_jbrowse_modifications(), 1)
+  expect_true(all(d$xmax - d$xmin >= 12000 / 1500 - 1e-9))
+})

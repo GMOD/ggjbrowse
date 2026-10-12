@@ -127,7 +127,7 @@ print.jbrowse_variants <- function(x, ...) {
 #' @param data a [jbrowse_variants()] result, or `NULL` for the plot's
 #' @param layout `"genomic"` or `"columns"`
 #' @param px_per_bp how many pixels a base spans at genomic positions; `NULL`
-#'   takes a figure about 1200 pixels wide
+#'   takes a figure 1,500 pixels wide
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a ggplot layer
 #' @export

@@ -2,9 +2,9 @@
 # display draws by default and takes any column of its table in `mapping`.
 
 # The pixels a base spans, which the display's sub-pixel fade reads: what a
-# geom is told, else a figure about 1200 pixels wide
+# geom is told, else a figure 1,500 pixels wide
 px_of <- function(x, px_per_bp) {
-  px_per_bp %||% (1200 / (x$region$end - x$region$start))
+  px_per_bp %||% (10 * PX_PER_INCH / (x$region$end - x$region$start))
 }
 
 xlim_of <- function(x) c(x$region$start, x$region$end)
@@ -57,7 +57,7 @@ with_inset <- function(d, model) {
 #' @param fade fade a mark narrower than a pixel by its site's share of the
 #'   depth, as the display does (`fadeLowFrequencyMismatches`)
 #' @param px_per_bp how many pixels a base spans, which the fade and a
-#'   mismatch's line width read; `NULL` takes a figure about 1200 pixels wide
+#'   mismatch's line width read; `NULL` takes a figure 1,500 pixels wide
 #' @param min_allele_frequency leave out an allele segment whose share of the
 #'   depth is below this, the display's `coverageSnpMinFrequency`
 #' @param min_reads leave out a junction with fewer supporting reads, the
@@ -311,6 +311,10 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL, ...) {
     list(...))
 }
 
+# The arc band's reach: the read cloud's widest insert, or as many bp as the
+# band's pixels span at the figure's scale, so an arc rises as high as it is
+# wide and one wider than the band runs off it, as the display draws it
 arc_top <- function(x) {
-  if (is_cloud(x)) max(2, x$arc_span_max) else max(1, x$arcs$y)
+  if (is_cloud(x)) max(2, x$arc_span_max)
+  else x$settings$readConnectionsHeight / px_of(x, NULL)
 }

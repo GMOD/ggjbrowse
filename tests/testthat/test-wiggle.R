@@ -84,3 +84,23 @@ test_that("the score axis takes the display's log or symlog transform", {
   expect_equal(axis("symlog"), "symlog")
   expect_equal(axis("linear"), "identity")
 })
+
+test_that("a row layout packs its sources into the display's height, a slice each with no gap", {
+  bw <- normalizePath(system.file("extdata", "volvox_microarray_posneg.bw",
+    package = "ggjbrowse"))
+  multi <- function(n) list(type = "MultiWiggleAdapter",
+    subadapters = lapply(seq_len(n), function(i) list(type = "BigWigAdapter",
+      name = sprintf("s%03d", i), bigWigLocation = list(uri = bw))))
+  w <- jbrowse_wiggle(multi(120), "ctgA", 0, 50000,
+    display = list(mark = "span"))
+  expect_true(w$row_layout)
+  expect_equal(jbrowse_stack(w)$patches$layout$heights, w$height)
+  p <- autoplot(w)
+  expect_null(p$facet$params$rows)
+  tiles <- ggplot2::layer_data(p, 3)
+  expect_setequal(unique(tiles$ymin), 0:119)
+  expect_equal(tiles$ymax - tiles$ymin, rep(1, nrow(tiles)))
+  expect_s3_class(p$theme$axis.text.y, "element_blank")
+  two <- autoplot(jbrowse_wiggle(multi(2), "ctgA", 0, 50000))
+  expect_false(inherits(two$theme$axis.text.y, "element_blank"))
+})

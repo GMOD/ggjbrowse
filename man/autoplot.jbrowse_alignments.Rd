@@ -21,8 +21,8 @@
 
 \item{what}{\code{"track"}: the display's stack, any \code{tracks} on top,
 then splice-junction arcs where the reads splice, the coverage band,
-the read-connection band under \code{display$readConnections}, the reference's bases
-where they are wide enough to read and the pileup, one above the other
+the read-connection band under \code{display$readConnections} and the
+pileup, one above the other
 on a shared axis, each band split into the \code{facet}'s sections, and each
 drawn where the display's \code{showCoverage}, \code{showPileup} and
 \code{showSashimiArcs} draw it; \code{"pileup"}: each read on its row, split at
@@ -50,7 +50,7 @@ pixel by its site's share of the depth, so sequencing errors recede on a
 deep pileup; \code{NULL} takes the display's \code{fadeLowFrequencyMismatches}}
 
 \item{px_per_bp}{how many pixels a base spans, which that fade reads;
-\code{NULL} takes a figure about 1200 pixels wide}
+\code{NULL} takes a figure 1,500 pixels wide}
 
 \item{tracks}{tracks to draw above a \code{"track"}, each a
 \code{\link[=jbrowse_features]{jbrowse_features()}} or \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result over the same region,
