@@ -96,6 +96,9 @@ test_that("a plain ggplot of several regions draws them, and one's own layers, e
   expect_equal(ggplot2::ggplot_build(own)$plot$scales$get_scales("x")$name,
     "mine")
   expect_s3_class(scale_x_jbrowse(a)[[1]], "ScaleContinuousPosition")
+  named <- scale_x_jbrowse(a, name = "Position")[[1]]
+  expect_equal(named$name, "Position")
+  expect_equal(named$breaks, scale_x_jbrowse(a)[[1]]$breaks)
 })
 
 test_that("jbrowse_stack takes a contig's other spelling and warns at another contig", {

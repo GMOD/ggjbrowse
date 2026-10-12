@@ -173,6 +173,8 @@ ggplot_build.ggjbrowse_plot <- function(plot, ...) {
 #' adds it where the plot sets no x scale of its own, and moves the result's
 #' tables in other layers onto it.
 #' @param object a ggjbrowse reader's result
+#' @param ... passed to [ggplot2::scale_x_continuous()], such as `name`, in
+#'   place of the regions' own `breaks` and `labels`
 #' @return a list of a ggplot scale and the seams' layer
 #' @export
 #' @examples
@@ -180,7 +182,7 @@ ggplot_build.ggjbrowse_plot <- function(plot, ...) {
 #' g <- jbrowse_features(gff, c("ctgA:1,001-4,000", "ctgA:6,001-9,000"))
 #' library(ggplot2)
 #' ggplot(g) + geom_jbrowse_glyphs() + scale_x_jbrowse(g)
-scale_x_jbrowse <- function(object) genomic_x(object)
+scale_x_jbrowse <- function(object, ...) genomic_x(object, ...)
 
 # A track's bands and their heights in display pixels: a feature track as
 # tall as its laid-out pixels, an alignments track's bands as its display
@@ -224,10 +226,11 @@ axis_label <- function(x) {
 # label's width of the last one kept, where two labels would collide. A bar
 # in the view's separator grey marks each seam across the band, over what the
 # band draws, as the view masks its tracks.
-genomic_x <- function(x) {
+genomic_x <- function(x, ...) {
   r <- x$regions
   if (is.null(r)) {
-    return(ggplot2::scale_x_continuous(labels = scales::label_comma()))
+    return(scale_with(ggplot2::scale_x_continuous,
+      list(labels = scales::label_comma()), ...))
   }
   w <- r$end - r$start
   at <- lapply(seq_len(nrow(r)), function(i) {
@@ -245,8 +248,8 @@ genomic_x <- function(x) {
     if (!length(k) || breaks[i] - breaks[k[length(k)]] >= room) c(k, i)
     else k, seq_along(breaks), integer(0))
   seams <- (utils::head(r$cum_end, -1) + r$offset[-1]) / 2
-  list(ggplot2::scale_x_continuous(breaks = breaks[kept],
-      labels = labels[kept]),
+  list(scale_with(ggplot2::scale_x_continuous, list(breaks = breaks[kept],
+      labels = labels[kept]), ...),
     ggplot2::geom_vline(xintercept = seams, colour = REGION_SEPARATOR,
       linewidth = 0.9))
 }

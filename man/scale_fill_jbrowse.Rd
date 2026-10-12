@@ -6,17 +6,20 @@
 \alias{scale_color_jbrowse}
 \title{The display's key as a ggplot scale}
 \usage{
-scale_fill_jbrowse(object, key = NULL)
+scale_fill_jbrowse(object, key = NULL, ...)
 
-scale_colour_jbrowse(object, key = NULL)
+scale_colour_jbrowse(object, key = NULL, ...)
 
-scale_color_jbrowse(object, key = NULL)
+scale_color_jbrowse(object, key = NULL, ...)
 }
 \arguments{
 \item{object}{a ggjbrowse result}
 
 \item{key}{which of its keys: for alignments \code{"reads"}, \code{"bases"},
 \code{"arcs"} or \code{"junctions"}; \code{NULL} takes its first}
+
+\item{...}{passed to the ggplot scale, in place of the display's own
+\code{name}, \code{labels} or \code{guide}}
 }
 \value{
 a ggplot scale

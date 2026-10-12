@@ -4,10 +4,13 @@
 \alias{scale_x_jbrowse}
 \title{The x axis of a result's regions as a ggplot scale}
 \usage{
-scale_x_jbrowse(object)
+scale_x_jbrowse(object, ...)
 }
 \arguments{
 \item{object}{a ggjbrowse reader's result}
+
+\item{...}{passed to \code{\link[ggplot2:scale_x_continuous]{ggplot2::scale_x_continuous()}}, such as \code{name}, in
+place of the regions' own \code{breaks} and \code{labels}}
 }
 \value{
 a list of a ggplot scale and the seams' layer

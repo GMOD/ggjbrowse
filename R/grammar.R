@@ -117,17 +117,26 @@ fortify.jbrowse_result <- function(model, data, ...) {
 
 # A key frame as an identity scale's breaks and labels, its line swatches
 # drawn solid whatever width the data maps
-key_scale <- function(scale, key, title) {
+key_scale <- function(scale, key, title, ...) {
   color <- as.character(key$color)
   breaks <- unique(color)
   labels <- vapply(breaks, function(c) paste(key$label[color == c],
     collapse = " / "), "")
-  scale(name = title, breaks = breaks, labels = unname(labels),
+  scale_with(scale, list(name = title, breaks = breaks,
+    labels = unname(labels),
     limits = if (isTRUE(attr(key, "complete"))) function(x) union(x, breaks),
     guide = if (length(breaks)) {
       ggplot2::guide_legend(override.aes = c(list(linewidth = 1.5),
         attr(key, "override")))
-    } else "none")
+    } else "none"), ...)
+}
+
+# A ggplot scale built from its defaults, each argument the caller names
+# taking the default's place
+scale_with <- function(scale, defaults, ...) {
+  own <- list(...)
+  defaults[names(own)] <- own
+  do.call(scale, defaults)
 }
 
 # The key a result's colors are read through, by name
@@ -152,18 +161,20 @@ key_of <- function(object, key) {
 #' @param object a ggjbrowse result
 #' @param key which of its keys: for alignments `"reads"`, `"bases"`,
 #'   `"arcs"` or `"junctions"`; `NULL` takes its first
+#' @param ... passed to the ggplot scale, in place of the display's own
+#'   `name`, `labels` or `guide`
 #' @return a ggplot scale
 #' @export
-scale_fill_jbrowse <- function(object, key = NULL) {
+scale_fill_jbrowse <- function(object, key = NULL, ...) {
   k <- key_of(object, key)
-  key_scale(ggplot2::scale_fill_identity, k, attr(k, "title"))
+  key_scale(ggplot2::scale_fill_identity, k, attr(k, "title"), ...)
 }
 
 #' @rdname scale_fill_jbrowse
 #' @export
-scale_colour_jbrowse <- function(object, key = NULL) {
+scale_colour_jbrowse <- function(object, key = NULL, ...) {
   k <- key_of(object, key)
-  key_scale(ggplot2::scale_colour_identity, k, attr(k, "title"))
+  key_scale(ggplot2::scale_colour_identity, k, attr(k, "title"), ...)
 }
 
 #' @rdname scale_fill_jbrowse

@@ -97,6 +97,11 @@ test_that("the score axis takes the display's log or symlog transform", {
     scale_y_jbrowse(w)$get_transformation()$name
   }
   expect_equal(axis("log"), "log-10")
+  w <- jbrowse_wiggle(bw, "ctgA", 0, 50000,
+    display = list(scales = list(y = list(type = "symlog"))))
+  expect_equal(scale_y_jbrowse(w, name = "Score")$name, "Score")
+  expect_equal(scale_y_jbrowse(w, name = "Score")$get_transformation()$name,
+    "symlog")
   expect_equal(axis("symlog"), "symlog")
   expect_equal(axis("linear"), "identity")
 })

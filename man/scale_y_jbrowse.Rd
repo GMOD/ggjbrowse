@@ -4,10 +4,12 @@
 \alias{scale_y_jbrowse}
 \title{The display's score axis as a ggplot scale}
 \usage{
-scale_y_jbrowse(object)
+scale_y_jbrowse(object, ...)
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result}
+
+\item{...}{passed to the ggplot scale, such as \code{name}}
 }
 \value{
 a ggplot scale

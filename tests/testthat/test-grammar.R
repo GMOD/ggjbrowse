@@ -71,6 +71,9 @@ test_that("the display's keys are scales, each listing what was painted", {
   p <- ggplot(bam) + geom_jbrowse_mismatches() + scale_colour_jbrowse(bam, "bases")
   scale <- ggplot_build(p)$plot$scales$get_scales("colour")
   expect_equal(scale$name, "Base")
+  renamed <- scale_colour_jbrowse(bam, "bases", name = "Mismatch")
+  expect_equal(renamed$name, "Mismatch")
+  expect_equal(renamed$breaks, scale_colour_jbrowse(bam, "bases")$breaks)
   expect_error(scale_fill_jbrowse(bam, "nope"), "keys reads, bases")
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 3000,
     display = list(color = list(field = "strand",

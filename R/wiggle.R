@@ -104,6 +104,7 @@ symlog_transform <- function(constant) {
 #' The y scale a quantitative display plots its scores on: linear, log, or
 #' symlog around the display's constant.
 #' @param object a [jbrowse_wiggle()] result
+#' @param ... passed to the ggplot scale, such as `name`
 #' @return a ggplot scale
 #' @export
 #' @examples
@@ -113,12 +114,12 @@ symlog_transform <- function(constant) {
 #'   display = list(scales = list(y = list(type = "symlog"))))
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle() + scale_y_jbrowse(w)
-scale_y_jbrowse <- function(object) {
+scale_y_jbrowse <- function(object, ...) {
   switch(object$scale_type,
-    log = ggplot2::scale_y_log10(),
-    symlog = ggplot2::scale_y_continuous(
-      transform = symlog_transform(object$symlog_constant)),
-    ggplot2::scale_y_continuous())
+    log = ggplot2::scale_y_log10(...),
+    symlog = scale_with(ggplot2::scale_y_continuous,
+      list(transform = symlog_transform(object$symlog_constant)), ...),
+    ggplot2::scale_y_continuous(...))
 }
 
 # Marks as the display stacks its rows: under a row layout each source's
