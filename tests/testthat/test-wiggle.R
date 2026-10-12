@@ -139,3 +139,41 @@ test_that("several regions share one score axis and color ramp", {
     alone$marks[c("start", "end", "score")])
   expect_false(isTRUE(all.equal(d$domain, alone$domain)))
 })
+
+test_that("as.matrix() bins each source into the display's pixel columns", {
+  sources <- list(type = "MultiWiggleAdapter", subadapters = lapply(1:3,
+    function(i) list(type = "BigWigAdapter", name = paste0("rep", i),
+      bigWigLocation = list(uri = normalizePath(bw)))))
+  m3 <- jbrowse_wiggle(sources, "ctgA:1-50,000", display = list(mark = "span"))
+  m <- as.matrix(m3)
+  expect_equal(dim(m), c(3, 800))
+  expect_equal(rownames(m), c("rep1", "rep2", "rep3"))
+  b <- m3$bins[m3$bins$source == "rep1", ]
+  covering <- function(k) {
+    from <- pmax(0, trunc(b$start / m3$bp_per_px))
+    to <- pmax(trunc(b$end / m3$bp_per_px), from + 1)
+    b$score[from < k & to >= k]
+  }
+  expect_equal(unname(m[1, c(1, 2, 400)]),
+    vapply(c(1, 2, 400), function(k) mean(covering(k)), 0))
+  two <- jbrowse_wiggle(sources, c("ctgA:1-10,000", "ctgA:20,001-30,000"),
+    display = list(mark = "span"))
+  expect_equal(colnames(as.matrix(two))[c(1, 401)], c("ctgA:1", "ctgA:20001"))
+
+  m3$tree <- stats::hclust(stats::dist(m + c(0, 5, 1)), "average")
+  drawn <- on_axis(m3)
+  leaves <- m3$tree$labels[m3$tree$order]
+  expect_equal(drawn$sources$name, leaves)
+  expect_equal(unique(drawn$marks$row[drawn$marks$source == leaves[1]]), 0)
+  p <- autoplot(m3)
+  trees <- Filter(function(l) inherits(l$geom, "GeomTree"), p$layers)
+  expect_length(trees, 1)
+  expect_no_error(ggplot2::ggplotGrob(p))
+  m3$tree <- stats::hclust(stats::dist(m[1:2, ]))
+  expect_error(autoplot(m3), "label it by x\\$sources\\$name")
+
+  m3$tree <- NULL
+  m3$sources <- m3$sources[2:3, ]
+  expect_setequal(unique(on_axis(m3)$marks$source), c("rep2", "rep3"))
+  expect_equal(rownames(as.matrix(m3)), c("rep2", "rep3"))
+})

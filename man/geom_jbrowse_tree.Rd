@@ -2,7 +2,7 @@
 % Please edit documentation in R/cluster.R
 \name{geom_jbrowse_tree}
 \alias{geom_jbrowse_tree}
-\title{A variant matrix's row tree as a ggplot layer}
+\title{A row tree as a ggplot layer}
 \usage{
 geom_jbrowse_tree(mapping = NULL, data = NULL, gap = 2, span = 40, ...)
 }
@@ -10,7 +10,8 @@ geom_jbrowse_tree(mapping = NULL, data = NULL, gap = 2, span = 40, ...)
 \item{mapping}{aesthetics that override the defaults, \code{colour} and
 \code{linewidth}}
 
-\item{data}{a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result, or \code{NULL} for the plot's}
+\item{data}{a \code{\link[=jbrowse_variants]{jbrowse_variants()}} or \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result, or
+\code{NULL} for the plot's}
 
 \item{gap}{the points between the panel's left edge and the leaves}
 
@@ -22,12 +23,14 @@ geom_jbrowse_tree(mapping = NULL, data = NULL, gap = 2, span = 40, ...)
 a ggplot layer
 }
 \description{
-The tree in a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result's \code{tree}, drawn left of the
-panel beside the rows, each leaf at its row, as the variant display draws
-its clustering tree in its sidebar. \code{tree} takes an \code{\link[stats:hclust]{stats::hclust()}}
-result, or anything \code{\link[stats:as.hclust]{stats::as.hclust()}} takes, labelled by the rows'
-\code{name}; setting it also puts the rows in its leaf order. A plot of one's
-own draws outside the panel only under \code{coord_cartesian(clip = "off")}.
+The tree in a \code{\link[=jbrowse_variants]{jbrowse_variants()}} or \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result's \code{tree},
+drawn left of the panel beside the rows, each leaf at its row, as the
+display draws its clustering tree in its sidebar. \code{tree} takes an
+\code{\link[stats:hclust]{stats::hclust()}} result, or anything \code{\link[stats:as.hclust]{stats::as.hclust()}} takes, labelled
+by the rows' \code{name} (a quantitative track's \code{sources}' \code{name}); setting it
+also puts the rows in its leaf order. A quantitative track's rows are its
+sources under a row layout. A plot of one's own draws outside the panel
+only under \code{coord_cartesian(clip = "off")}.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")

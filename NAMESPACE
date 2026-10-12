@@ -3,6 +3,7 @@
 S3method("[",jbrowse_color)
 S3method(as.character,jbrowse_color)
 S3method(as.matrix,jbrowse_variants)
+S3method(as.matrix,jbrowse_wiggle)
 S3method(ggplot2::autoplot,jbrowse_alignments)
 S3method(ggplot2::autoplot,jbrowse_dotplot)
 S3method(ggplot2::autoplot,jbrowse_features)

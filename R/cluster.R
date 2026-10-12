@@ -57,25 +57,56 @@ as.matrix.jbrowse_variants <- function(x, ...) {
   m
 }
 
-# A variant matrix's rows in the order it draws them: `rows`' own order, or a
-# tree's leaf order where `tree` holds one (anything stats::as.hclust()
-# takes), its labels the rows' names; the cells' `row` factor follows
-in_row_order <- function(x) {
-  if (!is.null(x$tree)) {
-    tree <- stats::as.hclust(x$tree)
-    leaves <- tree$labels[tree$order]
-    if (length(leaves) != nrow(x$rows) || !setequal(leaves, x$rows$name)) {
-      stop("the tree's leaves are not the matrix's rows: label it by ",
-        "x$rows$name, one leaf per row (", nrow(x$rows), " rows, such as ",
-        paste(utils::head(x$rows$name, 2), collapse = ", "), ")",
-        call. = FALSE)
-    }
-    x$rows <- x$rows[match(leaves, x$rows$name), , drop = FALSE]
-    rownames(x$rows) <- NULL
+# `rows` in a tree's leaf order where `tree` holds one (anything
+# stats::as.hclust() takes), its labels the rows' names; else as they are.
+# `where` names the rows' table for an error.
+by_tree <- function(rows, tree, where) {
+  if (is.null(tree)) return(rows)
+  tree <- stats::as.hclust(tree)
+  leaves <- tree$labels[tree$order]
+  if (length(leaves) != nrow(rows) || !setequal(leaves, rows$name)) {
+    stop("the tree's leaves are not the rows: label it by ", where,
+      "$name, one leaf per row (", nrow(rows), " rows, such as ",
+      paste(utils::head(rows$name, 2), collapse = ", "), ")", call. = FALSE)
   }
+  rows <- rows[match(leaves, rows$name), , drop = FALSE]
+  rownames(rows) <- NULL
+  rows
+}
+
+# A variant matrix's rows in the order it draws them: `rows`' own order, or
+# its tree's leaf order; the cells' `row` factor follows
+in_row_order <- function(x) {
+  x$rows <- by_tree(x$rows, x$tree, "x$rows")
   x$cells$row <- factor(as.character(x$cells$row),
     levels = as.character(x$rows$name))
   x
+}
+
+# A quantitative track's sources in the order it draws them: `sources`' own
+# order, or its tree's leaf order, each source's marks on its row, and a
+# source left out of `sources` left out of the marks
+in_source_order <- function(x) {
+  x$sources <- by_tree(x$sources, x$tree, "x$sources")
+  for (name in c("marks", "bins")) {
+    d <- x[[name]]
+    x[[name]] <- d[d$source %in% x$sources$name, , drop = FALSE]
+  }
+  if (isTRUE(x$row_layout)) {
+    x$marks$row <- match(x$marks$source, x$sources$name) - 1
+  }
+  x
+}
+
+# The rows a tree's leaves sit at: their names, and each row's y as its
+# plot draws it, from its position in that order
+tree_rows <- function(x) {
+  if (inherits(x, "jbrowse_wiggle")) {
+    n <- nrow(x$sources)
+    return(list(name = as.character(x$sources$name),
+      at = function(i) n - i + 0.5))
+  }
+  list(name = as.character(x$rows$name), at = identity)
 }
 
 # A tree's branches as segments, each leaf at its label's row in `rows`:
@@ -114,17 +145,20 @@ GeomTree <- ggplot2::ggproto("GeomTree", ggplot2::Geom,
       gp = grid::gpar(col = d$colour[1], lwd = d$linewidth[1] * ggplot2::.pt))
   })
 
-#' A variant matrix's row tree as a ggplot layer
+#' A row tree as a ggplot layer
 #'
-#' The tree in a [jbrowse_variants()] result's `tree`, drawn left of the
-#' panel beside the rows, each leaf at its row, as the variant display draws
-#' its clustering tree in its sidebar. `tree` takes an [stats::hclust()]
-#' result, or anything [stats::as.hclust()] takes, labelled by the rows'
-#' `name`; setting it also puts the rows in its leaf order. A plot of one's
-#' own draws outside the panel only under `coord_cartesian(clip = "off")`.
+#' The tree in a [jbrowse_variants()] or [jbrowse_wiggle()] result's `tree`,
+#' drawn left of the panel beside the rows, each leaf at its row, as the
+#' display draws its clustering tree in its sidebar. `tree` takes an
+#' [stats::hclust()] result, or anything [stats::as.hclust()] takes, labelled
+#' by the rows' `name` (a quantitative track's `sources`' `name`); setting it
+#' also puts the rows in its leaf order. A quantitative track's rows are its
+#' sources under a row layout. A plot of one's own draws outside the panel
+#' only under `coord_cartesian(clip = "off")`.
 #' @param mapping aesthetics that override the defaults, `colour` and
 #'   `linewidth`
-#' @param data a [jbrowse_variants()] result, or `NULL` for the plot's
+#' @param data a [jbrowse_variants()] or [jbrowse_wiggle()] result, or
+#'   `NULL` for the plot's
 #' @param gap the points between the panel's left edge and the leaves
 #' @param span the points from the leaves to the root
 #' @param ... passed to [ggplot2::layer()] params
@@ -142,7 +176,11 @@ geom_jbrowse_tree <- function(mapping = NULL, data = NULL, gap = 2,
   data <- replacing(data, NULL, "geom_jbrowse_tree")
   segments <- function(x) {
     tree <- if (!is.null(x$tree)) stats::as.hclust(x$tree)
-    tree_segments(tree, as.character(x$rows$name))
+    rows <- tree_rows(x)
+    s <- tree_segments(tree, rows$name)
+    s$y <- rows$at(s$y)
+    s$yend <- rows$at(s$yend)
+    s
   }
   jbrowse_layer(GeomTree, data, segments, mapping,
     ggplot2::aes(y = y, yend = yend, h = h, hend = hend),

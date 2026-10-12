@@ -77,10 +77,58 @@ jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
       domain = unlist(t$domain), scale_type = t$scaleType,
       symlog_constant = t$symlogConstant, rendering = t$rendering,
       origin = t$origin, row_layout = t$rowLayout, height = t$height,
+      bp_per_px = args$bpPerPx, aggregate = display$aggregate %||% "mean",
       region = as.list(regions[i, ]),
       missing_contig = t$missingContigs[[i]]),
     primary = "marks",
     class = c("jbrowse_wiggle", "jbrowse_result"))))
+}
+
+#' A quantitative track's sources as the display's clustering reads them
+#'
+#' The matrix the multi-row quantitative display's "Cluster rows" clusters: a
+#' row per source of `x$sources`, in its order, named by its `name`, and a
+#' column per pixel of the `width` the track was read at, holding the mean of
+#' the display's `aggregate` over the bins covering that pixel, 0 where none
+#' does. `hclust(dist(as.matrix(w)), "average")` is the R script the
+#' display's clustering dialog writes.
+#' @param x a [jbrowse_wiggle()] result
+#' @param ... unused
+#' @return a numeric matrix, its columns named by the locus each pixel starts
+#'   at
+#' @export
+#' @examples
+#' bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+#'   package = "ggjbrowse")
+#' sources <- list(type = "MultiWiggleAdapter", subadapters = lapply(1:3,
+#'   function(i) list(type = "BigWigAdapter", name = paste0("rep", i),
+#'     bigWigLocation = list(uri = bw))))
+#' w <- jbrowse_wiggle(sources, "ctgA:1-50,000", display = list(mark = "span"))
+#' dim(as.matrix(w))
+#' w$tree <- hclust(dist(as.matrix(w)), "average")
+as.matrix.jbrowse_wiggle <- function(x, ...) {
+  r <- regions_read(x)
+  per_px <- 1 / x$bp_per_px
+  columns <- pmax(0, floor((r$end - r$start) * per_px))
+  offset <- cumsum(c(0, columns))[seq_along(columns)]
+  b <- x$bins[x$bins$source %in% x$sources$name, , drop = FALSE]
+  value <- switch(x$aggregate, min = b$min, max = b$max, b$score) %||% b$score
+  i <- b$.region
+  from <- pmax(0, trunc((b$start - r$start[i]) * per_px))
+  to <- pmin(columns[i], pmax(trunc((b$end - r$start[i]) * per_px), from + 1))
+  keep <- b$end > r$start[i] & to > from & !is.na(value)
+  n <- (to - from)[keep]
+  row <- rep(match(b$source[keep], x$sources$name), n)
+  column <- rep(offset[i][keep] + from[keep], n) + sequence(n)
+  cell <- (column - 1) * nrow(x$sources) + row
+  sums <- rowsum(rep(value[keep], n), cell)
+  counts <- rowsum(rep(1, length(cell)), cell)
+  m <- matrix(0, nrow(x$sources), sum(columns),
+    dimnames = list(x$sources$name, unlist(lapply(seq_len(nrow(r)),
+      function(k) sprintf("%s:%.0f", r$chrom[k],
+        r$start[k] + floor((seq_len(columns[k]) - 1) * x$bp_per_px) + 1)))))
+  m[as.numeric(rownames(sums))] <- sums / counts
+  m
 }
 
 #' @export
@@ -250,6 +298,7 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
   object <- on_axis(object)
   density <- object$rendering == "density"
   rows <- isTRUE(object$row_layout)
+  tree <- rows && !is.null(object$tree)
   n <- nrow(object$sources)
   p <- ggplot2::ggplot(object) +
     geom_jbrowse_wiggle() +
@@ -263,16 +312,19 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
     genomic_x(object) +
     ggplot2::labs(x = axis_label(object), y = NULL) +
     ggplot2::theme_minimal() +
-    (if (rows) row_labels(object))
+    (if (tree) geom_jbrowse_tree(gap = 3.2, span = TREE_PT)) +
+    (if (rows) row_labels(object, if (tree) TREE_PT + 5.2 else 2.2))
   if (density && !rows) p + no_y else p
 }
 
-# A row layout's y axis: each source named at its row, and none where a row
-# is under 3 of the display's pixels
-row_labels <- function(x) {
+# A row layout's y axis: each source named at its row, `gap_pt` from the
+# panel, and none where a row is under 3 of the display's pixels
+row_labels <- function(x, gap_pt = 2.2) {
   n <- nrow(x$sources)
   y <- n - seq_len(n) + 0.5
   list(ggplot2::scale_y_continuous(breaks = y, labels = x$sources$label),
     ggplot2::theme(panel.grid = ggplot2::element_blank()),
-    if (x$height / n < 3) no_y else row_names(x$sources$label, y))
+    if (x$height / n >= 3) row_names(x$sources$label, y, gap_pt)
+    else if (gap_pt > 2.2) list(no_y, axis_gap(gap_pt))
+    else no_y)
 }

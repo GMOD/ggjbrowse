@@ -157,6 +157,7 @@ on_axis <- function(x) {
   if (inherits(x, "jbrowse_dotplot")) return(dotplot_on_axis(x))
   if (inherits(x, "jbrowse_multiway")) return(multiway_on_axis(x))
   if (inherits(x, "jbrowse_variants")) x <- in_row_order(x)
+  if (inherits(x, "jbrowse_wiggle")) x <- in_source_order(x)
   r <- x$regions
   if (is.null(r)) return(x)
   for (name in names(x)) {

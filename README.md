@@ -187,6 +187,15 @@ autoplot(jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "span")))
 
 ![A signed volvox microarray track three ways: min-max bars, an interpolated line over its min-max band, and density](man/figures/wiggle.png)
 
+A track of several BigWigs, read through a `MultiWiggleAdapter` config,
+draws a row per source in `w$sources`' order. Reorder or filter that table
+to rearrange them, as for a variant matrix's rows:
+
+- `as.matrix(w)` is the matrix the display's "Cluster rows" clusters: a row
+  per source, a column per pixel.
+- `w$tree <- hclust(dist(as.matrix(w)), "average")` puts the rows in the
+  tree's order, and `autoplot()` draws the tree beside them.
+
 ## Variant matrices
 
 `jbrowse_variants()` reads a multi-sample VCF through JBrowse's variant
