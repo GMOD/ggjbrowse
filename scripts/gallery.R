@@ -85,15 +85,6 @@ examples <- list(
     title = "Splice junctions over direct RNA reads", locus = gapdh,
     jbrowse = c(fasta, "--bam", rna, "showLegend=true", "--loc", gapdh),
     r = function() autoplot(jbrowse_alignments(rna, gapdh))),
-  strand_sections = list(
-    title = "COLO829 long reads split into forward and reverse strand sections",
-    locus = "chr3:25,357,600-25,361,000",
-    jbrowse = c(hg38, "--bam", extdata("colo829_tumor_chr3.bam"),
-      "showLegend=true",
-      "facet=strand", "--loc", "chr3:25,357,600-25,361,000"),
-    r = function() autoplot(jbrowse_alignments(
-      extdata("colo829_tumor_chr3.bam"), "chr3:25,357,600-25,361,000",
-      display = list(facet = list(field = "strand"))))),
   long_reads_sv = list(
     title = "COLO829 der(3) split reads chained across its two chr3 breakpoints",
     locus = "chr3:25,358,500-25,359,800",
