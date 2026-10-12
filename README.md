@@ -347,7 +347,8 @@ stack above and below the band:
 r <- "5,250,001-14,250,000"
 s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   paste0("chr8_PATERNAL:", r),
-  view = list(color = list(field = "strand")), swap = TRUE)
+  view = list(color = list(field = "strand")), swap = TRUE,
+  labels = c(query = "paternal", target = "maternal"))
 gene_track <- function(file, contig) jbrowse_features(e(file),
   paste0(contig, ":", r),
   display = list(displayMode = "compact", showLabels = FALSE,
@@ -366,7 +367,8 @@ copies rearranged:
 a <- jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,520,894-103,832,637",
   "HG00133#1#CM090045.1:103,669,666-103,981,330",
-  view = list(color = list(field = "strand")))
+  view = list(color = list(field = "strand")),
+  labels = c(query = "GRCh38", target = "HG00133"))
 autoplot(a)
 ```
 
@@ -389,7 +391,8 @@ plot, and `view` takes the `DotplotView`'s settings:
 
 ```r
 autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
-  view = list(color = list(field = "strand"))))
+  view = list(color = list(field = "strand")),
+  labels = c(query = "paternal", target = "maternal")))
 ```
 
 ![HG002 chr8 as a dotplot: one diagonal of forward blocks, the inversion a short reverse one near the start](man/figures/dotplot.png)
@@ -404,15 +407,21 @@ mate the other row does not show), and `geom_jbrowse_ribbons()` and
 `geom_jbrowse_dotplot()` draw them. `geom_jbrowse_offscreen_mates()` draws
 `s$offscreen_strip`, the marks and contig names the band hangs off a row's
 edge for those blocks, and `autoplot()` keys each contig with the line the
-strip's hover prints, from `s$offscreen_contigs`. A file guessed from its extension names
-its sides `query` and `target`; a JBrowse adapter config names assemblies,
-and `assemblies = c(query, target)` picks which goes on which row.
-`swap = TRUE` puts the file's target on the top row instead. With no regions
-given, a row shows every contig of its assembly, in natural order, and a
-contig named alone shows whole, so a whole-genome dotplot is one call:
+strip's hover prints, from `s$offscreen_contigs`.
+
+- A file guessed from its extension names its sides `query` and `target`; a
+  JBrowse adapter config names assemblies, and `assemblies = c(query, target)`
+  picks which goes on which row.
+- `swap = TRUE` puts the file's target on the top row instead.
+- `labels = c(query = "peach", target = "grape")` writes those names in the
+  axis titles, whichever side each is on.
+- With no regions given, a row shows every contig of its assembly, in natural
+  order, and a contig named alone shows whole, so a whole-genome dotplot is
+  one call:
 
 ```r
-autoplot(jbrowse_dotplot(e("peach_grape.paf.gz")))
+autoplot(jbrowse_dotplot(e("peach_grape.paf.gz"),
+  labels = c(query = "peach", target = "grape")))
 ```
 
 ![Peach against grape, every chromosome of each along its axis, named](man/figures/whole-genome.png)

@@ -93,7 +93,8 @@ chain <- extdata("hg002_chr8.chain")
 inversion <- "5,250,001-14,250,000"
 synteny <- jbrowse_synteny(chain, paste0("chr8_MATERNAL:", inversion),
   paste0("chr8_PATERNAL:", inversion),
-  view = list(color = list(field = "strand")), swap = TRUE)
+  view = list(color = list(field = "strand")), swap = TRUE,
+  labels = c(query = "paternal", target = "maternal"))
 gene_track <- function(file, contig) jbrowse_features(extdata(file),
   paste0(contig, ":", inversion),
   display = list(displayMode = "compact", showLabels = FALSE,
@@ -106,18 +107,21 @@ save("synteny.png", synteny_plot)
 amylase <- jbrowse_synteny(extdata("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,520,894-103,832,637",
   "HG00133#1#CM090045.1:103,669,666-103,981,330",
-  view = list(color = list(field = "strand")))
+  view = list(color = list(field = "strand")),
+  labels = c(query = "GRCh38", target = "HG00133"))
 save("amylase.png", autoplot(amylase), 3)
 
 save("synteny-zoom.png", autoplot(jbrowse_synteny(extdata("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,619,501-103,622,500",
   "HG00133#1#CM090045.1:103,768,401-103,771,400", width = 1500)), 2.2)
 ggsave(file.path(out, "dotplot.png"), autoplot(jbrowse_dotplot(chain,
-  view = list(color = list(field = "strand")))),
+  view = list(color = list(field = "strand")),
+  labels = c(query = "paternal", target = "maternal"))),
   width = 7, height = 6, dpi = 120)
 
 ggsave(file.path(out, "whole-genome.png"),
-  autoplot(jbrowse_dotplot(extdata("peach_grape.paf.gz"))),
+  autoplot(jbrowse_dotplot(extdata("peach_grape.paf.gz"),
+    labels = c(query = "peach", target = "grape"))),
   width = 6, height = 5.5, dpi = 120)
 
 liftover <- function(genome, assembly) list(type = "PairwiseIndexedPAFAdapter",

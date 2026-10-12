@@ -47,6 +47,23 @@ comparative_args <- function(file, index, view) {
   args
 }
 
+# The names an axis title shows: each assembly name `labels` renames, as the
+# named vector `c(query = "peach", target = "grape")` gives it, or an unnamed
+# pair in the adapter's query, target order
+display_names <- function(names, labels, config) {
+  if (is.null(labels)) return(names)
+  if (is.null(names(labels))) {
+    if (length(labels) != 2) {
+      stop("`labels` is a named vector, or a pair in query, target order",
+        call. = FALSE)
+    }
+    names(labels) <- unlist(config$assemblyNames) %||%
+      unlist(c(config$queryAssembly, config$targetAssembly))
+  }
+  hit <- match(names, names(labels))
+  ifelse(is.na(hit), names, unname(labels)[hit])
+}
+
 # The assembly each axis is on, first and second: `assemblies` where given,
 # else the adapter's own names, reversed by `swap`
 axis_assemblies <- function(config, assemblies, swap) {
@@ -185,6 +202,11 @@ comparative_axes <- function(config, first, second, assemblies, swap) {
 #'   reversed. A file guessed from its extension names its sides `"query"`
 #'   and `"target"`, so `swap = TRUE` is `assemblies = c("target",
 #'   "query")`
+#' @param labels what each axis title calls its assembly, named by the
+#'   assembly: `c(query = "peach", target = "grape")` for a file guessed from
+#'   its extension, or the adapter's own assembly names. An unnamed pair is
+#'   the adapter's query and target in that order. Unset, a title shows the
+#'   assembly name itself, `"query"` and `"target"` for a guessed file
 #' @param index the tabix or CSI index of a `.pif.gz`, if not beside it
 #' @return a `jbrowse_synteny` list:
 #'   * `alignments`: each block, in the band's paint order: `id`, `name`,
@@ -227,7 +249,7 @@ comparative_axes <- function(config, first, second, assemblies, swap) {
 #' head(s$alignments)
 jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
                             width = 800, assemblies = NULL, swap = FALSE,
-                            index = NULL) {
+                            labels = NULL, index = NULL) {
   args <- comparative_args(file, index, view)
   axes <- comparative_axes(args$adapterConfig, query, target, assemblies, swap)
   q <- axes$first
@@ -257,7 +279,8 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
       legend = key, keys = list(ribbons = key), ramps = ramp_frames(r$ramps),
       field = r$field, alpha = r$alpha, height = r$height,
       fade_thin = r$fadeThin, has_cigar = r$hasCigar,
-      assemblies = unlist(r$assemblyNames), width = width,
+      assemblies = display_names(unlist(r$assemblyNames), labels,
+        args$adapterConfig), width = width,
       query = region_layout(q, 0), target = region_layout(t, 0)),
     primary = "ribbons",
     class = c("jbrowse_synteny", "jbrowse_result"))
@@ -686,6 +709,8 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #' @param assemblies which assembly each axis is on, `c(x, y)`
 #' @param swap put the file's target side on the horizontal axis and its
 #'   query on the vertical, as [jbrowse_synteny()]'s `swap` does the rows
+#' @param labels what each axis title calls its assembly, as for
+#'   [jbrowse_synteny()]: `c(query = "peach", target = "grape")`
 #' @return a `jbrowse_dotplot` list:
 #'   * `alignments`: each block: `name`, `x_chrom`, `x_start`, `x_end`,
 #'     `y_chrom`, `y_start`, `y_end`, `strand`, `length`, the measurements
@@ -709,7 +734,7 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #' head(d$segments)
 jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
                             width = 600, height = 600, assemblies = NULL,
-                            swap = FALSE, index = NULL) {
+                            swap = FALSE, labels = NULL, index = NULL) {
   args <- comparative_args(file, index, view)
   axes <- comparative_axes(args$adapterConfig, x, y, assemblies, swap)
   xr <- axes$first
@@ -733,7 +758,8 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
       keys = list(segments = key), ramps = ramp_frames(r$ramps),
       field = r$field,
       alpha = r$alpha, line_width = r$lineWidth,
-      assemblies = unlist(r$assemblyNames), skipped = r$skipped,
+      assemblies = display_names(unlist(r$assemblyNames), labels,
+        args$adapterConfig), skipped = r$skipped,
       width = width, height = height,
       x = region_layout(xr, 0), y = region_layout(yr, 0)),
     primary = "segments",

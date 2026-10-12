@@ -13,6 +13,7 @@ jbrowse_dotplot(
   height = 600,
   assemblies = NULL,
   swap = FALSE,
+  labels = NULL,
   index = NULL
 )
 }
@@ -39,6 +40,9 @@ enough for their CIGAR to show}
 
 \item{swap}{put the file's target side on the horizontal axis and its
 query on the vertical, as \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s \code{swap} does the rows}
+
+\item{labels}{what each axis title calls its assembly, as for
+\code{\link[=jbrowse_synteny]{jbrowse_synteny()}}: \code{c(query = "peach", target = "grape")}}
 
 \item{index}{the tabix or CSI index of a \code{.pif.gz}, if not beside it}
 }

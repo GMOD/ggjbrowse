@@ -12,6 +12,7 @@ jbrowse_synteny(
   width = 800,
   assemblies = NULL,
   swap = FALSE,
+  labels = NULL,
   index = NULL
 )
 }
@@ -51,6 +52,12 @@ on a PAF of \code{volvox_del} against \code{volvox} puts \code{volvox} on top}
 on the bottom: the adapter's two assembly names, or \code{assemblies},
 reversed. A file guessed from its extension names its sides \code{"query"}
 and \code{"target"}, so \code{swap = TRUE} is \code{assemblies = c("target", "query")}}
+
+\item{labels}{what each axis title calls its assembly, named by the
+assembly: \code{c(query = "peach", target = "grape")} for a file guessed from
+its extension, or the adapter's own assembly names. An unnamed pair is
+the adapter's query and target in that order. Unset, a title shows the
+assembly name itself, \code{"query"} and \code{"target"} for a guessed file}
 
 \item{index}{the tabix or CSI index of a \code{.pif.gz}, if not beside it}
 }

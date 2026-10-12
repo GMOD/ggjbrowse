@@ -154,6 +154,23 @@ test_that("a file's contigs list with their lengths, and an axis with no regions
   expect_equal(nrow(named$y), 1)
 })
 
+test_that("labels name each axis's assembly in its title", {
+  grape <- system.file("extdata", "peach_grape.paf.gz", package = "ggjbrowse")
+  named <- c(query = "peach", target = "grape")
+  d <- jbrowse_dotplot(grape, labels = named)
+  expect_equal(d$assemblies, c("peach", "grape"))
+  expect_equal(jbrowse_dotplot(grape, labels = c("peach", "grape"))$assemblies,
+    c("peach", "grape"))
+  title <- function(p) ggplot2::ggplot_build(p)$layout$resolve_label(
+    ggplot2::ggplot_build(p)$layout$panel_scales_x[[1]], p$labels)$primary
+  expect_match(title(autoplot(d)), "^peach, 13 regions")
+  swapped <- jbrowse_dotplot(grape, swap = TRUE, labels = named)
+  expect_equal(swapped$assemblies, c("grape", "peach"))
+  expect_equal(jbrowse_synteny(paf, labels = c(target = "volvox"))$assemblies,
+    c("query", "volvox"))
+  expect_error(jbrowse_dotplot(grape, labels = "peach"), "named vector")
+})
+
 test_that("swap puts the file's target on the top row and the x axis", {
   swapped <- jbrowse_synteny(paf, swap = TRUE)
   expect_equal(swapped$assemblies, c("target", "query"))
