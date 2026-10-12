@@ -82,10 +82,6 @@ examples <- list(
       "--loc", gapdh),
     r = function() autoplot(jbrowse_alignments(rna, gapdh),
       above = jbrowse_features(gencode, gapdh))),
-  sashimi = list(
-    title = "Splice junctions over direct RNA reads", locus = gapdh,
-    jbrowse = c(fasta, "--bam", rna, "showLegend=true", grow, "--loc", gapdh),
-    r = function() autoplot(jbrowse_alignments(rna, gapdh))),
   long_reads_sv = list(
     title = "COLO829 der(3) split reads chained across its two chr3 breakpoints",
     locus = "chr3:25,358,500-25,359,800",
