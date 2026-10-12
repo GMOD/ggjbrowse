@@ -186,8 +186,8 @@ makeContent.ggjbrowse_display_text <- function(x) {
 #' @export
 print.jbrowse_features <- function(x, ...) {
   cat(sprintf(
-    "<jbrowse_features> %s:%.0f-%.0f, %d features, %d transcripts, %d boxes, %d labels, %.0f px tall\n",
-    x$region$chrom, x$region$start, x$region$end, nrow(x$features),
+    "<jbrowse_features> %s, %d features, %d transcripts, %d boxes, %d labels, %.0f px tall\n",
+    print_loci(x), nrow(x$features),
     nrow(x$subfeatures), nrow(x$rects), nrow(x$labels), x$height))
   invisible(x)
 }

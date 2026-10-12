@@ -70,6 +70,15 @@ test_that("an axis of several regions is labelled in each region's own positions
     c("1,000", "2,000", "3,000", "7,000", "8,000", "9,000"))
 })
 
+test_that("print names the loci read, however many regions", {
+  loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
+  expect_output(print(jbrowse_alignments(bam, loci)),
+    "ctgA:1,001-4,000, ctgA:6,001-9,000")
+  expect_output(print(jbrowse_features(gff, loci)),
+    "ctgA:1,001-4,000, ctgA:6,001-9,000")
+  expect_output(print(jbrowse_alignments(bam, loci[1])), "ctgA:1,001-4,000")
+})
+
 test_that("each band of a stack marks the seam between regions with a bar", {
   loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
   genes <- jbrowse_features(gff, loci)

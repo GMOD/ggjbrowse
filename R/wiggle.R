@@ -86,8 +86,8 @@ jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
 #' @export
 print.jbrowse_wiggle <- function(x, ...) {
   cat(sprintf(
-    "<jbrowse_wiggle> %s:%.0f-%.0f, %d bins from %d source(s), drawn as %s on %s axis %g to %g\n",
-    x$region$chrom, x$region$start, x$region$end, nrow(x$bins),
+    "<jbrowse_wiggle> %s, %d bins from %d source(s), drawn as %s on %s axis %g to %g\n",
+    print_loci(x), nrow(x$bins),
     nrow(x$sources), x$rendering, x$scale_type, x$domain[1], x$domain[2]))
   invisible(x)
 }

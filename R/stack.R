@@ -78,11 +78,28 @@ PX_PER_INCH <- 150
 
 regions_read <- function(x) x$regions %||% as.data.frame(x$region)
 
-# The loci a result reads, as JBrowse's location box writes them
-loci_of <- function(x) {
-  r <- regions_read(x)
-  sprintf("%s:%s-%s", r$chrom, format(r$start + 1, big.mark = ",",
-    trim = TRUE), format(r$end, big.mark = ",", trim = TRUE))
+# Regions as JBrowse's location box writes them
+loci_of_layout <- function(layout) {
+  sprintf("%s:%s-%s", layout$chrom, format(layout$start + 1, big.mark = ",",
+    trim = TRUE), format(layout$end, big.mark = ",", trim = TRUE))
+}
+
+# The loci a result reads
+loci_of <- function(x) loci_of_layout(regions_read(x))
+
+# The loci a result reads, for its print header
+print_loci <- function(x) paste(loci_of(x), collapse = ", ")
+
+# Each region's round breaks in its own coordinates, about as many as its
+# share of the axis earns, none on an edge facing another region
+region_breaks <- function(r) {
+  w <- r$end - r$start
+  lapply(seq_len(nrow(r)), function(i) {
+    b <- pretty(c(r$start[i], r$end[i]), n = max(2, round(6 * w[i] / sum(w))))
+    lo <- if (i == 1) r$start[i] else r$start[i] + 1
+    hi <- if (i == nrow(r)) r$end[i] else r$end[i] - 1
+    b[b >= lo & b <= hi]
+  })
 }
 
 # Stops where the results read different spans: tracks on one axis must read
@@ -195,14 +212,15 @@ track_bands <- function(x) {
   list(plots = list(ggplot2::autoplot(x)), heights = height)
 }
 
-# Bands sit close, as the display stacks its tracks and a track its bands
-stack_bands <- function(bands) {
+# Bands sit close, as the display stacks its tracks and a track its bands.
+# The plot at index `axis_at` keeps its x axis: the last by default, none for 0.
+stack_bands <- function(bands, axis_at = NULL) {
   plots <- do.call(c, lapply(bands, `[[`, "plots"))
   heights <- unlist(lapply(bands, `[[`, "heights"))
-  last <- length(plots)
+  axis_at <- axis_at %||% length(plots)
   plots <- lapply(plots, function(p)
     p + ggplot2::theme(plot.margin = ggplot2::margin(1, 14, 1, 5.5)))
-  plots[-last] <- lapply(plots[-last], function(p) p + no_x)
+  plots[-axis_at] <- lapply(plots[-axis_at], function(p) p + no_x)
   patchwork::wrap_plots(plots, ncol = 1, heights = heights,
     guides = "collect")
 }
@@ -232,13 +250,7 @@ genomic_x <- function(x, ...) {
     return(scale_with(ggplot2::scale_x_continuous,
       list(labels = scales::label_comma()), ...))
   }
-  w <- r$end - r$start
-  at <- lapply(seq_len(nrow(r)), function(i) {
-    b <- pretty(c(r$start[i], r$end[i]), n = max(2, round(6 * w[i] / sum(w))))
-    lo <- if (i == 1) r$start[i] else r$start[i] + 1
-    hi <- if (i == nrow(r)) r$end[i] else r$end[i] - 1
-    b[b >= lo & b <= hi]
-  })
+  at <- region_breaks(r)
   breaks <- unlist(lapply(seq_len(nrow(r)), function(i)
     at[[i]] - r$start[i] + r$offset[i]))
   labels <- format(unlist(at), big.mark = ",", trim = TRUE,

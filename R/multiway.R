@@ -389,10 +389,5 @@ autoplot.jbrowse_multiway <- function(object, above = NULL, below = NULL,
     list(list(plots = list(stack),
       heights = (n - 1) * MULTIWAY_GUTTER_PX + LANE_RULER_PX + LANE_BOX_PX)),
     bottom)
-  plots <- do.call(c, lapply(bands, `[[`, "plots"))
-  heights <- unlist(lapply(bands, `[[`, "heights"))
-  plots <- lapply(plots, function(p) p + no_x +
-    ggplot2::theme(plot.margin = ggplot2::margin(1, 14, 1, 5.5)))
-  patchwork::wrap_plots(plots, ncol = 1, heights = heights,
-    guides = "collect")
+  stack_bands(bands, axis_at = 0)
 }

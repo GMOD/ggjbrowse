@@ -116,8 +116,8 @@ variants_region <- function(adapter, chrom, start, end, display,
 #' @export
 print.jbrowse_variants <- function(x, ...) {
   cat(sprintf(
-    "<jbrowse_variants> %s:%.0f-%.0f, %d records, %d rows, %d cells\n",
-    x$region$chrom, x$region$start, x$region$end, nrow(x$variants),
+    "<jbrowse_variants> %s, %d records, %d rows, %d cells\n",
+    print_loci(x), nrow(x$variants),
     nrow(x$rows), nrow(x$cells)))
   invisible(x)
 }

@@ -313,8 +313,8 @@ config_color <- function(color) in_json(color, c("domain", "range", "labels"))
 #' @export
 print.jbrowse_alignments <- function(x, ...) {
   cat(sprintf(
-    "<jbrowse_alignments> %s:%.0f-%.0f, %d reads in %d sections, %d mismatches, %d gaps, %d insertions, %d clips, %d modifications, %d junctions, %d arcs\n",
-    x$region$chrom, x$region$start, x$region$end, nrow(x$reads),
+    "<jbrowse_alignments> %s, %d reads in %d sections, %d mismatches, %d gaps, %d insertions, %d clips, %d modifications, %d junctions, %d arcs\n",
+    print_loci(x), nrow(x$reads),
     nrow(x$sections), nrow(x$mismatches), nrow(x$gaps),
     nrow(x$insertions), nrow(x$clips), nrow(x$modifications),
     nrow(x$junctions), nrow(x$arcs)))

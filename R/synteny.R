@@ -541,23 +541,12 @@ layout_breaks <- function(layout, px, width) {
       r$end - r$start)
     return(list(breaks = mid[keep], labels = r$chrom[keep]))
   }
-  w <- r$end - r$start
-  at <- lapply(seq_len(nrow(r)), function(i) {
-    b <- pretty(c(r$start[i], r$end[i]), n = max(2, round(6 * w[i] / sum(w))))
-    lo <- if (i == 1) r$start[i] else r$start[i] + 1
-    hi <- if (i == nrow(r)) r$end[i] else r$end[i] - 1
-    b[b >= lo & b <= hi]
-  })
+  at <- region_breaks(r)
   list(
     breaks = unlist(lapply(seq_len(nrow(r)), function(i)
       px(r, rep(i, length(at[[i]])), at[[i]]))),
     labels = format(unlist(at), big.mark = ",", trim = TRUE,
       scientific = FALSE))
-}
-
-loci_of_layout <- function(layout) {
-  sprintf("%s:%s-%s", layout$chrom, format(layout$start + 1, big.mark = ",",
-    trim = TRUE), format(layout$end, big.mark = ",", trim = TRUE))
 }
 
 layout_label <- function(layout, assembly = "") {
@@ -671,14 +660,8 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
   bands <- c(lapply(above, track_bands),
     list(list(plots = list(band), heights = object$height)),
     lapply(below, track_bands))
-  plots <- do.call(c, lapply(bands, `[[`, "plots"))
-  heights <- unlist(lapply(bands, `[[`, "heights"))
   own <- sum(lengths(lapply(bands[seq_along(above)], `[[`, "plots"))) + 1
-  plots[-own] <- lapply(plots[-own], function(p) p + no_x)
-  plots <- lapply(plots, function(p)
-    p + ggplot2::theme(plot.margin = ggplot2::margin(1, 14, 1, 5.5)))
-  patchwork::wrap_plots(plots, ncol = 1, heights = heights,
-    guides = "collect")
+  stack_bands(bands, axis_at = own)
 }
 
 #' Read a pairwise alignment as JBrowse's dotplot view draws it
