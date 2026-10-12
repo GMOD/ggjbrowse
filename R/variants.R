@@ -127,7 +127,9 @@ print.jbrowse_variants <- function(x, ...) {
 #' being its row number in `variants`. Map `genotype`, `dosage`, `sample` or
 #' any other column of the cells table to draw it your own way.
 #' @param mapping aesthetics that override the defaults
-#' @param data a [jbrowse_variants()] result, or `NULL` for the plot's
+#' @param data a [jbrowse_variants()] result, `NULL` for the plot's,
+#'   or a data frame in place of the table the geom draws from the plot's
+#'   result, such as a filtered copy of it
 #' @param layout `"genomic"` or `"columns"`
 #' @param px_per_bp how many pixels a base spans at genomic positions; `NULL`
 #'   takes a figure 1,500 pixels wide
@@ -143,6 +145,7 @@ print.jbrowse_variants <- function(x, ...) {
 geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
                                    layout = c("genomic", "columns"),
                                    px_per_bp = NULL, ...) {
+  data <- replacing(data, "cells", "geom_jbrowse_genotypes")
   layout <- match.arg(layout)
   cells <- function(x) {
     d <- x$cells

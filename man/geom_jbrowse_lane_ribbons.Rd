@@ -12,7 +12,9 @@ geom_jbrowse_lanes(data = NULL, ...)
 \arguments{
 \item{mapping}{aesthetics that override the defaults}
 
-\item{data}{a \code{\link[=jbrowse_multiway]{jbrowse_multiway()}} result, or \code{NULL} for the plot's}
+\item{data}{a \code{\link[=jbrowse_multiway]{jbrowse_multiway()}} result, \code{NULL} for the plot's,
+or a data frame in place of the table the geom draws from the plot's
+result, such as a filtered copy of it}
 
 \item{curves}{draw each ribbon edge as the display's \code{drawCurves} does,
 unset as the result's settings say}

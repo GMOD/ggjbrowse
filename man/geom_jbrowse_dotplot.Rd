@@ -9,7 +9,9 @@ geom_jbrowse_dotplot(mapping = NULL, data = NULL, ...)
 \arguments{
 \item{mapping}{aesthetics that override the defaults}
 
-\item{data}{a \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}} result, or \code{NULL} for the plot's}
+\item{data}{a \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}} result, \code{NULL} for the plot's,
+or a data frame in place of the table the geom draws from the plot's
+result, such as a filtered copy of it}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params, such as \code{linewidth}}
 }

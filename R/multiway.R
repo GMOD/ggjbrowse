@@ -242,7 +242,9 @@ multiway_feet <- function(r) {
 #' gene table, the boxes the ribbons join. Lanes stack top to bottom
 #' `r MULTIWAY_GUTTER_PX` pixels apart on y; x is the view's pixels.
 #' @param mapping aesthetics that override the defaults
-#' @param data a [jbrowse_multiway()] result, or `NULL` for the plot's
+#' @param data a [jbrowse_multiway()] result, `NULL` for the plot's,
+#'   or a data frame in place of the table the geom draws from the plot's
+#'   result, such as a filtered copy of it
 #' @param curves draw each ribbon edge as the display's `drawCurves` does,
 #'   unset as the result's settings say
 #' @param ... passed to [ggplot2::layer()] params
@@ -255,6 +257,7 @@ multiway_feet <- function(r) {
 #' ggplot(m) + geom_jbrowse_lane_ribbons() + geom_jbrowse_lanes()
 geom_jbrowse_lane_ribbons <- function(mapping = NULL, data = NULL,
                                       curves = NULL, ...) {
+  data <- replacing(data, "ribbons", "geom_jbrowse_lane_ribbons")
   curved <- function(x) curves %||% isTRUE(x$curves)
   filled <- function(x) {
     r <- x$ribbons[!x$ribbons$thin, , drop = FALSE]
@@ -278,6 +281,7 @@ geom_jbrowse_lane_ribbons <- function(mapping = NULL, data = NULL,
 #' @rdname geom_jbrowse_lane_ribbons
 #' @export
 geom_jbrowse_lanes <- function(data = NULL, ...) {
+  data <- replacing(data, NULL, "geom_jbrowse_lanes")
   named <- function(x) x$blocks[!is.na(x$blocks$name), , drop = FALSE]
   tick_px <- 4
   list(

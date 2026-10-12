@@ -56,7 +56,9 @@ with_inset <- function(d, model) {
 #' (`scale_y_reverse()` draws them as the display stacks them), read depth,
 #' and an arc's genomic radius or a read-cloud bar's insert size.
 #' @param mapping aesthetics that override the defaults
-#' @param data a [jbrowse_alignments()] result, or `NULL` for the plot's
+#' @param data a [jbrowse_alignments()] result, `NULL` for the plot's,
+#'   or a data frame in place of the table the geom draws from the plot's
+#'   result, such as a filtered copy of it
 #' @param fade fade a mark narrower than a pixel by its site's share of the
 #'   depth, as the display does (`fadeLowFrequencyMismatches`)
 #' @param px_per_bp how many pixels a base spans, which the fade and a
@@ -82,6 +84,7 @@ NULL
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_reads <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "reads", "geom_jbrowse_reads")
   jbrowse_layer(ggplot2::GeomRect, data, read_blocks, mapping,
     ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
       ymax = row + 1 - inset,
@@ -91,6 +94,7 @@ geom_jbrowse_reads <- function(mapping = NULL, data = NULL, ...) {
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_skips <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "gaps", "geom_jbrowse_skips")
   jbrowse_layer(ggplot2::GeomSegment, data,
     function(x) x$gaps[x$gaps$type == "skip", , drop = FALSE], mapping,
     ggplot2::aes(x = start, xend = end, y = row + 0.5, yend = row + 0.5,
@@ -101,6 +105,7 @@ geom_jbrowse_skips <- function(mapping = NULL, data = NULL, ...) {
 #' @export
 geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
                                    px_per_bp = NULL, ...) {
+  data <- replacing(data, "gaps", "geom_jbrowse_deletions")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
     d$alpha <- mark_alpha(((d$end - d$start) * px_of(x, px_per_bp))^2,
@@ -115,6 +120,7 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
 #' @export
 geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
                                        px_per_bp = NULL, ...) {
+  data <- replacing(data, "modifications", "geom_jbrowse_modifications")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x$modifications
     d$xmax <- d$position + max(1, 1 / px_of(x, px_per_bp))
@@ -129,6 +135,7 @@ geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
 #' @export
 geom_jbrowse_qualities <- function(mapping = NULL, data = NULL,
                                    px_per_bp = NULL, ...) {
+  data <- replacing(data, "qualities", "geom_jbrowse_qualities")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x$qualities
     d$xmax <- d$position + max(1, 1 / px_of(x, px_per_bp))
@@ -143,6 +150,7 @@ geom_jbrowse_qualities <- function(mapping = NULL, data = NULL,
 #' @export
 geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = TRUE,
                                     px_per_bp = NULL, ...) {
+  data <- replacing(data, "mismatches", "geom_jbrowse_mismatches")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     d <- x$mismatches
     d$alpha <- mark_alpha(px_of(x, px_per_bp), d$fade, fade)
@@ -157,6 +165,7 @@ geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = TRUE,
 #' @export
 geom_jbrowse_insertions <- function(mapping = NULL, data = NULL, fade = TRUE,
                                     px_per_bp = NULL, ...) {
+  data <- replacing(data, "insertions", "geom_jbrowse_insertions")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     d <- x$insertions
     d$alpha <- mark_alpha(px_of(x, px_per_bp)^2, d$fade, fade)
@@ -171,6 +180,7 @@ geom_jbrowse_insertions <- function(mapping = NULL, data = NULL, fade = TRUE,
 #' @export
 geom_jbrowse_clips <- function(mapping = NULL, data = NULL, fade = TRUE,
                                px_per_bp = NULL, ...) {
+  data <- replacing(data, "clips", "geom_jbrowse_clips")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     d <- x$clips
     d$alpha <- mark_alpha(px_of(x, px_per_bp), d$fade, fade)
@@ -184,6 +194,7 @@ geom_jbrowse_clips <- function(mapping = NULL, data = NULL, fade = TRUE,
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_letters <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, NULL, "geom_jbrowse_letters")
   list(
     jbrowse_layer(ggplot2::GeomText, data, function(x) x$mismatches,
       for_geom(mapping, ggplot2::GeomText),
@@ -200,6 +211,7 @@ geom_jbrowse_letters <- function(mapping = NULL, data = NULL, ...) {
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_coverage <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "coverage", "geom_jbrowse_coverage")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) x$coverage, mapping,
     ggplot2::aes(xmin = start, xmax = end, ymin = 0, ymax = depth,
       fill = color), list(...), keyed = FALSE)
@@ -209,6 +221,7 @@ geom_jbrowse_coverage <- function(mapping = NULL, data = NULL, ...) {
 #' @export
 geom_jbrowse_alleles <- function(mapping = NULL, data = NULL,
                                  min_allele_frequency = 0, ...) {
+  data <- replacing(data, "allele_coverage", "geom_jbrowse_alleles")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     a <- x$allele_coverage
     a <- a[a$to - a$from >= min_allele_frequency, , drop = FALSE]
@@ -223,6 +236,7 @@ geom_jbrowse_alleles <- function(mapping = NULL, data = NULL,
 #' @export
 geom_jbrowse_modification_coverage <- function(mapping = NULL, data = NULL,
                                                ...) {
+  data <- replacing(data, "modification_coverage", "geom_jbrowse_modification_coverage")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     m <- x$modification_coverage
     m$width <- rep(cell_width(xlim_of(x)), nrow(m))
@@ -247,6 +261,7 @@ junction_paths <- function(x, min_reads) {
 #' @export
 geom_jbrowse_junctions <- function(mapping = NULL, data = NULL,
                                    min_reads = 2, ...) {
+  data <- replacing(data, "junctions", "geom_jbrowse_junctions")
   jbrowse_layer(ggplot2::GeomPath, data,
     function(x) junction_paths(x, min_reads), mapping,
     ggplot2::aes(x = x, y = y, group = id, colour = color,
@@ -257,6 +272,7 @@ geom_jbrowse_junctions <- function(mapping = NULL, data = NULL,
 #' @export
 geom_jbrowse_junction_counts <- function(mapping = NULL, data = NULL,
                                          min_reads = 2, ...) {
+  data <- replacing(data, "junctions", "geom_jbrowse_junction_counts")
   jbrowse_layer(ggplot2::GeomLabel, data, function(x) {
     arcs <- junction_paths(x, min_reads)
     xlim <- xlim_of(x)
@@ -287,6 +303,7 @@ is_cloud <- function(x) x$read_connections == "cloud"
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "arcs", "geom_jbrowse_arcs")
   domes <- function(x) connection_domes(x$arcs[x$arcs$shape == "arc", ,
     drop = FALSE], arc_top(x))
   bars <- function(x) {
@@ -318,6 +335,7 @@ geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, ...) {
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "arc_ticks", "geom_jbrowse_arc_ticks")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     t <- x$arc_ticks
     t$bottom <- rep(if (is_cloud(x)) 1 else 0, nrow(t))

@@ -15,7 +15,9 @@ geom_jbrowse_genotypes(
 \arguments{
 \item{mapping}{aesthetics that override the defaults}
 
-\item{data}{a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result, or \code{NULL} for the plot's}
+\item{data}{a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result, \code{NULL} for the plot's,
+or a data frame in place of the table the geom draws from the plot's
+result, such as a filtered copy of it}
 
 \item{layout}{\code{"genomic"} or \code{"columns"}}
 

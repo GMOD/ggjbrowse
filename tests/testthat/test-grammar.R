@@ -40,6 +40,25 @@ test_that("a geom reads its table from the plot's result or from its own data", 
     "needs ggplot")
 })
 
+test_that("a data frame as a geom's data stands in for the table it draws", {
+  s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300,
+    reference = extdata("volvox.fa"))
+  blocks <- ggjbrowse:::read_blocks(s)
+  forward <- s$reads[s$reads$strand == 1, ]
+  drawn <- layer_data(ggplot(s) + geom_jbrowse_reads(data = forward))
+  expect_equal(nrow(drawn), sum(blocks$read %in% forward$read))
+  skips <- layer_data(ggplot(s) + geom_jbrowse_skips(data = s$gaps))
+  expect_equal(nrow(skips), sum(s$gaps$type == "skip"))
+  common <- s$mismatches[s$mismatches$frequency > 0.5, ]
+  expect_equal(nrow(layer_data(ggplot(s) +
+    geom_jbrowse_mismatches(data = common))), nrow(common))
+  expect_equal(nrow(layer_data(ggplot(s) +
+    geom_jbrowse_junctions(data = s$junctions[1, ]))), 48)
+  expect_error(geom_jbrowse_letters(data = s$mismatches), "several")
+  expect_error(ggplot_build(ggplot() + geom_jbrowse_reads(data = forward)),
+    "replaces one of the plot's result's tables")
+})
+
 test_that("the display's keys are scales, each listing what was painted", {
   p <- ggplot(bam) + geom_jbrowse_mismatches() + scale_colour_jbrowse(bam, "bases")
   scale <- ggplot_build(p)$plot$scales$get_scales("colour")

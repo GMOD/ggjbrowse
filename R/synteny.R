@@ -381,7 +381,9 @@ ribbon_lines <- function(r, curves, feet = band_feet(r)) {
 #' the mate contig's ribbon color where the ribbons are colored by that
 #' row's contigs, and the contig names it has room for.
 #' @param mapping aesthetics that override the defaults
-#' @param data a [jbrowse_synteny()] result, or `NULL` for the plot's
+#' @param data a [jbrowse_synteny()] result, `NULL` for the plot's,
+#'   or a data frame in place of the table the geom draws from the plot's
+#'   result, such as a filtered copy of it
 #' @param curves draw each ribbon edge as the view's `drawCurves` does, a
 #'   cubic curve vertical at both rows
 #' @param ... passed to [ggplot2::layer()] params
@@ -394,6 +396,7 @@ ribbon_lines <- function(r, curves, feet = band_feet(r)) {
 #' ggplot(s) + geom_jbrowse_ribbons(curves = TRUE) + scale_fill_jbrowse(s)
 geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
                                  ...) {
+  data <- replacing(data, "ribbons", "geom_jbrowse_ribbons")
   filled <- function(x) ribbon_polygons(x$ribbons[!x$ribbons$thin, ,
     drop = FALSE], curves)
   lines <- function(x) ribbon_lines(x$ribbons[x$ribbons$thin, ,
@@ -415,6 +418,7 @@ geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
 #' @export
 geom_jbrowse_offscreen_mates <- function(mapping = NULL, data = NULL,
                                          labels = TRUE, ...) {
+  data <- replacing(data, NULL, "geom_jbrowse_offscreen_mates")
   text <- function(halo) function(x) strip_labels(x, halo)
   text_layer <- function(halo) {
     jbrowse_layer(GeomDisplayText, data, text(halo), NULL,
@@ -796,7 +800,9 @@ px_to_mm <- function(px) px / PX_PER_INCH * 25.4
 #' Draws each segment from its start to its end in its color at its
 #' opacity, with round ends, as the view does.
 #' @param mapping aesthetics that override the defaults
-#' @param data a [jbrowse_dotplot()] result, or `NULL` for the plot's
+#' @param data a [jbrowse_dotplot()] result, `NULL` for the plot's,
+#'   or a data frame in place of the table the geom draws from the plot's
+#'   result, such as a filtered copy of it
 #' @param ... passed to [ggplot2::layer()] params, such as `linewidth`
 #' @return a ggplot layer
 #' @export
@@ -806,6 +812,7 @@ px_to_mm <- function(px) px / PX_PER_INCH * 25.4
 #' library(ggplot2)
 #' ggplot(d) + geom_jbrowse_dotplot(aes(colour = op))
 geom_jbrowse_dotplot <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "segments", "geom_jbrowse_dotplot")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$segments,
     for_geom(mapping, ggplot2::GeomSegment),
     ggplot2::aes(x = x_start, xend = x_end, y = y_start, yend = y_end,

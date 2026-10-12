@@ -12,7 +12,9 @@ geom_jbrowse_rules(mapping = NULL, data = NULL, ...)
 \arguments{
 \item{mapping}{aesthetics that override the defaults}
 
-\item{data}{a \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result, or \code{NULL} for the plot's}
+\item{data}{a \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result, \code{NULL} for the plot's,
+or a data frame in place of the table the geom draws from the plot's
+result, such as a filtered copy of it}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 }

@@ -266,7 +266,9 @@ for_geom <- function(mapping, geom) {
 #' scales. A `fill` mapping reaches the boxes and arrowheads, and a `colour`
 #' mapping every part that has a stroke, the boxes' outlines included.
 #' @param mapping aesthetics that override the defaults
-#' @param data a [jbrowse_features()] result, or `NULL` for the plot's
+#' @param data a [jbrowse_features()] result, `NULL` for the plot's,
+#'   or a data frame in place of the table the geom draws from the plot's
+#'   result, such as a filtered copy of it
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a list of ggplot layers
 #' @export
@@ -276,6 +278,7 @@ for_geom <- function(mapping, geom) {
 #' library(ggplot2)
 #' ggplot(g) + geom_jbrowse_glyphs(aes(fill = type)) + scale_y_reverse()
 geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, NULL, "geom_jbrowse_glyphs")
   list(
     jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$lines,
       for_geom(mapping, ggplot2::GeomSegment),
@@ -302,6 +305,7 @@ geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
 #' @rdname geom_jbrowse_glyphs
 #' @export
 geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "labels", "geom_jbrowse_labels")
   labels <- function(x) {
     d <- x$labels
     n <- nrow(d)

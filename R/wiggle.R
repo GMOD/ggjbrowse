@@ -151,7 +151,9 @@ in_rows <- function(x, d) {
 #' `geom_jbrowse_rules()` draws the reference lines `scales$y$rules`
 #' declares, each labelled above its line as the display labels it.
 #' @param mapping aesthetics that override the defaults
-#' @param data a [jbrowse_wiggle()] result, or `NULL` for the plot's
+#' @param data a [jbrowse_wiggle()] result, `NULL` for the plot's,
+#'   or a data frame in place of the table the geom draws from the plot's
+#'   result, such as a filtered copy of it
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a list of ggplot layers
 #' @export
@@ -163,6 +165,7 @@ in_rows <- function(x, d) {
 #' ggplot(w) + geom_jbrowse_wiggle(aes(fill = abs(score))) +
 #'   scale_fill_viridis_c()
 geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "marks", "geom_jbrowse_wiggle")
   of <- function(rendering, pick) function(x) {
     d <- pick(x)
     if (x$rendering %in% rendering) d else d[0, , drop = FALSE]
@@ -205,6 +208,7 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
 #' @rdname geom_jbrowse_wiggle
 #' @export
 geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "rules", "geom_jbrowse_rules")
   rules <- function(x) {
     r <- if (x$rendering == "density" || isTRUE(x$row_layout)) x$rules[0, ]
       else x$rules

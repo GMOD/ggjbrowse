@@ -12,7 +12,9 @@ geom_jbrowse_offscreen_mates(mapping = NULL, data = NULL, labels = TRUE, ...)
 \arguments{
 \item{mapping}{aesthetics that override the defaults}
 
-\item{data}{a \code{\link[=jbrowse_synteny]{jbrowse_synteny()}} result, or \code{NULL} for the plot's}
+\item{data}{a \code{\link[=jbrowse_synteny]{jbrowse_synteny()}} result, \code{NULL} for the plot's,
+or a data frame in place of the table the geom draws from the plot's
+result, such as a filtered copy of it}
 
 \item{curves}{draw each ribbon edge as the view's \code{drawCurves} does, a
 cubic curve vertical at both rows}
