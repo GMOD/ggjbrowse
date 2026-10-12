@@ -66,11 +66,13 @@ patchwork; a \code{"track"} is a patchwork of its bands
 Draw alignments as JBrowse's alignments track, or one band of it
 }
 \examples{
-bam <- system.file("extdata", "spliced.bam", package = "ggjbrowse")
-a <- jbrowse_alignments(bam, "ctgA:401-1,300",
+e <- function(f) system.file("extdata", f, package = "ggjbrowse")
+a <- jbrowse_alignments(e("gapdh_direct_rna.bam"),
+  "chr12:6,534,201-6,538,700",
   display = list(color = list(field = "strand")))
 autoplot(a)
 autoplot(a, "pileup") + ggplot2::theme_classic()
-gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-autoplot(a, above = jbrowse_features(gff, "ctgA:401-1,300"))
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"),
+  "chr12:6,534,201-6,538,700")
+autoplot(a, above = genes)
 }

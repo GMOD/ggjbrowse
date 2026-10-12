@@ -33,8 +33,16 @@ gene table, the boxes the ribbons join. Lanes stack top to bottom
 100 pixels apart on y; x is the view's pixels.
 }
 \examples{
-paf <- system.file("extdata", "volvox_all_vs_all.paf", package = "ggjbrowse")
-m <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox")
+e <- function(f) system.file("extdata", f, package = "ggjbrowse")
+liftover <- function(genome, assembly) list(type = "PairwiseIndexedPAFAdapter",
+  pifGzLocation = list(uri = e(sprintf("hg38To\%s.over.pif.gz", genome))),
+  index = list(location = list(uri = e(sprintf("hg38To\%s.over.pif.gz.csi",
+    genome))), indexType = "CSI"), assemblyNames = c(assembly, "hg38"))
+primates <- list(type = "MultiPairwiseSyntenyAdapter", adapters = list(
+  liftover("PanTro6", "panTro6"), liftover("GorGor6", "gorGor6"),
+  liftover("PonAbe3", "ponAbe3")))
+m <- jbrowse_multiway(primates, "chr17:7,400,001-7,700,000", "hg38",
+  lanes = c("panTro6", "gorGor6", "ponAbe3"))
 library(ggplot2)
 ggplot(m) + geom_jbrowse_lane_ribbons() + geom_jbrowse_lanes()
 }

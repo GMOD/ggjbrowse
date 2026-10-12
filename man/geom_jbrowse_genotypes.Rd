@@ -38,9 +38,8 @@ being its row number in \code{variants}. Map \code{genotype}, \code{dosage}, \co
 any other column of the cells table to draw it your own way.
 }
 \examples{
-vcf <- system.file("extdata", "dog10k_cyp1a2_snvs.vcf.gz",
-  package = "ggjbrowse")
-v <- jbrowse_variants(vcf, "chr30", 38258000, 38265000)
+vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
+v <- jbrowse_variants(vcf, "1", 155000000, 155050000)
 library(ggplot2)
 ggplot(v) + geom_jbrowse_genotypes(aes(fill = genotype), layout = "columns")
 }

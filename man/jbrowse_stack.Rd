@@ -25,9 +25,9 @@ of your own built from the same tables restyles one band.
 }
 \examples{
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")
-locus <- "ctgA:1,001-9,000"
-genes <- jbrowse_features(e("volvox.sort.gff3.gz"), locus)
-signal <- jbrowse_wiggle(e("volvox_microarray_posneg.bw"), locus)
-reads <- jbrowse_alignments(e("volvox-sorted.bam"), locus)
+locus <- "chr12:6,534,201-6,538,700"
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), locus)
+signal <- jbrowse_wiggle(e("gapdh_phylop100way.bw"), locus)
+reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), locus)
 jbrowse_stack(genes, signal, reads)
 }

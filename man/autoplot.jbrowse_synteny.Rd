@@ -32,10 +32,11 @@ bottom row's below.
 }
 \examples{
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")
-s <- jbrowse_synteny(e("volvox_inv_indels.paf"), "ctgA:1-49,186",
-  "ctgA:1-50,001", view = list(color = list(field = "strand")))
+s <- jbrowse_synteny(e("hg002_chr8.chain"), "chr8_PATERNAL:5,250,001-14,250,000",
+  "chr8_MATERNAL:5,250,001-14,250,000", view = list(color = list(field = "strand")),
+  labels = c(query = "paternal", target = "maternal"))
 autoplot(s)
-genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1-50,001",
+genes <- jbrowse_features(e("hg002_mat_genes.gff3.gz"), "chr8_MATERNAL:5,250,001-14,250,000",
   display = list(showOnlyGenes = TRUE))
 autoplot(s, below = genes)
 }

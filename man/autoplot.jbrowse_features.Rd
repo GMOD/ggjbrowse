@@ -24,7 +24,7 @@ width or down its height, whichever is smaller, so they keep inside the
 room the layout left them at any output size.
 }
 \examples{
-gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-g <- jbrowse_features(gff, "ctgA", 0, 25000)
+gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
+g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
 autoplot(g)
 }

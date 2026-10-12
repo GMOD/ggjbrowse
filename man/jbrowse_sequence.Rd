@@ -19,6 +19,6 @@ one string of \code{end - start} bases
 The bases of a region, read through JBrowse's own FASTA or 2bit reader.
 }
 \examples{
-fa <- system.file("extdata", "volvox.fa", package = "ggjbrowse")
-jbrowse_sequence(fa, "ctgA", 1000, 1020)
+fa <- system.file("extdata", "gapdh_hg38.fa.gz", package = "ggjbrowse")
+jbrowse_sequence(fa, "chr12", 6534500, 6534520)
 }

@@ -15,10 +15,10 @@
 #' @export
 #' @examples
 #' e <- function(f) system.file("extdata", f, package = "ggjbrowse")
-#' locus <- "ctgA:1,001-9,000"
-#' genes <- jbrowse_features(e("volvox.sort.gff3.gz"), locus)
-#' signal <- jbrowse_wiggle(e("volvox_microarray_posneg.bw"), locus)
-#' reads <- jbrowse_alignments(e("volvox-sorted.bam"), locus)
+#' locus <- "chr12:6,534,201-6,538,700"
+#' genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), locus)
+#' signal <- jbrowse_wiggle(e("gapdh_phylop100way.bw"), locus)
+#' reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), locus)
 #' jbrowse_stack(genes, signal, reads)
 jbrowse_stack <- function(...) {
   tracks <- do.call(c, lapply(list(...), listed_tracks))
@@ -55,8 +55,9 @@ band_of <- function(track, axis) {
 #' @return inches, from 2 to 49
 #' @export
 #' @examples
-#' bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-#' reads <- jbrowse_alignments(bam, "ctgA:1,001-3,000",
+#' bam <- system.file("extdata", "gapdh_direct_rna.bam",
+#'   package = "ggjbrowse")
+#' reads <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
 #'   display = list(featureHeight = 3))
 #' jbrowse_height(jbrowse_stack(reads))
 jbrowse_height <- function(fig) {
@@ -195,8 +196,9 @@ ggplot_build.ggjbrowse_plot <- function(plot, ...) {
 #' @return a list of a ggplot scale and the seams' layer
 #' @export
 #' @examples
-#' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-#' g <- jbrowse_features(gff, c("ctgA:1,001-4,000", "ctgA:6,001-9,000"))
+#' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
+#' g <- jbrowse_features(gff, c("chr12:6,534,201-6,535,700",
+#'   "chr12:6,537,201-6,538,700"))
 #' library(ggplot2)
 #' ggplot(g) + geom_jbrowse_glyphs() + scale_x_jbrowse(g)
 scale_x_jbrowse <- function(object, ...) genomic_x(object, ...)

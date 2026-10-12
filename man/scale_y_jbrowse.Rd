@@ -19,9 +19,9 @@ The y scale a quantitative display plots its scores on: linear, log, or
 symlog around the display's constant.
 }
 \examples{
-bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
-w <- jbrowse_wiggle(bw, "ctgA", 0, 50000,
+w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700,
   display = list(scales = list(y = list(type = "symlog"))))
 library(ggplot2)
 ggplot(w) + geom_jbrowse_wiggle() + scale_y_jbrowse(w)

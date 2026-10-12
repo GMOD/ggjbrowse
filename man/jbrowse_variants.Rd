@@ -79,8 +79,7 @@ paints each cell, its hue shaded by the alt dosage. Coordinates are 0-based,
 half-open, on the reference.
 }
 \examples{
-vcf <- system.file("extdata", "dog10k_cyp1a2_snvs.vcf.gz",
-  package = "ggjbrowse")
-v <- jbrowse_variants(vcf, "chr30", 38258000, 38265000)
+vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
+v <- jbrowse_variants(vcf, "1", 155000000, 155050000)
 head(v$cells)
 }

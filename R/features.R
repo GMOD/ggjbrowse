@@ -94,8 +94,8 @@ features_adapter <- function(file, index) {
 #'   laid-out height in pixels.
 #' @export
 #' @examples
-#' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-#' g <- jbrowse_features(gff, "ctgA", 0, 25000)
+#' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
+#' g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
 #' head(g$features)
 jbrowse_features <- function(file, region, start = NULL, end = NULL,
                              display = NULL, width = 800, reference = NULL,
@@ -262,8 +262,8 @@ for_geom <- function(mapping, geom) {
 #' @return a list of ggplot layers
 #' @export
 #' @examples
-#' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-#' g <- jbrowse_features(gff, "ctgA", 0, 25000)
+#' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
+#' g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
 #' library(ggplot2)
 #' ggplot(g) + geom_jbrowse_glyphs(aes(fill = type)) + scale_y_reverse()
 geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
@@ -324,8 +324,8 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 #'   patchwork
 #' @exportS3Method ggplot2::autoplot
 #' @examples
-#' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-#' g <- jbrowse_features(gff, "ctgA", 0, 25000)
+#' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
+#' g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
 #' autoplot(g)
 autoplot.jbrowse_features <- function(object, ...) {
   rlang::check_dots_empty()

@@ -20,9 +20,10 @@ each bar is a guide of its own beside the identity scale's key. Map a
 column through a continuous scale of your own to key it the ggplot way.
 }
 \examples{
-bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
-w <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = "span"))
+w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700,
+  display = list(mark = "span"))
 library(ggplot2)
 ggplot(w) + geom_jbrowse_wiggle() + guides_jbrowse(w)
 }

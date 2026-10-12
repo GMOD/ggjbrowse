@@ -61,9 +61,8 @@ variants_adapter <- function(file, index, samples) {
 #'     them
 #' @export
 #' @examples
-#' vcf <- system.file("extdata", "dog10k_cyp1a2_snvs.vcf.gz",
-#'   package = "ggjbrowse")
-#' v <- jbrowse_variants(vcf, "chr30", 38258000, 38265000)
+#' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
+#' v <- jbrowse_variants(vcf, "1", 155000000, 155050000)
 #' head(v$cells)
 jbrowse_variants <- function(file, region, start = NULL, end = NULL,
                              display = NULL, index = NULL, samples = NULL,
@@ -141,9 +140,8 @@ print.jbrowse_variants <- function(x, ...) {
 #' @return a ggplot layer
 #' @export
 #' @examples
-#' vcf <- system.file("extdata", "dog10k_cyp1a2_snvs.vcf.gz",
-#'   package = "ggjbrowse")
-#' v <- jbrowse_variants(vcf, "chr30", 38258000, 38265000)
+#' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
+#' v <- jbrowse_variants(vcf, "1", 155000000, 155050000)
 #' library(ggplot2)
 #' ggplot(v) + geom_jbrowse_genotypes(aes(fill = genotype), layout = "columns")
 geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
@@ -191,9 +189,8 @@ reference_rows <- function(x) {
 #' @return a ggplot
 #' @exportS3Method ggplot2::autoplot
 #' @examples
-#' vcf <- system.file("extdata", "dog10k_cyp1a2_snvs.vcf.gz",
-#'   package = "ggjbrowse")
-#' autoplot(jbrowse_variants(vcf, "chr30", 38258000, 38265000))
+#' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
+#' autoplot(jbrowse_variants(vcf, "1", 155000000, 155050000))
 autoplot.jbrowse_variants <- function(object,
                                       layout = c("genomic", "columns"), ...) {
   rlang::check_dots_empty()

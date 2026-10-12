@@ -20,8 +20,9 @@ the stack, measured as ggplot2 lays them out: a compact pileup makes a
 shorter figure than a normal one. Pass it as \code{ggsave()}'s \code{height}.
 }
 \examples{
-bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-reads <- jbrowse_alignments(bam, "ctgA:1,001-3,000",
+bam <- system.file("extdata", "gapdh_direct_rna.bam",
+  package = "ggjbrowse")
+reads <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
   display = list(featureHeight = 3))
 jbrowse_height(jbrowse_stack(reads))
 }

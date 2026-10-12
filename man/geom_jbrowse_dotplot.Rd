@@ -23,8 +23,9 @@ Draws each segment from its start to its end in its color at its
 opacity, with round ends, as the view does.
 }
 \examples{
-paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-d <- jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001")
+paf <- system.file("extdata", "hprc_amylase.paf", package = "ggjbrowse")
+d <- jbrowse_dotplot(paf, "GRCh38#0#chr1:103,520,894-103,832,637",
+  "HG00133#1#CM090045.1:103,669,666-103,981,330")
 library(ggplot2)
 ggplot(d) + geom_jbrowse_dotplot(aes(colour = op))
 }

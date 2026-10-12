@@ -108,7 +108,7 @@ view's settings give each. Coordinates are 0-based, half-open, on each
 assembly.
 }
 \examples{
-paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-s <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001")
+chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
+s <- jbrowse_synteny(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
 head(s$alignments)
 }

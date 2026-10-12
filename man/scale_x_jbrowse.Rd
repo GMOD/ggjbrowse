@@ -23,8 +23,9 @@ adds it where the plot sets no x scale of its own, and moves the result's
 tables in other layers onto it.
 }
 \examples{
-gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-g <- jbrowse_features(gff, c("ctgA:1,001-4,000", "ctgA:6,001-9,000"))
+gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
+g <- jbrowse_features(gff, c("chr12:6,534,201-6,535,700",
+  "chr12:6,537,201-6,538,700"))
 library(ggplot2)
 ggplot(g) + geom_jbrowse_glyphs() + scale_x_jbrowse(g)
 }

@@ -31,9 +31,9 @@ own way. A line breaks into the \code{run}s the display breaks it into.
 declares, each labelled above its line as the display labels it.
 }
 \examples{
-bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
-w <- jbrowse_wiggle(bw, "ctgA", 0, 50000)
+w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700)
 library(ggplot2)
 ggplot(w) + geom_jbrowse_wiggle(aes(fill = abs(score))) +
   scale_fill_viridis_c()

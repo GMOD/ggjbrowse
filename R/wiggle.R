@@ -42,9 +42,9 @@
 #'   `"linecenter"`, `"scatter"`, `"density"`).
 #' @export
 #' @examples
-#' bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+#' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
-#' w <- jbrowse_wiggle(bw, "ctgA", 0, 50000)
+#' w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700)
 #' head(w$marks)
 jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
                            display = NULL, width = 800) {
@@ -98,12 +98,13 @@ jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
 #'   at
 #' @export
 #' @examples
-#' bw <- system.file("extdata", "volvox_microarray_posneg.bw",
-#'   package = "ggjbrowse")
-#' sources <- list(type = "MultiWiggleAdapter", subadapters = lapply(1:3,
-#'   function(i) list(type = "BigWigAdapter", name = paste0("rep", i),
-#'     bigWigLocation = list(uri = bw))))
-#' w <- jbrowse_wiggle(sources, "ctgA:1-50,000", display = list(mark = "span"))
+#' e <- function(f) system.file("extdata", f, package = "ggjbrowse")
+#' cells <- c("gm12878", "k562", "hepg2")
+#' sources <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
+#'   function(cell) list(type = "BigWigAdapter", name = toupper(cell),
+#'     bigWigLocation = list(uri = e(sprintf("hbb_dnase_%s.bw", cell))))))
+#' w <- jbrowse_wiggle(sources, "chr11:5,270,001-5,320,000",
+#'   display = list(mark = "span"))
 #' dim(as.matrix(w))
 #' w$tree <- hclust(dist(as.matrix(w)), "average")
 as.matrix.jbrowse_wiggle <- function(x, ...) {
@@ -156,9 +157,9 @@ symlog_transform <- function(constant) {
 #' @return a ggplot scale
 #' @export
 #' @examples
-#' bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+#' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
-#' w <- jbrowse_wiggle(bw, "ctgA", 0, 50000,
+#' w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700,
 #'   display = list(scales = list(y = list(type = "symlog"))))
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle() + scale_y_jbrowse(w)
@@ -224,9 +225,9 @@ cut_at_origin <- function(d, origin) {
 #' @return a list of ggplot layers
 #' @export
 #' @examples
-#' bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+#' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
-#' w <- jbrowse_wiggle(bw, "ctgA", 0, 50000)
+#' w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700)
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle(aes(fill = abs(score))) +
 #'   scale_fill_viridis_c()
@@ -312,9 +313,9 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
 #'   patchwork
 #' @exportS3Method ggplot2::autoplot
 #' @examples
-#' bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+#' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
-#' autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000))
+#' autoplot(jbrowse_wiggle(bw, "chr12", 6534200, 6538700))
 autoplot.jbrowse_wiggle <- function(object, ...) {
   rlang::check_dots_empty()
   object <- on_axis(object)

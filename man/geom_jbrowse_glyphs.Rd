@@ -34,8 +34,8 @@ scales. A \code{fill} mapping reaches the boxes and arrowheads, and a \code{colo
 mapping every part that has a stroke, the boxes' outlines included.
 }
 \examples{
-gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-g <- jbrowse_features(gff, "ctgA", 0, 25000)
+gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
+g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
 library(ggplot2)
 ggplot(g) + geom_jbrowse_glyphs(aes(fill = type)) + scale_y_reverse()
 }

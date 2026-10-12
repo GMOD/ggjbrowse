@@ -71,7 +71,7 @@
 ## Which coordinates do I give?
 
 - A locus string is 1-based and inclusive, as in JBrowse's location box.
-- `region = "ctgA", start, end` is 0-based half-open.
+- `region = "chr12", start, end` is 0-based half-open.
 
 ## Can I restyle a figure?
 

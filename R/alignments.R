@@ -157,8 +157,9 @@ sequence_adapter <- function(reference) {
 #'   which the pileup fades a sub-pixel mark by.
 #' @export
 #' @examples
-#' bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-#' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000,
+#' bam <- system.file("extdata", "gapdh_direct_rna.bam",
+#'   package = "ggjbrowse")
+#' a <- jbrowse_alignments(bam, "chr12", 6534200, 6538700,
 #'   display = list(color = list(field = "strand")))
 #' head(a$reads)
 #' a$legend
@@ -304,8 +305,8 @@ alignments_region <- function(adapter, chrom, start, end, reference,
 #' @return one string of `end - start` bases
 #' @export
 #' @examples
-#' fa <- system.file("extdata", "volvox.fa", package = "ggjbrowse")
-#' jbrowse_sequence(fa, "ctgA", 1000, 1020)
+#' fa <- system.file("extdata", "gapdh_hg38.fa.gz", package = "ggjbrowse")
+#' jbrowse_sequence(fa, "chr12", 6534500, 6534520)
 jbrowse_sequence <- function(reference, chrom, start, end) {
   args <- list(sequenceAdapter = sequence_adapter(reference),
     region = list(refName = chrom, start = start, end = end))

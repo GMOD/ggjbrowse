@@ -244,8 +244,8 @@ comparative_axes <- function(config, first, second, assemblies, swap) {
 #'   color field painted.
 #' @export
 #' @examples
-#' paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-#' s <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001")
+#' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
+#' s <- jbrowse_synteny(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
 #' head(s$alignments)
 jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
                             width = 800, assemblies = NULL, swap = FALSE,
@@ -401,8 +401,8 @@ ribbon_lines <- function(r, curves, feet = band_feet(r)) {
 #' @return a list of ggplot layers
 #' @export
 #' @examples
-#' paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-#' s <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001")
+#' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
+#' s <- jbrowse_synteny(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
 #' library(ggplot2)
 #' ggplot(s) + geom_jbrowse_ribbons(curves = TRUE) + scale_fill_jbrowse(s)
 geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
@@ -667,10 +667,11 @@ row_tracks <- function(tracks, layout, row) {
 #' @exportS3Method ggplot2::autoplot
 #' @examples
 #' e <- function(f) system.file("extdata", f, package = "ggjbrowse")
-#' s <- jbrowse_synteny(e("volvox_inv_indels.paf"), "ctgA:1-49,186",
-#'   "ctgA:1-50,001", view = list(color = list(field = "strand")))
+#' s <- jbrowse_synteny(e("hg002_chr8.chain"), "chr8_PATERNAL:5,250,001-14,250,000",
+#'   "chr8_MATERNAL:5,250,001-14,250,000", view = list(color = list(field = "strand")),
+#'   labels = c(query = "paternal", target = "maternal"))
 #' autoplot(s)
-#' genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1-50,001",
+#' genes <- jbrowse_features(e("hg002_mat_genes.gff3.gz"), "chr8_MATERNAL:5,250,001-14,250,000",
 #'   display = list(showOnlyGenes = TRUE))
 #' autoplot(s, below = genes)
 autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
@@ -729,8 +730,8 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   blocks neither axis places.
 #' @export
 #' @examples
-#' paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-#' d <- jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001")
+#' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
+#' d <- jbrowse_dotplot(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
 #' head(d$segments)
 jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
                             width = 600, height = 600, assemblies = NULL,
@@ -805,8 +806,9 @@ px_to_mm <- function(px) px / PX_PER_INCH * 25.4
 #' @return a ggplot layer
 #' @export
 #' @examples
-#' paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-#' d <- jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001")
+#' paf <- system.file("extdata", "hprc_amylase.paf", package = "ggjbrowse")
+#' d <- jbrowse_dotplot(paf, "GRCh38#0#chr1:103,520,894-103,832,637",
+#'   "HG00133#1#CM090045.1:103,669,666-103,981,330")
 #' library(ggplot2)
 #' ggplot(d) + geom_jbrowse_dotplot(aes(colour = op))
 geom_jbrowse_dotplot <- function(mapping = NULL, data = NULL, ...) {
@@ -843,9 +845,9 @@ layout_seams <- function(layout) {
 #' @return a ggplot
 #' @exportS3Method ggplot2::autoplot
 #' @examples
-#' paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-#' autoplot(jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001",
-#'   view = list(color = list(field = "strand"))))
+#' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
+#' autoplot(jbrowse_dotplot(chain, view = list(color = list(field = "strand")),
+#'   labels = c(query = "paternal", target = "maternal")))
 autoplot.jbrowse_dotplot <- function(object, ...) {
   rlang::check_dots_empty()
   x <- on_axis(object)

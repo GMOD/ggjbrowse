@@ -64,8 +64,8 @@ in and the score axis it autoscales to. Coordinates are 0-based,
 half-open, on the reference.
 }
 \examples{
-bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
-w <- jbrowse_wiggle(bw, "ctgA", 0, 50000)
+w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700)
 head(w$marks)
 }

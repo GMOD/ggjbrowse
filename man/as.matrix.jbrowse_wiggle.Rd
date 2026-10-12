@@ -24,12 +24,13 @@ does. \code{hclust(dist(as.matrix(w)), "average")} is the R script the
 display's clustering dialog writes.
 }
 \examples{
-bw <- system.file("extdata", "volvox_microarray_posneg.bw",
-  package = "ggjbrowse")
-sources <- list(type = "MultiWiggleAdapter", subadapters = lapply(1:3,
-  function(i) list(type = "BigWigAdapter", name = paste0("rep", i),
-    bigWigLocation = list(uri = bw))))
-w <- jbrowse_wiggle(sources, "ctgA:1-50,000", display = list(mark = "span"))
+e <- function(f) system.file("extdata", f, package = "ggjbrowse")
+cells <- c("gm12878", "k562", "hepg2")
+sources <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
+  function(cell) list(type = "BigWigAdapter", name = toupper(cell),
+    bigWigLocation = list(uri = e(sprintf("hbb_dnase_\%s.bw", cell))))))
+w <- jbrowse_wiggle(sources, "chr11:5,270,001-5,320,000",
+  display = list(mark = "span"))
 dim(as.matrix(w))
 w$tree <- hclust(dist(as.matrix(w)), "average")
 }

@@ -1,6 +1,6 @@
 # Dataflow
 
-One `jbrowse_alignments(bam, "ctgA:1,001-9,000")` call, from path to plot:
+One `jbrowse_alignments(bam, "chr12:6,534,201-6,538,700")` call, from path to plot:
 
 ```mermaid
 sequenceDiagram

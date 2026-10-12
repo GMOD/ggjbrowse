@@ -31,10 +31,15 @@ above the stack and over the bottom lane below it: a
 }
 \examples{
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")
-m <- jbrowse_multiway(e("volvox_all_vs_all.paf"), "ctgA:1-50,001", "volvox",
+liftover <- function(genome, assembly) list(type = "PairwiseIndexedPAFAdapter",
+  pifGzLocation = list(uri = e(sprintf("hg38To\%s.over.pif.gz", genome))),
+  index = list(location = list(uri = e(sprintf("hg38To\%s.over.pif.gz.csi",
+    genome))), indexType = "CSI"), assemblyNames = c(assembly, "hg38"))
+primates <- list(type = "MultiPairwiseSyntenyAdapter", adapters = list(
+  liftover("PanTro6", "panTro6"), liftover("GorGor6", "gorGor6"),
+  liftover("PonAbe3", "ponAbe3")))
+m <- jbrowse_multiway(primates, "chr17:7,400,001-7,700,000", "hg38",
+  lanes = c("panTro6", "gorGor6", "ponAbe3"),
   display = list(ribbonColor = list(field = "strand")))
 autoplot(m)
-genes <- jbrowse_features(e("volvox.sort.gff3.gz"), m$lanes$locus[1],
-  display = list(showOnlyGenes = TRUE))
-autoplot(m, above = genes)
 }

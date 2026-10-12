@@ -161,8 +161,9 @@ reference, their deletions and splice gaps, and the coverage. Coordinates
 are 0-based, half-open, on the reference.
 }
 \examples{
-bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-a <- jbrowse_alignments(bam, "ctgA", 1000, 3000,
+bam <- system.file("extdata", "gapdh_direct_rna.bam",
+  package = "ggjbrowse")
+a <- jbrowse_alignments(bam, "chr12", 6534200, 6538700,
   display = list(color = list(field = "strand")))
 head(a$reads)
 a$legend

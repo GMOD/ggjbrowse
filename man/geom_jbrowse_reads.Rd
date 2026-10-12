@@ -161,8 +161,9 @@ The y aesthetics are the display's: pileup rows down from 0
 and an arc's genomic radius or a read-cloud bar's insert size.
 }
 \examples{
-bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-a <- jbrowse_alignments(bam, "ctgA", 1000, 3000)
+bam <- system.file("extdata", "gapdh_direct_rna.bam",
+  package = "ggjbrowse")
+a <- jbrowse_alignments(bam, "chr12", 6534200, 6538700)
 library(ggplot2)
 ggplot(a) +
   geom_jbrowse_reads(aes(fill = mapq)) +

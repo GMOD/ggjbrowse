@@ -39,8 +39,8 @@ the mate contig's ribbon color where the ribbons are colored by that
 row's contigs, and the contig names it has room for.
 }
 \examples{
-paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-s <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001")
+chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
+s <- jbrowse_synteny(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
 library(ggplot2)
 ggplot(s) + geom_jbrowse_ribbons(curves = TRUE) + scale_fill_jbrowse(s)
 }

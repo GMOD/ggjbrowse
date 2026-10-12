@@ -80,8 +80,9 @@ with_inset <- function(d, model) {
 #' @return a ggplot layer
 #' @name geom_jbrowse_reads
 #' @examples
-#' bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-#' a <- jbrowse_alignments(bam, "ctgA", 1000, 3000)
+#' bam <- system.file("extdata", "gapdh_direct_rna.bam",
+#'   package = "ggjbrowse")
+#' a <- jbrowse_alignments(bam, "chr12", 6534200, 6538700)
 #' library(ggplot2)
 #' ggplot(a) +
 #'   geom_jbrowse_reads(aes(fill = mapq)) +

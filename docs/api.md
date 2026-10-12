@@ -4,8 +4,8 @@
   JBrowse display draws. `?jbrowse_alignments` and its siblings list every
   column; this page maps the pieces.
 - Coordinates are 0-based and half-open, as in the engine. A locus string such
-  as `"ctgA:1,001-9,000"` is 1-based and inclusive, as JBrowse's location box
-  writes it.
+  as `"chr12:6,534,201-6,538,700"` is 1-based and inclusive, as JBrowse's
+  location box writes it.
 
 ## Readers
 

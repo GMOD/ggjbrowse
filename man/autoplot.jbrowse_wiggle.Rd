@@ -20,7 +20,7 @@ patchwork
 display autoscales to, a row per source where the display gives each one.
 }
 \examples{
-bw <- system.file("extdata", "volvox_microarray_posneg.bw",
+bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
-autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000))
+autoplot(jbrowse_wiggle(bw, "chr12", 6534200, 6538700))
 }

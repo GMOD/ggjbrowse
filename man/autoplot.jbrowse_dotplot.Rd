@@ -20,7 +20,7 @@ its regions' positions, with a line at each seam where an axis lays
 several regions end to end.
 }
 \examples{
-paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-autoplot(jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001",
-  view = list(color = list(field = "strand"))))
+chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
+autoplot(jbrowse_dotplot(chain, view = list(color = list(field = "strand")),
+  labels = c(query = "paternal", target = "maternal")))
 }

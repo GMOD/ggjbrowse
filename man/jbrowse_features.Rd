@@ -107,7 +107,7 @@ Coordinates are 0-based, half-open, on the reference; vertical positions
 are the display's pixels, down from the track's top.
 }
 \examples{
-gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-g <- jbrowse_features(gff, "ctgA", 0, 25000)
+gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
+g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
 head(g$features)
 }

@@ -8,3 +8,5 @@
 ^gallery$
 ^CONTRIBUTING\.md$
 ^LICENSE$
+^\.git$
+^\.claude$

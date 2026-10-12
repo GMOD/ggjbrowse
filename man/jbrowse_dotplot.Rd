@@ -74,7 +74,7 @@ step, each in the color the view's settings paint it. Coordinates are
 0-based, half-open, on each assembly.
 }
 \examples{
-paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
-d <- jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001")
+chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
+d <- jbrowse_dotplot(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
 head(d$segments)
 }
