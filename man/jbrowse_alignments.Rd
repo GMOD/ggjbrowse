@@ -82,7 +82,9 @@ the index before any read is fetched; the whole table is held in memory}
 \value{
 a \code{jbrowse_alignments} list of data frames:
 \itemize{
-\item \code{reads}: \code{start}, \code{end}, \code{row}, \code{strand}, \code{mapq}, \code{flags}, \code{name},
+\item \code{reads}: \code{read} (the id the other tables' \code{read} column names it by,
+kept through filtering), \code{start}, \code{end}, \code{row}, \code{strand}, \code{mapq},
+\code{flags}, \code{name},
 \code{insert_size}, \code{pair_orientation}, \code{color} (the fill the display paints,
 as \verb{#rrggbb}) and \code{category} (the bucket the display files the read
 under: \code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...)

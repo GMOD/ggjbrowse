@@ -42,9 +42,10 @@ features_adapter <- function(file, index) {
 #'   `adapter` config, as a list, for an adapter's own settings
 #' @param region the region: a locus as JBrowse's location box writes it
 #'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
-#'   are read in turn and drawn end to end on one axis as a JBrowse view lays
-#'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
-#'   with `start` and `end`
+#'   share one layout, a feature on the same row in each, and are drawn end
+#'   to end as a JBrowse view lays them out (a gene's exons with the introns
+#'   collapsed, say), a data frame of `chrom`, `start` and `end`, or a contig
+#'   name with `start` and `end`
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
@@ -111,21 +112,14 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
                              display = NULL, width = 800, reference = NULL,
                              reference_chrom = NULL, color_by_cds = FALSE,
                              index = NULL, byte_limit = 2e8) {
-  read_regions(region, start, end, function(chrom, start, end, share, i)
-    features_region(file, chrom, start, end, display, width * share,
-      reference, reference_chrom[i] %||% chrom, color_by_cds, index,
-      byte_limit))
-}
-
-features_region <- function(file, chrom, start, end, display, width,
-                            reference, reference_chrom, color_by_cds, index,
-                            byte_limit) {
+  regions <- regions_of(region, start, end)
   args <- list(
     adapterConfig = adapter_of(file, function()
       features_adapter(file, index)),
-    region = list(refName = chrom, originalRefName = reference_chrom,
-      start = start, end = end),
-    bpPerPx = (end - start) / width,
+    regions = data.frame(refName = regions$chrom,
+      originalRefName = reference_chrom %||% regions$chrom,
+      start = regions$start, end = regions$end),
+    bpPerPx = sum(regions$end - regions$start) / width,
     colorByCDS = color_by_cds,
     byteLimit = byte_limit)
   if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
@@ -135,35 +129,48 @@ features_region <- function(file, chrom, start, end, display, width,
   if (!is.null(display$filter)) display$filter <- I(display$filter)
   args$display <- display
   t <- call_engine("features", args)
-  features <- as_frame(t$features)
-  on_feature <- function(table) {
-    d <- as_frame(table)
-    d$feature <- d$feature + 1
-    for (column in setdiff(c("name", "type", "strand", "start", "end"),
-      names(d))) {
-      d[[column]] <- features[[column]][d$feature]
-    }
-    if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
-    d
-  }
-  labels <- on_feature(t$labels)
-  labels$subfeature <- ifelse(labels$subfeature >= 0, labels$subfeature + 1,
-    NA_integer_)
-  arrows <- on_feature(t$arrows)
-  names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
   legend <- as_frame(t$legend)
   attr(legend, "title") <- t$legendTitle
-  structure(
-    list(features = features,
-      subfeatures = on_feature(t$subfeatures), rects = on_feature(t$rects),
-      lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
-      arrows = arrows, labels = labels, legend = legend,
-      keys = list(features = legend), ramps = ramp_frames(t$ramps),
-      glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
-      region = list(chrom = chrom, start = start, end = end),
-      missing_contig = t$missingContig),
-    primary = "features",
-    class = c("jbrowse_features", "jbrowse_result"))
+  all_features <- as_frame(t$features)
+  all_subfeatures <- as_frame(t$subfeatures)
+  join_regions(regions, lapply(seq_len(nrow(regions)), function(i) {
+    # the engine numbers features and subfeatures across every region
+    before <- sum(all_features$region < i - 1)
+    subs_before <- sum(all_subfeatures$region < i - 1)
+    of_region <- function(table) {
+      d <- as_frame(table)
+      d <- d[d$region == i - 1, setdiff(names(d), "region"), drop = FALSE]
+      rownames(d) <- NULL
+      d
+    }
+    features <- of_region(t$features)
+    on_feature <- function(table) {
+      d <- of_region(table)
+      d$feature <- d$feature - before + 1
+      for (column in setdiff(c("name", "type", "strand", "start", "end"),
+        names(d))) {
+        d[[column]] <- features[[column]][d$feature]
+      }
+      if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
+      d
+    }
+    labels <- on_feature(t$labels)
+    labels$subfeature <- ifelse(labels$subfeature >= 0,
+      labels$subfeature - subs_before + 1, NA_integer_)
+    arrows <- on_feature(t$arrows)
+    names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
+    structure(
+      list(features = features,
+        subfeatures = on_feature(t$subfeatures), rects = on_feature(t$rects),
+        lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
+        arrows = arrows, labels = labels, legend = legend,
+        keys = list(features = legend), ramps = ramp_frames(t$ramps),
+        glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
+        region = as.list(regions[i, ]),
+        missing_contig = t$missingContigs[[i]]),
+      primary = "features",
+      class = c("jbrowse_features", "jbrowse_result"))
+  }))
 }
 
 # Text sized in the display's pixels, scaled to the panel when it draws:

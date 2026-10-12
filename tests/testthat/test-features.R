@@ -112,3 +112,23 @@ test_that("a feature narrower than a pixel draws a display pixel wide", {
   expect_equal(nrow(boxes), nrow(v$rects))
   expect_true(all(boxes$xmax - boxes$xmin >= v$bp_per_px - 1e-9))
 })
+
+test_that("a gene's exons with the introns collapsed keep each feature on one row", {
+  exons <- c("ctgA:1,001-1,600", "ctgA:2,901-4,000", "ctgA:4,901-5,600",
+    "ctgA:6,901-9,100")
+  g <- jbrowse_features(gff, exons)
+  expect_setequal(unique(g$features$.region), 1:4)
+  tops <- tapply(g$features$top, g$features$id, function(t) length(unique(t)))
+  expect_true(all(tops == 1))
+  eden <- g$features[g$features$name == "EDEN", ]
+  expect_equal(eden$.region, 1:4)
+  for (name in c("rects", "lines", "labels", "subfeatures")) {
+    d <- g[[name]]
+    expect_equal(d$.region, g$features$.region[d$feature])
+  }
+  subs <- g$labels[!is.na(g$labels$subfeature), ]
+  expect_equal(g$subfeatures$feature[subs$subfeature], subs$feature)
+  apart <- lapply(exons, function(l) jbrowse_features(gff, l))
+  expect_gt(length(unique(vapply(apart, function(a)
+    a$features$top[a$features$name == "EDEN"], 0))), 1)
+})
