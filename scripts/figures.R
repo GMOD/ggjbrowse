@@ -43,19 +43,25 @@ meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
     modifications = list(unmodified = "all")))
 save("methylation.png", autoplot(meth))
 
-bw <- extdata("volvox_microarray_posneg.bw")
+bw <- extdata("gapdh_phylop100way.bw")
 save("wiggle.png", patchwork::wrap_plots(ncol = 1,
-  autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100)),
-  autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100,
+  autoplot(jbrowse_wiggle(bw, gapdh, width = 100)),
+  autoplot(jbrowse_wiggle(bw, gapdh, width = 100,
     display = list(mark = "line", interpolate = "linear"))),
-  autoplot(jbrowse_wiggle(bw, "ctgA", 0, 50000,
-    display = list(mark = "span")))), 6)
+  autoplot(jbrowse_wiggle(bw, gapdh, display = list(mark = "span")))), 6)
 
-loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
+cells <- c("gm12878", "h1hesc", "hsmm", "huvec", "k562", "nhek", "nhlf")
+h3k27ac <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
+  function(cell) list(type = "BigWigAdapter", name = toupper(cell),
+    bigWigLocation = list(uri = extdata(sprintf("gapdh_h3k27ac_%s.bw", cell))))))
+save("multi-wiggle.png", autoplot(jbrowse_wiggle(h3k27ac, gapdh,
+  display = list(mark = "span"))), 4)
+
+loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
 tracks <- list(
-  jbrowse_features(extdata("volvox.sort.gff3.gz"), loci),
-  jbrowse_wiggle(extdata("volvox_microarray_posneg.bw"), loci),
-  jbrowse_alignments(extdata("volvox-sorted.bam"), loci,
+  jbrowse_features(extdata("gapdh_gencode.gff3.gz"), loci),
+  jbrowse_wiggle(extdata("gapdh_phylop100way.bw"), loci),
+  jbrowse_alignments(extdata("gapdh_direct_rna.bam"), loci,
     display = list(color = list(field = "strand"))))
 save("stack.png", jbrowse_stack(tracks))
 
