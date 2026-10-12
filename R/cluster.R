@@ -120,15 +120,18 @@ tree_segments <- function(tree, rows) {
   }
   leaf <- match(tree$labels, rows)
   height <- tree$height / max(tree$height, .Machine$double.eps)
+  merge <- tree$merge
   y <- numeric(n - 1)
-  at <- function(k) if (k < 0) c(leaf[-k], 0) else c(y[k], height[k])
-  do.call(rbind, lapply(seq_len(n - 1), function(k) {
-    a <- at(tree$merge[k, 1])
-    b <- at(tree$merge[k, 2])
-    y[k] <<- (a[1] + b[1]) / 2
-    data.frame(y = c(a[1], b[1], a[1]), yend = c(a[1], b[1], b[1]),
-      h = c(a[2], b[2], height[k]), hend = height[k])
-  }))
+  y_of <- function(child) {
+    ifelse(child < 0, leaf[pmax(-child, 1)], y[pmax(child, 1)])
+  }
+  h_of <- function(child) ifelse(child < 0, 0, height[pmax(child, 1)])
+  for (k in seq_len(n - 1)) y[k] <- mean(y_of(merge[k, ]))
+  a <- y_of(merge[, 1])
+  b <- y_of(merge[, 2])
+  data.frame(y = c(rbind(a, b, a)), yend = c(rbind(a, b, b)),
+    h = c(rbind(h_of(merge[, 1]), h_of(merge[, 2]), height)),
+    hend = rep(height, each = 3))
 }
 
 # A tree drawn left of the panel, its leaves `gap` points from the panel's
