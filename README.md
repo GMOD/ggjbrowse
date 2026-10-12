@@ -337,25 +337,43 @@ autoplot(m)
 - Each figure on the right is that script, downloaded from the view on the
   left and run unchanged with `Rscript`.
 
-| JBrowse | R |
-| --- | --- |
-| **Genes over a BAM**<br>`ctgA:1,000-9,000`<br>![Genes over a BAM in JBrowse](gallery/genes-and-reads-jbrowse.webp) | ![Genes over a BAM drawn by ggjbrowse](gallery/genes-and-reads-r.webp) |
-| **Base-level zoom, reads colored by MAPQ**<br>`ctgA:1,000-1,150`<br>![Base-level zoom, reads colored by MAPQ in JBrowse](gallery/mapq-zoom-jbrowse.webp) | ![Base-level zoom, reads colored by MAPQ drawn by ggjbrowse](gallery/mapq-zoom-r.webp) |
-| **Compact reads over a deep region**<br>`ctgA:1-20,000`<br>![Compact reads over a deep region in JBrowse](gallery/compact-reads-jbrowse.webp) | ![Compact reads over a deep region drawn by ggjbrowse](gallery/compact-reads-r.webp) |
-| **Super-compact long reads**<br>`ctgA:1,000-2,700`<br>![Super-compact long reads in JBrowse](gallery/super-compact-reads-jbrowse.webp) | ![Super-compact long reads drawn by ggjbrowse](gallery/super-compact-reads-r.webp) |
-| **RNA-seq with splice junctions**<br>`ctgA:1,000-10,000`<br>![RNA-seq with splice junctions in JBrowse](gallery/rnaseq-sashimi-jbrowse.webp) | ![RNA-seq with splice junctions drawn by ggjbrowse](gallery/rnaseq-sashimi-r.webp) |
-| **Reads split into strand sections**<br>`ctgA:2,000-5,000`<br>![Reads split into strand sections in JBrowse](gallery/facet-strand-jbrowse.webp) | ![Reads split into strand sections drawn by ggjbrowse](gallery/facet-strand-r.webp) |
-| **Paired reads across an inversion**<br>`ctgA:18,000-32,000`<br>![Paired reads across an inversion in JBrowse](gallery/inversion-arcs-jbrowse.webp) | ![Paired reads across an inversion drawn by ggjbrowse](gallery/inversion-arcs-r.webp) |
-| **Long reads split across a structural variant**<br>`ctgA:1,800-3,000 ctgA:33,900-35,100`<br>![Long reads split across a structural variant in JBrowse](gallery/long-reads-sv-jbrowse.webp) | ![Long reads split across a structural variant drawn by ggjbrowse](gallery/long-reads-sv-r.webp) |
-| **CpG methylation from MM/ML tags**<br>`20:10,000-22,000`<br>![CpG methylation from MM/ML tags in JBrowse](gallery/methylation-jbrowse.webp) | ![CpG methylation from MM/ML tags drawn by ggjbrowse](gallery/methylation-r.webp) |
-| **Multi-BigWig rows**<br>`ctgA:1-50,000`<br>![Multi-BigWig rows in JBrowse](gallery/multi-bigwig-jbrowse.webp) | ![Multi-BigWig rows drawn by ggjbrowse](gallery/multi-bigwig-r.webp) |
-| **200 BigWig rows**<br>`ctgA:1-50,000`<br>![200 BigWig rows in JBrowse](gallery/many-rows-200-jbrowse.webp) | ![200 BigWig rows drawn by ggjbrowse](gallery/many-rows-200-r.webp) |
-| **1,000 BigWig rows as density**<br>`ctgA:1-50,000`<br>![1,000 BigWig rows as density in JBrowse](gallery/many-rows-1000-jbrowse.webp) | ![1,000 BigWig rows as density drawn by ggjbrowse](gallery/many-rows-1000-r.webp) |
-| **Quantitative renderings**<br>`ctgA:1-50,000`<br>![Quantitative renderings in JBrowse](gallery/wiggle-renderings-jbrowse.webp) | ![Quantitative renderings drawn by ggjbrowse](gallery/wiggle-renderings-r.webp) |
-| **Two regions end to end**<br>`ctgA:1,001-4,000 ctgA:6,001-9,000`<br>![Two regions end to end in JBrowse](gallery/two-regions-jbrowse.webp) | ![Two regions end to end drawn by ggjbrowse](gallery/two-regions-r.webp) |
-| **Variants beside genes**<br>`ctgA:1-25,000`<br>![Variants beside genes in JBrowse](gallery/variants-and-genes-jbrowse.webp) | ![Variants beside genes drawn by ggjbrowse](gallery/variants-and-genes-r.webp) |
-| **Genes colored by a config expression**<br>`ctgA:1-25,000`<br>![Genes colored by a config expression in JBrowse](gallery/jexl-colors-jbrowse.webp) | ![Genes colored by a config expression drawn by ggjbrowse](gallery/jexl-colors-r.webp) |
-| **Structural variants across 1,800 dogs**<br>`chr6:47,340,000-47,420,000`<br>![Structural variants across 1,800 dogs in JBrowse](gallery/dog-sv-matrix-jbrowse.webp) | ![Structural variants across 1,800 dogs drawn by ggjbrowse](gallery/dog-sv-matrix-r.webp) |
+<table>
+<tr><th width="50%">JBrowse</th><th width="50%">R</th></tr>
+<tr><td colspan="2"><b>Genes over a BAM</b> <code>ctgA:1,000-9,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/genes-and-reads-jbrowse.webp" alt="Genes over a BAM in JBrowse" width="100%"></td><td width="50%"><img src="gallery/genes-and-reads-r.webp" alt="Genes over a BAM drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Base-level zoom, reads colored by MAPQ</b> <code>ctgA:1,000-1,150</code></td></tr>
+<tr><td width="50%"><img src="gallery/mapq-zoom-jbrowse.webp" alt="Base-level zoom, reads colored by MAPQ in JBrowse" width="100%"></td><td width="50%"><img src="gallery/mapq-zoom-r.webp" alt="Base-level zoom, reads colored by MAPQ drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Compact reads over a deep region</b> <code>ctgA:1-20,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/compact-reads-jbrowse.webp" alt="Compact reads over a deep region in JBrowse" width="100%"></td><td width="50%"><img src="gallery/compact-reads-r.webp" alt="Compact reads over a deep region drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Super-compact long reads</b> <code>ctgA:1,000-2,700</code></td></tr>
+<tr><td width="50%"><img src="gallery/super-compact-reads-jbrowse.webp" alt="Super-compact long reads in JBrowse" width="100%"></td><td width="50%"><img src="gallery/super-compact-reads-r.webp" alt="Super-compact long reads drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>RNA-seq with splice junctions</b> <code>ctgA:1,000-10,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/rnaseq-sashimi-jbrowse.webp" alt="RNA-seq with splice junctions in JBrowse" width="100%"></td><td width="50%"><img src="gallery/rnaseq-sashimi-r.webp" alt="RNA-seq with splice junctions drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Reads split into strand sections</b> <code>ctgA:2,000-5,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/facet-strand-jbrowse.webp" alt="Reads split into strand sections in JBrowse" width="100%"></td><td width="50%"><img src="gallery/facet-strand-r.webp" alt="Reads split into strand sections drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Paired reads across an inversion</b> <code>ctgA:18,000-32,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/inversion-arcs-jbrowse.webp" alt="Paired reads across an inversion in JBrowse" width="100%"></td><td width="50%"><img src="gallery/inversion-arcs-r.webp" alt="Paired reads across an inversion drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Long reads split across a structural variant</b> <code>ctgA:1,800-3,000 ctgA:33,900-35,100</code></td></tr>
+<tr><td width="50%"><img src="gallery/long-reads-sv-jbrowse.webp" alt="Long reads split across a structural variant in JBrowse" width="100%"></td><td width="50%"><img src="gallery/long-reads-sv-r.webp" alt="Long reads split across a structural variant drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>CpG methylation from MM/ML tags</b> <code>20:10,000-22,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/methylation-jbrowse.webp" alt="CpG methylation from MM/ML tags in JBrowse" width="100%"></td><td width="50%"><img src="gallery/methylation-r.webp" alt="CpG methylation from MM/ML tags drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Multi-BigWig rows</b> <code>ctgA:1-50,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/multi-bigwig-jbrowse.webp" alt="Multi-BigWig rows in JBrowse" width="100%"></td><td width="50%"><img src="gallery/multi-bigwig-r.webp" alt="Multi-BigWig rows drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>200 BigWig rows</b> <code>ctgA:1-50,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/many-rows-200-jbrowse.webp" alt="200 BigWig rows in JBrowse" width="100%"></td><td width="50%"><img src="gallery/many-rows-200-r.webp" alt="200 BigWig rows drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>1,000 BigWig rows as density</b> <code>ctgA:1-50,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/many-rows-1000-jbrowse.webp" alt="1,000 BigWig rows as density in JBrowse" width="100%"></td><td width="50%"><img src="gallery/many-rows-1000-r.webp" alt="1,000 BigWig rows as density drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Quantitative renderings</b> <code>ctgA:1-50,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/wiggle-renderings-jbrowse.webp" alt="Quantitative renderings in JBrowse" width="100%"></td><td width="50%"><img src="gallery/wiggle-renderings-r.webp" alt="Quantitative renderings drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Two regions end to end</b> <code>ctgA:1,001-4,000 ctgA:6,001-9,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/two-regions-jbrowse.webp" alt="Two regions end to end in JBrowse" width="100%"></td><td width="50%"><img src="gallery/two-regions-r.webp" alt="Two regions end to end drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Variants beside genes</b> <code>ctgA:1-25,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/variants-and-genes-jbrowse.webp" alt="Variants beside genes in JBrowse" width="100%"></td><td width="50%"><img src="gallery/variants-and-genes-r.webp" alt="Variants beside genes drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Genes colored by a config expression</b> <code>ctgA:1-25,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/jexl-colors-jbrowse.webp" alt="Genes colored by a config expression in JBrowse" width="100%"></td><td width="50%"><img src="gallery/jexl-colors-r.webp" alt="Genes colored by a config expression drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>Structural variants across 1,800 dogs</b> <code>chr6:47,340,000-47,420,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/dog-sv-matrix-jbrowse.webp" alt="Structural variants across 1,800 dogs in JBrowse" width="100%"></td><td width="50%"><img src="gallery/dog-sv-matrix-r.webp" alt="Structural variants across 1,800 dogs drawn by ggjbrowse" width="100%"></td></tr>
+</table>
 
 ## The engine
 
