@@ -209,11 +209,14 @@ The matrix draws its rows in `v$rows`' order: reorder or filter that table
 to rearrange them. A tree in `v$tree` puts the rows in its leaf order, and
 `autoplot()` draws it beside them (`geom_jbrowse_tree()`). Any clustering
 that gives an `hclust`, or anything `as.hclust()` takes, labelled by row
-name, will do. This one is the `hclust(dist())` call the display's "Cluster
-rows by genotype" dialog writes as R, over the cells' alt dosages:
+name, will do.
+
+`as.matrix(v)` is the genotype matrix the display's "Cluster rows by
+genotype" clusters, a column per ALT allele with `NA` for a no-call, and
+this is the R script its dialog writes:
 
 ```r
-v$tree <- hclust(dist(xtabs(dosage ~ row + variant, v$cells)), "average")
+v$tree <- hclust(dist(as.matrix(v)), "average")
 autoplot(v, layout = "columns")
 ```
 

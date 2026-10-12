@@ -32,7 +32,7 @@ own draws outside the panel only under \code{coord_cartesian(clip = "off")}.
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
 v <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
-v$tree <- hclust(dist(xtabs(dosage ~ row + variant, v$cells)), "average")
+v$tree <- hclust(dist(as.matrix(v)), "average")
 library(ggplot2)
 ggplot(v) + geom_jbrowse_genotypes(layout = "columns") +
   geom_jbrowse_tree() + coord_cartesian(clip = "off")

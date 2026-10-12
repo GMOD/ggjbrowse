@@ -47,18 +47,18 @@ variants_adapter <- function(file, index, samples) {
 #'   * `cells`: each row's cell at a record: `variant` (a row number of
 #'     `variants`), `start`, `end`, `row` (a factor in `rows`' order),
 #'     `sample`, `genotype`, `dosage` (the share of the called alleles that
-#'     are an ALT, as the display's clustering reads it; under `unit =
-#'     "haplotype"` the row's allele, 1 for an ALT; `NA` for a no-call or a
-#'     haplotype of an unphased call) and `color`, the fill the display
-#'     paints; under
-#'     `referenceDrawingMode = "skip"`, the default, a reference call has no
-#'     cell
+#'     are an ALT; under `unit = "haplotype"` the row's allele, 1 for an ALT;
+#'     `NA` for a no-call or a haplotype of an unphased call) and `color`, the
+#'     fill the display paints; under `referenceDrawingMode = "skip"`, the
+#'     default, a reference call has no cell. [as.matrix()] gives the
+#'     genotypes as the display's clustering reads them
 #'   * `rows`: `name`, `sample`, `haplotype`, `ploidy` and `color`, the bar
 #'     the display marks the row with under `rowColor`, `""` where none. The
 #'     matrix draws its rows in this table's order, and only these rows:
 #'     reorder or filter it to rearrange them. Set `tree` to an [hclust()]
-#'     result, or anything [as.hclust()] takes, labelled by `name`, and the
-#'     rows take its leaf order and [autoplot()] draws it beside them
+#'     result, or anything [as.hclust()] takes, labelled by `name`, such as
+#'     `hclust(dist(as.matrix(v)), "average")`, and the rows take its leaf
+#'     order and [autoplot()] draws it beside them
 #'   * `legend`: the display's key, its title as the frame's `"title"`
 #'     attribute
 #'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
@@ -110,6 +110,7 @@ variants_region <- function(adapter, chrom, start, end, display,
         unlist(t$rowLegend$label) %||% character(0),
         unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
       ramps = ramp_frames(t$ramps),
+      unit = display$unit %||% "allele",
       region = list(chrom = chrom, start = start, end = end),
       missing_contig = t$missingContig),
     primary = "cells",

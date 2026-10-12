@@ -54,17 +54,18 @@ a \code{jbrowse_variants} list of data frames:
 \item \code{cells}: each row's cell at a record: \code{variant} (a row number of
 \code{variants}), \code{start}, \code{end}, \code{row} (a factor in \code{rows}' order),
 \code{sample}, \code{genotype}, \code{dosage} (the share of the called alleles that
-are an ALT, as the display's clustering reads it; under \code{unit = "haplotype"} the row's allele, 1 for an ALT; \code{NA} for a no-call or a
-haplotype of an unphased call) and \code{color}, the fill the display
-paints; under
-\code{referenceDrawingMode = "skip"}, the default, a reference call has no
-cell
+are an ALT; under \code{unit = "haplotype"} the row's allele, 1 for an ALT;
+\code{NA} for a no-call or a haplotype of an unphased call) and \code{color}, the
+fill the display paints; under \code{referenceDrawingMode = "skip"}, the
+default, a reference call has no cell. \code{\link[=as.matrix]{as.matrix()}} gives the
+genotypes as the display's clustering reads them
 \item \code{rows}: \code{name}, \code{sample}, \code{haplotype}, \code{ploidy} and \code{color}, the bar
 the display marks the row with under \code{rowColor}, \code{""} where none. The
 matrix draws its rows in this table's order, and only these rows:
 reorder or filter it to rearrange them. Set \code{tree} to an \code{\link[=hclust]{hclust()}}
-result, or anything \code{\link[=as.hclust]{as.hclust()}} takes, labelled by \code{name}, and the
-rows take its leaf order and \code{\link[=autoplot]{autoplot()}} draws it beside them
+result, or anything \code{\link[=as.hclust]{as.hclust()}} takes, labelled by \code{name}, such as
+\code{hclust(dist(as.matrix(v)), "average")}, and the rows take its leaf
+order and \code{\link[=autoplot]{autoplot()}} draws it beside them
 \item \code{legend}: the display's key, its title as the frame's \code{"title"}
 attribute
 \item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws

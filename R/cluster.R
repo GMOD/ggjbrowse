@@ -1,3 +1,62 @@
+#' A variant matrix's genotypes as the display's clustering reads them
+#'
+#' The matrix the variant display's "Cluster rows by genotype" clusters: a
+#' row per row of `x$rows`, in its order, named by its `name`. With a row per
+#' sample, each record has a column per ALT allele, scored 0 to 2 as twice
+#' that allele's share of the sample's called alleles, so `1/1` and `2/2`
+#' stand apart; with a row per haplotype (`unit = "haplotype"`), a column per
+#' record, 1 where the haplotype carries an ALT. A no-call is `NA`, as is a
+#' haplotype of an unphased call, and a reference call the display skips
+#' drawing is 0. `hclust(dist(as.matrix(v)), "average")` is the R script the
+#' dialog writes: `dist()` leaves a pair's no-calls out of their distance,
+#' where the in-app run fills each with its record's mean.
+#' @param x a [jbrowse_variants()] result
+#' @param ... unused
+#' @return a numeric matrix, its columns named by the record's row number in
+#'   `x$variants`, with `.1`, `.2`, ... per ALT of a multi-allelic record
+#' @export
+#' @examples
+#' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
+#' v <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
+#' m <- as.matrix(v)
+#' v$tree <- hclust(dist(m), "average")
+as.matrix.jbrowse_variants <- function(x, ...) {
+  cells <- x$cells[as.character(x$cells$row) %in% x$rows$name, , drop = FALSE]
+  i <- match(as.character(cells$row), x$rows$name)
+  rows <- as.character(x$rows$name)
+  if (identical(x$unit, "haplotype")) {
+    m <- matrix(0, length(rows), nrow(x$variants),
+      dimnames = list(rows, seq_len(nrow(x$variants))))
+    m[cbind(i, cells$variant)] <- cells$dosage
+    return(m)
+  }
+  alts <- lengths(strsplit(x$variants$alt, ",", fixed = TRUE))
+  first <- cumsum(c(0, alts))[seq_along(alts)]
+  columns <- unlist(lapply(seq_along(alts), function(v)
+    if (alts[v] == 1) as.character(v) else paste0(v, ".", seq_len(alts[v]))))
+  m <- matrix(0, length(rows), length(columns),
+    dimnames = list(rows, columns))
+  alleles <- strsplit(cells$genotype, "[/|]")
+  called <- lapply(alleles, function(a) suppressWarnings(as.integer(a[a != "."])))
+  n <- lengths(called)
+  cell <- rep(seq_along(called), n)
+  allele <- unlist(called)
+  alt <- !is.na(allele) & allele >= 1 & allele <= alts[cells$variant[cell]]
+  slots <- max(alts, 0) + 1
+  key <- (cell[alt] - 1) * slots + allele[alt]
+  hit <- unique(key)
+  count <- tabulate(match(key, hit), length(hit))
+  hit_cell <- (hit - 1) %/% slots + 1
+  hit_allele <- (hit - 1) %% slots + 1
+  m[cbind(i[hit_cell], first[cells$variant[hit_cell]] + hit_allele)] <-
+    2 * count / n[hit_cell]
+  none <- which(n == 0)
+  per <- alts[cells$variant[none]]
+  m[cbind(rep(i[none], per), rep(first[cells$variant[none]], per) +
+    sequence(per))] <- NA
+  m
+}
+
 # A variant matrix's rows in the order it draws them: `rows`' own order, or a
 # tree's leaf order where `tree` holds one (anything stats::as.hclust()
 # takes), its labels the rows' names; the cells' `row` factor follows
@@ -74,7 +133,7 @@ GeomTree <- ggplot2::ggproto("GeomTree", ggplot2::Geom,
 #' @examples
 #' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
 #' v <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
-#' v$tree <- hclust(dist(xtabs(dosage ~ row + variant, v$cells)), "average")
+#' v$tree <- hclust(dist(as.matrix(v)), "average")
 #' library(ggplot2)
 #' ggplot(v) + geom_jbrowse_genotypes(layout = "columns") +
 #'   geom_jbrowse_tree() + coord_cartesian(clip = "off")
