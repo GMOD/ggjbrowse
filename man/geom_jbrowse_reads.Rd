@@ -12,6 +12,8 @@
 \alias{geom_jbrowse_letters}
 \alias{geom_jbrowse_coverage}
 \alias{geom_jbrowse_alleles}
+\alias{geom_jbrowse_interbase}
+\alias{geom_jbrowse_indicators}
 \alias{geom_jbrowse_modification_coverage}
 \alias{geom_jbrowse_junctions}
 \alias{geom_jbrowse_junction_counts}
@@ -63,6 +65,10 @@ geom_jbrowse_alleles(
   min_allele_frequency = 0,
   ...
 )
+
+geom_jbrowse_interbase(mapping = NULL, data = NULL, ...)
+
+geom_jbrowse_indicators(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_modification_coverage(mapping = NULL, data = NULL, ...)
 
@@ -122,6 +128,9 @@ insertion lengths
 \item \code{geom_jbrowse_coverage()}, \code{geom_jbrowse_alleles()},
 \code{geom_jbrowse_modification_coverage()}: the coverage band's depth and its
 stacks
+\item \code{geom_jbrowse_interbase()}, \code{geom_jbrowse_indicators()}: the band's
+histogram of insertions and clips, hanging from its top at half a depth
+unit per read, and the triangles over the positions where they pile up
 \item \code{geom_jbrowse_junctions()}, \code{geom_jbrowse_junction_counts()}: the
 sashimi arcs and their read counts
 \item \code{geom_jbrowse_arcs()}, \code{geom_jbrowse_arc_ticks()}: the read-connection

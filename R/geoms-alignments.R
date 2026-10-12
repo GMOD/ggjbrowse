@@ -46,6 +46,9 @@ with_inset <- function(d, model) {
 #' * `geom_jbrowse_coverage()`, `geom_jbrowse_alleles()`,
 #'   `geom_jbrowse_modification_coverage()`: the coverage band's depth and its
 #'   stacks
+#' * `geom_jbrowse_interbase()`, `geom_jbrowse_indicators()`: the band's
+#'   histogram of insertions and clips, hanging from its top at half a depth
+#'   unit per read, and the triangles over the positions where they pile up
 #' * `geom_jbrowse_junctions()`, `geom_jbrowse_junction_counts()`: the
 #'   sashimi arcs and their read counts
 #' * `geom_jbrowse_arcs()`, `geom_jbrowse_arc_ticks()`: the read-connection
@@ -231,6 +234,67 @@ geom_jbrowse_alleles <- function(mapping = NULL, data = NULL,
     y = depth * from, yend = depth * to, colour = color,
     linewidth = I(width)), list(lineend = "butt", ...))
 }
+
+# The coverage band's top in each row of `d`: its section's peak depth, where
+# the band's y axis ends
+band_top <- function(x, d) {
+  cov <- x$coverage
+  if (!nrow(d)) return(numeric(0))
+  peak <- tapply(cov$depth, cov$section, max)
+  top <- unname(peak[match(as.character(d$section), names(peak))])
+  ifelse(is.na(top), 0, top)
+}
+
+#' @rdname geom_jbrowse_reads
+#' @export
+geom_jbrowse_interbase <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "interbase_coverage", "geom_jbrowse_interbase")
+  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
+    d <- x$interbase_coverage
+    top <- band_top(x, d)
+    d$y <- pmax(0, top - d$from / 2)
+    d$yend <- pmax(0, top - d$to / 2)
+    d$width <- rep(px_to_pt(1) / ggplot2::.pt, nrow(d))
+    d
+  }, mapping, ggplot2::aes(x = position, xend = position, y = y, yend = yend,
+    colour = color, linewidth = I(width)),
+    list(lineend = "butt", ...), keyed = FALSE)
+}
+
+#' @rdname geom_jbrowse_reads
+#' @export
+geom_jbrowse_indicators <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "indicators", "geom_jbrowse_indicators")
+  jbrowse_layer(GeomIndicator, data, function(x) {
+    d <- x$indicators
+    d$width <- rep(px_to_pt(x$glyph$indicatorWidth), nrow(d))
+    d$height <- rep(px_to_pt(x$glyph$indicatorHeight), nrow(d))
+    d
+  }, mapping, ggplot2::aes(x = position, fill = color, width = I(width),
+    height = I(height)), list(...), keyed = FALSE)
+}
+
+px_to_pt <- function(px) px / PX_PER_INCH * 72
+
+# A triangle `width` by `height` points at each `x`, its apex pointing down
+# from the panel's top edge, whatever the y scale
+GeomIndicator <- ggplot2::ggproto("GeomIndicator", ggplot2::Geom,
+  required_aes = c("x", "width", "height"),
+  default_aes = ggplot2::aes(fill = "grey30"),
+  draw_key = ggplot2::draw_key_polygon,
+  draw_panel = function(data, panel_params, coord) {
+    d <- coord$transform(data, panel_params)
+    n <- nrow(d)
+    if (!n) return(grid::nullGrob())
+    hw <- rep(d$width / 2, each = 3)
+    grid::polygonGrob(
+      x = grid::unit(rep(d$x, each = 3), "npc") +
+        grid::unit(hw * rep(c(-1, 1, 0), n), "pt"),
+      y = grid::unit(1, "npc") -
+        grid::unit(rep(d$height, each = 3) * rep(c(0, 0, 1), n), "pt"),
+      id = rep(seq_len(n), each = 3),
+      gp = grid::gpar(fill = d$fill, col = NA))
+  })
 
 #' @rdname geom_jbrowse_reads
 #' @export

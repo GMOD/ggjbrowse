@@ -110,6 +110,13 @@ sequence_adapter <- function(reference) {
 #'     allele's share of the bar, from the bottom) and the `depth` there
 #'   * `modification_coverage`: the band's stack of modification states under
 #'     `display$baseColor`: `position`, `from`, `to`, `depth`, `color`, `opacity`
+#'   * `interbase_coverage`: the band's histogram of the reads' insertions,
+#'     soft clips and hard clips at each position, stacked in that order:
+#'     `position`, `type` (`"insertion"`, `"softclip"` or `"hardclip"`),
+#'     `from` and `to` (in reads, from the band's top), `color`
+#'   * `indicators`: the positions where those events pass the display's
+#'     share of the local depth: `position`, `type` (the most common there),
+#'     `color`
 #'   * `junctions`: the reads' splice gaps merged, each once: `start`, `end`,
 #'     `count` (the reads supporting it), `strand` (1, -1, or 0 where neither
 #'     the reads' tags nor the splice motif says) and `motif` (`"GT-AG
@@ -217,6 +224,13 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   alleles$color <- jbrowse_color(colors$bases[alleles$base])
   modification_coverage <- frame(t$modificationCoverage)
   modification_coverage$color <- jbrowse_color(modification_coverage$color)
+  interbase_colors <- c(insertion = colors$insertion,
+    softclip = colors$softclip, hardclip = colors$hardclip)
+  interbase_coverage <- frame(t$interbaseCoverage)
+  interbase_coverage$color <- jbrowse_color(
+    unname(interbase_colors[interbase_coverage$type]))
+  indicators <- frame(t$indicators)
+  indicators$color <- jbrowse_color(unname(interbase_colors[indicators$type]))
   junctions <- frame(t$junctions)
   strand_colors <- c("1" = colors$forward, "-1" = colors$reverse,
     "0" = colors$read)
@@ -241,7 +255,9 @@ alignments_region <- function(adapter, chrom, start, end, reference,
       insertions = insertions, clips = clips, modifications = modifications,
       qualities = qualities,
       coverage = coverage, allele_coverage = alleles,
-      modification_coverage = modification_coverage, junctions = junctions,
+      modification_coverage = modification_coverage,
+      interbase_coverage = interbase_coverage, indicators = indicators,
+      junctions = junctions,
       legend = legend, arcs = arcs, arc_ticks = arc_ticks,
       arc_legend = arc_legend, arc_span_max = t$arcSpanMax,
       read_connections = display$readConnections %||% "off",
@@ -251,7 +267,8 @@ alignments_region <- function(adapter, chrom, start, end, reference,
       region = list(chrom = chrom, start = start, end = end),
       reference = if (is.null(reference)) NULL else
         list(file = reference, chrom = reference_chrom),
-      settings = t$settings, missing_contig = t$missingContig),
+      settings = t$settings, glyph = t$glyph,
+      missing_contig = t$missingContig),
     primary = "reads",
     class = c("jbrowse_alignments", "jbrowse_result"))
 }

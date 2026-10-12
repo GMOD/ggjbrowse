@@ -150,11 +150,14 @@ band <- function(p, x, rows = FALSE, ylim = NULL) {
 # The depth axis labels 0 and the peak, as the display does, so a band at its
 # 45 pixels stays legible
 coverage_plot <- function(x, o) {
-  band(ggplot2::ggplot(x) +
+  p <- ggplot2::ggplot(x) +
     geom_jbrowse_coverage() +
     geom_jbrowse_alleles(min_allele_frequency = o$min_allele_frequency) +
-    geom_jbrowse_modification_coverage() +
-    scale_colour_jbrowse(x, "bases"), x) +
+    geom_jbrowse_modification_coverage()
+  if (!isFALSE(x$settings$showInterbaseIndicators)) {
+    p <- p + geom_jbrowse_interbase() + geom_jbrowse_indicators()
+  }
+  band(p + scale_colour_jbrowse(x, "bases"), x) +
     ggplot2::scale_y_continuous(breaks = function(l) unique(c(0,
       floor(l[2])))) +
     ggplot2::labs(y = "depth")

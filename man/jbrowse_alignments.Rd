@@ -109,6 +109,13 @@ as the display stacks it: \code{position}, \code{base}, \code{from} and \code{to
 allele's share of the bar, from the bottom) and the \code{depth} there
 \item \code{modification_coverage}: the band's stack of modification states under
 \code{display$baseColor}: \code{position}, \code{from}, \code{to}, \code{depth}, \code{color}, \code{opacity}
+\item \code{interbase_coverage}: the band's histogram of the reads' insertions,
+soft clips and hard clips at each position, stacked in that order:
+\code{position}, \code{type} (\code{"insertion"}, \code{"softclip"} or \code{"hardclip"}),
+\code{from} and \code{to} (in reads, from the band's top), \code{color}
+\item \code{indicators}: the positions where those events pass the display's
+share of the local depth: \code{position}, \code{type} (the most common there),
+\code{color}
 \item \code{junctions}: the reads' splice gaps merged, each once: \code{start}, \code{end},
 \code{count} (the reads supporting it), \code{strand} (1, -1, or 0 where neither
 the reads' tags nor the splice motif says) and \code{motif} (\code{"GT-AG (canonical)"}, \code{"non-canonical"}, or \code{""} where the region's sequence

@@ -66,6 +66,41 @@ test_that("the coverage band stacks each position's alleles as the display does"
     bam$coverage$depth[findInterval(strict$x, bam$coverage$start)] >= 0.5))
 })
 
+test_that("the coverage band hangs its insertions and clips from its top, half a depth unit per read", {
+  l <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000, 20000)
+  ib <- l$interbase_coverage
+  expect_setequal(unique(ib$type), c("insertion", "softclip", "hardclip"))
+  events <- c(paste(l$insertions$position, "insertion"),
+    paste(l$clips$position, ifelse(l$clips$type == "soft", "softclip",
+      "hardclip")))
+  expect_equal(as.vector(table(events)[paste(ib$position, ib$type)]),
+    ib$to - ib$from)
+  expect_equal(l$indicators$type, "softclip")
+
+  band <- ggplot2::ggplot_build(ggplot2::autoplot(l, "coverage"))$data
+  top <- max(l$coverage$depth)
+  expect_equal(band[[4]]$y, pmax(0, top - ib$from / 2))
+  expect_equal(band[[4]]$yend, pmax(0, top - ib$to / 2))
+  expect_equal(band[[5]]$x, l$indicators$position)
+  expect_equal(unclass(band[[5]]$fill), unclass(jbrowse_colors()$softclip))
+
+  hidden <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA",
+    1000, 20000, display = list(showInterbaseIndicators = FALSE))
+  expect_length(ggplot2::ggplot_build(ggplot2::autoplot(hidden,
+    "coverage"))$data, 3)
+})
+
+test_that("each section's histogram hangs from that section's own top", {
+  s <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000,
+    20000, display = list(facet = "strand"))
+  expect_gt(length(unique(s$interbase_coverage$section)), 1)
+  peak <- tapply(s$coverage$depth, s$coverage$section, max)
+  d <- ggplot2::layer_data(ggplot2::ggplot(s) + geom_jbrowse_interbase())
+  first <- s$interbase_coverage$from == 0
+  expect_equal(d$y[first],
+    as.vector(peak[as.character(s$interbase_coverage$section[first])]))
+})
+
 test_that("the display's sort object lays the rows out", {
   site <- bam$mismatches$position[1]
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
