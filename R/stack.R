@@ -37,8 +37,9 @@ jbrowse_stack <- function(...) {
 #'
 #' The inches a [jbrowse_stack()] of these tracks needs to give each band the
 #' pixels the JBrowse display gives it, at 150 pixels an inch (a 1,500 pixel
-#' view across a 10 inch figure), with room for the x axis: a compact pileup
-#' makes a shorter figure than a normal one. Pass it as `ggsave()`'s `height`.
+#' view across a 10 inch figure), with room for the x axis and for the keys
+#' beside the stack: a compact pileup makes a shorter figure than a normal
+#' one. Pass it as `ggsave()`'s `height`.
 #' @param ... the tracks given to [jbrowse_stack()]
 #' @return inches, from 2 to 49
 #' @export
@@ -51,7 +52,25 @@ jbrowse_height <- function(...) {
   tracks <- Filter(function(t) inherits(t, "jbrowse_result"),
     flat_tracks(list(...)))
   heights <- unlist(lapply(tracks, track_heights))
-  min(49, max(2, sum(heights) * 100 / 150 + 0.08 * length(heights) + 0.7))
+  bands <- sum(heights) * 100 / 150 + 0.08 * length(heights) + 0.7
+  keys <- sum(vapply(tracks, key_inches, 0)) + 0.3
+  min(49, max(2, bands, keys))
+}
+
+# The inches a track's keys take in the column of keys beside the stack: a
+# title and a row per entry of each key its bands draw
+key_inches <- function(x) {
+  keys <- x$keys
+  if (inherits(x, "jbrowse_alignments")) {
+    x <- on_axis(x)
+    shown <- alignment_shown(x, alignment_options(x))
+    keys <- keys[intersect(names(keys), c(
+      if (shown[["pileup"]]) "reads",
+      if (shown[["coverage"]] || shown[["pileup"]]) "bases",
+      if (shown[["arcs"]]) "arcs",
+      if (shown[["junctions"]]) "junctions"))]
+  }
+  sum(vapply(keys, function(k) if (nrow(k)) 0.45 + 0.24 * nrow(k) else 0, 0))
 }
 
 flat_tracks <- function(tracks) {

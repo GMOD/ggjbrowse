@@ -15,8 +15,9 @@ inches, from 2 to 49
 \description{
 The inches a \code{\link[=jbrowse_stack]{jbrowse_stack()}} of these tracks needs to give each band the
 pixels the JBrowse display gives it, at 150 pixels an inch (a 1,500 pixel
-view across a 10 inch figure), with room for the x axis: a compact pileup
-makes a shorter figure than a normal one. Pass it as \code{ggsave()}'s \code{height}.
+view across a 10 inch figure), with room for the x axis and for the keys
+beside the stack: a compact pileup makes a shorter figure than a normal
+one. Pass it as \code{ggsave()}'s \code{height}.
 }
 \examples{
 bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
