@@ -20,6 +20,9 @@ Genome browser tracks as ggplot2 layers.
 remotes::install_github("GMOD/ggjbrowse")
 ```
 
+How the V8 engine, file reads and tables fit together:
+[docs/how-does-this-work.md](docs/how-does-this-work.md).
+
 Every example here runs as written, on test data installed with the
 package: clips of public human data, and JBrowse's simulated volvox genome
 where an example needs a simulated structural variant or synteny.
