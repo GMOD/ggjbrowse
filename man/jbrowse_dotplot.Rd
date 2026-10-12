@@ -6,12 +6,13 @@
 \usage{
 jbrowse_dotplot(
   file,
-  x,
-  y,
+  x = NULL,
+  y = NULL,
   view = NULL,
   width = 600,
   height = 600,
   assemblies = NULL,
+  swap = FALSE,
   index = NULL
 )
 }
@@ -23,7 +24,9 @@ config, as a list, such as an \code{MCScanAnchorsAdapter}'s}
 
 \item{x, y}{the regions each axis shows, written as \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s
 \code{query} and \code{target} are: the horizontal axis is the adapter's query
-side and the vertical its target, unless \code{assemblies} says otherwise}
+side and the vertical its target, unless \code{assemblies} or \code{swap} says
+otherwise. Unset, every contig of that axis's assembly, so
+\code{jbrowse_dotplot(paf)} is the whole genome against the whole genome}
 
 \item{view}{the view's settings, as a \code{DotplotView} snapshot writes them:
 a list with any of \code{color}, \code{opacity}, \code{minAlignmentLength},
@@ -33,6 +36,9 @@ a list with any of \code{color}, \code{opacity}, \code{minAlignmentLength},
 enough for their CIGAR to show}
 
 \item{assemblies}{which assembly each axis is on, \code{c(x, y)}}
+
+\item{swap}{put the file's target side on the horizontal axis and its
+query on the vertical, as \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s \code{swap} does the rows}
 
 \item{index}{the tabix or CSI index of a \code{.pif.gz}, if not beside it}
 }

@@ -59,6 +59,104 @@ comparative_args <- function(file, index, view) {
   args
 }
 
+# The assembly each axis is on, first and second: `assemblies` where given,
+# else the adapter's own names, reversed by `swap`
+axis_assemblies <- function(config, assemblies, swap) {
+  names <- assemblies %||% unlist(config$assemblyNames) %||%
+    unlist(c(config$queryAssembly, config$targetAssembly))
+  if (!swap) return(names)
+  if (length(names) < 2) {
+    stop("swap = TRUE needs two assembly names, the adapter's or `assemblies`",
+      call. = FALSE)
+  }
+  rev(names[1:2])
+}
+
+#' The contigs on each side of a pairwise alignment
+#'
+#' Lists each side's contigs in the order the file first names them, with
+#' the length the file states: the regions a whole-genome [jbrowse_dotplot()]
+#' or [jbrowse_synteny()] lays end to end where it is given none. A PAF,
+#' delta, chain and MashMap file state every contig's length, and an indexed
+#' PIF states it on each contig's first row.
+#' @inheritParams jbrowse_synteny
+#' @return a data frame of `side` (`"query"` or `"target"`), `assembly`,
+#'   `chrom` and `length`, `NA` where the file does not say, as in an MCScan
+#'   anchors file
+#' @export
+#' @examples
+#' paf <- system.file("extdata", "peach_grape.paf.gz", package = "ggjbrowse")
+#' head(jbrowse_contigs(paf))
+jbrowse_contigs <- function(file, index = NULL) {
+  contigs_of(comparative_args(file, index, NULL)$adapterConfig)
+}
+
+contigs_of <- function(config) {
+  r <- call_engine("contigs", list(adapterConfig = config))
+  side <- function(name) {
+    chrom <- as.character(unlist(r[[name]]$refName))
+    data.frame(side = rep(name, length(chrom)),
+      assembly = rep(r[[name]]$assemblyName, length(chrom)), chrom = chrom,
+      length = as.numeric(unlist(r[[name]]$length) %||% numeric(0)))
+  }
+  rbind(side("query"), side("target"))
+}
+
+memo <- function(f) {
+  value <- NULL
+  function() {
+    if (is.null(value)) value <<- f()
+    value
+  }
+}
+
+# The regions an axis shows: each locus given, each contig named alone whole,
+# and with none given every contig of the axis's assembly, in file order.
+# `side` picks the file's side where the axis names no assembly the file has.
+axis_regions <- function(given, contigs, assembly, side) {
+  if (is.data.frame(given)) return(regions_of(given, NULL, NULL))
+  whole <- !grepl(LOCUS, given)
+  if (length(given) && !any(whole)) return(regions_of(given, NULL, NULL))
+  all <- contigs()
+  named <- length(assembly) && !is.na(assembly) && assembly %in% all$assembly
+  own <- all[if (named) all$assembly == assembly else all$side == side, ]
+  own <- own[!duplicated(own$chrom), ]
+  if (!length(given)) {
+    given <- own$chrom
+    whole <- rep(TRUE, length(given))
+  }
+  where <- if (named) paste("assembly", assembly) else paste(side, "side")
+  if (!length(given)) {
+    stop("the file names no contig on its ", where, call. = FALSE)
+  }
+  unknown <- given[whole & !given %in% own$chrom]
+  if (length(unknown)) {
+    stop(sprintf("\"%s\" is neither a locus such as \"ctgA:1-1,000\" nor a contig of the file's %s, whose contigs are %s",
+      unknown[1], where, paste(utils::head(own$chrom, 20), collapse = ", ")),
+      call. = FALSE)
+  }
+  length <- own$length[match(given, own$chrom)]
+  if (anyNA(length[whole])) {
+    stop("the file does not state the length of ", given[whole][is.na(
+      length[whole])][1], ": give the axis its regions, as loci",
+      call. = FALSE)
+  }
+  do.call(rbind, lapply(seq_along(given), function(i)
+    if (whole[i]) data.frame(chrom = given[i], start = 0, end = length[i])
+    else regions_of(given[i], NULL, NULL)))
+}
+
+# Both axes of a comparative view: the assembly each is on and its regions,
+# laid end to end as JBrowse's synteny and dotplot workers lay them, with no
+# gap
+comparative_axes <- function(config, first, second, assemblies, swap) {
+  names <- axis_assemblies(config, assemblies, swap)
+  contigs <- memo(function() contigs_of(config))
+  list(names = names,
+    first = axis_regions(first, contigs, names[1], "query"),
+    second = axis_regions(second, contigs, names[2], "target"))
+}
+
 #' Read a pairwise alignment as JBrowse's linear synteny view draws it
 #'
 #' Runs JBrowse's own synteny display in V8 over two rows, the query assembly
@@ -73,9 +171,11 @@ comparative_args <- function(file, index, view) {
 #'   `.out` file, a path or a URL; or a JBrowse synteny track's `adapter`
 #'   config, as a list, such as an `MCScanAnchorsAdapter`'s
 #' @param query,target the regions each row shows: a locus as JBrowse's
-#'   location box writes it (`"ctgA:1-50,001"`, 1-based and inclusive),
-#'   several of them, drawn end to end as a view lays them out, or a data
-#'   frame of `chrom`, `start` and `end`
+#'   location box writes it (`"ctgA:1-50,001"`, 1-based and inclusive), a
+#'   contig's name alone for the whole of it, several of them, drawn end to
+#'   end as a view lays them out, or a data frame of `chrom`, `start` and
+#'   `end`. Unset, every contig of that row's assembly, in the order the file
+#'   names them ([jbrowse_contigs()]), as JBrowse shows a whole genome
 #' @param view the view's settings, as a `LinearSyntenyView` snapshot writes
 #'   them: a list with any of `color` (a CSS color, or the color object's
 #'   slots, such as `list(field = "strand")`, `list(field = "identity")`,
@@ -92,6 +192,11 @@ comparative_args <- function(file, index, view) {
 #'   them each row is on, `c(query, target)`; unset, the adapter's own order.
 #'   A pairwise file answers from either side, so `c("volvox", "volvox_del")`
 #'   on a PAF of `volvox_del` against `volvox` puts `volvox` on top
+#' @param swap put the file's target side on the top row and its query side
+#'   on the bottom: the adapter's two assembly names, or `assemblies`,
+#'   reversed. A file guessed from its extension names its sides `"query"`
+#'   and `"target"`, so `swap = TRUE` is `assemblies = c("target",
+#'   "query")`
 #' @param index the tabix or CSI index of a `.pif.gz`, if not beside it
 #' @return a `jbrowse_synteny` list:
 #'   * `alignments`: each block, in the band's paint order: `id`, `name`,
@@ -132,13 +237,15 @@ comparative_args <- function(file, index, view) {
 #' paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
 #' s <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001")
 #' head(s$alignments)
-jbrowse_synteny <- function(file, query, target, view = NULL, width = 800,
-                            assemblies = NULL, index = NULL) {
-  q <- regions_of(query, NULL, NULL)
-  t <- regions_of(target, NULL, NULL)
-  args <- c(comparative_args(file, index, view),
-    list(query = axis_args(q, assemblies[1], width),
-      target = axis_args(t, assemblies[2], width)))
+jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
+                            width = 800, assemblies = NULL, swap = FALSE,
+                            index = NULL) {
+  args <- comparative_args(file, index, view)
+  axes <- comparative_axes(args$adapterConfig, query, target, assemblies, swap)
+  q <- axes$first
+  t <- axes$second
+  args <- c(args, list(query = axis_args(q, axes$names[1], width),
+    target = axis_args(t, axes$names[2], width)))
   r <- call_engine("synteny", args)
   alignments <- snake(as_frame(r$alignments))
   alignments$color <- jbrowse_color(alignments$color)
@@ -162,7 +269,7 @@ jbrowse_synteny <- function(file, query, target, view = NULL, width = 800,
       field = r$field, alpha = r$alpha, height = r$height,
       fade_thin = r$fadeThin, has_cigar = r$hasCigar,
       assemblies = unlist(r$assemblyNames), width = width,
-      query = region_layout(q), target = region_layout(t)),
+      query = region_layout(q, 0), target = region_layout(t, 0)),
     primary = "ribbons",
     class = c("jbrowse_synteny", "jbrowse_result"))
 }
@@ -398,9 +505,45 @@ chip_guide <- function(labels, fill, title) {
     height = grid::unit(n * row_in, "in"))
 }
 
-# The round positions a row's ruler labels, at their pixels on the band
-layout_breaks <- function(layout, px) {
+# Whether an axis names its contigs rather than numbering positions, as
+# JBrowse's dotplot labels each region by name: an axis of more than four
+# regions, or of several where one spans under a tenth of it
+names_contigs <- function(layout) {
+  w <- layout$end - layout$start
+  nrow(layout) > 4 || (nrow(layout) > 1 && min(w) < sum(w) / 10)
+}
+
+# The pixels apart two contig names stand at least, the dotplot's LABEL_PX
+LABEL_PX <- 12
+
+# Which labels at `at` px to keep: each its region's, widest region first,
+# where it stands LABEL_PX clear of every label kept before it
+thin_labels <- function(at, widths) {
+  kept <- numeric(0)
+  keep <- logical(length(at))
+  for (i in order(widths, decreasing = TRUE)) {
+    if (all(abs(kept - at[i]) >= LABEL_PX)) {
+      kept <- c(kept, at[i])
+      keep[i] <- TRUE
+    }
+  }
+  keep
+}
+
+# The labels on an axis of `width` px, `px(layout, region, coord)` placing a
+# position on it: round positions in each region, labelled in the region's
+# own coordinates, or where names_contigs() says, each contig's name at its
+# middle
+layout_breaks <- function(layout, px, width) {
   r <- layout
+  if (names_contigs(r)) {
+    n <- nrow(r)
+    mid <- px(r, seq_len(n), (r$start + r$end) / 2)
+    edges <- px(r, c(1, n), c(r$start[1], r$end[n]))
+    keep <- thin_labels((mid - edges[1]) / diff(edges) * width,
+      r$end - r$start)
+    return(list(breaks = mid[keep], labels = r$chrom[keep]))
+  }
   w <- r$end - r$start
   at <- lapply(seq_len(nrow(r)), function(i) {
     b <- pretty(c(r$start[i], r$end[i]), n = max(2, round(6 * w[i] / sum(w))))
@@ -421,6 +564,10 @@ loci_of_layout <- function(layout) {
 }
 
 layout_label <- function(layout, assembly = "") {
+  if (names_contigs(layout)) {
+    return(sprintf("%s%d regions, end to end", if (nzchar(assembly))
+      paste0(assembly, ", ") else "", nrow(layout)))
+  }
   what <- if (nrow(layout) == 1) layout$chrom
     else paste(loci_of_layout(layout), collapse = ", ")
   name <- if (nzchar(assembly)) paste0(assembly, " ") else ""
@@ -432,7 +579,7 @@ layout_label <- function(layout, assembly = "") {
 # query row's above it, each at its pixel
 synteny_x <- function(x) {
   on_row <- function(layout) layout_breaks(layout, function(r, i, at)
-    band_px(r, i, at, x$width))
+    band_px(r, i, at, x$width), x$width)
   q <- on_row(x$query)
   t <- on_row(x$target)
   ggplot2::scale_x_continuous(breaks = t$breaks, labels = t$labels,
@@ -455,7 +602,18 @@ synteny_band <- function(x, curves) {
     ggplot2::labs(y = NULL) +
     ggplot2::theme_minimal() +
     no_y +
-    ggplot2::theme(panel.grid = ggplot2::element_blank())
+    ggplot2::theme(panel.grid = ggplot2::element_blank()) +
+    upright_names(x$target, "x.bottom") +
+    upright_names(x$query, "x.top")
+}
+
+# An axis's contig names turned to run along the axis's normal, as the
+# dotplot's horizontal axis draws them, so close names do not overlap
+upright_names <- function(layout, axis) {
+  if (!names_contigs(layout)) return(NULL)
+  hjust <- if (axis == "x.top") 0 else 1
+  do.call(ggplot2::theme, stats::setNames(list(ggplot2::element_text(
+    angle = 90, hjust = hjust, vjust = 0.5)), paste0("axis.text.", axis)))
 }
 
 # The tracks a row shows, each read over the row's regions
@@ -470,7 +628,13 @@ row_tracks <- function(tracks, layout, row) {
         paste(loci_of(t), collapse = ", "), call. = FALSE)
     }
   }
-  tracks
+  lapply(tracks, function(t) {
+    if (is.null(t$regions)) return(t)
+    t$regions <- layout
+    t$region$start <- min(layout$cum_start)
+    t$region$end <- max(layout$cum_end)
+    t
+  })
 }
 
 #' Draw a pairwise alignment as JBrowse's linear synteny view
@@ -529,13 +693,17 @@ autoplot.jbrowse_synteny <- function(object, query = NULL, target = NULL,
 #' @inheritParams jbrowse_synteny
 #' @param x,y the regions each axis shows, written as [jbrowse_synteny()]'s
 #'   `query` and `target` are: the horizontal axis is the adapter's query
-#'   side and the vertical its target, unless `assemblies` says otherwise
+#'   side and the vertical its target, unless `assemblies` or `swap` says
+#'   otherwise. Unset, every contig of that axis's assembly, so
+#'   `jbrowse_dotplot(paf)` is the whole genome against the whole genome
 #' @param view the view's settings, as a `DotplotView` snapshot writes them:
 #'   a list with any of `color`, `opacity`, `minAlignmentLength`,
 #'   `minIdentity`, `drawCigar` and `lineWidth`
 #' @param width,height the plot's pixels, which decide which blocks are wide
 #'   enough for their CIGAR to show
 #' @param assemblies which assembly each axis is on, `c(x, y)`
+#' @param swap put the file's target side on the horizontal axis and its
+#'   query on the vertical, as [jbrowse_synteny()]'s `swap` does the rows
 #' @return a `jbrowse_dotplot` list:
 #'   * `alignments`: each block: `name`, `x_chrom`, `x_start`, `x_end`,
 #'     `y_chrom`, `y_start`, `y_end`, `strand`, `length`, the measurements
@@ -557,13 +725,15 @@ autoplot.jbrowse_synteny <- function(object, query = NULL, target = NULL,
 #' paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
 #' d <- jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001")
 #' head(d$segments)
-jbrowse_dotplot <- function(file, x, y, view = NULL, width = 600,
-                            height = 600, assemblies = NULL, index = NULL) {
-  xr <- regions_of(x, NULL, NULL)
-  yr <- regions_of(y, NULL, NULL)
-  args <- c(comparative_args(file, index, view),
-    list(x = axis_args(xr, assemblies[1], width),
-      y = axis_args(yr, assemblies[2], height)))
+jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
+                            width = 600, height = 600, assemblies = NULL,
+                            swap = FALSE, index = NULL) {
+  args <- comparative_args(file, index, view)
+  axes <- comparative_axes(args$adapterConfig, x, y, assemblies, swap)
+  xr <- axes$first
+  yr <- axes$second
+  args <- c(args, list(x = axis_args(xr, axes$names[1], width),
+    y = axis_args(yr, axes$names[2], height)))
   r <- call_engine("dotplot", args)
   alignments <- snake(as_frame(r$alignments))
   alignments$color <- jbrowse_color(alignments$color)
@@ -582,7 +752,7 @@ jbrowse_dotplot <- function(file, x, y, view = NULL, width = 600,
       alpha = r$alpha, line_width = r$lineWidth,
       assemblies = unlist(r$assemblyNames), skipped = r$skipped,
       width = width, height = height,
-      x = region_layout(xr), y = region_layout(yr)),
+      x = region_layout(xr, 0), y = region_layout(yr, 0)),
     primary = "segments",
     class = c("jbrowse_dotplot", "jbrowse_result"))
 }
@@ -639,8 +809,9 @@ geom_jbrowse_dotplot <- function(mapping = NULL, data = NULL, ...) {
 
 # An axis of regions laid end to end: breaks at round positions in each,
 # labelled in the region's own coordinates
-layout_scale <- function(scale, layout) {
-  b <- layout_breaks(layout, function(r, i, at) at - r$start[i] + r$offset[i])
+layout_scale <- function(scale, layout, width) {
+  b <- layout_breaks(layout, function(r, i, at) at - r$start[i] + r$offset[i],
+    width)
   scale(breaks = b$breaks, labels = b$labels)
 }
 
@@ -675,8 +846,8 @@ autoplot.jbrowse_dotplot <- function(object, ...) {
     geom_jbrowse_dotplot(linewidth = px_to_mm(x$line_width)) +
     scale_colour_jbrowse(x) +
     guides_jbrowse(x) +
-    layout_scale(ggplot2::scale_x_continuous, x$x) +
-    layout_scale(ggplot2::scale_y_continuous, x$y) +
+    layout_scale(ggplot2::scale_x_continuous, x$x, x$width) +
+    layout_scale(ggplot2::scale_y_continuous, x$y, x$height) +
     ggplot2::coord_cartesian(
       xlim = c(min(x$x$cum_start), max(x$x$cum_end)),
       ylim = c(min(x$y$cum_start), max(x$y$cum_end)), expand = FALSE) +
@@ -684,5 +855,6 @@ autoplot.jbrowse_dotplot <- function(object, ...) {
       y = layout_label(x$y, x$assemblies[2])) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-      panel.border = ggplot2::element_rect(fill = NA, colour = "grey70"))
+      panel.border = ggplot2::element_rect(fill = NA, colour = "grey70")) +
+    upright_names(x$x, "x.bottom")
 }

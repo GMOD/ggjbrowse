@@ -1,3 +1,5 @@
+LOCUS <- "^(.+):([0-9,]+)(-|\\.\\.)([0-9,]+)$"
+
 # The regions a reader was asked for, 0-based half-open: a contig with
 # `start` and `end`, locus strings as JBrowse's location box writes them
 # ("ctgA:1,001-9,000", 1-based and inclusive), or a data frame of chrom,
@@ -15,8 +17,7 @@ regions_of <- function(region, start, end) {
     return(data.frame(chrom = as.character(region), start = as.numeric(start),
       end = as.numeric(end)))
   }
-  m <- regmatches(region, regexec(
-    "^(.+):([0-9,]+)(-|\\.\\.)([0-9,]+)$", region))
+  m <- regmatches(region, regexec(LOCUS, region))
   bad <- lengths(m) == 0
   if (any(bad)) {
     stop("cannot read ", paste0("\"", region[bad], "\"", collapse = ", "),
@@ -28,12 +29,15 @@ regions_of <- function(region, start, end) {
     end = number(5))
 }
 
-# Several regions end to end on one axis, as a JBrowse view lays them out:
-# each spans its width in bp, a gap between them; the first keeps its own
-# coordinates, so one region is drawn at its genomic position
+# Several regions end to end on one axis: each spans its width in bp, a gap
+# of `gap_frac` of the axis between them; the first keeps its own
+# coordinates, so one region is drawn at its genomic position. JBrowse's
+# views lay regions out with no gap and paint a 3 px bar over each seam; a
+# stack keeps a gap in place of that bar, while a comparative axis lays its
+# regions as the synteny and dotplot workers do, with none.
 region_layout <- function(regions, gap_frac = 0.012) {
   w <- regions$end - regions$start
-  gap <- max(1, round(sum(w) * gap_frac))
+  gap <- if (gap_frac > 0) max(1, round(sum(w) * gap_frac)) else 0
   regions$offset <- regions$start[1] + utils::head(cumsum(c(0, w + gap)),
     length(w))
   regions$cum_start <- regions$offset

@@ -6,11 +6,12 @@
 \usage{
 jbrowse_synteny(
   file,
-  query,
-  target,
+  query = NULL,
+  target = NULL,
   view = NULL,
   width = 800,
   assemblies = NULL,
+  swap = FALSE,
   index = NULL
 )
 }
@@ -21,9 +22,11 @@ tabix index beside it), a MUMmer \code{.delta}, a UCSC \code{.chain} or a MashMa
 config, as a list, such as an \code{MCScanAnchorsAdapter}'s}
 
 \item{query, target}{the regions each row shows: a locus as JBrowse's
-location box writes it (\code{"ctgA:1-50,001"}, 1-based and inclusive),
-several of them, drawn end to end as a view lays them out, or a data
-frame of \code{chrom}, \code{start} and \code{end}}
+location box writes it (\code{"ctgA:1-50,001"}, 1-based and inclusive), a
+contig's name alone for the whole of it, several of them, drawn end to
+end as a view lays them out, or a data frame of \code{chrom}, \code{start} and
+\code{end}. Unset, every contig of that row's assembly, in the order the file
+names them (\code{\link[=jbrowse_contigs]{jbrowse_contigs()}}), as JBrowse shows a whole genome}
 
 \item{view}{the view's settings, as a \code{LinearSyntenyView} snapshot writes
 them: a list with any of \code{color} (a CSS color, or the color object's
@@ -43,6 +46,11 @@ are thin enough to fade}
 them each row is on, \code{c(query, target)}; unset, the adapter's own order.
 A pairwise file answers from either side, so \code{c("volvox", "volvox_del")}
 on a PAF of \code{volvox_del} against \code{volvox} puts \code{volvox} on top}
+
+\item{swap}{put the file's target side on the top row and its query side
+on the bottom: the adapter's two assembly names, or \code{assemblies},
+reversed. A file guessed from its extension names its sides \code{"query"}
+and \code{"target"}, so \code{swap = TRUE} is \code{assemblies = c("target", "query")}}
 
 \item{index}{the tabix or CSI index of a \code{.pif.gz}, if not beside it}
 }
