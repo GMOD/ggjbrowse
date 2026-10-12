@@ -109,9 +109,9 @@ amylase <- jbrowse_synteny(extdata("hprc_amylase.paf"),
   view = list(color = list(field = "strand")))
 save("amylase.png", autoplot(amylase), 3)
 
-paf <- extdata("volvox_inv_indels.paf")
-save("synteny-zoom.png", autoplot(jbrowse_synteny(paf, "ctgA:26,801-30,000",
-  "ctgA:27,201-30,500", width = 1500)), 2.2)
+save("synteny-zoom.png", autoplot(jbrowse_synteny(extdata("hprc_amylase.paf"),
+  "GRCh38#0#chr1:103,619,501-103,622,500",
+  "HG00133#1#CM090045.1:103,768,401-103,771,400", width = 1500)), 2.2)
 ggsave(file.path(out, "dotplot.png"), autoplot(jbrowse_dotplot(chain,
   view = list(color = list(field = "strand")))),
   width = 7, height = 6, dpi = 120)
@@ -120,6 +120,16 @@ ggsave(file.path(out, "whole-genome.png"),
   autoplot(jbrowse_dotplot(extdata("peach_grape.paf.gz"))),
   width = 6, height = 5.5, dpi = 120)
 
-multiway <- jbrowse_multiway(extdata("volvox_all_vs_all.paf"), "ctgA:1-50,001",
-  "volvox", display = list(ribbonColor = list(field = "strand")))
-save("multiway.png", autoplot(multiway), 3.2)
+liftover <- function(genome, assembly) list(type = "PairwiseIndexedPAFAdapter",
+  pifGzLocation = list(uri = extdata(sprintf("hg38To%s.over.pif.gz", genome))),
+  index = list(
+    location = list(uri = extdata(sprintf("hg38To%s.over.pif.gz.csi", genome))),
+    indexType = "CSI"),
+  assemblyNames = c(assembly, "hg38"))
+primates <- list(type = "MultiPairwiseSyntenyAdapter", adapters = list(
+  liftover("PanTro6", "panTro6"), liftover("GorGor6", "gorGor6"),
+  liftover("PonAbe3", "ponAbe3")))
+multiway <- jbrowse_multiway(primates, "chr17:7,400,001-7,700,000", "hg38",
+  lanes = c("panTro6", "gorGor6", "ponAbe3"),
+  display = list(ribbonColor = list(field = "strand")))
+save("multiway.png", autoplot(multiway), 4.5)

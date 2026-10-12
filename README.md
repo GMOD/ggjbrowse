@@ -24,10 +24,8 @@ remotes::install_github("GMOD/ggjbrowse")
 
 See [Docs](#docs) for how the engine works.
 
-Every example here runs as written, on test data installed with the
-package: clips of public human data, and JBrowse's simulated volvox genome
-where an example needs a CIGAR-level synteny alignment or a multi-way one.
-`scripts/extdata-*.sh` make the human clips.
+Every example here runs as written, on clips of public human data installed
+with the package. `scripts/extdata-*.sh` make the clips.
 
 ```r
 library(ggjbrowse)
@@ -140,8 +138,8 @@ ggplot(a) +
 The tables work without the geoms as well:
 
 ```r
-cram <- jbrowse_alignments(e("volvox-sorted.cram"), "ctgA:1,001-3,000",
-  reference = e("volvox.fa"))
+cram <- jbrowse_alignments(e("gapdh_direct_rna.cram"),
+  "chr12:6,534,201-6,535,200", reference = e("gapdh_hg38.fa.gz"))
 ggplot(cram$mismatches, aes(position, frequency, colour = color)) +
   geom_point() +
   scale_colour_jbrowse(cram, "bases")
@@ -374,17 +372,16 @@ autoplot(a)
 
 ![GRCh38 chr1 over HG00133 at the amylase genes: a reverse block between forward ones, the alignments overlapping where the copies duplicate](man/figures/amylase.png)
 
-Zoomed in on an alignment with a CIGAR, as volvox's simulated one has, the
-band shows: insertions in yellow, deletions in blue over the
+Zoomed in, the CIGAR shows: insertions in yellow, deletions in blue over the
 red match block, as the band paints them:
 
 ```r
-paf <- e("volvox_inv_indels.paf")
-autoplot(jbrowse_synteny(paf, "ctgA:26,801-30,000", "ctgA:27,201-30,500",
-  width = 1500))
+autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
+  "GRCh38#0#chr1:103,619,501-103,622,500",
+  "HG00133#1#CM090045.1:103,768,401-103,771,400", width = 1500))
 ```
 
-![3 kb of the same alignment: the match block sheared by its insertions and deletions](man/figures/synteny-zoom.png)
+![3 kb of the same alignment: the match block cut by an 80 bp deletion](man/figures/synteny-zoom.png)
 
 `jbrowse_dotplot()` reads the same files through JBrowse's dotplot display,
 a line per block, or per CIGAR step where a block is wide enough on the
@@ -433,12 +430,22 @@ contig, and `display` takes the display's settings (`ribbonColor`,
 above it, as `autoplot(m, above = genes)`:
 
 ```r
-m <- jbrowse_multiway(e("volvox_all_vs_all.paf"), "ctgA:1-50,001", "volvox",
+liftover <- function(genome, assembly) list(type = "PairwiseIndexedPAFAdapter",
+  pifGzLocation = list(uri = e(sprintf("hg38To%s.over.pif.gz", genome))),
+  index = list(
+    location = list(uri = e(sprintf("hg38To%s.over.pif.gz.csi", genome))),
+    indexType = "CSI"),
+  assemblyNames = c(assembly, "hg38"))
+primates <- list(type = "MultiPairwiseSyntenyAdapter", adapters = list(
+  liftover("PanTro6", "panTro6"), liftover("GorGor6", "gorGor6"),
+  liftover("PonAbe3", "ponAbe3")))
+m <- jbrowse_multiway(primates, "chr17:7,400,001-7,700,000", "hg38",
+  lanes = c("panTro6", "gorGor6", "ponAbe3"),
   display = list(ribbonColor = list(field = "strand")))
 autoplot(m)
 ```
 
-![Volvox over its insertion and deletion simulations: three lanes, each with its own ruler, the ribbons between them opening at the indels](man/figures/multiway.png)
+![The TP53 neighbourhood on hg38 over chimp, gorilla and orangutan, UCSC's liftOver chains: three lanes, each at its own coordinates, the ribbons between them in the same orientation, opening where a genome lacks sequence the one above has](man/figures/multiway.png)
 
 ## From a JBrowse view
 

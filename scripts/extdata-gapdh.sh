@@ -2,6 +2,7 @@
 # inst/extdata's GAPDH files, hg38 chr12:6,500,001-6,570,000:
 #   gapdh_direct_rna.bam  NA12878 nanopore direct RNA over GAPDH, about 1 read
 #                         in 1,250, MD tags added so no reference is needed
+#   gapdh_direct_rna.cram the same reads as a CRAM, which embeds its reference
 #   gapdh_hg38.fa.gz      chr12 at its true coordinates, Ns but for the window
 #   gapdh_gencode.gff3.gz GENCODE v47's features in the window
 # Usage: scripts/extdata-gapdh.sh; needs samtools, bgzip and tabix.
@@ -29,6 +30,9 @@ samtools view -b -F 256 -s 7.0008 "$bam" chr12:6534512-6538374 > "$tmp/reads.bam
 samtools calmd -b "$tmp/reads.bam" "$out/gapdh_hg38.fa.gz" \
   > "$out/gapdh_direct_rna.bam" 2> /dev/null
 samtools index "$out/gapdh_direct_rna.bam"
+samtools view -C -T "$out/gapdh_hg38.fa.gz" "$out/gapdh_direct_rna.bam" \
+  > "$out/gapdh_direct_rna.cram" 2> /dev/null
+samtools index "$out/gapdh_direct_rna.cram"
 
 # GENCODE writes gene_name and transcript_name where a display labels by Name
 tabix "$gff" "chr12:$start-$end" | sort -k1,1 -k4,4n | awk -F'\t' -v OFS='\t' '
