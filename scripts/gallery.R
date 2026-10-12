@@ -6,8 +6,8 @@
 #   Rscript scripts/gallery.R [example ...]
 # JBROWSE_COMPONENTS is the jbrowse-components checkout (default
 # ~/src/jbrowse-components); JB2EXPORT replaces the command that runs
-# jb2export. The hg38 and hg19 hubs and the clips' reference sequences come
-# over the network. Needs ImageMagick for the webp.
+# jb2export. The hg38 and hg19 hubs, the clips' reference sequences and the
+# primate chrom.sizes come over the network. Needs ImageMagick for the webp.
 suppressPackageStartupMessages({
   library(ggjbrowse)
   library(ggplot2)
@@ -72,6 +72,114 @@ chain <- extdata("hg002_chr8.chain")
 amylase <- extdata("hprc_amylase.paf")
 peach_grape <- jbrowse_dotplot(extdata("peach_grape.paf.gz"))
 hg002_dot <- jbrowse_dotplot(chain, swap = TRUE)
+
+local_file <- function(path) list(localPath = path,
+  locationType = "LocalPathLocation")
+
+json_file <- function(x, name) {
+  path <- file.path(work, name)
+  writeLines(jsonlite::toJSON(x, auto_unbox = TRUE, pretty = TRUE), path)
+  path
+}
+
+chrom_sizes_assembly <- function(name, sizes) list(name = name,
+  sequence = list(type = "ReferenceSequenceTrack",
+    trackId = paste0(name, "-refseq"),
+    adapter = list(type = "ChromSizesAdapter",
+      chromSizesLocation = local_file(sizes))))
+
+gene_track <- function(id, file, assembly) list(type = "FeatureTrack",
+  trackId = id, name = id, assemblyNames = I(assembly),
+  adapter = list(type = "Gff3TabixAdapter", gffGzLocation = local_file(file),
+    index = list(location = local_file(paste0(file, ".tbi")),
+      indexType = "TBI")),
+  displays = list(list(type = "LinearBasicDisplay",
+    displayId = paste0(id, "-display"), displayMode = "compact",
+    showLabels = FALSE, showOnlyGenes = TRUE)))
+
+synteny_genes_args <- function() {
+  config <- json_file(list(
+    assemblies = list(
+      chrom_sizes_assembly("maternal", chrom_sizes(chain, "target", "maternal")),
+      chrom_sizes_assembly("paternal", chrom_sizes(chain, "query", "paternal"))),
+    tracks = list(
+      list(type = "SyntenyTrack", trackId = "hg002", name = "hg002",
+        assemblyNames = c("maternal", "paternal"),
+        adapter = list(type = "ChainAdapter",
+          chainLocation = local_file(chain), targetAssembly = "maternal",
+          queryAssembly = "paternal")),
+      gene_track("maternal genes", extdata("hg002_mat_genes.gff3.gz"),
+        "maternal"),
+      gene_track("paternal genes", extdata("hg002_pat_genes.gff3.gz"),
+        "paternal"))), "synteny_genes.config.json")
+  spec <- json_file(list(views = list(list(type = "LinearSyntenyView",
+    tracks = list(I("hg002")), color = list(field = "strand"),
+    views = list(
+      list(assembly = "maternal", loc = paste0("chr8_MATERNAL:", inversion),
+        tracks = I("maternal genes")),
+      list(assembly = "paternal", loc = paste0("chr8_PATERNAL:", inversion),
+        tracks = I("paternal genes")))))), "synteny_genes.spec.json")
+  c("--config", config, "--spec", spec)
+}
+
+liftover <- function(genome, assembly) list(type = "PairwiseIndexedPAFAdapter",
+  pifGzLocation = list(uri = extdata(sprintf("hg38To%s.over.pif.gz", genome))),
+  index = list(
+    location = list(uri = extdata(sprintf("hg38To%s.over.pif.gz.csi", genome))),
+    indexType = "CSI"),
+  assemblyNames = c(assembly, "hg38"))
+
+primates <- list(type = "MultiPairwiseSyntenyAdapter", adapters = list(
+  liftover("PanTro6", "panTro6"), liftover("GorGor6", "gorGor6"),
+  liftover("PonAbe3", "ponAbe3")))
+
+# jb2export reads the same files by path, where ggjbrowse takes them as uris
+multiway_args <- function(genomes) {
+  assemblies <- lapply(c("hg38", genomes), function(genome) {
+    sizes <- file.path(work, paste0(genome, ".chrom.sizes"))
+    download.file(sprintf(
+      "https://hgdownload.soe.ucsc.edu/goldenPath/%s/bigZips/%s.chrom.sizes",
+      genome, genome), sizes, quiet = TRUE)
+    chrom_sizes_assembly(genome, sizes)
+  })
+  adapter <- primates
+  adapter$adapters <- lapply(adapter$adapters, function(a) {
+    a$pifGzLocation <- local_file(a$pifGzLocation$uri)
+    a$index$location <- local_file(a$index$location$uri)
+    a
+  })
+  config <- json_file(list(assemblies = assemblies, tracks = list(list(
+    type = "SyntenyTrack", trackId = "primates", name = "liftOver to primates",
+    assemblyNames = c("hg38", genomes), adapter = adapter,
+    displays = list(list(type = "MultiWaySyntenyDisplay",
+      displayId = "primates-display", height = 300,
+      rows = list(domain = I(genomes)),
+      ribbonColor = list(field = "strand")))))), "multiway.config.json")
+  c("--config", config, "--assembly", "hg38", "--track", "primates")
+}
+
+population_tracks <- function() json_file(list(list(type = "VariantTrack",
+  trackId = "people", name = "1000 Genomes", assemblyNames = I("hg19"),
+  adapter = list(type = "VcfTabixAdapter",
+    vcfGzLocation = local_file(extdata("1000g_dcst2.vcf.gz")),
+    index = list(location = local_file(extdata("1000g_dcst2.vcf.gz.tbi"))),
+    samplesTsvLocation = local_file(extdata("1000g_dcst2_samples.tsv"))),
+  displays = list(list(type = "LinearMultiSampleVariantDisplay",
+    displayId = "people-display", height = 450, variantLayout = "columns",
+    rowColor = "superpopulation")))), "people.tracks.json")
+
+exon_windows <- function(transcript, window = 20) {
+  gff <- read.delim(gzfile(gencode), header = FALSE, comment.char = "#")
+  exon <- gff[gff$V3 == "exon" & grepl(paste0("transcript_id=", transcript, ";"),
+    gff$V9, fixed = TRUE), ]
+  exon <- exon[order(exon$V4), ]
+  data.frame(chrom = exon$V1, start = exon$V4 - 1 - window,
+    end = exon$V5 + window)
+}
+
+exons <- exon_windows("ENST00000229239.10")
+gene_display <- list(displayMode = "compact", showLabels = FALSE,
+  showOnlyGenes = TRUE)
 
 # name -> `title`; `locus`, as the JBrowse location box writes it, for the
 # caption; `jbrowse`, every jb2export argument; `r`, the ggjbrowse figure;
@@ -172,16 +280,25 @@ examples <- list(
     r = function() jbrowse_stack(jbrowse_features(gencode, two_loci),
       jbrowse_wiggle(phylop, two_loci), jbrowse_alignments(rna, two_loci,
         display = list(color = list(field = "strand"))))),
-  genotype_matrix = list(
-    title = "100 people's genotypes across DCST2 (GRCh37)",
+  variants_by_population = list(
+    title = "100 people's genotypes across DCST2 (GRCh37), colored by superpopulation",
     locus = "1:155,000,001-155,050,000", height = 7,
-    jbrowse = c("--hub", "hg19", "--vcfgz", extdata("1000g_dcst2.vcf.gz"),
-      "showLegend=true",
-      "display:multivariantmatrix", "height:450", "--loc",
-      "1:155,000,001-155,050,000"),
+    jbrowse = c("--hub", "hg19", "--tracks", population_tracks(), "--track",
+      "people", "--loc", "1:155,000,001-155,050,000"),
     r = function() autoplot(jbrowse_variants(extdata("1000g_dcst2.vcf.gz"),
-      "1:155,000,001-155,050,000",
-      samples = extdata("1000g_dcst2_samples.tsv")), layout = "columns")),
+      "1:155,000,001-155,050,000", samples = extdata("1000g_dcst2_samples.tsv"),
+      display = list(rowColor = list(field = "superpopulation"))),
+      layout = "columns")),
+  collapsed_introns = list(
+    title = "GAPDH's nine exons side by side, with the junctions between them as arcs",
+    locus = "ENST00000229239.10's exons, each padded by 20 bp", height = 7,
+    jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "sashimi:auto",
+      "color.field=strand", "showLegend=true", grow, "--loc",
+      paste(sprintf("%s:%d-%d", exons$chrom, exons$start + 1, exons$end),
+        collapse = " ")),
+    r = function() jbrowse_stack(jbrowse_features(gencode, exons),
+      jbrowse_alignments(rna, exons,
+        display = list(color = list(field = "strand"))))),
   inversion_synteny = list(
     title = "HG002's maternal chr8 over its paternal copy at 8p23.1",
     locus = sprintf("chr8_MATERNAL:%s chr8_PATERNAL:%s", inversion, inversion),
@@ -224,7 +341,43 @@ examples <- list(
       "GRCh38#0#chr1:103,520,894-103,832,637",
       "HG00133#1#CM090045.1:103,669,666-103,981,330",
       view = list(color = list(field = "strand")),
-      labels = c(query = "GRCh38", target = "HG00133"))))
+      labels = c(query = "GRCh38", target = "HG00133")))),
+  amylase_zoom = list(
+    title = "3 kb of the same alignment: the match block cut by an 80 bp deletion",
+    locus = "GRCh38#0#chr1:103,619,501-103,622,500", height = 2.2,
+    jbrowse = c("synteny", "--chromSizes",
+      chrom_sizes(amylase, "query", "GRCh38", "GRCh38#0#chr1"),
+      "loc:GRCh38#0#chr1:103,619,501-103,622,500", "--paf", amylase,
+      "--chromSizes", chrom_sizes(amylase, "target", "HG00133",
+        "HG00133#1#CM090045.1"),
+      "loc:HG00133#1#CM090045.1:103,768,401-103,771,400",
+      "--colorBy", "strand"),
+    r = function() autoplot(jbrowse_synteny(amylase,
+      "GRCh38#0#chr1:103,619,501-103,622,500",
+      "HG00133#1#CM090045.1:103,768,401-103,771,400",
+      view = list(color = list(field = "strand")),
+      labels = c(query = "GRCh38", target = "HG00133")))),
+  synteny_genes = list(
+    title = "HG002's maternal chr8 over its paternal copy, each with its genes",
+    locus = sprintf("chr8_MATERNAL:%s chr8_PATERNAL:%s", inversion, inversion),
+    jbrowse = synteny_genes_args(),
+    r = function() autoplot(jbrowse_synteny(chain,
+      paste0("chr8_MATERNAL:", inversion), paste0("chr8_PATERNAL:", inversion),
+      view = list(color = list(field = "strand")), swap = TRUE,
+      labels = c(query = "paternal", target = "maternal")),
+      above = jbrowse_features(extdata("hg002_mat_genes.gff3.gz"),
+        paste0("chr8_MATERNAL:", inversion), display = gene_display),
+      below = jbrowse_features(extdata("hg002_pat_genes.gff3.gz"),
+        paste0("chr8_PATERNAL:", inversion), display = gene_display))),
+  multiway = list(
+    title = "The TP53 neighbourhood on hg38 over chimp, gorilla and orangutan",
+    locus = "chr17:7,400,001-7,700,000", height = 4.5,
+    jbrowse = c(multiway_args(c("panTro6", "gorGor6", "ponAbe3")), "--loc",
+      "chr17:7,400,001-7,700,000"),
+    r = function() autoplot(jbrowse_multiway(primates,
+      "chr17:7,400,001-7,700,000", "hg38",
+      lanes = c("panTro6", "gorGor6", "ponAbe3"),
+      display = list(ribbonColor = list(field = "strand")))))
 )
 
 png_of <- function(name, side) file.path(dir, sprintf("%s-%s.png", name, side))
