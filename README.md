@@ -242,6 +242,34 @@ A file can be a path or a URL; a remote file is read in byte ranges through
 is no Bioconductor dependency: the BAM, CRAM, FASTA, GFF3, BED, BigBed,
 BigWig and VCF readers are JBrowse's.
 
+## From a JBrowse view
+
+- JBrowse's linear genome view is gaining an **Export R script** menu item,
+  not yet in a release. It writes one ggjbrowse reader per open track, then
+  `jbrowse_stack()` and `ggsave(height = jbrowse_height(fig))`.
+- Each figure on the right is that script, downloaded from the view on the
+  left and run unchanged with `Rscript`.
+
+| JBrowse | R |
+| --- | --- |
+| **Genes over a BAM**<br>`ctgA:1,000-9,000`<br>![Genes over a BAM in JBrowse](gallery/genes-and-reads-jbrowse.webp) | ![Genes over a BAM drawn by ggjbrowse](gallery/genes-and-reads-r.webp) |
+| **Base-level zoom, reads colored by MAPQ**<br>`ctgA:1,000-1,150`<br>![Base-level zoom, reads colored by MAPQ in JBrowse](gallery/mapq-zoom-jbrowse.webp) | ![Base-level zoom, reads colored by MAPQ drawn by ggjbrowse](gallery/mapq-zoom-r.webp) |
+| **Compact reads over a deep region**<br>`ctgA:1-20,000`<br>![Compact reads over a deep region in JBrowse](gallery/compact-reads-jbrowse.webp) | ![Compact reads over a deep region drawn by ggjbrowse](gallery/compact-reads-r.webp) |
+| **Super-compact long reads**<br>`ctgA:1,000-2,700`<br>![Super-compact long reads in JBrowse](gallery/super-compact-reads-jbrowse.webp) | ![Super-compact long reads drawn by ggjbrowse](gallery/super-compact-reads-r.webp) |
+| **RNA-seq with splice junctions**<br>`ctgA:1,000-10,000`<br>![RNA-seq with splice junctions in JBrowse](gallery/rnaseq-sashimi-jbrowse.webp) | ![RNA-seq with splice junctions drawn by ggjbrowse](gallery/rnaseq-sashimi-r.webp) |
+| **Reads split into strand sections**<br>`ctgA:2,000-5,000`<br>![Reads split into strand sections in JBrowse](gallery/facet-strand-jbrowse.webp) | ![Reads split into strand sections drawn by ggjbrowse](gallery/facet-strand-r.webp) |
+| **Paired reads across an inversion**<br>`ctgA:18,000-32,000`<br>![Paired reads across an inversion in JBrowse](gallery/inversion-arcs-jbrowse.webp) | ![Paired reads across an inversion drawn by ggjbrowse](gallery/inversion-arcs-r.webp) |
+| **Long reads split across a structural variant**<br>`ctgA:1,800-3,000 ctgA:33,900-35,100`<br>![Long reads split across a structural variant in JBrowse](gallery/long-reads-sv-jbrowse.webp) | ![Long reads split across a structural variant drawn by ggjbrowse](gallery/long-reads-sv-r.webp) |
+| **CpG methylation from MM/ML tags**<br>`20:10,000-22,000`<br>![CpG methylation from MM/ML tags in JBrowse](gallery/methylation-jbrowse.webp) | ![CpG methylation from MM/ML tags drawn by ggjbrowse](gallery/methylation-r.webp) |
+| **Multi-BigWig rows**<br>`ctgA:1-50,000`<br>![Multi-BigWig rows in JBrowse](gallery/multi-bigwig-jbrowse.webp) | ![Multi-BigWig rows drawn by ggjbrowse](gallery/multi-bigwig-r.webp) |
+| **200 BigWig rows**<br>`ctgA:1-50,000`<br>![200 BigWig rows in JBrowse](gallery/many-rows-200-jbrowse.webp) | ![200 BigWig rows drawn by ggjbrowse](gallery/many-rows-200-r.webp) |
+| **1,000 BigWig rows as density**<br>`ctgA:1-50,000`<br>![1,000 BigWig rows as density in JBrowse](gallery/many-rows-1000-jbrowse.webp) | ![1,000 BigWig rows as density drawn by ggjbrowse](gallery/many-rows-1000-r.webp) |
+| **Quantitative renderings**<br>`ctgA:1-50,000`<br>![Quantitative renderings in JBrowse](gallery/wiggle-renderings-jbrowse.webp) | ![Quantitative renderings drawn by ggjbrowse](gallery/wiggle-renderings-r.webp) |
+| **Two regions end to end**<br>`ctgA:1,001-4,000 ctgA:6,001-9,000`<br>![Two regions end to end in JBrowse](gallery/two-regions-jbrowse.webp) | ![Two regions end to end drawn by ggjbrowse](gallery/two-regions-r.webp) |
+| **Variants beside genes**<br>`ctgA:1-25,000`<br>![Variants beside genes in JBrowse](gallery/variants-and-genes-jbrowse.webp) | ![Variants beside genes drawn by ggjbrowse](gallery/variants-and-genes-r.webp) |
+| **Genes colored by a config expression**<br>`ctgA:1-25,000`<br>![Genes colored by a config expression in JBrowse](gallery/jexl-colors-jbrowse.webp) | ![Genes colored by a config expression drawn by ggjbrowse](gallery/jexl-colors-r.webp) |
+| **Structural variants across 1,800 dogs**<br>`chr6:47,340,000-47,420,000`<br>![Structural variants across 1,800 dogs in JBrowse](gallery/dog-sv-matrix-jbrowse.webp) | ![Structural variants across 1,800 dogs drawn by ggjbrowse](gallery/dog-sv-matrix-r.webp) |
+
 ## The engine
 
 `inst/js/jbrowse-tables.js` is
@@ -269,7 +297,7 @@ committed bundle once R CMD check passes.
 
 The variant display's row arrangement
 and its zoomed-out density fade; per-base quality and bisulfite layers; a legend for a
-linear color ramp; facets on a feature track; the amino-acid
+color ramp, such as a density track's; facets on a feature track; the amino-acid
 overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.
 
