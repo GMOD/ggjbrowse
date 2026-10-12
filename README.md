@@ -24,7 +24,7 @@ See [Docs](#docs) for how the engine works.
 
 Every example here runs as written, on test data installed with the
 package: clips of public human data, and JBrowse's simulated volvox genome
-where an example needs a BigWig or a synteny alignment.
+where an example needs a synteny alignment.
 `scripts/extdata-*.sh` make the human clips.
 
 ```r
@@ -193,18 +193,30 @@ zoom level that answers. Zoomed out, a min-max extent draws each bin's max and
 min around its mean:
 
 ```r
-bw <- e("volvox_microarray_posneg.bw")
-autoplot(jbrowse_wiggle(bw, "ctgA:1-50,000", width = 100))
-autoplot(jbrowse_wiggle(bw, "ctgA:1-50,000", width = 100,
+bw <- e("gapdh_phylop100way.bw")
+autoplot(jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700", width = 100))
+autoplot(jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700", width = 100,
   display = list(mark = "line", interpolate = "linear")))
-autoplot(jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "span")))
+autoplot(jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700",
+  display = list(mark = "span")))
 ```
 
-![A signed volvox microarray track three ways: min-max bars, an interpolated line over its min-max band, and density](man/figures/wiggle.png)
+![UCSC's phyloP conservation across GAPDH three ways: min-max bars, an interpolated line over its min-max band, and density; the exons stand out as conserved](man/figures/wiggle.png)
 
 A track of several BigWigs, read through a `MultiWiggleAdapter` config,
 draws a row per source in `w$sources`' order. Reorder or filter that table
 to rearrange them, as for a variant matrix's rows:
+
+```r
+cells <- c("gm12878", "h1hesc", "hsmm", "huvec", "k562", "nhek", "nhlf")
+h3k27ac <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
+  function(cell) list(type = "BigWigAdapter", name = toupper(cell),
+    bigWigLocation = list(uri = e(sprintf("gapdh_h3k27ac_%s.bw", cell))))))
+autoplot(jbrowse_wiggle(h3k27ac, "chr12:6,534,201-6,538,700",
+  display = list(mark = "span")))
+```
+
+![H3K27ac signal across GAPDH in seven ENCODE cell lines, a row each, strongest in HUVEC near the transcription start](man/figures/multi-wiggle.png)
 
 - `as.matrix(w)` is the matrix the display's "Cluster rows" clusters: a row
   per source, a column per pixel.
@@ -254,15 +266,15 @@ axis, with the keys collected. Several loci draw end to end, as a view lays
 out several regions, each tick labelled in its own region's positions:
 
 ```r
-loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
-genes <- jbrowse_features(e("volvox.sort.gff3.gz"), loci)
-signal <- jbrowse_wiggle(e("volvox_microarray_posneg.bw"), loci)
-reads <- jbrowse_alignments(e("volvox-sorted.bam"), loci,
+loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci)
+signal <- jbrowse_wiggle(e("gapdh_phylop100way.bw"), loci)
+reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
   display = list(color = list(field = "strand")))
 jbrowse_stack(genes, signal, reads)
 ```
 
-![Volvox genes, a BigWig and strand-colored reads over two regions of ctgA laid end to end](man/figures/stack.png)
+![GAPDH genes, phyloP conservation and strand-colored direct RNA reads over the gene's 5' and 3' ends laid end to end](man/figures/stack.png)
 
 Each band is an ordinary ggplot. Restyle every band with patchwork's `&`,
 `jbrowse_stack(genes, signal, reads) & theme_classic()`, or draw one on its
@@ -277,7 +289,7 @@ and `jbrowse_height()` gives the figure height that keeps those proportions,
 so a compact pileup saves as a shorter figure:
 
 ```r
-compact <- jbrowse_alignments(e("volvox-sorted.bam"), loci,
+compact <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
   display = list(featureHeight = 3, color = list(field = "strand")))
 fig <- jbrowse_stack(genes, signal, compact)
 ggsave("stack.png", fig, width = 10, height = jbrowse_height(fig))
