@@ -3,3 +3,4 @@
 *.Rcheck
 *.tar.gz
 Rplots.pdf
+.claude
