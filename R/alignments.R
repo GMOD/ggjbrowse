@@ -103,6 +103,9 @@ sequence_adapter <- function(reference) {
 #'   * `chains`: under `unit = "chain"`, each chain of more than one read:
 #'     `start`, `end`, `row`, and the `color` and `opacity` of the hairline
 #'     across it; empty otherwise
+#'   * `overlaps`: under `unit = "chain"`, each span where two reads of one row
+#'     both align: `start`, `end`, `row` and the neutral `color` the display
+#'     fills it with, as it does not take either read's; empty otherwise
 #'   * `insertions`: `position`, `length`, `sequence`, `read`, `row`, `fade`
 #'   * `clips`: `position`, `length`, `type` (`"soft"` or `"hard"`), `read`,
 #'     `row`, `fade`
@@ -223,6 +226,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   mismatches$color <- jbrowse_color(colors$bases[mismatches$base])
   chains <- frame(t$chains)
   chains$color <- jbrowse_color(chains$color)
+  overlaps <- read_overlaps(reads, nrow(chains) > 0, OVERLAP)
   gaps <- on_read(t$gaps)
   gaps$color <- jbrowse_color(ifelse(gaps$type == "skip", colors$skip,
     colors$deletion))
@@ -257,6 +261,10 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   arc_ticks <- frame(t$arcTicks)
   arc_ticks$color <- jbrowse_color(arc_ticks$color)
   legend <- frame(t$legend)
+  if (nrow(overlaps)) {
+    legend <- rbind(legend, data.frame(label = "Pair/chain reads overlap here",
+      color = jbrowse_color(OVERLAP)))
+  }
   attr(legend, "title") <- t$legendTitle
   arc_legend <- frame(t$arcLegend)
   attr(arc_legend, "title") <- t$arcLegendTitle
@@ -273,7 +281,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
     drop = FALSE]
   attr(junction_key, "title") <- "Junction strand"
   structure(
-    list(reads = reads, mismatches = mismatches, gaps = gaps, chains = chains,
+    list(reads = reads, mismatches = mismatches, gaps = gaps, chains = chains, overlaps = overlaps,
       insertions = insertions, clips = clips, modifications = modifications,
       qualities = qualities,
       coverage = coverage, allele_coverage = alleles,
@@ -317,6 +325,7 @@ jbrowse_sequence <- function(reference, chrom, start, end) {
 # The grey JBrowse paints every mismatched base in while the per-base layer
 # paints modifications, its palette's mutedSnpBase
 MUTED_BASE <- "#888"
+OVERLAP <- "#555555"
 
 paints_modifications <- function(display) {
   is.list(display$baseColor) &&
@@ -345,4 +354,39 @@ print.jbrowse_alignments <- function(x, ...) {
     nrow(x$insertions), nrow(x$clips), nrow(x$indicators),
     nrow(x$modifications), nrow(x$junctions), nrow(x$arcs)))
   invisible(x)
+}
+
+# The spans where two or more reads of one row both align, merged, as the
+# display marks the overlap between a chain's segments
+read_overlaps <- function(reads, chained, color) {
+  none <- data.frame(start = numeric(0), end = numeric(0), row = numeric(0))
+  if (!chained || !nrow(reads)) {
+    none$color <- jbrowse_color(character(0))
+    return(none)
+  }
+  by_row <- split(reads, interaction(reads$row, reads$section, drop = TRUE))
+  spans <- lapply(by_row, function(r) {
+    if (nrow(r) < 2) return(NULL)
+    at <- sort(unique(c(r$start, r$end)))
+    depth <- vapply(seq_len(length(at) - 1), function(i)
+      sum(r$start <= at[i] & r$end >= at[i + 1]), 0)
+    shared <- depth >= 2
+    if (!any(shared)) return(NULL)
+    runs <- rle(shared)
+    last <- cumsum(runs$lengths)
+    first <- last - runs$lengths + 1
+    keep <- runs$values
+    out <- data.frame(start = at[first[keep]], end = at[last[keep] + 1],
+      row = r$row[1])
+    if (!is.null(r$section)) out$section <- r$section[1]
+    out
+  })
+  out <- do.call(rbind, spans)
+  if (is.null(out)) {
+    none$color <- jbrowse_color(character(0))
+    return(none)
+  }
+  rownames(out) <- NULL
+  out$color <- jbrowse_color(rep(color, nrow(out)))
+  out
 }

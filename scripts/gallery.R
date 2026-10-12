@@ -77,17 +77,19 @@ peach_grape <- jbrowse_dotplot(extdata("peach_grape.paf.gz"))
 examples <- list(
   genes_and_reads = list(
     title = "GENCODE genes over direct RNA reads", locus = gapdh,
-    jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "--loc", gapdh),
+    jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "showLegend=true",
+      "--loc", gapdh),
     r = function() autoplot(jbrowse_alignments(rna, gapdh),
       above = jbrowse_features(gencode, gapdh))),
   sashimi = list(
     title = "Splice junctions over direct RNA reads", locus = gapdh,
-    jbrowse = c(fasta, "--bam", rna, "--loc", gapdh),
+    jbrowse = c(fasta, "--bam", rna, "showLegend=true", "--loc", gapdh),
     r = function() autoplot(jbrowse_alignments(rna, gapdh))),
   strand_sections = list(
     title = "COLO829 long reads split into forward and reverse strand sections",
     locus = "chr3:25,357,600-25,361,000",
     jbrowse = c(hg38, "--bam", extdata("colo829_tumor_chr3.bam"),
+      "showLegend=true",
       "facet=strand", "--loc", "chr3:25,357,600-25,361,000"),
     r = function() autoplot(jbrowse_alignments(
       extdata("colo829_tumor_chr3.bam"), "chr3:25,357,600-25,361,000",
@@ -96,6 +98,7 @@ examples <- list(
     title = "COLO829 der(3) split reads chained across its two chr3 breakpoints",
     locus = "chr3:25,358,500-25,359,800",
     jbrowse = c(hg38, "--bam", extdata("colo829_tumor_chr3.bam"),
+      "showLegend=true",
       "arcs:down", "unit=chain", "color.field=strand", "filter.split=only",
       "--loc", "chr3:25,358,500-25,359,800"),
     r = function() autoplot(jbrowse_alignments(
@@ -105,7 +108,8 @@ examples <- list(
   deletion = list(
     title = "Reads sorted by the base at the center, over a somatic deletion",
     locus = "chr10:122,831,700-122,840,800",
-    jbrowse = c(hg38, "--bam", deletion, "sort:base", "--loc",
+    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", "sort:base",
+      "--loc",
       "chr10:122,831,700-122,840,800"),
     r = function() autoplot(jbrowse_alignments(deletion,
       "chr10:122,831,700-122,840,800",
@@ -113,14 +117,16 @@ examples <- list(
   compact_reads = list(
     title = "Compact reads over the same deletion",
     locus = "chr10:122,831,700-122,840,800",
-    jbrowse = c(hg38, "--bam", deletion, "featureHeight:compact", "--loc",
+    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", "featureHeight:compact",
+      "--loc",
       "chr10:122,831,700-122,840,800"),
     r = function() autoplot(jbrowse_alignments(deletion,
       "chr10:122,831,700-122,840,800", display = list(featureHeight = 3)))),
   base_zoom = list(
     title = "Base-level zoom at the deletion's left edge",
     locus = "chr10:122,835,300-122,835,420",
-    jbrowse = c(hg38, "--bam", deletion, "sort:base", "--loc",
+    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", "sort:base",
+      "--loc",
       "chr10:122,835,300-122,835,420"),
     r = function() autoplot(jbrowse_alignments(deletion,
       "chr10:122,835,300-122,835,420",
@@ -129,6 +135,7 @@ examples <- list(
     title = "Split reads chained across an inversion, with their arcs",
     locus = "chr1:197,786,900-197,789,700",
     jbrowse = c(hg38, "--bam", extdata("hg00151_chr1_inversion.bam"),
+      "showLegend=true",
       "arcs:down", "unit=chain", "color.field=pairOrientation",
       "facet=split", "coverageHeight=80", "--loc",
       "chr1:197,786,900-197,789,700"),
@@ -149,7 +156,7 @@ examples <- list(
   dnase_rows = list(
     title = "DNase in twelve cell lines over the beta-globin locus",
     locus = "chr11:5,270,001-5,320,000", height = 6,
-    jbrowse = c(hg38, "--multiwig", rows_json(dnase, toupper(cells)),
+    jbrowse = c(hg38, "--multiwig", rows_json(dnase, toupper(cells)), "showLegend=true",
       "name:DNase", "--loc", "chr11:5,270,001-5,320,000"),
     r = function() autoplot(jbrowse_wiggle(list(type = "MultiWiggleAdapter",
       subadapters = lapply(seq_along(cells), function(i) list(
@@ -157,12 +164,13 @@ examples <- list(
         bigWigLocation = list(uri = dnase[i])))), "chr11:5,270,001-5,320,000"))),
   conservation = list(
     title = "phyloP conservation across GAPDH", locus = gapdh, height = 3,
-    jbrowse = c(fasta, "--bigwig", phylop, "--loc", gapdh),
+    jbrowse = c(fasta, "--bigwig", phylop, "showLegend=true", "--loc", gapdh),
     r = function() autoplot(jbrowse_wiggle(phylop, gapdh, width = 100))),
   two_regions = list(
     title = "Genes, conservation and reads over two regions end to end",
     locus = paste(two_loci, collapse = " "),
-    jbrowse = c(fasta, "--gffgz", gencode, "--bigwig", phylop, "--bam", rna,
+    jbrowse = c(fasta, "--gffgz", gencode, "--bigwig", phylop, "showLegend=true",
+      "--bam", rna, "showLegend=true",
       "--loc", paste(two_loci, collapse = " ")),
     r = function() jbrowse_stack(jbrowse_features(gencode, two_loci),
       jbrowse_wiggle(phylop, two_loci), jbrowse_alignments(rna, two_loci))),
@@ -170,6 +178,7 @@ examples <- list(
     title = "100 people's genotypes across DCST2 (GRCh37)",
     locus = "1:155,000,001-155,050,000", height = 7,
     jbrowse = c("--hub", "hg19", "--vcfgz", extdata("1000g_dcst2.vcf.gz"),
+      "showLegend=true",
       "display:multivariantmatrix", "height:450", "--loc",
       "1:155,000,001-155,050,000"),
     r = function() autoplot(jbrowse_variants(extdata("1000g_dcst2.vcf.gz"),

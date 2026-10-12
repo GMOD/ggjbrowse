@@ -204,6 +204,7 @@ pileup_plot <- function(x, o) {
   px <- o$width
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_reads() +
+    geom_jbrowse_overlaps() +
     scale_fill_jbrowse(x, "reads") +
     guides_jbrowse(x) +
     geom_jbrowse_qualities(width = px) +

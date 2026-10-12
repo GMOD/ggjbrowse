@@ -3,6 +3,7 @@
 \name{geom_jbrowse_reads}
 \alias{geom_jbrowse_reads}
 \alias{geom_jbrowse_deletion_lengths}
+\alias{geom_jbrowse_overlaps}
 \alias{geom_jbrowse_chains}
 \alias{geom_jbrowse_skips}
 \alias{geom_jbrowse_deletions}
@@ -26,6 +27,8 @@
 geom_jbrowse_reads(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_deletion_lengths(mapping = NULL, data = NULL, width = NULL, ...)
+
+geom_jbrowse_overlaps(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_chains(mapping = NULL, data = NULL, ...)
 
@@ -135,6 +138,8 @@ score through a scale of your own
 \item \code{geom_jbrowse_skips()}, \code{geom_jbrowse_deletions()}: the splice gaps'
 lines and the deletions' boxes, and \code{geom_jbrowse_deletion_lengths()}
 writes a deletion's length in it where the box is wide enough
+\item \code{geom_jbrowse_overlaps()}: under \code{unit = "chain"}, the neutral fill over
+the span where two reads of a chain both align
 \item \code{geom_jbrowse_chains()}: under \code{unit = "chain"}, the hairline across a
 row from the first to the last read of a chain, a read's mate or split
 segments sharing it

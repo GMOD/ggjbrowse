@@ -40,6 +40,8 @@ with_inset <- function(d, model) {
 #' * `geom_jbrowse_skips()`, `geom_jbrowse_deletions()`: the splice gaps'
 #'   lines and the deletions' boxes, and `geom_jbrowse_deletion_lengths()`
 #'   writes a deletion's length in it where the box is wide enough
+#' * `geom_jbrowse_overlaps()`: under `unit = "chain"`, the neutral fill over
+#'   the span where two reads of a chain both align
 #' * `geom_jbrowse_chains()`: under `unit = "chain"`, the hairline across a
 #'   row from the first to the last read of a chain, a read's mate or split
 #'   segments sharing it
@@ -130,6 +132,16 @@ label_fade <- function(span_px, need_px, rule) {
   ramp <- t * t * (3 - 2 * t)
   ifelse(span_px < need_px * (rule$fadeLo %||% Inf), 0,
     rule$fadeFloor + (1 - rule$fadeFloor) * ramp)
+}
+
+#' @rdname geom_jbrowse_reads
+#' @export
+geom_jbrowse_overlaps <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "overlaps", "geom_jbrowse_overlaps")
+  jbrowse_layer(ggplot2::GeomRect, data, function(x) x$overlaps, mapping,
+    ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
+      ymax = row + 1 - inset, fill = color), list(...), keyed = FALSE,
+    rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads

@@ -37,8 +37,8 @@ test_that("insertions and clips sit on their reads, in the track's layers", {
   expect_equal(l$clips$row, l$reads$row[l$clips$read])
   p <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup"))
   layers <- vapply(p$data, nrow, 1L)
-  expect_equal(layers[7], nrow(l$insertions))
-  expect_equal(layers[8], nrow(l$clips))
+  expect_equal(layers[8], nrow(l$insertions))
+  expect_equal(layers[9], nrow(l$clips))
   # sequencing-error insertions on 20 long reads fade toward the floor
   faded <- p$data[[7]]$alpha
   expect_true(any(faded < 1))
@@ -210,8 +210,8 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   band <- ggplot2::ggplot_build(ggplot2::autoplot(m, "coverage"))$data[[3]]
   expect_equal(nrow(band), nrow(m$modification_coverage))
   p <- ggplot2::ggplot_build(ggplot2::autoplot(m, "pileup"))
-  expect_equal(nrow(p$data[[5]]), nrow(m$modifications))
-  expect_true(all(p$data[[5]]$fill %in% m$legend$color))
+  expect_equal(nrow(p$data[[6]]), nrow(m$modifications))
+  expect_true(all(p$data[[6]]$fill %in% m$legend$color))
   calls <- jbrowse_alignments(bam, "20", 10000, 20000,
     display = list(baseColor = list(field = "modifications"),
       modifications = list(unmodified = "calls")))
@@ -249,7 +249,7 @@ test_that("base quality paints each aligned base on its read, keyed as a bar", {
   expect_equal(vapply(q$ramps, attr, "", "title"), "Base quality")
   expect_equal(attr(q$ramps[[1]], "labels")[1], "0")
   p <- ggplot2::ggplot_build(ggplot2::autoplot(q, "pileup"))
-  expect_equal(nrow(p$data[[2]]), nrow(q$qualities))
+  expect_equal(nrow(p$data[[3]]), nrow(q$qualities))
   expect_equal(nrow(jbrowse_alignments(bam, "20", 10000, 10300)$qualities), 0)
 })
 
@@ -312,7 +312,7 @@ test_that("the pileup and coverage draw in the display's colors", {
   expect_equal(bam$legend$label, "Reads")
   p <- ggplot2::ggplot_build(ggplot2::autoplot(bam))
   expect_equal(unique(p$data[[1]]$fill), tolower(colors$read))
-  expect_equal(nrow(p$data[[6]]), nrow(bam$mismatches))
+  expect_equal(nrow(p$data[[7]]), nrow(bam$mismatches))
   cov <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage"))
   expect_equal(nrow(cov$data[[1]]), nrow(bam$coverage))
 })
@@ -443,4 +443,14 @@ test_that("a base modification call draws at least a display pixel wide", {
     display = list(baseColor = list(field = "modifications")))
   d <- ggplot2::layer_data(ggplot2::ggplot(m) + geom_jbrowse_modifications(), 1)
   expect_true(all(d$xmax - d$xmin >= 12000 / 1500 - 1e-9))
+})
+
+test_that("a chain's overlapping segments come back as overlap spans", {
+  colo <- extdata("colo829_tumor_chr3.bam")
+  locus <- "chr3:25,358,500-25,359,800"
+  chained <- jbrowse_alignments(colo, locus,
+    display = list(unit = "chain", filter = list(split = "only")))
+  expect_gt(nrow(chained$overlaps), 0)
+  expect_true(all(chained$overlaps$end > chained$overlaps$start))
+  expect_equal(nrow(jbrowse_alignments(colo, locus)$overlaps), 0)
 })

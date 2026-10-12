@@ -101,6 +101,9 @@ reads carry that base there, over the depth), \code{quality}, \code{fade}
 \item \code{chains}: under \code{unit = "chain"}, each chain of more than one read:
 \code{start}, \code{end}, \code{row}, and the \code{color} and \code{opacity} of the hairline
 across it; empty otherwise
+\item \code{overlaps}: under \code{unit = "chain"}, each span where two reads of one row
+both align: \code{start}, \code{end}, \code{row} and the neutral \code{color} the display
+fills it with, as it does not take either read's; empty otherwise
 \item \code{insertions}: \code{position}, \code{length}, \code{sequence}, \code{read}, \code{row}, \code{fade}
 \item \code{clips}: \code{position}, \code{length}, \code{type} (\code{"soft"} or \code{"hard"}), \code{read},
 \code{row}, \code{fade}
