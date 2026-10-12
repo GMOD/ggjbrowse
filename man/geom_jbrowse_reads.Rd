@@ -5,6 +5,7 @@
 \alias{geom_jbrowse_skips}
 \alias{geom_jbrowse_deletions}
 \alias{geom_jbrowse_modifications}
+\alias{geom_jbrowse_qualities}
 \alias{geom_jbrowse_mismatches}
 \alias{geom_jbrowse_insertions}
 \alias{geom_jbrowse_clips}
@@ -31,6 +32,8 @@ geom_jbrowse_deletions(
 )
 
 geom_jbrowse_modifications(mapping = NULL, data = NULL, px_per_bp = NULL, ...)
+
+geom_jbrowse_qualities(mapping = NULL, data = NULL, px_per_bp = NULL, ...)
 
 geom_jbrowse_mismatches(
   mapping = NULL,
@@ -111,6 +114,9 @@ was made from, \verb{ggplot(<jbrowse_alignments>)}.
 \itemize{
 \item \code{geom_jbrowse_reads()}: each read on its pileup row, split at its splice
 gaps
+\item \code{geom_jbrowse_qualities()}: under \code{baseColor} \code{"baseQuality"}, each
+aligned base in its quality's color; \code{aes(fill = score)} maps the Phred
+score through a scale of your own
 \item \code{geom_jbrowse_skips()}, \code{geom_jbrowse_deletions()}: the splice gaps'
 lines and the deletions' boxes
 \item \code{geom_jbrowse_mismatches()}, \code{geom_jbrowse_insertions()},

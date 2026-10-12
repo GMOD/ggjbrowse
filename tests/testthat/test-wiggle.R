@@ -16,6 +16,22 @@ test_that("a BigWig region reads as the wiggle display scales and colors it", {
   expect_equal(pinned$domain, c(-50, 300))
 })
 
+test_that("density keys its ramp as a bar beside the plot, and bars key none", {
+  d <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = "span"))
+  expect_length(d$ramps, 1)
+  ramp <- d$ramps[[1]]
+  expect_equal(attr(ramp, "title"), "Score")
+  expect_equal(attr(ramp, "labels"), as.character(d$domain))
+  expect_equal(range(ramp$offset), c(0, 1))
+  expect_length(w$ramps, 0)
+  keyed <- function(x) {
+    g <- ggplot2::ggplotGrob(ggplot2::autoplot(x))
+    !inherits(g$grobs[[which(g$layout$name == "guide-box-right")]], "zeroGrob")
+  }
+  expect_true(keyed(d))
+  expect_false(keyed(w))
+})
+
 test_that("a zoomed-out min-max extent draws the max, mean and min bands on each side", {
   wide <- jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100)
   expect_equal(length(unique(wide$marks$layer)), 6)

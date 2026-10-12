@@ -49,6 +49,8 @@ down to: the origin, or a whisker band's min), \code{band}, \code{color} and
 layers of their own, tinted as the display tints them
 \item \code{sources}: \code{name}, \code{label}, \code{group}, \code{color}
 \item \code{rules}: the reference lines \code{scales$y$rules} draws
+\item \code{ramps}: the score's color bar where one ramp paints every row
+(density, or a gradient), as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws it
 }
 
 \code{domain} is the score axis the display autoscales to, \code{scale_type} its

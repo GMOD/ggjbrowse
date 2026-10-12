@@ -54,7 +54,8 @@ sequence_adapter <- function(reference) {
 #'     `split` (each `"only"` or `"exclude"`)
 #'   * `baseColor`: the per-base layer painted over the reads:
 #'     `list(field = "modifications")` for the reads' MM/ML base
-#'     modifications; unset paints none
+#'     modifications, `list(field = "baseQuality")` for each base's Phred
+#'     score; unset paints none
 #'   * `modifications`: what that layer reads: any of `threshold` (the
 #'     percent probability under which a call is hidden, 10), `unmodified`
 #'     (`"hidden"`, `"calls"` or `"all"`), `cytosineContext` (`"CG"`,
@@ -92,6 +93,9 @@ sequence_adapter <- function(reference) {
 #'     `probability`, `unmodified` (whether the call is that the base is not
 #'     modified), and the `color` and `opacity` the display paints it at;
 #'     empty without `display$baseColor`
+#'   * `qualities`: under `baseColor` `"baseQuality"`, each aligned base:
+#'     `position`, `read`, `row`, `score` (Phred) and the `color` the display
+#'     paints it
 #'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`
 #'   * `allele_coverage`: the coverage band's stack at each mismatch position,
 #'     as the display stacks it: `position`, `base`, `from` and `to` (the
@@ -105,6 +109,8 @@ sequence_adapter <- function(reference) {
 #'     does not cover both ends)
 #'   * `legend`: `label` and `color`, the key the display shows for `color`,
 #'     its title as the frame's `"title"` attribute
+#'   * `ramps`: the color bars the display keys (a linear tag or MAPQ, base
+#'     quality), as [guides_jbrowse()] draws them
 #'   * `arcs`: under `display$readConnections`, each connection the band draws:
 #'     `start` and `end` (its feet), `shape` (`"arc"`, or the read cloud's
 #'     `"flat"`, `"flatSplit"` for a split read, and `"unplaced"` for one whose
@@ -192,6 +198,8 @@ alignments_region <- function(adapter, chrom, start, end, reference,
     colors$hardclip))
   modifications <- on_read(t$modifications)
   modifications$color <- jbrowse_color(modifications$color)
+  qualities <- on_read(t$qualities)
+  qualities$color <- jbrowse_color(qualities$color)
   coverage <- frame(t$coverage)
   coverage$color <- jbrowse_color(rep(colors$coverage, nrow(coverage)))
   alleles <- frame(t$alleleCoverage)
@@ -219,6 +227,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   structure(
     list(reads = reads, mismatches = mismatches, gaps = gaps,
       insertions = insertions, clips = clips, modifications = modifications,
+      qualities = qualities,
       coverage = coverage, allele_coverage = alleles,
       modification_coverage = modification_coverage, junctions = junctions,
       legend = legend, arcs = arcs, arc_ticks = arc_ticks,
@@ -226,7 +235,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
       read_connections = display$readConnections %||% "off",
       sections = sections,
       keys = list(reads = legend, bases = base_key, arcs = arc_legend,
-        junctions = junction_key),
+        junctions = junction_key), ramps = ramp_frames(t$ramps),
       region = list(chrom = chrom, start = start, end = end),
       reference = if (is.null(reference)) NULL else
         list(file = reference, chrom = reference_chrom),

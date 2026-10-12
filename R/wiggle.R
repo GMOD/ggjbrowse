@@ -34,6 +34,8 @@
 #'     layers of their own, tinted as the display tints them
 #'   * `sources`: `name`, `label`, `group`, `color`
 #'   * `rules`: the reference lines `scales$y$rules` draws
+#'   * `ramps`: the score's color bar where one ramp paints every row
+#'     (density, or a gradient), as [guides_jbrowse()] draws it
 #'
 #'   `domain` is the score axis the display autoscales to, `scale_type` its
 #'   type, and `rendering` what the display draws (`"xyplot"`, `"line"`,
@@ -68,6 +70,7 @@ wiggle_region <- function(file, chrom, start, end, display, width) {
   structure(
     list(bins = as_frame(t$bins), marks = marks,
       sources = as_frame(t$sources), rules = rules, keys = list(),
+      ramps = ramp_frames(t$ramps),
       domain = unlist(t$domain), scale_type = t$scaleType,
       symlog_constant = t$symlogConstant, rendering = t$rendering,
       origin = t$origin, row_layout = t$rowLayout, height = t$height,
@@ -115,6 +118,26 @@ scale_y_jbrowse <- function(object) {
     ggplot2::scale_y_continuous())
 }
 
+# Marks as the display stacks its rows: under a row layout each source's
+# scores fill its own slice of the axis, first source on top, with no gap
+# between rows, on the display's own scale; `base` is the slice's floor
+in_rows <- function(x, d) {
+  n <- nrow(x$sources)
+  d$base <- if (isTRUE(x$row_layout)) n - 1 - d$row else rep(0, nrow(d))
+  if (isTRUE(x$row_layout)) {
+    t <- switch(x$scale_type, log = scales::transform_log10(),
+      symlog = symlog_transform(x$symlog_constant),
+      scales::transform_identity())
+    lim <- t$transform(x$domain)
+    at <- function(v) {
+      d$base + pmin(1, pmax(0, (t$transform(v) - lim[1]) / diff(lim)))
+    }
+    d$low <- at(d$low)
+    d$score <- at(d$score)
+  }
+  d
+}
+
 #' A quantitative track's marks as ggplot layers
 #'
 #' `geom_jbrowse_wiggle()` draws the marks as the display's plot type draws
@@ -136,26 +159,6 @@ scale_y_jbrowse <- function(object) {
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle(aes(fill = abs(score))) +
 #'   scale_fill_viridis_c()
-# Marks as the display stacks its rows: under a row layout each source's
-# scores fill its own slice of the axis, first source on top, with no gap
-# between rows, on the display's own scale; `base` is the slice's floor
-in_rows <- function(x, d) {
-  n <- nrow(x$sources)
-  d$base <- if (isTRUE(x$row_layout)) n - 1 - d$row else rep(0, nrow(d))
-  if (isTRUE(x$row_layout)) {
-    t <- switch(x$scale_type, log = scales::transform_log10(),
-      symlog = symlog_transform(x$symlog_constant),
-      scales::transform_identity())
-    lim <- t$transform(x$domain)
-    at <- function(v) {
-      d$base + pmin(1, pmax(0, (t$transform(v) - lim[1]) / diff(lim)))
-    }
-    d$low <- at(d$low)
-    d$score <- at(d$score)
-  }
-  d
-}
-
 geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
   of <- function(rendering, pick) function(x) {
     d <- pick(x)
@@ -242,6 +245,7 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
   p <- ggplot2::ggplot(object) +
     geom_jbrowse_wiggle() +
     geom_jbrowse_rules() +
+    guides_jbrowse(object) +
     (if (!rows && !density) scale_y_jbrowse(object)) +
     ggplot2::coord_cartesian(
       xlim = c(object$region$start, object$region$end),

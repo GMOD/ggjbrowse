@@ -54,6 +54,8 @@ variants_adapter <- function(file, index, samples) {
 #'     the display marks the row with under `rowColor`, `""` where none
 #'   * `legend`: the display's key, its title as the frame's `"title"`
 #'     attribute
+#'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
+#'     them
 #' @export
 #' @examples
 #' vcf <- system.file("extdata", "dog10k_cyp1a2_snvs.vcf.gz",
@@ -100,6 +102,7 @@ variants_region <- function(adapter, chrom, start, end, display,
       keys = list(genotypes = legend, rows = key_frame(
         unlist(t$rowLegend$label) %||% character(0),
         unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
+      ramps = ramp_frames(t$ramps),
       region = list(chrom = chrom, start = start, end = end),
       missing_contig = t$missingContig),
     primary = "cells",
@@ -196,6 +199,7 @@ autoplot.jbrowse_variants <- function(object,
     reference_rows(object) +
     geom_jbrowse_genotypes(layout = layout) +
     scale_fill_jbrowse(object) +
+    guides_jbrowse(object) +
     row_bars(object, xlim) +
     ggplot2::scale_y_reverse(breaks = seq_along(rows), labels = rows) +
     ggplot2::coord_cartesian(xlim = xlim, expand = FALSE, clip = "off") +

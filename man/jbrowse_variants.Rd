@@ -61,6 +61,8 @@ cell
 the display marks the row with under \code{rowColor}, \code{""} where none
 \item \code{legend}: the display's key, its title as the frame's \code{"title"}
 attribute
+\item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
+them
 }
 }
 \description{

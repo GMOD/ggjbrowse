@@ -96,6 +96,8 @@ features_adapter <- function(file, index) {
 #'     names (a row number of `subfeatures`, `NA` for a feature's own label)
 #'   * `legend`: `label` and `color`, the key the display shows for a color
 #'     field, its title as the frame's `"title"` attribute
+#'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
+#'     them
 #'
 #'   `feature` is a row number of `features`. `glyph` gives the pixel sizes
 #'   the display draws text, arrows and chevrons at, and `height` the track's
@@ -156,7 +158,7 @@ features_region <- function(file, chrom, start, end, display, width,
       subfeatures = on_feature(t$subfeatures), rects = on_feature(t$rects),
       lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
       arrows = arrows, labels = labels, legend = legend,
-      keys = list(features = legend),
+      keys = list(features = legend), ramps = ramp_frames(t$ramps),
       glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
       region = list(chrom = chrom, start = start, end = end),
       missing_contig = t$missingContig),
@@ -330,6 +332,7 @@ autoplot.jbrowse_features <- function(object, ...) {
   ggplot2::ggplot(object) +
     geom_jbrowse_glyphs() +
     scale_fill_jbrowse(object) +
+    guides_jbrowse(object) +
     geom_jbrowse_labels() +
     ggplot2::scale_y_reverse() +
     ggplot2::coord_cartesian(

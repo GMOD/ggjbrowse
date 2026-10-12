@@ -296,8 +296,8 @@ committed bundle once R CMD check passes.
 ## Not yet
 
 The variant display's row arrangement
-and its zoomed-out density fade; per-base quality and bisulfite layers; a legend for a
-color ramp, such as a density track's; facets on a feature track; the amino-acid
+and its zoomed-out density fade; the bisulfite layer; facets on a feature
+track; the amino-acid
 overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.
 

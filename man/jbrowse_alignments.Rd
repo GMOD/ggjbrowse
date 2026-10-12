@@ -52,7 +52,8 @@ one constant color, as in a track config; unset fills every read plain
 \code{split} (each \code{"only"} or \code{"exclude"})
 \item \code{baseColor}: the per-base layer painted over the reads:
 \code{list(field = "modifications")} for the reads' MM/ML base
-modifications; unset paints none
+modifications, \code{list(field = "baseQuality")} for each base's Phred
+score; unset paints none
 \item \code{modifications}: what that layer reads: any of \code{threshold} (the
 percent probability under which a call is hidden, 10), \code{unmodified}
 (\code{"hidden"}, \code{"calls"} or \code{"all"}), \code{cytosineContext} (\code{"CG"},
@@ -95,6 +96,9 @@ reads carry that base there, over the depth), \code{quality}, \code{fade}
 \code{probability}, \code{unmodified} (whether the call is that the base is not
 modified), and the \code{color} and \code{opacity} the display paints it at;
 empty without \code{display$baseColor}
+\item \code{qualities}: under \code{baseColor} \code{"baseQuality"}, each aligned base:
+\code{position}, \code{read}, \code{row}, \code{score} (Phred) and the \code{color} the display
+paints it
 \item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}
 \item \code{allele_coverage}: the coverage band's stack at each mismatch position,
 as the display stacks it: \code{position}, \code{base}, \code{from} and \code{to} (the
@@ -107,6 +111,8 @@ the reads' tags nor the splice motif says) and \code{motif} (\code{"GT-AG (canon
 does not cover both ends)
 \item \code{legend}: \code{label} and \code{color}, the key the display shows for \code{color},
 its title as the frame's \code{"title"} attribute
+\item \code{ramps}: the color bars the display keys (a linear tag or MAPQ, base
+quality), as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws them
 \item \code{arcs}: under \code{display$readConnections}, each connection the band draws:
 \code{start} and \code{end} (its feet), \code{shape} (\code{"arc"}, or the read cloud's
 \code{"flat"}, \code{"flatSplit"} for a split read, and \code{"unplaced"} for one whose

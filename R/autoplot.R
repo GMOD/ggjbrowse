@@ -143,6 +143,8 @@ pileup_plot <- function(x, o) {
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_reads() +
     scale_fill_jbrowse(x, "reads") +
+    guides_jbrowse(x) +
+    geom_jbrowse_qualities(px_per_bp = px) +
     geom_jbrowse_skips() +
     geom_jbrowse_deletions(fade = o$fade, px_per_bp = px) +
     geom_jbrowse_modifications(px_per_bp = px) +

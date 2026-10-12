@@ -34,6 +34,9 @@ with_inset <- function(d, model) {
 #'
 #' * `geom_jbrowse_reads()`: each read on its pileup row, split at its splice
 #'   gaps
+#' * `geom_jbrowse_qualities()`: under `baseColor` `"baseQuality"`, each
+#'   aligned base in its quality's color; `aes(fill = score)` maps the Phred
+#'   score through a scale of your own
 #' * `geom_jbrowse_skips()`, `geom_jbrowse_deletions()`: the splice gaps'
 #'   lines and the deletions' boxes
 #' * `geom_jbrowse_mismatches()`, `geom_jbrowse_insertions()`,
@@ -119,6 +122,20 @@ geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
   }, mapping,
     ggplot2::aes(xmin = position, xmax = xmax, ymin = row + inset,
       ymax = row + 1 - inset, fill = color, alpha = I(opacity)), list(...),
+    rows = TRUE)
+}
+
+#' @rdname geom_jbrowse_reads
+#' @export
+geom_jbrowse_qualities <- function(mapping = NULL, data = NULL,
+                                   px_per_bp = NULL, ...) {
+  jbrowse_layer(ggplot2::GeomRect, data, function(x) {
+    d <- x$qualities
+    d$xmax <- d$position + max(1, 1 / px_of(x, px_per_bp))
+    d
+  }, mapping,
+    ggplot2::aes(xmin = position, xmax = xmax, ymin = row + inset,
+      ymax = row + 1 - inset, fill = color), list(...), keyed = FALSE,
     rows = TRUE)
 }
 

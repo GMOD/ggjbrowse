@@ -89,6 +89,8 @@ shows: \code{text}, \code{kind}, \code{position} (its left edge, in bp), \code{y
 names (a row number of \code{subfeatures}, \code{NA} for a feature's own label)
 \item \code{legend}: \code{label} and \code{color}, the key the display shows for a color
 field, its title as the frame's \code{"title"} attribute
+\item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
+them
 }
 
 \code{feature} is a row number of \code{features}. \code{glyph} gives the pixel sizes
