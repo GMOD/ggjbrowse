@@ -52,7 +52,7 @@ jbrowse_height <- function(...) {
   tracks <- Filter(function(t) inherits(t, "jbrowse_result"),
     flat_tracks(list(...)))
   heights <- unlist(lapply(tracks, track_heights))
-  bands <- sum(heights) * 100 / 150 + 0.08 * length(heights) + 0.7
+  bands <- sum(heights) * 100 / PX_PER_INCH + 0.08 * length(heights) + 0.7
   keys <- sum(vapply(tracks, key_inches, 0)) + 0.3
   min(49, max(2, bands, keys))
 }
@@ -72,6 +72,10 @@ key_inches <- function(x) {
   }
   sum(vapply(keys, function(k) if (nrow(k)) 0.45 + 0.24 * nrow(k) else 0, 0))
 }
+
+# The display pixels a figure gives an inch: a 1,500 pixel view across 10
+# inches
+PX_PER_INCH <- 150
 
 flat_tracks <- function(tracks) {
   do.call(c, lapply(tracks, function(t)
@@ -138,7 +142,7 @@ track_heights <- function(x) {
       alignment_options(x)))) / 100)
   }
   if (inherits(x, "jbrowse_features")) max(0.3, x$height / 100)
-  else if (inherits(x, "jbrowse_variants")) max(1, nrow(x$rows) / 15)
+  else if (inherits(x, "jbrowse_variants")) row_px(x) * nrow(x$rows) / 100
   else if (isTRUE(x$row_layout)) 0.6 * nrow(x$sources)
   else 1
 }

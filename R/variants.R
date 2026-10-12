@@ -193,5 +193,9 @@ autoplot.jbrowse_variants <- function(object,
       else "record", y = NULL) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),
-      axis.text.y = ggplot2::element_text(size = 6))
+      axis.text.y = ggplot2::element_text(size = min(6,
+        0.85 * row_px(object) / PX_PER_INCH * 72)))
 }
+
+# A matrix row's height in display pixels, at least 100 for the whole matrix
+row_px <- function(x) max(100 / 15, 100 / nrow(x$rows))
