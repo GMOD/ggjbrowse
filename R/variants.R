@@ -1,11 +1,14 @@
-variants_adapter <- function(file, index) {
-  if (grepl("\\.vcf$", sub("\\?.*$", "", tolower(file)))) {
-    return(list(type = "VcfAdapter", vcfLocation = location(file)))
+variants_adapter <- function(file, index, samples) {
+  adapter <- if (grepl("\\.vcf$", sub("\\?.*$", "", tolower(file)))) {
+    list(type = "VcfAdapter", vcfLocation = location(file))
+  } else {
+    index <- index %||% paste0(file, ".tbi")
+    list(type = "VcfTabixAdapter", vcfGzLocation = location(file),
+      index = list(location = location(index),
+        indexType = if (grepl("\\.csi$", index)) "CSI" else "TBI"))
   }
-  index <- index %||% paste0(file, ".tbi")
-  list(type = "VcfTabixAdapter", vcfGzLocation = location(file),
-    index = list(location = location(index),
-      indexType = if (grepl("\\.csi$", index)) "CSI" else "TBI"))
+  if (!is.null(samples)) adapter$samplesTsvLocation <- location(samples)
+  adapter
 }
 
 #' Read a region of a multi-sample VCF as JBrowse paints it
@@ -33,6 +36,9 @@ variants_adapter <- function(file, index) {
 #'   `referenceDrawingMode` (`"skip"` or `"draw"`) and `shadeByDosage`
 #' @param index the tabix or CSI index, if not beside `file` under its usual
 #'   name
+#' @param samples a tab-separated file of the samples' attributes, a `name`
+#'   column and one column per attribute, which `display$rowColor` colors
+#'   the rows by, e.g. `list(rowColor = list(field = "group"))`
 #' @param byte_limit the most compressed bytes the region may need, refused
 #'   off the index before any record is fetched
 #' @return a `jbrowse_variants` list of data frames:
@@ -44,7 +50,8 @@ variants_adapter <- function(file, index) {
 #'     alleles) and `color`, the fill the display paints; under
 #'     `referenceDrawingMode = "skip"`, the default, a reference call has no
 #'     cell
-#'   * `rows`: `name`, `sample`, `haplotype` and `ploidy`
+#'   * `rows`: `name`, `sample`, `haplotype`, `ploidy` and `color`, the bar
+#'     the display marks the row with under `rowColor`, `""` where none
 #'   * `legend`: the display's key, its title as the frame's `"title"`
 #'     attribute
 #' @export
@@ -54,16 +61,17 @@ variants_adapter <- function(file, index) {
 #' v <- jbrowse_variants(vcf, "chr30", 38258000, 38265000)
 #' head(v$cells)
 jbrowse_variants <- function(file, region, start = NULL, end = NULL,
-                             display = NULL, index = NULL, byte_limit = 2e8) {
+                             display = NULL, index = NULL, samples = NULL,
+                             byte_limit = 2e8) {
+  adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
   read_regions(region, start, end, function(chrom, start, end, share, i)
-    variants_region(file, chrom, start, end, display, index, byte_limit))
+    variants_region(adapter, chrom, start, end, display, byte_limit))
 }
 
-variants_region <- function(file, chrom, start, end, display, index,
+variants_region <- function(adapter, chrom, start, end, display,
                             byte_limit) {
   args <- list(
-    adapterConfig = adapter_of(file, function()
-      variants_adapter(file, index)),
+    adapterConfig = adapter,
     region = list(refName = chrom, start = start, end = end),
     byteLimit = byte_limit)
   if (!is.null(display)) {
@@ -75,6 +83,7 @@ variants_region <- function(file, chrom, start, end, display, index,
   variants <- as_frame(t$variants)
   variants$color <- jbrowse_color(variants$color)
   rows <- as_frame(t$rows)
+  rows$color <- jbrowse_color(rows$color)
   cells <- as_frame(t$cells)
   cells$variant <- cells$variant + 1
   cells$start <- variants$start[cells$variant]
@@ -88,7 +97,9 @@ variants_region <- function(file, chrom, start, end, display, index,
     "Genotypes")[1]
   structure(
     list(variants = variants, cells = cells, rows = rows, legend = legend,
-      keys = list(genotypes = legend),
+      keys = list(genotypes = legend, rows = key_frame(
+        unlist(t$rowLegend$label) %||% character(0),
+        unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
       region = list(chrom = chrom, start = start, end = end),
       missing_contig = t$missingContig),
     primary = "cells",
@@ -179,22 +190,37 @@ autoplot.jbrowse_variants <- function(object,
   object <- on_axis(object)
   rows <- object$rows$name
   genomic <- layout == "genomic"
+  xlim <- if (genomic) c(object$region$start, object$region$end)
+    else c(0.5, nrow(object$variants) + 0.5)
   ggplot2::ggplot(object) +
     reference_rows(object) +
     geom_jbrowse_genotypes(layout = layout) +
     scale_fill_jbrowse(object) +
+    row_bars(object, xlim) +
     ggplot2::scale_y_reverse(breaks = seq_along(rows), labels = rows) +
-    ggplot2::coord_cartesian(
-      xlim = if (genomic) c(object$region$start, object$region$end)
-        else c(0.5, nrow(object$variants) + 0.5),
-      expand = FALSE) +
+    ggplot2::coord_cartesian(xlim = xlim, expand = FALSE, clip = "off") +
     (if (genomic) genomic_x(object)) +
     ggplot2::labs(x = if (genomic) axis_label(object)
       else "record", y = NULL) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),
       axis.text.y = ggplot2::element_text(size = min(6,
-        0.85 * row_px(object) / PX_PER_INCH * 72)))
+        0.85 * row_px(object) / PX_PER_INCH * 72),
+        margin = ggplot2::margin(r = if (any(object$rows$color != "")) 9
+          else 2.2)))
+}
+
+# Each row's color as a bar beside its label, outside the matrix, as the
+# display marks a row by its rowColor, keyed under the attribute
+row_bars <- function(x, xlim) {
+  colored <- x$rows$color != ""
+  if (!any(colored)) return(NULL)
+  bars <- data.frame(y = which(colored), color = x$rows$color[colored],
+    x = xlim[1] - 0.006 * diff(xlim))
+  list(ggplot2::geom_segment(ggplot2::aes(x = x, xend = x, y = y - 0.5,
+      yend = y + 0.5, colour = color), data = bars, inherit.aes = FALSE,
+      linewidth = 2.5, lineend = "butt", key_glyph = "rect"),
+    scale_colour_jbrowse(x, "rows"))
 }
 
 # A matrix row's height in display pixels, at least 100 for the whole matrix

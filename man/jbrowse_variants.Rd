@@ -11,6 +11,7 @@ jbrowse_variants(
   end = NULL,
   display = NULL,
   index = NULL,
+  samples = NULL,
   byte_limit = 2e+08
 )
 }
@@ -38,6 +39,10 @@ list of the color object's slots), \code{filter} (jexl expressions),
 \item{index}{the tabix or CSI index, if not beside \code{file} under its usual
 name}
 
+\item{samples}{a tab-separated file of the samples' attributes, a \code{name}
+column and one column per attribute, which \code{display$rowColor} colors
+the rows by, e.g. \code{list(rowColor = list(field = "group"))}}
+
 \item{byte_limit}{the most compressed bytes the region may need, refused
 off the index before any record is fetched}
 }
@@ -52,7 +57,8 @@ order), \code{sample}, \code{genotype}, \code{dosage} (the alt share of the call
 alleles) and \code{color}, the fill the display paints; under
 \code{referenceDrawingMode = "skip"}, the default, a reference call has no
 cell
-\item \code{rows}: \code{name}, \code{sample}, \code{haplotype} and \code{ploidy}
+\item \code{rows}: \code{name}, \code{sample}, \code{haplotype}, \code{ploidy} and \code{color}, the bar
+the display marks the row with under \code{rowColor}, \code{""} where none
 \item \code{legend}: the display's key, its title as the frame's \code{"title"}
 attribute
 }
