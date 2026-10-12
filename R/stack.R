@@ -136,19 +136,25 @@ stack_bands <- function(bands) {
     guides = "collect")
 }
 
-# The x axis's title: the contig, or every region of an axis that lays
-# several end to end
+# The x axis's title: the contig, the two regions of an axis that lays two end
+# to end, or the contigs and the count of more
 axis_label <- function(x) {
-  if (is.null(x$regions)) return(sprintf("%s (bp)", x$region$chrom))
-  sprintf("%s (bp, end to end)", paste(loci_of(x), collapse = ", "))
+  r <- x$regions
+  if (is.null(r)) return(sprintf("%s (bp)", x$region$chrom))
+  if (nrow(r) <= 2) {
+    return(sprintf("%s (bp, end to end)", paste(loci_of(x), collapse = ", ")))
+  }
+  sprintf("%s, %d regions (bp, end to end)",
+    paste(unique(r$chrom), collapse = ", "), nrow(r))
 }
 
 # The x scale: positions written with commas, and on an axis laying several
 # regions end to end round genomic positions in each region, about as many as
 # its share of the axis earns, each labelled with its position in its own
-# region, and none on an edge two regions face across their gap, where two
-# labels would collide. A bar in the view's separator grey marks each seam
-# across the band, over what the band draws, as the view masks its tracks.
+# region, and none on an edge two regions face across their gap, or within a
+# label's width of the last one kept, where two labels would collide. A bar
+# in the view's separator grey marks each seam across the band, over what the
+# band draws, as the view masks its tracks.
 genomic_x <- function(x) {
   r <- x$regions
   if (is.null(r)) {
@@ -161,12 +167,17 @@ genomic_x <- function(x) {
     hi <- if (i == nrow(r)) r$end[i] else r$end[i] - 1
     b[b >= lo & b <= hi]
   })
+  breaks <- unlist(lapply(seq_len(nrow(r)), function(i)
+    at[[i]] - r$start[i] + r$offset[i]))
+  labels <- format(unlist(at), big.mark = ",", trim = TRUE,
+    scientific = FALSE)
+  room <- 0.09 * (max(r$cum_end) - min(r$cum_start))
+  kept <- Reduce(function(k, i)
+    if (!length(k) || breaks[i] - breaks[k[length(k)]] >= room) c(k, i)
+    else k, seq_along(breaks), integer(0))
   seams <- (utils::head(r$cum_end, -1) + r$offset[-1]) / 2
-  list(ggplot2::scale_x_continuous(
-      breaks = unlist(lapply(seq_len(nrow(r)), function(i)
-        at[[i]] - r$start[i] + r$offset[i])),
-      labels = format(unlist(at), big.mark = ",", trim = TRUE,
-        scientific = FALSE)),
+  list(ggplot2::scale_x_continuous(breaks = breaks[kept],
+      labels = labels[kept]),
     ggplot2::geom_vline(xintercept = seams, colour = REGION_SEPARATOR,
       linewidth = 0.9))
 }
