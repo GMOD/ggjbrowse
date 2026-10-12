@@ -1,12 +1,8 @@
 variants_adapter <- function(file, index, samples) {
-  adapter <- if (grepl("\\.vcf$", sub("\\?.*$", "", tolower(file)))) {
-    list(type = "VcfAdapter", vcfLocation = location(file))
-  } else {
-    index <- index %||% paste0(file, ".tbi")
-    list(type = "VcfTabixAdapter", vcfGzLocation = location(file),
-      index = list(location = location(index),
-        indexType = if (grepl("\\.csi$", index)) "CSI" else "TBI"))
-  }
+  adapter <- guess_adapter(file, index, list(
+    list(pattern = "\\.vcf$", type = "VcfAdapter", slot = "vcfLocation"),
+    list(pattern = "", type = "VcfTabixAdapter", slot = "vcfGzLocation",
+      index = list(suffix = ".tbi", kind = "TBI"))))
   if (!is.null(samples)) adapter$samplesTsvLocation <- location(samples)
   adapter
 }

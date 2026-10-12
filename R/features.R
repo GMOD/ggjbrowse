@@ -1,31 +1,18 @@
 # A feature file's adapter, read off its extension: GFF3, GTF and BED plain or
 # bgzipped with a tabix (or CSI) index beside it, or BigBed.
 features_adapter <- function(file, index) {
-  name <- tolower(sub("\\?.*$", "", file))
-  tabix <- function(type, slot) {
-    index <- index %||% paste0(file, ".tbi")
-    a <- list(type = type, index = list(location = location(index),
-      indexType = if (grepl("\\.csi$", index)) "CSI" else "TBI"))
-    a[[slot]] <- location(file)
-    a
-  }
-  plain <- function(type, slot) {
-    a <- list(type = type)
-    a[[slot]] <- location(file)
-    a
-  }
-  if (grepl("\\.(bb|bigbed)$", name)) return(plain("BigBedAdapter", "bigBedLocation"))
-  if (grepl("\\.gff3?\\.gz$", name)) return(tabix("Gff3TabixAdapter", "gffGzLocation"))
-  if (grepl("\\.gff3?$", name)) return(plain("Gff3Adapter", "gffLocation"))
-  if (grepl("\\.gtf\\.gz$", name)) return(tabix("GtfTabixAdapter", "gtfGzLocation"))
-  if (grepl("\\.gtf$", name)) return(plain("GtfAdapter", "gtfLocation"))
-  if (grepl("\\.bed\\.gz$", name)) return(tabix("BedTabixAdapter", "bedGzLocation"))
-  if (grepl("\\.vcf\\.gz$", name)) return(tabix("VcfTabixAdapter", "vcfGzLocation"))
-  if (grepl("\\.vcf$", name)) return(plain("VcfAdapter", "vcfLocation"))
-  if (grepl("\\.bed$", name)) return(plain("BedAdapter", "bedLocation"))
-  stop("cannot tell the format of ", file,
-    ": expected .gff3, .gtf, .bed or .vcf (each optionally .gz with an index) or .bb",
-    call. = FALSE)
+  tabix <- list(suffix = ".tbi", kind = "TBI")
+  guess_adapter(file, index, list(
+    list(pattern = "\\.(bb|bigbed)$", type = "BigBedAdapter", slot = "bigBedLocation"),
+    list(pattern = "\\.gff3?\\.gz$", type = "Gff3TabixAdapter", slot = "gffGzLocation", index = tabix),
+    list(pattern = "\\.gff3?$", type = "Gff3Adapter", slot = "gffLocation"),
+    list(pattern = "\\.gtf\\.gz$", type = "GtfTabixAdapter", slot = "gtfGzLocation", index = tabix),
+    list(pattern = "\\.gtf$", type = "GtfAdapter", slot = "gtfLocation"),
+    list(pattern = "\\.bed\\.gz$", type = "BedTabixAdapter", slot = "bedGzLocation", index = tabix),
+    list(pattern = "\\.vcf\\.gz$", type = "VcfTabixAdapter", slot = "vcfGzLocation", index = tabix),
+    list(pattern = "\\.vcf$", type = "VcfAdapter", slot = "vcfLocation"),
+    list(pattern = "\\.bed$", type = "BedAdapter", slot = "bedLocation")),
+    ".gff3, .gtf, .bed or .vcf (each optionally .gz with an index) or .bb")
 }
 
 #' Read a region of a feature file as JBrowse draws it

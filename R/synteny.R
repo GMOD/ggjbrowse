@@ -2,27 +2,15 @@
 # indexed PIF, MUMmer delta, UCSC chain or MashMap output. The adapter names
 # its sides `query` and `target`, as the file's columns do.
 synteny_adapter <- function(file, index) {
-  name <- tolower(sub("\\?.*$", "", file))
-  sides <- list(assemblyNames = c("query", "target"))
-  plain <- function(type, slot) {
-    a <- c(list(type = type), sides)
-    a[[slot]] <- location(file)
-    a
-  }
-  if (grepl("\\.paf(\\.gz)?$", name)) return(plain("PAFAdapter", "pafLocation"))
-  if (grepl("\\.delta$", name)) return(plain("DeltaAdapter", "deltaLocation"))
-  if (grepl("\\.chain$", name)) return(plain("ChainAdapter", "chainLocation"))
-  if (grepl("\\.out$", name)) return(plain("MashMapAdapter", "outLocation"))
-  if (grepl("\\.pif\\.gz$", name)) {
-    index <- index %||% paste0(file, ".tbi")
-    a <- plain("PairwiseIndexedPAFAdapter", "pifGzLocation")
-    a$index <- list(location = location(index),
-      indexType = if (grepl("\\.csi$", index)) "CSI" else "TBI")
-    return(a)
-  }
-  stop("cannot tell the format of ", file,
-    ": expected .paf (optionally .gz), .pif.gz with its index, .delta, .chain or .out",
-    call. = FALSE)
+  sides <- function(file) list(assemblyNames = c("query", "target"))
+  guess_adapter(file, index, list(
+    list(pattern = "\\.paf(\\.gz)?$", type = "PAFAdapter", slot = "pafLocation", extra = sides),
+    list(pattern = "\\.delta$", type = "DeltaAdapter", slot = "deltaLocation", extra = sides),
+    list(pattern = "\\.chain$", type = "ChainAdapter", slot = "chainLocation", extra = sides),
+    list(pattern = "\\.out$", type = "MashMapAdapter", slot = "outLocation", extra = sides),
+    list(pattern = "\\.pif\\.gz$", type = "PairwiseIndexedPAFAdapter", slot = "pifGzLocation",
+      extra = sides, index = list(suffix = ".tbi", kind = "TBI"))),
+    ".paf (optionally .gz), .pif.gz with its index, .delta, .chain or .out")
 }
 
 # One axis of a comparative view for the engine: its regions, the assembly

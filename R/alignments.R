@@ -1,26 +1,20 @@
 alignments_adapter <- function(file, index) {
-  if (grepl("\\.cram$", file, ignore.case = TRUE)) {
-    list(type = "CramAdapter", cramLocation = location(file),
-      craiLocation = location(index %||% paste0(file, ".crai")))
-  } else {
-    index <- index %||% paste0(file, ".bai")
-    list(type = "BamAdapter", bamLocation = location(file),
-      index = list(location = location(index),
-        indexType = if (grepl("\\.csi$", index)) "CSI" else "BAI"))
-  }
+  guess_adapter(file, index, list(
+    list(pattern = "\\.cram$", type = "CramAdapter", slot = "cramLocation",
+      index = list(suffix = ".crai", slot = "craiLocation")),
+    list(pattern = "", type = "BamAdapter", slot = "bamLocation",
+      index = list(suffix = ".bai", kind = "BAI"))))
 }
 
 sequence_adapter <- function(reference) {
-  if (grepl("\\.2bit$", reference, ignore.case = TRUE)) {
-    list(type = "TwoBitAdapter", twoBitLocation = location(reference))
-  } else if (grepl("\\.gz$", reference)) {
-    list(type = "BgzipFastaAdapter", fastaLocation = location(reference),
-      faiLocation = location(paste0(reference, ".fai")),
-      gziLocation = location(paste0(reference, ".gzi")))
-  } else {
-    list(type = "IndexedFastaAdapter", fastaLocation = location(reference),
-      faiLocation = location(paste0(reference, ".fai")))
-  }
+  fai <- function(file) list(faiLocation = location(paste0(file, ".fai")))
+  guess_adapter(reference, NULL, list(
+    list(pattern = "\\.2bit$", type = "TwoBitAdapter", slot = "twoBitLocation"),
+    list(pattern = "\\.gz$", type = "BgzipFastaAdapter", slot = "fastaLocation",
+      extra = function(file) c(fai(file),
+        list(gziLocation = location(paste0(file, ".gzi"))))),
+    list(pattern = "", type = "IndexedFastaAdapter", slot = "fastaLocation",
+      extra = fai)))
 }
 
 #' Read a region of a BAM or CRAM file as JBrowse draws it
@@ -314,13 +308,7 @@ in_json <- function(object, slots) {
 
 # A config's color as it writes it, a bare string its constant, and a list
 # slot staying a list in JSON however many values it holds
-config_color <- function(color) {
-  if (!is.list(color)) return(color)
-  for (slot in intersect(c("domain", "range", "labels"), names(color))) {
-    color[[slot]] <- I(color[[slot]])
-  }
-  color
-}
+config_color <- function(color) in_json(color, c("domain", "range", "labels"))
 
 #' @export
 print.jbrowse_alignments <- function(x, ...) {

@@ -2,20 +2,11 @@
 # all-vs-all PAF of PanSN-named sequences (plain or gzipped), or the same
 # indexed as a PIF
 multiway_adapter <- function(file, index) {
-  name <- tolower(sub("\\?.*$", "", file))
-  if (grepl("\\.paf(\\.gz)?$", name)) {
-    return(list(type = "MultiGenomePAFAdapter", pafLocation = location(file)))
-  }
-  if (grepl("\\.pif\\.gz$", name)) {
-    index <- index %||% paste0(file, ".tbi")
-    return(list(type = "MultiGenomeIndexedPAFAdapter",
-      pifGzLocation = location(file),
-      index = list(location = location(index),
-        indexType = if (grepl("\\.csi$", index)) "CSI" else "TBI")))
-  }
-  stop("cannot tell the format of ", file,
-    ": expected an all-vs-all .paf (optionally .gz) or a .pif.gz with its index",
-    call. = FALSE)
+  guess_adapter(file, index, list(
+    list(pattern = "\\.paf(\\.gz)?$", type = "MultiGenomePAFAdapter", slot = "pafLocation"),
+    list(pattern = "\\.pif\\.gz$", type = "MultiGenomeIndexedPAFAdapter", slot = "pifGzLocation",
+      index = list(suffix = ".tbi", kind = "TBI"))),
+    "an all-vs-all .paf (optionally .gz) or a .pif.gz with its index")
 }
 
 # `lanes` as the display's `rows` and the lane picker's pins: unnamed, the
