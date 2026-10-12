@@ -15,6 +15,18 @@
 - R draws the tables. Where the browser decides a color or a geometry, the
   engine returns it.
 
+## How does it compare with Rsamtools?
+
+- Rsamtools cannot open a CRAM. `jbrowse_alignments()` reads one when given
+  its `reference`.
+- Rsamtools parses faster. On a local 50 kb region with 9,596 reads,
+  `scanBam()` took 0.02 s and `jbrowse_alignments()` 0.37 s; on a 73-read
+  region, 0.02 s and 0.07 s (median of 5, ggjbrowse 0.7.0, Rsamtools 2.26.0).
+- The two do different work. `scanBam()` returns raw fields, and
+  `jbrowse_alignments()` also packs pileup rows and computes mismatches,
+  coverage, junctions and colors.
+- The first call in a session adds about 0.2 s to start the engine.
+
 ## Why is the bundle committed?
 
 - Installing the package needs no Node or pnpm.

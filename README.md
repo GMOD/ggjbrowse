@@ -12,6 +12,8 @@ Genome browser tracks as ggplot2 layers.
   own display draws from, run in V8: each read on its pileup row, each gene's
   glyph, each bin's score, each sample's genotype, each synteny ribbon, with
   the color the display paints it.
+- **Also:** reads CRAM, which Rsamtools cannot, and needs no Bioconductor
+  packages.
 - **Drawn with:** a geom per table, so a figure is an ordinary ggplot that
   `+` changes piece by piece. `autoplot()` composes the geoms into the
   browser's track.
