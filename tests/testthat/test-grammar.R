@@ -167,7 +167,7 @@ test_that("the multi-layer geoms take any column of their tables", {
 
 test_that("the junction band keys the strands its arcs are drawn in", {
   spliced <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300)
-  key <- get_guide_data(autoplot(spliced, "junctions", min_junction_reads = 1),
+  key <- get_guide_data(autoplot(spliced, "junctions", min_reads = 1),
     "colour")
   expect_equal(key$.label, "Forward")
 })

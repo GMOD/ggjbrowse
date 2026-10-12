@@ -87,7 +87,7 @@ test_that("splice junctions arc over the coverage, counted and stranded", {
   expect_equal(sum(s$junctions$count), sum(s$gaps$type == "skip"))
   expect_true(all(s$junctions$strand %in% c(1, -1, 0)))
   arcs <- ggplot2::ggplot_build(ggplot2::autoplot(s, "junctions",
-    min_junction_reads = 1))
+    min_reads = 1))
   expect_equal(length(unique(arcs$data[[1]]$group)), 2)
   expect_equal(nrow(arcs$data[[2]]), 2)
   track <- ggplot2::autoplot(s)

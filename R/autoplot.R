@@ -203,13 +203,13 @@ pileup_plot <- function(x, o) {
 }
 
 junctions_plot <- function(x, o) {
-  shown <- x$junctions$color[x$junctions$count >= o$min_junction_reads]
+  shown <- x$junctions$color[x$junctions$count >= o$min_reads]
   key <- x$keys$junctions
   band(ggplot2::ggplot(x) +
-    geom_jbrowse_junctions(min_reads = o$min_junction_reads) +
+    geom_jbrowse_junctions(min_reads = o$min_reads) +
     key_scale(ggplot2::scale_colour_identity,
       key[key$color %in% shown, , drop = FALSE], attr(key, "title")) +
-    geom_jbrowse_junction_counts(min_reads = o$min_junction_reads), x,
+    geom_jbrowse_junction_counts(min_reads = o$min_reads), x,
     ylim = c(0, 1.08)) +
     no_y
 }
@@ -249,7 +249,7 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #' @param min_allele_frequency hide a coverage-band allele segment whose share
 #'   of the depth there is below this; `NULL` takes the display's
 #'   `coverageSnpMinFrequency`
-#' @param min_junction_reads hide a junction arc with fewer supporting reads;
+#' @param min_reads hide a junction arc with fewer supporting reads;
 #'   `NULL` takes the display's `minSashimiScore`
 #' @param letters write each mismatch's base and each insertion's length on
 #'   the pileup; `NULL` does so where the region is at most 300 bp, where a
@@ -278,7 +278,7 @@ autoplot.jbrowse_alignments <- function(object,
                                         what = c("track", "pileup", "coverage",
                                           "junctions", "arcs", "sequence"),
                                         min_allele_frequency = NULL,
-                                        min_junction_reads = NULL,
+                                        min_reads = NULL,
                                         letters = NULL,
                                         fade_low_frequency = NULL,
                                         px_per_bp = NULL, above = NULL,
@@ -286,7 +286,7 @@ autoplot.jbrowse_alignments <- function(object,
   rlang::check_dots_empty()
   what <- match.arg(what)
   object <- on_axis(object)
-  o <- alignment_options(object, min_allele_frequency, min_junction_reads,
+  o <- alignment_options(object, min_allele_frequency, min_reads,
     letters, fade_low_frequency, px_per_bp)
   if (what != "track") return(BAND_PLOTS[[what]](object, o))
   above <- listed_tracks(above)
@@ -299,14 +299,14 @@ autoplot.jbrowse_alignments <- function(object,
 
 # What the alignments bands draw: the caller's settings, else the display's
 alignment_options <- function(object, min_allele_frequency = NULL,
-                              min_junction_reads = NULL, letters = NULL,
+                              min_reads = NULL, letters = NULL,
                               fade_low_frequency = NULL, px_per_bp = NULL) {
   s <- object$settings %||% list()
   xlim <- xlim_of(object)
   list(
     min_allele_frequency = min_allele_frequency %||%
       s$coverageSnpMinFrequency %||% 0,
-    min_junction_reads = min_junction_reads %||% s$minSashimiScore %||% 2,
+    min_reads = min_reads %||% s$minSashimiScore %||% 2,
     letters = letters %||% (xlim[2] - xlim[1] <= 300),
     fade = fade_low_frequency %||% s$fadeLowFrequencyMismatches %||% TRUE,
     px_per_bp = px_per_bp,
@@ -326,7 +326,7 @@ alignment_px <- function(object, o) {
     function(r) if (length(r)) max(r) + 1 else 0, 0))
   shown <- c(
     junctions = o$coverage && o$junctions &&
-      any(object$junctions$count >= o$min_junction_reads),
+      any(object$junctions$count >= o$min_reads),
     coverage = o$coverage,
     arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
     pileup = o$pileup)

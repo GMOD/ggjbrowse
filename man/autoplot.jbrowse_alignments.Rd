@@ -8,7 +8,7 @@
   object,
   what = c("track", "pileup", "coverage", "junctions", "arcs", "sequence"),
   min_allele_frequency = NULL,
-  min_junction_reads = NULL,
+  min_reads = NULL,
   letters = NULL,
   fade_low_frequency = NULL,
   px_per_bp = NULL,
@@ -38,7 +38,7 @@ insert-size axis; \code{"sequence"}: the reference's bases alone}
 of the depth there is below this; \code{NULL} takes the display's
 \code{coverageSnpMinFrequency}}
 
-\item{min_junction_reads}{hide a junction arc with fewer supporting reads;
+\item{min_reads}{hide a junction arc with fewer supporting reads;
 \code{NULL} takes the display's \code{minSashimiScore}}
 
 \item{letters}{write each mismatch's base and each insertion's length on
