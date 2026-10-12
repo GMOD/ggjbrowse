@@ -286,10 +286,17 @@ autoplot(jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001",
 
 ![The same alignment as a dotplot: a diagonal of forward blocks, two short reverse ones](man/figures/dotplot.png)
 
+A continuous field such as `list(field = "identity")` keys as the display's
+bar, `0%` to `100%`, through `guides_jbrowse()`; a threshold field such as
+`mapq` keys its bins as chips.
+
 The tables are `s$alignments`, `s$ribbons` (each foot's span on its row, and
 `thin` where the band draws a one-pixel line) and `s$offscreen` (blocks whose
 mate the other row does not show), and `geom_jbrowse_ribbons()` and
-`geom_jbrowse_dotplot()` draw them. A file guessed from its extension names
+`geom_jbrowse_dotplot()` draw them. `geom_jbrowse_offscreen_mates()` draws
+`s$offscreen_strip`, the marks and contig names the band hangs off a row's
+edge for those blocks, and `autoplot()` keys each contig with the line the
+strip's hover prints, from `s$offscreen_contigs`. A file guessed from its extension names
 its sides `query` and `target`; a JBrowse adapter config names assemblies,
 and `assemblies = c(query, target)` picks which goes on which row.
 
@@ -349,8 +356,7 @@ committed bundle once R CMD check passes.
 The variant display's row arrangement
 and its zoomed-out density fade; the bisulfite layer; facets on a feature
 track; the amino-acid
-overlay on a zoomed-in CDS; the multi-way synteny display and the
-synteny band's off-screen mate strip as the browser draws it. A CRAN release, which needs the bundle's own dependencies credited
+overlay on a zoomed-in CDS; the multi-way synteny display. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.
 
 ## See also

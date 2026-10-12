@@ -89,3 +89,43 @@ test_that("an unknown extension and a missing contig say so", {
   expect_error(jbrowse_synteny("aln.tsv", query, target), "expected .paf")
   expect_equal(nrow(jbrowse_synteny(paf, query, "ctgZ:1-1,000")$alignments), 0)
 })
+
+test_that("identity keys as a bar from 0% to 100%, and mapq as chips", {
+  id <- jbrowse_synteny(paf, query, target,
+    view = list(color = list(field = "identity")))
+  expect_length(id$ramps, 1)
+  expect_equal(attr(id$ramps[[1]], "title"), "Identity")
+  expect_equal(attr(id$ramps[[1]], "labels"), c("0%", "100%"))
+  g <- ggplot2::ggplotGrob(autoplot(id))
+  expect_false(inherits(g$grobs[[which(g$layout$name == "guide-box-right")]],
+    "zeroGrob"))
+  d <- jbrowse_dotplot(paf, query, target,
+    view = list(color = list(field = "identity")))
+  expect_equal(d$ramps, id$ramps)
+  mapq <- jbrowse_synteny(paf, query, target,
+    view = list(color = list(field = "mapq")))
+  expect_length(mapq$ramps, 0)
+  expect_gt(nrow(mapq$legend), 1)
+})
+
+swap <- system.file("extdata", "volvox_contig_swap.paf", package = "ggjbrowse")
+
+test_that("the off-screen strip draws as the band paints it and keys its contigs", {
+  skip_if(swap == "")
+  o <- jbrowse_synteny(swap, "ctgA:1-50,001", "ctgC:1-1,000")
+  expect_equal(o$offscreen$mate_chrom, "ctgB")
+  expect_true(o$offscreen$drawn)
+  expect_equal(o$offscreen_contigs$label, "ctgB · 6.08Kbp in 1 alignments")
+  expect_equal(o$offscreen_strip$marks$height, 6)
+  expect_equal(o$offscreen_strip$labels$label, "ctgB")
+  t <- jbrowse_synteny(swap, "ctgA:1-50,001", "ctgC:1-1,000",
+    view = list(color = list(field = "target")))
+  expect_false(identical(t$offscreen$color, o$offscreen$color))
+  built <- ggplot2::ggplot_build(autoplot(t))
+  rects <- built$data[[3]]
+  expect_equal(rects$ymax, 1)
+  expect_equal(rects$ymin, 1 - 6 / t$height)
+  expect_equal(as.character(rects$fill), as.character(t$offscreen$color))
+  expect_false(is.null(offscreen_guides(t)))
+  expect_null(offscreen_guides(s))
+})

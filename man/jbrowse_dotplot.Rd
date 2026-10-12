@@ -48,6 +48,8 @@ row number of \code{alignments}), \code{op} (\code{"match"}, \code{"insertion"},
 \code{y_region}, \code{y_chrom}, \code{y_start}, \code{y_end}, from (\code{x_start}, \code{y_start})
 to (\code{x_end}, \code{y_end}), \code{color} and \code{alpha}
 \item \code{legend}: \code{label} and \code{color}, the key the view shows
+\item \code{ramps}: a continuous field's color bar, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
+it
 }
 
 \code{x} and \code{y} are the axes' regions as laid out, \code{line_width} the pixels

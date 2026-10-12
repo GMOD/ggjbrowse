@@ -64,14 +64,25 @@ the ribbon joins \code{query_start} to \code{target_start} and \code{query_end} 
 \code{target_end}, so a reverse-strand block crosses; \code{color}, \code{alpha}, and
 \code{thin}, whether the band draws it as a one-pixel line
 \item \code{offscreen}: the blocks on one \code{axis} whose mate lies on a contig the
-other row is not showing, with their span and their mate's
+other row is not showing, with their span and their mate's, the
+\code{color} and \code{alpha} the strip along that row's edge paints them, and
+\code{drawn}, whether they clear the strip's length and contig floors
+\item \code{offscreen_contigs}: each contig those mates lie on, by \code{axis}:
+\code{mate_chrom}, \code{count}, \code{aligned_bp}, the \code{label} the strip's hover
+prints, \code{color} and \code{alpha}
+\item \code{offscreen_strip}: what the strips paint, in pixels from the band's
+top left: \code{marks} (\code{axis}, \code{x}, \code{y}, \code{width}, \code{height}, \code{color},
+\code{alpha}) and \code{labels} (\code{axis}, \code{label}, \code{x}, \code{y} at the baseline,
+\code{color}, \code{alpha}, \code{halo}), in a \code{font_px} font
 \item \code{legend}: \code{label} and \code{color}, the key the view shows, its title as
 the frame's \code{"title"} attribute
+\item \code{ramps}: a continuous field's color bar, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
+it
 }
 
 \code{query} and \code{target} are the rows' regions as laid out, \code{height} the
-band's pixels, \code{alpha} the opacity every ribbon draws at, \code{field} the
-color field painted and \code{ramp} a continuous field's color ramp.
+band's pixels, \code{alpha} the opacity every ribbon draws at and \code{field} the
+color field painted.
 }
 \description{
 Runs JBrowse's own synteny display in V8 over two rows, the query assembly

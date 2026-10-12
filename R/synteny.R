@@ -41,6 +41,14 @@ snake <- function(d) {
   d
 }
 
+colored_frame <- function(columns) {
+  d <- snake(as_frame(columns))
+  for (col in intersect(c("color", "halo"), names(d))) {
+    d[[col]] <- jbrowse_color(d[[col]])
+  }
+  d
+}
+
 comparative_args <- function(file, index, view) {
   args <- list(adapterConfig = adapter_of(file, function()
     synteny_adapter(file, index)))
@@ -101,13 +109,24 @@ comparative_args <- function(file, index, view) {
 #'     `target_end`, so a reverse-strand block crosses; `color`, `alpha`, and
 #'     `thin`, whether the band draws it as a one-pixel line
 #'   * `offscreen`: the blocks on one `axis` whose mate lies on a contig the
-#'     other row is not showing, with their span and their mate's
+#'     other row is not showing, with their span and their mate's, the
+#'     `color` and `alpha` the strip along that row's edge paints them, and
+#'     `drawn`, whether they clear the strip's length and contig floors
+#'   * `offscreen_contigs`: each contig those mates lie on, by `axis`:
+#'     `mate_chrom`, `count`, `aligned_bp`, the `label` the strip's hover
+#'     prints, `color` and `alpha`
+#'   * `offscreen_strip`: what the strips paint, in pixels from the band's
+#'     top left: `marks` (`axis`, `x`, `y`, `width`, `height`, `color`,
+#'     `alpha`) and `labels` (`axis`, `label`, `x`, `y` at the baseline,
+#'     `color`, `alpha`, `halo`), in a `font_px` font
 #'   * `legend`: `label` and `color`, the key the view shows, its title as
 #'     the frame's `"title"` attribute
+#'   * `ramps`: a continuous field's color bar, as [guides_jbrowse()] draws
+#'     it
 #'
 #'   `query` and `target` are the rows' regions as laid out, `height` the
-#'   band's pixels, `alpha` the opacity every ribbon draws at, `field` the
-#'   color field painted and `ramp` a continuous field's color ramp.
+#'   band's pixels, `alpha` the opacity every ribbon draws at and `field` the
+#'   color field painted.
 #' @export
 #' @examples
 #' paf <- system.file("extdata", "volvox_inv_indels.paf", package = "ggjbrowse")
@@ -128,14 +147,18 @@ jbrowse_synteny <- function(file, query, target, view = NULL, width = 800,
   ribbons$query_region <- ribbons$query_region + 1
   ribbons$target_region <- ribbons$target_region + 1
   ribbons$color <- jbrowse_color(ribbons$color)
-  offscreen <- snake(as_frame(r$offscreen))
+  offscreen <- colored_frame(r$offscreen)
   offscreen$region <- offscreen$region + 1
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle)
   attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
   structure(
     list(alignments = alignments, ribbons = ribbons, offscreen = offscreen,
-      legend = key, keys = list(ribbons = key), ramp = r$ramp,
+      offscreen_contigs = colored_frame(r$offscreenContigs),
+      offscreen_strip = list(marks = colored_frame(r$offscreenStrip$marks),
+        labels = colored_frame(r$offscreenStrip$labels),
+        font_px = r$offscreenStrip$fontPx),
+      legend = key, keys = list(ribbons = key), ramps = ramp_frames(r$ramps),
       field = r$field, alpha = r$alpha, height = r$height,
       fade_thin = r$fadeThin, has_cigar = r$hasCigar,
       assemblies = unlist(r$assemblyNames), width = width,
@@ -240,8 +263,11 @@ ribbon_lines <- function(r, curves) {
 #' top of the panel (`y = 1`) and the target row at the bottom (`y = 0`) as
 #' the band draws it: a filled trapezoid in its color at its opacity, or a
 #' one-pixel line where it is thinner than a pixel, with the band's location
-#' ticks where the view draws them. `geom_jbrowse_offscreen_mates()` marks on
-#' a row each block whose mate the other row is not showing.
+#' ticks where the view draws them. `geom_jbrowse_offscreen_mates()` draws
+#' the strip the band hangs off a row's edge for the blocks whose mate the
+#' other row is not showing: the display's own marks, 6 px tall, grey or in
+#' the mate contig's ribbon color where the ribbons are colored by that
+#' row's contigs, and the contig names it has room for.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_synteny()] result, or `NULL` for the plot's
 #' @param curves draw each ribbon edge as the view's `drawCurves` does, a
@@ -272,13 +298,104 @@ geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
 }
 
 #' @rdname geom_jbrowse_ribbons
+#' @param labels name each stretch of marks with its contig where the strip
+#'   has room, as the band does
 #' @export
-geom_jbrowse_offscreen_mates <- function(mapping = NULL, data = NULL, ...) {
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$offscreen,
-    for_geom(mapping, ggplot2::GeomSegment),
-    ggplot2::aes(x = px_start, xend = px_end, y = y, yend = y),
-    list(colour = "grey30", linewidth = 2, lineend = "butt", ...),
-    keyed = FALSE)
+geom_jbrowse_offscreen_mates <- function(mapping = NULL, data = NULL,
+                                         labels = TRUE, ...) {
+  text <- function(halo) function(x) strip_labels(x, halo)
+  text_layer <- function(halo) {
+    jbrowse_layer(GeomDisplayText, data, text(halo), NULL,
+      ggplot2::aes(x = x, y = y, label = label, colour = color,
+        alpha = I(alpha), size = I(size), px_wide = I(px_wide),
+        px_tall = I(px_tall)),
+      list(hjust = 0, vjust = 0), keyed = FALSE)
+  }
+  c(list(jbrowse_layer(ggplot2::GeomRect, data, strip_marks,
+      for_geom(mapping, ggplot2::GeomRect),
+      ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
+        fill = color, alpha = I(alpha)),
+      list(colour = NA, ...), keyed = FALSE)),
+    if (labels) list(text_layer(TRUE), text_layer(FALSE)))
+}
+
+# The strip's marks on the band, which runs from the target row (y = 0) up
+# to the query row (y = 1) over `height` pixels
+strip_marks <- function(x) {
+  m <- x$offscreen_strip$marks
+  m$xmin <- m$x
+  m$xmax <- m$x + m$width
+  m$ymax <- 1 - m$y / x$height
+  m$ymin <- 1 - (m$y + m$height) / x$height
+  m
+}
+
+HALO_PX <- 3
+
+# The strip's labels at their baselines, or their halo: each label again in
+# the band's ground, ringed round it half the halo's width out
+strip_labels <- function(x, halo) {
+  l <- x$offscreen_strip$labels
+  n <- nrow(l)
+  l$y <- 1 - l$y / x$height
+  l$size <- rep(x$offscreen_strip$font_px, n)
+  l$px_wide <- rep(x$width, n)
+  l$px_tall <- rep(x$height, n)
+  if (!halo) return(l)
+  angles <- seq(0, 2 * pi, length.out = 9)[-9]
+  do.call(rbind, lapply(angles, function(a) {
+    h <- l
+    h$x <- h$x + HALO_PX / 2 * cos(a)
+    h$y <- h$y + HALO_PX / 2 * sin(a) / x$height
+    h$color <- h$halo
+    h$alpha <- rep(1, n)
+    h
+  }))
+}
+
+OFFSCREEN_KEY_ROWS <- 10
+
+# A key per row whose strip draws marks: a chip of each contig in the color
+# the strip paints it, beside the line the strip's hover prints for it, the
+# most sequence first
+offscreen_guides <- function(x) {
+  drawn <- x$offscreen[x$offscreen$drawn, , drop = FALSE]
+  if (!nrow(drawn)) return(NULL)
+  contigs <- x$offscreen_contigs
+  guides <- lapply(intersect(c("query", "target"), drawn$axis), function(ax) {
+    on <- contigs[contigs$axis == ax &
+      contigs$mate_chrom %in% drawn$mate_chrom[drawn$axis == ax], ]
+    on <- on[order(-on$aligned_bp), ]
+    labels <- on$label
+    fill <- scales::alpha(as.character(on$color), on$alpha)
+    rest <- length(labels) - OFFSCREEN_KEY_ROWS
+    if (rest > 0) {
+      labels <- c(labels[seq_len(OFFSCREEN_KEY_ROWS)], sprintf("+%d more", rest))
+      fill <- c(fill[seq_len(OFFSCREEN_KEY_ROWS)], NA)
+    }
+    chip_guide(labels, fill, sprintf("Off-screen mates, %s row", ax))
+  })
+  names(guides) <- sprintf("jbrowse_offscreen_%d", seq_along(guides))
+  do.call(ggplot2::guides, guides)
+}
+
+# Chips and their labels, a row each, as a guide of its own
+chip_guide <- function(labels, fill, title) {
+  row_in <- 0.18
+  chip_in <- 0.14
+  n <- length(labels)
+  y <- grid::unit(1, "npc") - grid::unit((seq_len(n) - 0.5) * row_in, "in")
+  text <- grid::gpar(fontsize = 8, col = "grey30")
+  grob <- grid::gTree(children = grid::gList(
+    grid::rectGrob(x = 0, y = y, width = grid::unit(chip_in, "in"),
+      height = grid::unit(chip_in, "in"), hjust = 0,
+      gp = grid::gpar(fill = fill, col = NA)),
+    grid::textGrob(labels, x = grid::unit(chip_in + 0.06, "in"), y = y,
+      hjust = 0, gp = text)))
+  widest <- grid::textGrob(labels[which.max(nchar(labels))], gp = text)
+  ggplot2::guide_custom(grob, title = title,
+    width = grid::unit(chip_in + 0.06, "in") + grid::grobWidth(widest),
+    height = grid::unit(n * row_in, "in"))
 }
 
 # The round positions a row's ruler labels, at their pixels on the band
@@ -330,6 +447,8 @@ synteny_band <- function(x, curves) {
     geom_jbrowse_ribbons(curves = curves) +
     geom_jbrowse_offscreen_mates() +
     scale_fill_jbrowse(x) +
+    guides_jbrowse(x) +
+    offscreen_guides(x) +
     ggplot2::coord_cartesian(xlim = c(0, x$width), ylim = c(0, 1),
       expand = FALSE) +
     synteny_x(x) +
@@ -427,6 +546,8 @@ autoplot.jbrowse_synteny <- function(object, query = NULL, target = NULL,
 #'     `y_region`, `y_chrom`, `y_start`, `y_end`, from (`x_start`, `y_start`)
 #'     to (`x_end`, `y_end`), `color` and `alpha`
 #'   * `legend`: `label` and `color`, the key the view shows
+#'   * `ramps`: a continuous field's color bar, as [guides_jbrowse()] draws
+#'     it
 #'
 #'   `x` and `y` are the axes' regions as laid out, `line_width` the pixels
 #'   each line is drawn at, `alpha` the opacity, and `skipped` counts the
@@ -456,7 +577,8 @@ jbrowse_dotplot <- function(file, x, y, view = NULL, width = 600,
   attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
   structure(
     list(alignments = alignments, segments = segments, legend = key,
-      keys = list(segments = key), ramp = r$ramp, field = r$field,
+      keys = list(segments = key), ramps = ramp_frames(r$ramps),
+      field = r$field,
       alpha = r$alpha, line_width = r$lineWidth,
       assemblies = unlist(r$assemblyNames), skipped = r$skipped,
       width = width, height = height,
@@ -552,6 +674,7 @@ autoplot.jbrowse_dotplot <- function(object, ...) {
       colour = "grey70") +
     geom_jbrowse_dotplot(linewidth = px_to_mm(x$line_width)) +
     scale_colour_jbrowse(x) +
+    guides_jbrowse(x) +
     layout_scale(ggplot2::scale_x_continuous, x$x) +
     layout_scale(ggplot2::scale_y_continuous, x$y) +
     ggplot2::coord_cartesian(
