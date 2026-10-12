@@ -62,3 +62,15 @@ save("stack.png", jbrowse_stack(tracks))
 dogs <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"), "chr30",
   38258000, 38265000)
 save("variants.png", autoplot(dogs, layout = "columns"), 6)
+
+paf <- extdata("volvox_inv_indels.paf")
+synteny <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001",
+  view = list(color = list(field = "strand")))
+target_genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1-50,001",
+  display = list(showOnlyGenes = TRUE))
+save("synteny.png", autoplot(synteny, target = target_genes))
+save("synteny-zoom.png", autoplot(jbrowse_synteny(paf, "ctgA:26,801-30,000",
+  "ctgA:27,201-30,500", width = 1500)), 2.2)
+ggsave(file.path(out, "dotplot.png"), autoplot(jbrowse_dotplot(paf,
+  "ctgA:1-49,186", "ctgA:1-50,001", view = list(color = list(field = "strand")))),
+  width = 6, height = 5.5, dpi = 120)

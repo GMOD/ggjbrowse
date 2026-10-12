@@ -133,6 +133,8 @@ bind_regions <- function(regions, parts) {
 # A result's tables as its geoms draw them, on the axis that lays several
 # regions end to end. One region's result draws as it is.
 on_axis <- function(x) {
+  if (inherits(x, "jbrowse_synteny")) return(synteny_on_axis(x))
+  if (inherits(x, "jbrowse_dotplot")) return(dotplot_on_axis(x))
   r <- x$regions
   if (is.null(r)) return(x)
   for (name in names(x)) {

@@ -6,11 +6,12 @@
 
 Genome browser tracks as ggplot2 layers.
 
-- **In:** a region of a BAM, CRAM, GFF3, GTF, BED, BigBed, BigWig or VCF.
+- **In:** a region of a BAM, CRAM, GFF3, GTF, BED, BigBed, BigWig or VCF, or
+  two regions a PAF aligns.
 - **Out:** the tables the [JBrowse 2](https://jbrowse.org) genome browser's
   own display draws from, run in V8: each read on its pileup row, each gene's
-  glyph, each bin's score, each sample's genotype, with the color the
-  display paints it.
+  glyph, each bin's score, each sample's genotype, each synteny ribbon, with
+  the color the display paints it.
 - **Drawn with:** a geom per table, so a figure is an ordinary ggplot that
   `+` changes piece by piece. `autoplot()` composes the geoms into the
   browser's track.
@@ -242,6 +243,56 @@ A file can be a path or a URL; a remote file is read in byte ranges through
 is no Bioconductor dependency: the BAM, CRAM, FASTA, GFF3, BED, BigBed,
 BigWig and VCF readers are JBrowse's.
 
+## Synteny
+
+`jbrowse_synteny()` reads a pairwise alignment (PAF, indexed PIF, MUMmer
+delta, UCSC chain, MashMap) through JBrowse's linear synteny display: the
+blocks two rows of regions share, and the ribbons the band draws between
+them in the view's colors and opacity, with each CIGAR insertion, deletion
+and skip wider than a pixel drawn in its color. `view` takes the
+`LinearSyntenyView`'s settings (`color`, `opacity`, `cigarMode`,
+`minAlignmentLength`, `drawLocationMarkers`, ...). Tracks over either row
+stack above and below the band:
+
+```r
+paf <- e("volvox_inv_indels.paf")
+s <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001",
+  view = list(color = list(field = "strand")))
+genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1-50,001",
+  display = list(showOnlyGenes = TRUE))
+autoplot(s, target = genes)
+```
+
+![A simulated volvox with two inversions over volvox ctgA: forward blocks in tomato, the inverted ones crossing in blue, the genes under the target row](man/figures/synteny.png)
+
+Zoomed in, the CIGAR shows: insertions in yellow, deletions in blue over the
+red match block, as the band paints them:
+
+```r
+autoplot(jbrowse_synteny(paf, "ctgA:26,801-30,000", "ctgA:27,201-30,500",
+  width = 1500))
+```
+
+![3 kb of the same alignment: the match block sheared by its insertions and deletions](man/figures/synteny-zoom.png)
+
+`jbrowse_dotplot()` reads the same files through JBrowse's dotplot display,
+a line per block, or per CIGAR step where a block is wide enough on the
+plot, and `view` takes the `DotplotView`'s settings:
+
+```r
+autoplot(jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001",
+  view = list(color = list(field = "strand"))))
+```
+
+![The same alignment as a dotplot: a diagonal of forward blocks, two short reverse ones](man/figures/dotplot.png)
+
+The tables are `s$alignments`, `s$ribbons` (each foot's span on its row, and
+`thin` where the band draws a one-pixel line) and `s$offscreen` (blocks whose
+mate the other row does not show), and `geom_jbrowse_ribbons()` and
+`geom_jbrowse_dotplot()` draw them. A file guessed from its extension names
+its sides `query` and `target`; a JBrowse adapter config names assemblies,
+and `assemblies = c(query, target)` picks which goes on which row.
+
 ## From a JBrowse view
 
 - JBrowse's linear genome view is gaining an **Export R script** menu item,
@@ -298,7 +349,8 @@ committed bundle once R CMD check passes.
 The variant display's row arrangement
 and its zoomed-out density fade; the bisulfite layer; facets on a feature
 track; the amino-acid
-overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own dependencies credited
+overlay on a zoomed-in CDS; the multi-way synteny display and the
+synteny band's off-screen mate strip as the browser draws it. A CRAN release, which needs the bundle's own dependencies credited
 (`cph` and a LICENSE.note) and its source named.
 
 ## See also

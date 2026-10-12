@@ -87,7 +87,8 @@ key_scale <- function(scale, key, title) {
     collapse = " / "), "")
   scale(name = title, breaks = breaks, labels = unname(labels),
     guide = if (length(breaks)) {
-      ggplot2::guide_legend(override.aes = list(linewidth = 1.5))
+      ggplot2::guide_legend(override.aes = c(list(linewidth = 1.5),
+        attr(key, "override")))
     } else "none")
 }
 

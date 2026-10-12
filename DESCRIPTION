@@ -6,7 +6,8 @@ Description: Reads a region of a BAM, CRAM or feature file as the 'JBrowse 2'
     genome browser draws it, through the browser's own data engine run in
     'V8': the reads on their pileup rows in the browser's colors, their
     mismatches, gaps, insertions and clips, the coverage and the splice
-    junctions, or the gene models laid out on their rows with their labels,
+    junctions, the gene models laid out on their rows with their labels,
+    or the ribbons and dotplot lines of a pairwise alignment,
     each as a data frame, and draws the browser's tracks with 'ggplot2'.
 License: Apache License (>= 2)
 URL: https://github.com/GMOD/ggjbrowse
