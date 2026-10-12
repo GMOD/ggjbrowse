@@ -13,36 +13,6 @@ save <- function(name, plot, height = jbrowse_height(plot)) {
 gapdh <- "chr12:6,534,201-6,538,700"
 rna <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"), gapdh)
 save("gapdh.png", autoplot(rna))
-save("genes-over-reads.png", autoplot(rna,
-  above = jbrowse_features(extdata("gapdh_gencode.gff3.gz"), gapdh)))
-
-long <- jbrowse_alignments(extdata("colo829_tumor_chr3.bam"),
-  "chr3:25,358,500-25,359,800",
-  display = list(unit = "chain", readConnections = "arc",
-    color = list(field = "strand"), filter = list(split = "only")))
-save("long-reads.png", autoplot(long))
-
-deletion <- jbrowse_alignments(extdata("hg008t_cuzd1_deletion.bam"),
-  "chr10:122,831,700-122,840,800",
-  display = list(sort = list(type = "basePair", pos = 122836300)))
-save("deletion.png", autoplot(deletion))
-
-zoom <- jbrowse_alignments(extdata("hg008t_cuzd1_deletion.bam"),
-  "chr10:122,835,300-122,835,420",
-  display = list(sort = list(type = "basePair", pos = 122835344)))
-save("zoom.png", autoplot(zoom))
-
-inv <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
-  "chr1:197,786,900-197,789,700",
-  display = list(unit = "chain", readConnections = "arc",
-    color = list(field = "pairOrientation"), facet = list(field = "split")))
-save("inversion.png", autoplot(inv))
-
-meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
-  reference = extdata("hg38_clip.fa"),
-  display = list(baseColor = list(field = "modifications"),
-    modifications = list(unmodified = "all")))
-save("methylation.png", autoplot(meth))
 
 bw <- extdata("gapdh_phylop100way.bw")
 save("wiggle.png", patchwork::wrap_plots(ncol = 1,
@@ -57,7 +27,6 @@ dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
   function(cell) list(type = "BigWigAdapter", name = toupper(cell),
     bigWigLocation = list(uri = extdata(sprintf("hbb_dnase_%s.bw", cell))))))
 hbb <- "chr11:5,270,001-5,320,000"
-save("multi-wiggle.png", autoplot(jbrowse_wiggle(dnase, hbb)), 6)
 clustered <- jbrowse_wiggle(dnase, hbb, display = list(mark = "span"))
 clustered$tree <- hclust(dist(as.matrix(clustered)), "average")
 save("multi-wiggle-clustered.png", autoplot(clustered), 4)
@@ -105,25 +74,9 @@ synteny_plot <- autoplot(synteny,
   below = gene_track("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
 save("synteny.png", synteny_plot)
 
-amylase <- jbrowse_synteny(extdata("hprc_amylase.paf"),
-  "GRCh38#0#chr1:103,520,894-103,832,637",
-  "HG00133#1#CM090045.1:103,669,666-103,981,330",
-  view = list(color = list(field = "strand")),
-  labels = c(query = "GRCh38", target = "HG00133"))
-save("amylase.png", autoplot(amylase), 3)
-
 save("synteny-zoom.png", autoplot(jbrowse_synteny(extdata("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,619,501-103,622,500",
   "HG00133#1#CM090045.1:103,768,401-103,771,400", width = 1500)), 2.2)
-ggsave(file.path(out, "dotplot.png"), autoplot(jbrowse_dotplot(chain,
-  view = list(color = list(field = "strand")),
-  labels = c(query = "paternal", target = "maternal"))),
-  width = 7, height = 6, dpi = 120)
-
-ggsave(file.path(out, "whole-genome.png"),
-  autoplot(jbrowse_dotplot(extdata("peach_grape.paf.gz"),
-    labels = c(query = "peach", target = "grape"))),
-  width = 6, height = 5.5, dpi = 120)
 
 liftover <- function(genome, assembly) list(type = "PairwiseIndexedPAFAdapter",
   pifGzLocation = list(uri = extdata(sprintf("hg38To%s.over.pif.gz", genome))),

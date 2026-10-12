@@ -58,7 +58,7 @@ l <- jbrowse_alignments(e("colo829_tumor_chr3.bam"),
 autoplot(l)
 ```
 
-![COLO829 nanopore split reads chained across two chr3 breakpoints, each arc ending where the read continues on chr10 or chr12](man/figures/long-reads.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 ```r
 d <- jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
@@ -67,7 +67,7 @@ d <- jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 autoplot(d)
 ```
 
-![HG008-T HiFi reads over CUZD1, sorted by the base at the center so the reads with the 1.8 kb somatic deletion gather in one block](man/figures/deletion.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 ```r
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
@@ -75,7 +75,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   display = list(sort = list(type = "basePair", pos = 122835344))))
 ```
 
-![120 bp at the deletion's left edge: most reads draw the deletion as a line from the left edge, and a heterozygous G is written out as a base](man/figures/zoom.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 ```r
 m <- jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
@@ -85,7 +85,7 @@ m <- jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
 autoplot(m)
 ```
 
-![Nanopore reads over 12 kb of chr20, each CpG call painted red where methylated and blue where not](man/figures/methylation.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 `readConnections = "arc"` adds the display's read-pair band: each mate
 pair's and split read's arc, colored by insert size and pair orientation.
@@ -100,7 +100,7 @@ inv <- jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
 autoplot(inv)
 ```
 
-![HG00151 nanopore reads over a 1.2 kb chr1 inversion, split by whether a read has an SA tag: each split read's segments chained on one row, a blue inverted core between red same-strand flanks, the arcs over the breakpoints](man/figures/inversion.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 `unit = "chain"` puts a read's mate or split segments on one row, joined by a
 hairline, and colors each segment by its strand against its chain's.
@@ -181,7 +181,7 @@ genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"),
 autoplot(a, above = genes)
 ```
 
-![GENCODE's GAPDH transcripts over the direct RNA reads, each read's exons lining up under the transcripts' boxes](man/figures/genes-over-reads.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 The y axis of a feature track is the display's pixels. Labels scale with the
 panel they land in, so they keep to the room the layout left them at any
@@ -220,7 +220,7 @@ dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
 autoplot(jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000"))
 ```
 
-![ENCODE DNase signal across the beta-globin locus control region in twelve cell lines, a row each: K562's hypersensitive sites tower over the one site the other lines share](man/figures/multi-wiggle.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 Clustering the rows works as it does for a variant matrix:
 
@@ -376,7 +376,7 @@ a <- jbrowse_synteny(e("hprc_amylase.paf"),
 autoplot(a)
 ```
 
-![GRCh38 chr1 over HG00133 at the amylase genes: a reverse block between forward ones, the alignments overlapping where the copies duplicate](man/figures/amylase.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 Zoomed in, the CIGAR shows: insertions in yellow, deletions in blue over the
 red match block, as the band paints them:
@@ -399,7 +399,7 @@ autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
   labels = c(query = "paternal", target = "maternal")))
 ```
 
-![HG002 chr8 as a dotplot: one diagonal of forward blocks, the inversion a short reverse one near the start](man/figures/dotplot.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 A continuous field such as `list(field = "identity")` keys as the display's
 bar, `0%` to `100%`, through `guides_jbrowse()`; a threshold field such as
@@ -428,7 +428,7 @@ autoplot(jbrowse_dotplot(e("peach_grape.paf.gz"),
   labels = c(query = "peach", target = "grape")))
 ```
 
-![Peach against grape, every chromosome of each along its axis, named](man/figures/whole-genome.png)
+JBrowse's own render of this figure is in [the gallery](#from-a-jbrowse-view).
 
 ### Several genomes
 
@@ -496,6 +496,8 @@ autoplot(m)
 <tr><td width="50%"><img src="gallery/genotype_matrix-jbrowse.webp" alt="100 people's genotypes across DCST2 (GRCh37) in JBrowse" width="100%"></td><td width="50%"><img src="gallery/genotype_matrix-r.webp" alt="100 people's genotypes across DCST2 (GRCh37) drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>HG002's maternal chr8 over its paternal copy at 8p23.1</b> <code>chr8_MATERNAL:5,250,001-14,250,000 chr8_PATERNAL:5,250,001-14,250,000</code></td></tr>
 <tr><td width="50%"><img src="gallery/inversion_synteny-jbrowse.webp" alt="HG002's maternal chr8 over its paternal copy at 8p23.1 in JBrowse" width="100%"></td><td width="50%"><img src="gallery/inversion_synteny-r.webp" alt="HG002's maternal chr8 over its paternal copy at 8p23.1 drawn by ggjbrowse" width="100%"></td></tr>
+<tr><td colspan="2"><b>HG002's maternal chr8 against its paternal copy as a dotplot</b> <code>chr8_MATERNAL chr8_PATERNAL</code></td></tr>
+<tr><td width="50%"><img src="gallery/inversion_dotplot-jbrowse.webp" alt="HG002's maternal chr8 against its paternal copy as a dotplot in JBrowse" width="100%"></td><td width="50%"><img src="gallery/inversion_dotplot-r.webp" alt="HG002's maternal chr8 against its paternal copy as a dotplot drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>Peach against grape, every chromosome</b> <code>whole genome</code></td></tr>
 <tr><td width="50%"><img src="gallery/whole_genome-jbrowse.webp" alt="Peach against grape, every chromosome in JBrowse" width="100%"></td><td width="50%"><img src="gallery/whole_genome-r.webp" alt="Peach against grape, every chromosome drawn by ggjbrowse" width="100%"></td></tr>
 <tr><td colspan="2"><b>GRCh38 over HG00133 at the amylase genes</b> <code>GRCh38#0#chr1:103,520,894-103,832,637</code></td></tr>

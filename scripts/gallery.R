@@ -71,6 +71,7 @@ inversion <- "5,250,001-14,250,000"
 chain <- extdata("hg002_chr8.chain")
 amylase <- extdata("hprc_amylase.paf")
 peach_grape <- jbrowse_dotplot(extdata("peach_grape.paf.gz"))
+hg002_dot <- jbrowse_dotplot(chain, swap = TRUE)
 
 # name -> `title`; `locus`, as the JBrowse location box writes it, for the
 # caption; `jbrowse`, every jb2export argument; `r`, the ggjbrowse figure;
@@ -181,6 +182,15 @@ examples <- list(
       paste0("loc:chr8_PATERNAL:", inversion), "--colorBy", "strand"),
     r = function() autoplot(jbrowse_synteny(chain,
       paste0("chr8_MATERNAL:", inversion), paste0("chr8_PATERNAL:", inversion),
+      view = list(color = list(field = "strand")), swap = TRUE,
+      labels = c(query = "paternal", target = "maternal")))),
+  inversion_dotplot = list(
+    title = "HG002's maternal chr8 against its paternal copy as a dotplot",
+    locus = "chr8_MATERNAL chr8_PATERNAL", height = 6,
+    jbrowse = c("dotplot", "--chromSizes", axis_sizes(hg002_dot$x, "maternal"),
+      "--chain", chain, "--chromSizes", axis_sizes(hg002_dot$y, "paternal"),
+      "--colorBy", "strand"),
+    r = function() autoplot(jbrowse_dotplot(chain,
       view = list(color = list(field = "strand")), swap = TRUE,
       labels = c(query = "paternal", target = "maternal")))),
   whole_genome = list(
