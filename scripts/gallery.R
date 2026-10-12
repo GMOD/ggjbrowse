@@ -260,7 +260,7 @@ examples <- list(
         type = "BigWigAdapter", name = toupper(cells[i]),
         bigWigLocation = list(uri = dnase[i])))), "chr11:5,270,001-5,320,000"))),
   dnase_clustered = list(
-    title = "The same DNase rows as density, clustered by their signal",
+    title = "DNase in twelve cell lines as density, clustered by signal",
     locus = "chr11:5,270,001-5,320,000", height = 4,
     jbrowse = c(hg38, "--multiwig", rows_json(dnase, toupper(cells)),
       "showLegend=true", "name:DNase", "mark=span", "runClustering=true",
@@ -305,7 +305,7 @@ examples <- list(
       display = list(rowColor = list(field = "superpopulation"))),
       layout = "columns")),
   variants_clustered = list(
-    title = "The same people clustered by genotype, the tree beside the rows",
+    title = "100 people's genotypes across DCST2 clustered, the tree beside the rows",
     locus = "1:155,000,001-155,050,000", height = 7,
     jbrowse = c("--hub", "hg19", "--tracks", population_tracks(), "--track",
       "people", "runClustering=true", "--loc", "1:155,000,001-155,050,000"),
@@ -370,7 +370,7 @@ examples <- list(
       view = list(color = list(field = "strand")),
       labels = c(query = "GRCh38", target = "HG00133")))),
   amylase_zoom = list(
-    title = "3 kb of the same alignment: the match block cut by an 80 bp deletion",
+    title = "3 kb at the amylase genes, the match block cut by an 80 bp deletion",
     locus = "GRCh38#0#chr1:103,619,501-103,622,500", height = 2.2,
     jbrowse = c("synteny", "--chromSizes",
       chrom_sizes(amylase, "query", "GRCh38", "GRCh38#0#chr1"),
