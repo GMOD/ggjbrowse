@@ -121,9 +121,6 @@ makeContent.ggjbrowse_row_labels <- function(x) {
   grid::setChildren(x, grid::gList(text))
 }
 
-# A base's width on a figure about 170 mm wide, never thinner than a tick
-cell_width <- function(xlim) max(0.3, 170 / (xlim[2] - xlim[1]))
-
 # The display's fade of a sub-pixel mark: at `px` pixels wide it blends from
 # its own width up to opaque by the share of the depth its site holds, which
 # the engine zeroes under the display's threshold (the shaders'
@@ -152,8 +149,9 @@ band <- function(p, x, rows = FALSE, ylim = NULL) {
 coverage_plot <- function(x, o) {
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_coverage() +
-    geom_jbrowse_alleles(min_allele_frequency = o$min_allele_frequency) +
-    geom_jbrowse_modification_coverage()
+    geom_jbrowse_alleles(min_allele_frequency = o$min_allele_frequency,
+      width = o$width) +
+    geom_jbrowse_modification_coverage(width = o$width)
   if (!isFALSE(x$settings$showInterbaseIndicators)) {
     p <- p + geom_jbrowse_interbase() + geom_jbrowse_indicators()
   }
@@ -169,12 +167,12 @@ sequence_plot <- function(x, o) {
   bases <- data.frame(position = seq(xlim[1], xlim[2] - 1))
   bases$base <- toupper(strsplit(jbrowse_sequence(x$reference$file,
     x$reference$chrom, xlim[1], xlim[2]), "")[[1]])
-  bases$tint <- ggplot2::alpha(jbrowse_colors()$bases[bases$base], 0.35)
+  bases$cell <- max(1, 1 / px_of(x, o$width))
+  bases$tint <-ggplot2::alpha(jbrowse_colors()$bases[bases$base], 0.35)
   ggplot2::ggplot(bases) +
-    ggplot2::geom_segment(ggplot2::aes(x = position + 0.5, xend = position + 0.5,
-      y = 0, yend = 1, colour = tint), linewidth = cell_width(xlim),
-      lineend = "butt") +
-    ggplot2::scale_colour_identity() +
+    ggplot2::geom_rect(ggplot2::aes(xmin = position, xmax = position + cell,
+      ymin = 0, ymax = 1, fill = tint)) +
+    ggplot2::scale_fill_identity() +
     ggplot2::geom_text(ggplot2::aes(x = position + 0.5, y = 0.5, label = base),
       size = 2.6) +
     ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1), expand = FALSE) +

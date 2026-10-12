@@ -85,7 +85,7 @@ with_defaults <- function(mapping, defaults) {
 # out of the legend until the caller maps an aesthetic of their own; one of
 # pileup `rows` draws each at the display's read height.
 jbrowse_layer <- function(geom, data, pick, mapping, defaults, params,
-                          keyed = TRUE, rows = FALSE) {
+                          keyed = TRUE, rows = FALSE, key_glyph = NULL) {
   inset <- if (rows) with_inset else function(d, model) d
   finish <- function(d, model) display_colors(inset(d, model))
   layer <- ggplot2::layer(geom = geom, stat = "identity",
@@ -93,7 +93,7 @@ jbrowse_layer <- function(geom, data, pick, mapping, defaults, params,
     mapping = with_defaults(mapping, defaults),
     inherit.aes = FALSE,
     show.legend = legend_of(with_defaults(mapping, defaults), keyed, mapping),
-    params = params)
+    params = params, key_glyph = key_glyph)
   ggplot2::ggproto(NULL, layer, setup_layer = function(self, data, plot) {
     warn_plot_mapping(plot$mapping)
     ggplot2::ggproto_parent(layer, self)$setup_layer(data, plot)

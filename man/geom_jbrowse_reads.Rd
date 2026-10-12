@@ -63,6 +63,7 @@ geom_jbrowse_alleles(
   mapping = NULL,
   data = NULL,
   min_allele_frequency = 0,
+  width = NULL,
   ...
 )
 
@@ -70,7 +71,12 @@ geom_jbrowse_interbase(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_indicators(mapping = NULL, data = NULL, ...)
 
-geom_jbrowse_modification_coverage(mapping = NULL, data = NULL, ...)
+geom_jbrowse_modification_coverage(
+  mapping = NULL,
+  data = NULL,
+  width = NULL,
+  ...
+)
 
 geom_jbrowse_junctions(mapping = NULL, data = NULL, min_reads = 2, ...)
 
@@ -93,8 +99,8 @@ result, such as a filtered copy of it}
 depth, as the display does (\code{fadeLowFrequencyMismatches})}
 
 \item{width}{the pixels the figure spans across its region, which decide
-the fade, a mismatch's line width and how high the read-connection band
-reaches; \code{NULL} takes 1,500}
+the fade, whether a one-base mark reaches a pixel and how high the
+read-connection band reaches; \code{NULL} takes 1,500}
 
 \item{min_allele_frequency}{leave out an allele segment whose share of the
 depth is below this, the display's \code{coverageSnpMinFrequency}}

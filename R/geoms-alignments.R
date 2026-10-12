@@ -65,8 +65,8 @@ with_inset <- function(d, model) {
 #' @param fade fade a mark narrower than a pixel by its site's share of the
 #'   depth, as the display does (`fadeLowFrequencyMismatches`)
 #' @param width the pixels the figure spans across its region, which decide
-#'   the fade, a mismatch's line width and how high the read-connection band
-#'   reaches; `NULL` takes 1,500
+#'   the fade, whether a one-base mark reaches a pixel and how high the
+#'   read-connection band reaches; `NULL` takes 1,500
 #' @param min_allele_frequency leave out an allele segment whose share of the
 #'   depth is below this, the display's `coverageSnpMinFrequency`
 #' @param min_reads leave out a junction with fewer supporting reads, the
@@ -120,18 +120,24 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
     keyed = FALSE)
 }
 
-# A per-position table drawn as rects one pixel wide at least, over the row
-position_rects <- function(table, geom, data, mapping, width, params, ...,
-                           with_opacity = FALSE) {
+# A per-position table drawn as rects one base wide, a pixel at least. The
+# rects cover the read's row and fill with `color` unless `defaults` says
+# otherwise; `prep` adjusts the table first and `fade` fades the rects by the
+# pixels per base.
+position_rects <- function(table, geom, data, mapping, width, params,
+                           defaults = NULL, prep = NULL, fade = NULL, ...,
+                           rows = TRUE) {
   data <- replacing(data, table, geom)
-  defaults <- ggplot2::aes(xmin = position, xmax = xmax, ymin = row + inset,
+  base <- ggplot2::aes(xmin = position, xmax = xmax, ymin = row + inset,
     ymax = row + 1 - inset, fill = color)
-  if (with_opacity) defaults$alpha <- ggplot2::aes(alpha = I(opacity))$alpha
+  defaults <- with_defaults(defaults, base)
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x[[table]]
+    if (!is.null(prep)) d <- prep(d)
     d$xmax <- d$position + max(1, 1 / px_of(x, width))
+    if (!is.null(fade)) d$alpha <- mark_alpha(px_of(x, width), d$fade, fade)
     d
-  }, mapping, defaults, params, ..., rows = TRUE)
+  }, mapping, defaults, params, ..., rows = rows)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -139,7 +145,7 @@ position_rects <- function(table, geom, data, mapping, width, params, ...,
 geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
                                        width = NULL, ...) {
   position_rects("modifications", "geom_jbrowse_modifications", data, mapping,
-    width, list(...), with_opacity = TRUE)
+    width, list(...), defaults = ggplot2::aes(alpha = I(opacity)))
 }
 
 #' @rdname geom_jbrowse_reads
@@ -154,15 +160,10 @@ geom_jbrowse_qualities <- function(mapping = NULL, data = NULL,
 #' @export
 geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = TRUE,
                                     width = NULL, ...) {
-  data <- replacing(data, "mismatches", "geom_jbrowse_mismatches")
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
-    d <- x$mismatches
-    d$alpha <- mark_alpha(px_of(x, width), d$fade, fade)
-    d$width <- rep(cell_width(xlim_of(x)), nrow(d))
-    d
-  }, mapping, ggplot2::aes(x = position + 0.5, xend = position + 0.5,
-    y = row + inset, yend = row + 1 - inset, colour = color, alpha = I(alpha),
-    linewidth = I(width)), list(lineend = "butt", ...), rows = TRUE)
+  position_rects("mismatches", "geom_jbrowse_mismatches", data, mapping,
+    width, list(linewidth = 0, ...), fade = fade, key_glyph = draw_key_swatch,
+    defaults = ggplot2::aes(colour = color, fill = I(color),
+      alpha = I(alpha)))
 }
 
 # A per-position table drawn as vertical ticks, faded as the pixels per base
@@ -224,16 +225,21 @@ geom_jbrowse_coverage <- function(mapping = NULL, data = NULL, ...) {
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_alleles <- function(mapping = NULL, data = NULL,
-                                 min_allele_frequency = 0, ...) {
-  data <- replacing(data, "allele_coverage", "geom_jbrowse_alleles")
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
-    a <- x$allele_coverage
-    a <- a[a$to - a$from >= min_allele_frequency, , drop = FALSE]
-    a$width <- rep(cell_width(xlim_of(x)), nrow(a))
-    a
-  }, mapping, ggplot2::aes(x = position + 0.5, xend = position + 0.5,
-    y = depth * from, yend = depth * to, colour = color,
-    linewidth = I(width)), list(lineend = "butt", ...))
+                                 min_allele_frequency = 0, width = NULL, ...) {
+  position_rects("allele_coverage", "geom_jbrowse_alleles", data, mapping,
+    width, list(linewidth = 0, ...), rows = FALSE, key_glyph = draw_key_swatch,
+    defaults = with_defaults(ggplot2::aes(colour = color), stack_rect),
+    prep = function(a) a[a$to - a$from >= min_allele_frequency, , drop = FALSE])
+}
+
+stack_rect <- ggplot2::aes(ymin = depth * from, ymax = depth * to)
+
+# A legend chip filled with the layer's `colour`, which keys rects whose
+# fill the plot's other scale owns
+draw_key_swatch <- function(data, params, size) {
+  data$fill <- data$colour
+  data$colour <- NA
+  ggplot2::draw_key_polygon(data, params, size)
 }
 
 # The coverage band's top in each row of `d`: its section's peak depth, where
@@ -300,15 +306,10 @@ GeomIndicator <- ggplot2::ggproto("GeomIndicator", ggplot2::Geom,
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_modification_coverage <- function(mapping = NULL, data = NULL,
-                                               ...) {
-  data <- replacing(data, "modification_coverage", "geom_jbrowse_modification_coverage")
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
-    m <- x$modification_coverage
-    m$width <- rep(cell_width(xlim_of(x)), nrow(m))
-    m
-  }, mapping, ggplot2::aes(x = position + 0.5, xend = position + 0.5,
-    y = depth * from, yend = depth * to, colour = color, alpha = I(opacity),
-    linewidth = I(width)), list(lineend = "butt", ...), keyed = FALSE)
+                                               width = NULL, ...) {
+  position_rects("modification_coverage", "geom_jbrowse_modification_coverage",
+    data, mapping, width, list(...), rows = FALSE, keyed = FALSE,
+    defaults = with_defaults(ggplot2::aes(alpha = I(opacity)), stack_rect))
 }
 
 junction_paths <- function(x, min_reads) {
