@@ -131,3 +131,11 @@ test_that("a split read across two regions arcs over the gap, kept once", {
   expect_equal(nrow(drawn), nrow(unique(r$arcs[c("start", "end")])))
   expect_lt(nrow(drawn), nrow(r$arcs))
 })
+
+test_that("a line breaks at the seam between regions", {
+  w <- jbrowse_wiggle(extdata("volvox_microarray_posneg.bw"),
+    c("ctgA:1-10000", "ctgA:20001-30000"), display = list(mark = "line"))
+  regions_per_run <- tapply(w$marks$.region, w$marks$run,
+    function(r) length(unique(r)))
+  expect_true(all(regions_per_run == 1))
+})

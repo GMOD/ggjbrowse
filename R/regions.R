@@ -103,7 +103,7 @@ bind_regions <- function(regions, parts) {
     for (table in intersect(indexes, names(x))) {
       counts[[table]] <- counts[[table]] + nrow(parts[[i]][[table]])
     }
-    counts[["run"]] <- counts[["run"]] + max(c(0, parts[[i]]$marks$run))
+    counts[["run"]] <- counts[["run"]] + max(c(-1, parts[[i]]$marks$run)) + 1
     parts[[i]] <- x
   }
   bound <- function(pick) {
