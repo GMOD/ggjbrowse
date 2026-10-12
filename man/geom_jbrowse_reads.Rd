@@ -76,9 +76,9 @@ geom_jbrowse_junctions(mapping = NULL, data = NULL, min_reads = 2, ...)
 
 geom_jbrowse_junction_counts(mapping = NULL, data = NULL, min_reads = 2, ...)
 
-geom_jbrowse_arcs(mapping = NULL, data = NULL, ...)
+geom_jbrowse_arcs(mapping = NULL, data = NULL, width = NULL, ...)
 
-geom_jbrowse_arc_ticks(mapping = NULL, data = NULL, ...)
+geom_jbrowse_arc_ticks(mapping = NULL, data = NULL, width = NULL, ...)
 }
 \arguments{
 \item{mapping}{aesthetics that override the defaults}
@@ -93,7 +93,8 @@ result, such as a filtered copy of it}
 depth, as the display does (\code{fadeLowFrequencyMismatches})}
 
 \item{width}{the pixels the figure spans across its region, which decide
-the fade and a mismatch's line width; \code{NULL} takes 1,500}
+the fade, a mismatch's line width and how high the read-connection band
+reaches; \code{NULL} takes 1,500}
 
 \item{min_allele_frequency}{leave out an allele segment whose share of the
 depth is below this, the display's \code{coverageSnpMinFrequency}}

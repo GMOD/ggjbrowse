@@ -43,7 +43,8 @@ sequence_adapter <- function(reference) {
 #'   2bit, path or URL; a CRAM needs it, and a BAM read without an MD tag is
 #'   compared against it
 #' @param reference_chrom the contig's name in `reference`, where the file
-#'   spells it another way (`1` in the BAM, `chr1` in the FASTA)
+#'   spells it another way (`1` in the BAM, `chr1` in the FASTA): one name
+#'   for every region, or one per region
 #' @param index the BAI, CSI or CRAI, if not beside `file` under its usual name
 #' @param display the display's config, as a track's `displays` entry
 #'   writes it for a `LinearAlignmentsDisplay`, which is what JBrowse's
@@ -159,9 +160,11 @@ jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
     stop("a CRAM stores its reads against the reference it was encoded with: ",
       "pass that FASTA or 2bit as `reference =`", call. = FALSE)
   }
-  read_regions(region, start, end, function(chrom, start, end, share, i)
-    alignments_region(adapter, chrom, start, end, reference,
-      reference_chrom[i] %||% chrom, display, byte_limit))
+  regions <- regions_of(region, start, end)
+  spelt <- reference_chroms(reference_chrom, regions)
+  read_regions(regions, NULL, NULL, function(chrom, start, end, share, i)
+    alignments_region(adapter, chrom, start, end, reference, spelt[i],
+      display, byte_limit))
 }
 
 alignments_region <- function(adapter, chrom, start, end, reference,

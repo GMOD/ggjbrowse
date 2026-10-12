@@ -34,7 +34,8 @@ with \code{start} and \code{end}}
 compared against it}
 
 \item{reference_chrom}{the contig's name in \code{reference}, where the file
-spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA)}
+spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA): one name
+for every region, or one per region}
 
 \item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
 

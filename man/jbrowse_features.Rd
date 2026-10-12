@@ -56,7 +56,7 @@ of the same size}
 \code{color_by_cds}}
 
 \item{reference_chrom}{the contig's name in \code{reference}, where the file
-spells it another way}
+spells it another way: one name for every region, or one per region}
 
 \item{color_by_cds}{paint each CDS by its reading frame, as the view's
 "Color by CDS" does}

@@ -69,7 +69,7 @@ features_adapter <- function(file, index) {
 #' @param reference the reference FASTA (indexed) or 2bit, path or URL, for
 #'   `color_by_cds`
 #' @param reference_chrom the contig's name in `reference`, where the file
-#'   spells it another way
+#'   spells it another way: one name for every region, or one per region
 #' @param color_by_cds paint each CDS by its reading frame, as the view's
 #'   "Color by CDS" does
 #' @param index the tabix or CSI index, if not beside `file` under its usual
@@ -117,7 +117,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
     adapterConfig = adapter_of(file, function()
       features_adapter(file, index)),
     regions = data.frame(refName = regions$chrom,
-      originalRefName = reference_chrom %||% regions$chrom,
+      originalRefName = reference_chroms(reference_chrom, regions),
       start = regions$start, end = regions$end),
     bpPerPx = sum(regions$end - regions$start) / width,
     colorByCDS = color_by_cds,

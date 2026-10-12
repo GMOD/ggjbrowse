@@ -218,11 +218,11 @@ junctions_plot <- function(x, o) {
 arcs_plot <- function(x, o) {
   cloud <- is_cloud(x)
   p <- band(ggplot2::ggplot(x) +
-    geom_jbrowse_arc_ticks() +
-    geom_jbrowse_arcs() +
+    geom_jbrowse_arc_ticks(width = o$width) +
+    geom_jbrowse_arcs(width = o$width) +
     scale_colour_jbrowse(x, "arcs") +
     if (cloud) ggplot2::scale_y_log10() else ggplot2::scale_y_reverse(),
-    x, ylim = c(if (cloud) 1 else 0, arc_top(x)))
+    x, ylim = c(if (cloud) 1 else 0, arc_top(x, o$width)))
   if (cloud) p + ggplot2::labs(y = "insert size (bp)") else p + no_y
 }
 
@@ -257,7 +257,7 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   pixel by its site's share of the depth, so sequencing errors recede on a
 #'   deep pileup; `NULL` takes the display's `fadeLowFrequencyMismatches`
 #' @param width the pixels the figure spans across its region, which that
-#'   fade reads; `NULL` takes 1,500
+#'   fade and the read-connection band's reach read; `NULL` takes 1,500
 #' @param above,below tracks to draw above and below a `"track"`, each a
 #'   ggjbrowse result over the same regions or a ggplot, or a list of them, as
 #'   [jbrowse_stack()] stacks them

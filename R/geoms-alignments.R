@@ -65,7 +65,8 @@ with_inset <- function(d, model) {
 #' @param fade fade a mark narrower than a pixel by its site's share of the
 #'   depth, as the display does (`fadeLowFrequencyMismatches`)
 #' @param width the pixels the figure spans across its region, which decide
-#'   the fade and a mismatch's line width; `NULL` takes 1,500
+#'   the fade, a mismatch's line width and how high the read-connection band
+#'   reaches; `NULL` takes 1,500
 #' @param min_allele_frequency leave out an allele segment whose share of the
 #'   depth is below this, the display's `coverageSnpMinFrequency`
 #' @param min_reads leave out a junction with fewer supporting reads, the
@@ -366,10 +367,11 @@ is_cloud <- function(x) x$read_connections == "cloud"
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, ...) {
+geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, width = NULL,
+                              ...) {
   data <- replacing(data, "arcs", "geom_jbrowse_arcs")
   domes <- function(x) connection_domes(x$arcs[x$arcs$shape == "arc", ,
-    drop = FALSE], arc_top(x))
+    drop = FALSE], arc_top(x, width))
   bars <- function(x) {
     b <- x$arcs[x$arcs$shape != "arc", , drop = FALSE]
     b$y <- pmax(1, b$y)
@@ -398,12 +400,13 @@ geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, ...) {
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL, ...) {
+geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
+                                   width = NULL, ...) {
   data <- replacing(data, "arc_ticks", "geom_jbrowse_arc_ticks")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     t <- x$arc_ticks
     t$bottom <- rep(if (is_cloud(x)) 1 else 0, nrow(t))
-    t$top <- rep(arc_top(x), nrow(t))
+    t$top <- rep(arc_top(x, width), nrow(t))
     t
   }, mapping, ggplot2::aes(x = position, xend = position, y = bottom,
     yend = top, colour = color, linewidth = I(width / ggplot2::.pt)),
@@ -411,9 +414,10 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL, ...) {
 }
 
 # The arc band's reach: the read cloud's widest insert, or as many bp as the
-# band's pixels span at the figure's scale, so an arc rises as high as it is
-# wide and one wider than the band runs off it, as the display draws it
-arc_top <- function(x) {
+# band's pixels span in a figure `width` pixels across, so an arc rises as
+# high as it is wide and one wider than the band runs off it, as the display
+# draws it
+arc_top <- function(x, width = NULL) {
   if (is_cloud(x)) max(2, x$arc_span_max)
-  else x$settings$readConnectionsHeight / px_of(x, NULL)
+  else x$settings$readConnectionsHeight / px_of(x, width)
 }

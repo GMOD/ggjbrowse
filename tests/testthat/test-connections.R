@@ -59,4 +59,8 @@ test_that("an arc rises as high as it is wide, the band reaching its pixels at t
   expect_equal(arc_top(a), a$settings$readConnectionsHeight / (1500 / span))
   expect_lt(median(a$arcs$y), arc_top(a))
   expect_gt(max(a$arcs$y), arc_top(a))
+  reach <- function(width) {
+    ggplot2::autoplot(a, "arcs", width = width)$coordinates$limits$y[2]
+  }
+  expect_equal(reach(3000), arc_top(a) / 2)
 })
