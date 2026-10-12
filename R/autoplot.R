@@ -1,10 +1,6 @@
-#' The colors JBrowse's alignments display draws in
-#'
-#' `read` (the plain fill), `forward` and `reverse` (each strand, a splice
-#' junction's too), `skip`, `deletion`, `insertion`, `softclip`, `hardclip`,
-#' `coverage` and `bases` (a named vector, one per mismatch base), read from
-#' the engine's own palette.
-#' @export
+# The colors JBrowse's alignments display draws in, from the engine's own
+# palette: `read`, `forward`, `reverse`, `skip`, `deletion`, `insertion`,
+# `softclip`, `hardclip`, `coverage` and `bases`, one per mismatch base
 jbrowse_colors <- local({
   colors <- NULL
   function() {
