@@ -47,17 +47,21 @@ region_layout <- function(regions, gap_frac = 0.012) {
 }
 
 # Read each region with read(chrom, start, end, share, i), `share` being the
-# region's fraction of the regions' bp, and answer one result: the region's
-# own where there is one, else every region's bound. Every row of a table
-# with a position names its contig and region. Warns where no region's
-# contig is one the file has, which is a misspelt contig rather than a region
-# that holds nothing.
+# region's fraction of the regions' bp, and answer one result (join_regions())
 read_regions <- function(region, start, end, read) {
   regions <- regions_of(region, start, end)
   w <- regions$end - regions$start
-  parts <- lapply(seq_len(nrow(regions)), function(i)
-    placed(read(regions$chrom[i], regions$start[i], regions$end[i],
-      w[i] / sum(w), i), regions$chrom[i], i))
+  join_regions(regions, lapply(seq_len(nrow(regions)), function(i)
+    read(regions$chrom[i], regions$start[i], regions$end[i], w[i] / sum(w), i)))
+}
+
+# One result from each region's: the region's own where there is one, else
+# every region's bound. Every row of a table with a position names its contig
+# and region. Warns where no region's contig is one the file has, which is a
+# misspelt contig rather than a region that holds nothing.
+join_regions <- function(regions, parts) {
+  parts <- lapply(seq_along(parts), function(i)
+    placed(parts[[i]], regions$chrom[i], i))
   missing <- vapply(parts, function(p) p$missing_contig %||% "", "")
   if (all(missing != "")) warning(missing[1], call. = FALSE)
   if (length(parts) == 1) parts[[1]] else bind_regions(region_layout(regions),

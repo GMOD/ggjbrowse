@@ -19,9 +19,9 @@ config, as a list, such as a \code{MultiWiggleAdapter}'s}
 
 \item{region}{the region: a locus as JBrowse's location box writes it
 (\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
-are read in turn and drawn end to end on one axis as a JBrowse view lays
-them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
-with \code{start} and \code{end}}
+share one score axis and color ramp and are drawn end to end as a JBrowse
+view lays them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a
+contig name with \code{start} and \code{end}}
 
 \item{start, end}{with a contig name as \code{region}, the region's bounds,
 0-based half-open}

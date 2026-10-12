@@ -9,9 +9,9 @@
 #'   config, as a list, such as a `MultiWiggleAdapter`'s
 #' @param region the region: a locus as JBrowse's location box writes it
 #'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
-#'   are read in turn and drawn end to end on one axis as a JBrowse view lays
-#'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
-#'   with `start` and `end`
+#'   share one score axis and color ramp and are drawn end to end as a JBrowse
+#'   view lays them out, a data frame of `chrom`, `start` and `end`, or a
+#'   contig name with `start` and `end`
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
@@ -48,16 +48,13 @@
 #' head(w$marks)
 jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
                            display = NULL, width = 800) {
-  read_regions(region, start, end, function(chrom, start, end, share, i)
-    wiggle_region(file, chrom, start, end, display, width * share))
-}
-
-wiggle_region <- function(file, chrom, start, end, display, width) {
+  regions <- regions_of(region, start, end)
   args <- list(
     adapterConfig = adapter_of(file, function()
       list(type = "BigWigAdapter", bigWigLocation = location(file))),
-    region = list(refName = chrom, start = start, end = end),
-    bpPerPx = (end - start) / width)
+    regions = data.frame(refName = regions$chrom, start = regions$start,
+      end = regions$end),
+    bpPerPx = sum(regions$end - regions$start) / width)
   if (!is.null(display)) {
     display$color <- config_color(display$color)
     args$display <- display
@@ -65,19 +62,25 @@ wiggle_region <- function(file, chrom, start, end, display, width) {
   t <- call_engine("wiggle", args)
   marks <- as_frame(t$marks)
   marks$color <- jbrowse_color(marks$color)
+  bins <- as_frame(t$bins)
   rules <- as_frame(t$rules)
   rules$color <- jbrowse_color(rules$color)
-  structure(
-    list(bins = as_frame(t$bins), marks = marks,
+  of_region <- function(d, i) {
+    d <- d[d$region == i - 1, setdiff(names(d), "region"), drop = FALSE]
+    rownames(d) <- NULL
+    d
+  }
+  join_regions(regions, lapply(seq_len(nrow(regions)), function(i) structure(
+    list(bins = of_region(bins, i), marks = of_region(marks, i),
       sources = as_frame(t$sources), rules = rules, keys = list(),
       ramps = ramp_frames(t$ramps),
       domain = unlist(t$domain), scale_type = t$scaleType,
       symlog_constant = t$symlogConstant, rendering = t$rendering,
       origin = t$origin, row_layout = t$rowLayout, height = t$height,
-      region = list(chrom = chrom, start = start, end = end),
-      missing_contig = t$missingContig),
+      region = as.list(regions[i, ]),
+      missing_contig = t$missingContigs[[i]]),
     primary = "marks",
-    class = c("jbrowse_wiggle", "jbrowse_result"))
+    class = c("jbrowse_wiggle", "jbrowse_result"))))
 }
 
 #' @export

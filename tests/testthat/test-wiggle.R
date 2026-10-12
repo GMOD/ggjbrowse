@@ -120,3 +120,17 @@ test_that("a row layout packs its sources into the display's height, a slice eac
   two <- autoplot(jbrowse_wiggle(multi(2), "ctgA", 0, 50000))
   expect_false(inherits(two$theme$axis.text.y, "element_blank"))
 })
+
+test_that("several regions share one score axis and color ramp", {
+  loci <- c("ctgA:1-10000", "ctgA:20001-30000")
+  d <- jbrowse_wiggle(bw, loci, display = list(mark = "span"))
+  m <- d$marks
+  colors <- tapply(m$color, m$score, function(c) length(unique(c)))
+  expect_true(all(colors == 1))
+  expect_true(any(duplicated(m$score[!duplicated(m[c("score", ".region")])])))
+  expect_equal(as.numeric(attr(d$ramps[[1]], "labels")), d$domain)
+  alone <- jbrowse_wiggle(bw, loci[1], display = list(mark = "span"))
+  expect_equal(d$marks[d$marks$.region == 1, c("start", "end", "score")],
+    alone$marks[c("start", "end", "score")])
+  expect_false(isTRUE(all.equal(d$domain, alone$domain)))
+})
