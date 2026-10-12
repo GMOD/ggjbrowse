@@ -26,7 +26,7 @@ See [Docs](#docs) for how the engine works.
 
 Every example here runs as written, on test data installed with the
 package: clips of public human data, and JBrowse's simulated volvox genome
-where an example needs a synteny alignment.
+where an example needs a CIGAR-level synteny alignment or a multi-way one.
 `scripts/extdata-*.sh` make the human clips.
 
 ```r
@@ -315,20 +315,40 @@ and skip wider than a pixel drawn in its color. `view` takes the
 stack above and below the band:
 
 ```r
-paf <- e("volvox_inv_indels.paf")
-s <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001",
-  view = list(color = list(field = "strand")))
-genes <- jbrowse_features(e("volvox.sort.gff3.gz"), "ctgA:1-50,001",
-  display = list(showOnlyGenes = TRUE))
-autoplot(s, below = genes)
+r <- "5,250,001-14,250,000"
+s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
+  paste0("chr8_PATERNAL:", r),
+  view = list(color = list(field = "strand")), swap = TRUE)
+genes <- function(file, contig) jbrowse_features(e(file),
+  paste0(contig, ":", r),
+  display = list(displayMode = "compact", showLabels = FALSE,
+    showOnlyGenes = TRUE))
+autoplot(s, above = genes("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
+  below = genes("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
 ```
 
-![A simulated volvox with two inversions over volvox ctgA: forward blocks in tomato, the inverted ones crossing in blue, the genes under the target row](man/figures/synteny.png)
+![HG002's maternal chr8 over its paternal copy at 8p23.1: forward blocks in tomato, the 4 Mb inversion crossing in blue, the genes above and below](man/figures/synteny.png)
 
-Zoomed in, the CIGAR shows: insertions in yellow, deletions in blue over the
+A PAF names its sequences by assembly when they read `sample#haplotype#contig`.
+Three alignments of GRCh38 against HG00133 over the amylase locus show the
+copies rearranged:
+
+```r
+a <- jbrowse_synteny(e("hprc_amylase.paf"),
+  "GRCh38#0#chr1:103,520,894-103,832,637",
+  "HG00133#1#CM090045.1:103,669,666-103,981,330",
+  view = list(color = list(field = "strand")))
+autoplot(a)
+```
+
+![GRCh38 chr1 over HG00133 at the amylase genes: a reverse block between forward ones, the alignments overlapping where the copies duplicate](man/figures/amylase.png)
+
+Zoomed in on an alignment with a CIGAR, as volvox's simulated one has, the
+band shows: insertions in yellow, deletions in blue over the
 red match block, as the band paints them:
 
 ```r
+paf <- e("volvox_inv_indels.paf")
 autoplot(jbrowse_synteny(paf, "ctgA:26,801-30,000", "ctgA:27,201-30,500",
   width = 1500))
 ```
@@ -340,11 +360,11 @@ a line per block, or per CIGAR step where a block is wide enough on the
 plot, and `view` takes the `DotplotView`'s settings:
 
 ```r
-autoplot(jbrowse_dotplot(paf, "ctgA:1-49,186", "ctgA:1-50,001",
+autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
   view = list(color = list(field = "strand"))))
 ```
 
-![The same alignment as a dotplot: a diagonal of forward blocks, two short reverse ones](man/figures/dotplot.png)
+![HG002 chr8 as a dotplot: one diagonal of forward blocks, the inversion a short reverse one near the start](man/figures/dotplot.png)
 
 A continuous field such as `list(field = "identity")` keys as the display's
 bar, `0%` to `100%`, through `guides_jbrowse()`; a threshold field such as

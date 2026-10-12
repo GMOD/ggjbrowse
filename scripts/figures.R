@@ -72,17 +72,32 @@ save("variants.png", autoplot(people, layout = "columns"), 7)
 people$tree <- hclust(dist(as.matrix(people)), "average")
 save("variants-clustered.png", autoplot(people, layout = "columns"), 7)
 
-paf <- extdata("volvox_inv_indels.paf")
-synteny <- jbrowse_synteny(paf, "ctgA:1-49,186", "ctgA:1-50,001",
+chain <- extdata("hg002_chr8.chain")
+inversion <- "5,250,001-14,250,000"
+synteny <- jbrowse_synteny(chain, paste0("chr8_MATERNAL:", inversion),
+  paste0("chr8_PATERNAL:", inversion),
+  view = list(color = list(field = "strand")), swap = TRUE)
+genes <- function(file, contig) jbrowse_features(extdata(file),
+  paste0(contig, ":", inversion),
+  display = list(displayMode = "compact", showLabels = FALSE,
+    showOnlyGenes = TRUE))
+synteny_plot <- autoplot(synteny,
+  above = genes("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
+  below = genes("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
+save("synteny.png", synteny_plot)
+
+amylase <- jbrowse_synteny(extdata("hprc_amylase.paf"),
+  "GRCh38#0#chr1:103,520,894-103,832,637",
+  "HG00133#1#CM090045.1:103,669,666-103,981,330",
   view = list(color = list(field = "strand")))
-target_genes <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1-50,001",
-  display = list(showOnlyGenes = TRUE))
-save("synteny.png", autoplot(synteny, below = target_genes))
+save("amylase.png", autoplot(amylase), 3)
+
+paf <- extdata("volvox_inv_indels.paf")
 save("synteny-zoom.png", autoplot(jbrowse_synteny(paf, "ctgA:26,801-30,000",
   "ctgA:27,201-30,500", width = 1500)), 2.2)
-ggsave(file.path(out, "dotplot.png"), autoplot(jbrowse_dotplot(paf,
-  "ctgA:1-49,186", "ctgA:1-50,001", view = list(color = list(field = "strand")))),
-  width = 6, height = 5.5, dpi = 120)
+ggsave(file.path(out, "dotplot.png"), autoplot(jbrowse_dotplot(chain,
+  view = list(color = list(field = "strand")))),
+  width = 7, height = 6, dpi = 120)
 
 ggsave(file.path(out, "whole-genome.png"),
   autoplot(jbrowse_dotplot(extdata("peach_grape.paf.gz"))),
