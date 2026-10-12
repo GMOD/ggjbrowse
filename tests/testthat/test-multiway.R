@@ -49,6 +49,8 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
     display = list(showOnlyGenes = TRUE))
   fig <- autoplot(m, above = genes)
   expect_equal(length(fig$patches$plots) + 1, 2)
+  expect_s3_class(fig$theme$axis.text.x, "element_blank")
+  expect_s3_class(fig$patches$plots[[1]]$theme$axis.text.x, "element_blank")
   expect_gt(jbrowse_height(fig), 1)
   curved <- ggplot2::layer_data(autoplot(m, curves = TRUE), 1)
   expect_gt(nrow(curved), nrow(polygons))

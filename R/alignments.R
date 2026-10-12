@@ -1,20 +1,27 @@
 alignments_adapter <- function(file, index) {
-  guess_adapter(file, index, list(
-    list(pattern = "\\.cram$", type = "CramAdapter", slot = "cramLocation",
-      index = list(suffix = ".crai", slot = "craiLocation")),
+  a <- guess_adapter(file, index, list(
+    list(pattern = "\\.cram$", type = "CramAdapter", slot = "cramLocation"),
     list(pattern = "", type = "BamAdapter", slot = "bamLocation",
-      index = list(suffix = ".bai", kind = "BAI"))))
+      index = "BAI")))
+  if (a$type == "CramAdapter") {
+    a$craiLocation <- location(index %||% paste0(file, ".crai"))
+  }
+  a
 }
 
 sequence_adapter <- function(reference) {
-  fai <- function(file) list(faiLocation = location(paste0(file, ".fai")))
-  guess_adapter(reference, NULL, list(
-    list(pattern = "\\.2bit$", type = "TwoBitAdapter", slot = "twoBitLocation"),
-    list(pattern = "\\.gz$", type = "BgzipFastaAdapter", slot = "fastaLocation",
-      extra = function(file) c(fai(file),
-        list(gziLocation = location(paste0(file, ".gzi"))))),
-    list(pattern = "", type = "IndexedFastaAdapter", slot = "fastaLocation",
-      extra = fai)))
+  a <- guess_adapter(reference, NULL, list(
+    list(pattern = "\\.2bit$", type = "TwoBitAdapter",
+      slot = "twoBitLocation"),
+    list(pattern = "\\.gz$", type = "BgzipFastaAdapter",
+      slot = "fastaLocation"),
+    list(pattern = "", type = "IndexedFastaAdapter", slot = "fastaLocation")))
+  if (a$type == "TwoBitAdapter") return(a)
+  a$faiLocation <- location(paste0(reference, ".fai"))
+  if (a$type == "BgzipFastaAdapter") {
+    a$gziLocation <- location(paste0(reference, ".gzi"))
+  }
+  a
 }
 
 #' Read a region of a BAM or CRAM file as JBrowse draws it

@@ -2,15 +2,15 @@
 # indexed PIF, MUMmer delta, UCSC chain or MashMap output. The adapter names
 # its sides `query` and `target`, as the file's columns do.
 synteny_adapter <- function(file, index) {
-  sides <- function(file) list(assemblyNames = c("query", "target"))
-  guess_adapter(file, index, list(
-    list(pattern = "\\.paf(\\.gz)?$", type = "PAFAdapter", slot = "pafLocation", extra = sides),
-    list(pattern = "\\.delta$", type = "DeltaAdapter", slot = "deltaLocation", extra = sides),
-    list(pattern = "\\.chain$", type = "ChainAdapter", slot = "chainLocation", extra = sides),
-    list(pattern = "\\.out$", type = "MashMapAdapter", slot = "outLocation", extra = sides),
-    list(pattern = "\\.pif\\.gz$", type = "PairwiseIndexedPAFAdapter", slot = "pifGzLocation",
-      extra = sides, index = list(suffix = ".tbi", kind = "TBI"))),
+  a <- guess_adapter(file, index, list(
+    list(pattern = "\\.paf(\\.gz)?$", type = "PAFAdapter", slot = "pafLocation"),
+    list(pattern = "\\.delta$", type = "DeltaAdapter", slot = "deltaLocation"),
+    list(pattern = "\\.chain$", type = "ChainAdapter", slot = "chainLocation"),
+    list(pattern = "\\.out$", type = "MashMapAdapter", slot = "outLocation"),
+    list(pattern = "\\.pif\\.gz$", type = "PairwiseIndexedPAFAdapter",
+      slot = "pifGzLocation", index = "TBI")),
     ".paf (optionally .gz), .pif.gz with its index, .delta, .chain or .out")
+  c(a, list(assemblyNames = c("query", "target")))
 }
 
 # One axis of a comparative view for the engine: its regions, the assembly

@@ -3,9 +3,10 @@
 # indexed as a PIF
 multiway_adapter <- function(file, index) {
   guess_adapter(file, index, list(
-    list(pattern = "\\.paf(\\.gz)?$", type = "MultiGenomePAFAdapter", slot = "pafLocation"),
-    list(pattern = "\\.pif\\.gz$", type = "MultiGenomeIndexedPAFAdapter", slot = "pifGzLocation",
-      index = list(suffix = ".tbi", kind = "TBI"))),
+    list(pattern = "\\.paf(\\.gz)?$", type = "MultiGenomePAFAdapter",
+      slot = "pafLocation"),
+    list(pattern = "\\.pif\\.gz$", type = "MultiGenomeIndexedPAFAdapter",
+      slot = "pifGzLocation", index = "TBI")),
     "an all-vs-all .paf (optionally .gz) or a .pif.gz with its index")
 }
 

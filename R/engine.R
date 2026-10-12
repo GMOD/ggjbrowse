@@ -117,31 +117,25 @@ location <- function(path) {
   list(uri = uri, locationType = "UriLocation")
 }
 
-# An adapter config for `file`, from the first of `formats` whose `pattern`
-# matches its name without any URL query; the error `expected` when none does.
-# A format names its adapter `type`, the `slot` holding the file's location,
-# an optional `index` (its `suffix` beside the file, its default `kind`, and a
-# `slot` to hold it in place of an `index` block) and `extra` slots, a function
-# of the file.
+# The adapter config of the first of `formats` whose `pattern` matches
+# `file`'s name, any URL query aside: its `type`, the file's location in its
+# `slot`, and where it names an `index` type, the index (`index`, else the
+# file's name and that type's extension), CSI where its name says so
 guess_adapter <- function(file, index, formats, expected = NULL) {
   name <- tolower(sub("\\?.*$", "", file))
   for (format in formats) {
     if (!grepl(format$pattern, name)) next
     adapter <- list(type = format$type)
     adapter[[format$slot]] <- location(file)
-    if (!is.null(format$extra)) adapter <- c(adapter, format$extra(file))
     if (!is.null(format$index)) {
-      index <- index %||% paste0(file, format$index$suffix)
-      if (!is.null(format$index$slot)) {
-        adapter[[format$index$slot]] <- location(index)
-      } else {
-        adapter$index <- list(location = location(index),
-          indexType = if (grepl("\\.csi$", index)) "CSI" else format$index$kind)
-      }
+      index <- index %||% paste0(file, ".", tolower(format$index))
+      adapter$index <- list(location = location(index),
+        indexType = if (grepl("\\.csi$", index)) "CSI" else format$index)
     }
     return(adapter)
   }
-  stop("cannot tell the format of ", file, ": expected ", expected, call. = FALSE)
+  stop("cannot tell the format of ", file, ": expected ", expected,
+    call. = FALSE)
 }
 
 # The adapter config the engine reads `file` through: a track's own adapter

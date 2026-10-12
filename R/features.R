@@ -1,17 +1,19 @@
 # A feature file's adapter, read off its extension: GFF3, GTF and BED plain or
 # bgzipped with a tabix (or CSI) index beside it, or BigBed.
 features_adapter <- function(file, index) {
-  tabix <- list(suffix = ".tbi", kind = "TBI")
+  entry <- function(pattern, type, slot, index = NULL) {
+    list(pattern = pattern, type = type, slot = slot, index = index)
+  }
   guess_adapter(file, index, list(
-    list(pattern = "\\.(bb|bigbed)$", type = "BigBedAdapter", slot = "bigBedLocation"),
-    list(pattern = "\\.gff3?\\.gz$", type = "Gff3TabixAdapter", slot = "gffGzLocation", index = tabix),
-    list(pattern = "\\.gff3?$", type = "Gff3Adapter", slot = "gffLocation"),
-    list(pattern = "\\.gtf\\.gz$", type = "GtfTabixAdapter", slot = "gtfGzLocation", index = tabix),
-    list(pattern = "\\.gtf$", type = "GtfAdapter", slot = "gtfLocation"),
-    list(pattern = "\\.bed\\.gz$", type = "BedTabixAdapter", slot = "bedGzLocation", index = tabix),
-    list(pattern = "\\.vcf\\.gz$", type = "VcfTabixAdapter", slot = "vcfGzLocation", index = tabix),
-    list(pattern = "\\.vcf$", type = "VcfAdapter", slot = "vcfLocation"),
-    list(pattern = "\\.bed$", type = "BedAdapter", slot = "bedLocation")),
+    entry("\\.(bb|bigbed)$", "BigBedAdapter", "bigBedLocation"),
+    entry("\\.gff3?\\.gz$", "Gff3TabixAdapter", "gffGzLocation", "TBI"),
+    entry("\\.gff3?$", "Gff3Adapter", "gffLocation"),
+    entry("\\.gtf\\.gz$", "GtfTabixAdapter", "gtfGzLocation", "TBI"),
+    entry("\\.gtf$", "GtfAdapter", "gtfLocation"),
+    entry("\\.bed\\.gz$", "BedTabixAdapter", "bedGzLocation", "TBI"),
+    entry("\\.vcf\\.gz$", "VcfTabixAdapter", "vcfGzLocation", "TBI"),
+    entry("\\.vcf$", "VcfAdapter", "vcfLocation"),
+    entry("\\.bed$", "BedAdapter", "bedLocation")),
     ".gff3, .gtf, .bed or .vcf (each optionally .gz with an index) or .bb")
 }
 

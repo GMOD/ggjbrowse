@@ -2,7 +2,7 @@ variants_adapter <- function(file, index, samples) {
   adapter <- guess_adapter(file, index, list(
     list(pattern = "\\.vcf$", type = "VcfAdapter", slot = "vcfLocation"),
     list(pattern = "", type = "VcfTabixAdapter", slot = "vcfGzLocation",
-      index = list(suffix = ".tbi", kind = "TBI"))))
+      index = "TBI")))
   if (!is.null(samples)) adapter$samplesTsvLocation <- location(samples)
   adapter
 }

@@ -217,10 +217,10 @@ track_bands <- function(x) {
 stack_bands <- function(bands, axis_at = NULL) {
   plots <- do.call(c, lapply(bands, `[[`, "plots"))
   heights <- unlist(lapply(bands, `[[`, "heights"))
-  axis_at <- axis_at %||% length(plots)
+  bare <- seq_along(plots) != (axis_at %||% length(plots))
   plots <- lapply(plots, function(p)
     p + ggplot2::theme(plot.margin = ggplot2::margin(1, 14, 1, 5.5)))
-  plots[-axis_at] <- lapply(plots[-axis_at], function(p) p + no_x)
+  plots[bare] <- lapply(plots[bare], function(p) p + no_x)
   patchwork::wrap_plots(plots, ncol = 1, heights = heights,
     guides = "collect")
 }
