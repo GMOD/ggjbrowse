@@ -83,7 +83,9 @@ sequence_adapter <- function(reference) {
 #' @param byte_limit the most compressed bytes the region may need, refused off
 #'   the index before any read is fetched; the whole table is held in memory
 #' @return a `jbrowse_alignments` list of data frames:
-#'   * `reads`: `start`, `end`, `row`, `strand`, `mapq`, `flags`, `name`,
+#'   * `reads`: `read` (the id the other tables' `read` column names it by,
+#'     kept through filtering), `start`, `end`, `row`, `strand`, `mapq`,
+#'     `flags`, `name`,
 #'     `insert_size`, `pair_orientation`, `color` (the fill the display paints,
 #'     as `#rrggbb`) and `category` (the bucket the display files the read
 #'     under: `fwdStrand`, `mapq`, `unmappedMate`, ...)
@@ -182,6 +184,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
     d
   }
   reads <- frame(t$reads)
+  reads$read <- seq_len(nrow(reads))
   names(reads)[names(reads) == "insertSize"] <- "insert_size"
   names(reads)[names(reads) == "pairOrientation"] <- "pair_orientation"
   on_read <- function(table) {

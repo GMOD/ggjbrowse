@@ -22,12 +22,11 @@ jbrowse_colors <- local({
 read_blocks <- function(x) {
   skips <- x$gaps[x$gaps$type == "skip", , drop = FALSE]
   reads <- x$reads
-  reads$read <- seq_len(nrow(reads))
   if (!nrow(skips)) return(reads)
   by_read <- split(skips, skips$read)
   spliced <- reads$read %in% names(by_read)
   blocks <- lapply(which(spliced), function(i) {
-    s <- by_read[[as.character(i)]]
+    s <- by_read[[as.character(reads$read[i])]]
     s <- s[order(s$start), ]
     starts <- c(reads$start[i], s$end)
     ends <- c(s$start, reads$end[i])
@@ -356,16 +355,12 @@ alignment_bands <- function(object, o = alignment_options(object)) {
     heights = unlist(lapply(bands, `[[`, "heights")))
 }
 
-# The result with one section's rows: its reads, their marks, renumbered to
-# the reads kept, and its coverage
+# The result with one section's rows: its reads, their marks and its coverage
 section_of <- function(object, label) {
-  kept <- which(object$reads$section == label)
   for (name in setdiff(names(object), "sections")) {
     d <- object[[name]]
     if (!is.data.frame(d) || is.null(d$section)) next
-    d <- d[d$section == label, , drop = FALSE]
-    if (!is.null(d$read) && name != "reads") d$read <- match(d$read, kept)
-    object[[name]] <- d
+    object[[name]] <- d[d$section == label, , drop = FALSE]
   }
   object$sections <- object$sections[object$sections$label == label, ,
     drop = FALSE]

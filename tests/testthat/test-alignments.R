@@ -198,6 +198,12 @@ test_that("a spliced read splits into its blocks at its skips", {
   i <- seq_len(nrow(s$reads))
   gap <- ifelse(is.na(skipped[as.character(i)]), 0, skipped[as.character(i)])
   expect_equal(as.vector(covered[as.character(i)] + gap), span)
+  kept <- s
+  kept$reads <- s$reads[s$reads$read %% 2 == 0, ]
+  expect_equal(ggjbrowse:::read_blocks(kept),
+    blocks[blocks$read %% 2 == 0, ], ignore_attr = TRUE)
+  drawn <- ggplot2::layer_data(ggplot2::ggplot(kept) + geom_jbrowse_reads())
+  expect_equal(nrow(drawn), sum(blocks$read %% 2 == 0))
 })
 
 test_that("the pileup and coverage draw in the display's colors", {
