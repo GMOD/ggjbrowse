@@ -50,12 +50,16 @@ save("wiggle.png", patchwork::wrap_plots(ncol = 1,
     display = list(mark = "line", interpolate = "linear"))),
   autoplot(jbrowse_wiggle(bw, gapdh, display = list(mark = "span")))), 6)
 
-cells <- c("gm12878", "h1hesc", "hsmm", "huvec", "k562", "nhek", "nhlf")
-h3k27ac <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
+cells <- c("gm12878", "k562", "hepg2", "huvec", "hmec", "nhek", "helas3",
+  "a549", "mcf7", "hsmm", "hcm", "hct116")
+dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
   function(cell) list(type = "BigWigAdapter", name = toupper(cell),
-    bigWigLocation = list(uri = extdata(sprintf("gapdh_h3k27ac_%s.bw", cell))))))
-save("multi-wiggle.png", autoplot(jbrowse_wiggle(h3k27ac, gapdh,
-  display = list(mark = "span"))), 4)
+    bigWigLocation = list(uri = extdata(sprintf("hbb_dnase_%s.bw", cell))))))
+hbb <- "chr11:5,270,001-5,320,000"
+save("multi-wiggle.png", autoplot(jbrowse_wiggle(dnase, hbb)), 6)
+clustered <- jbrowse_wiggle(dnase, hbb, display = list(mark = "span"))
+clustered$tree <- hclust(dist(as.matrix(clustered)), "average")
+save("multi-wiggle-clustered.png", autoplot(clustered), 4)
 
 loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
 tracks <- list(

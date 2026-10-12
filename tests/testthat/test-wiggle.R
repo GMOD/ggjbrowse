@@ -52,9 +52,34 @@ test_that("each plot type draws every mark", {
     x <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = mark,
       extent = "none"))
     built <- ggplot2::ggplot_build(ggplot2::autoplot(x))
-    expect_equal(sum(vapply(built$data[2:6], nrow, 1L)),
-      nrow(x$marks) * if (mark == "line") 2 else 1)
+    drawn <- sum(vapply(built$data[2:6], nrow, 1L))
+    if (mark == "line") expect_gte(drawn, nrow(x$marks) * 2)
+    else expect_equal(drawn, nrow(x$marks))
   }
+})
+
+test_that("a line changes color where it crosses the origin, not at the next point", {
+  d <- data.frame(x = c(0, 10, 20), score = c(2, -2, -4), run = 0,
+    color = c("blue", "red", "red"))
+  cut <- cut_at_origin(d, 0)
+  expect_equal(cut$x, c(0, 5, 10, 20))
+  expect_equal(cut$score, c(2, 0, -2, -4))
+  expect_equal(cut$color, c("blue", "red", "red", "red"))
+  expect_identical(cut_at_origin(d[2:3, ], 0), d[2:3, ])
+  apart <- d
+  apart$run <- c(0, 1, 1)
+  expect_identical(cut_at_origin(apart, 0), apart)
+})
+
+test_that("a stepped line's riser across the origin is cut there too", {
+  line <- jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100,
+    display = list(mark = "line"))
+  steps <- ggplot2::ggplot_build(ggplot2::autoplot(line))$data[[5]]
+  at <- which(steps$y == 0)
+  at <- at[at > 1 & at < nrow(steps) & steps$group[at - 1] == steps$group[at + 1]]
+  expect_gt(length(at), 0)
+  expect_true(all(steps$y[at - 1] * steps$y[at + 1] < 0))
+  expect_equal(steps$colour[at], steps$colour[at + 1])
 })
 
 test_that("an empty region draws, whatever the plot type", {

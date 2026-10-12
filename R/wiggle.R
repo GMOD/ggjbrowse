@@ -190,6 +190,23 @@ in_rows <- function(x, d) {
   d
 }
 
+# A line segment that changes color across the origin draws each side in its
+# own color, as the display's shader does: a point at the crossing takes the
+# next point's color, since a path segment takes its start point's.
+cut_at_origin <- function(d, origin) {
+  n <- nrow(d)
+  if (n < 2) return(d)
+  origin <- origin %||% 0
+  i <- which(d$run[-1] == d$run[-n] & d$color[-1] != d$color[-n] &
+    (d$score[-n] - origin) * (d$score[-1] - origin) < 0)
+  if (!length(i)) return(d)
+  cut <- d[i + 1, , drop = FALSE]
+  cut$x <- d$x[i] + (origin - d$score[i]) / (d$score[i + 1] - d$score[i]) *
+    (d$x[i + 1] - d$x[i])
+  cut$score <- origin
+  rbind(d, cut)[order(c(seq_len(n), i + 0.5)), , drop = FALSE]
+}
+
 #' A quantitative track's marks as ggplot layers
 #'
 #' `geom_jbrowse_wiggle()` draws the marks as the display's plot type draws
@@ -225,7 +242,12 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
     m <- marks(x)
     d <- m[rep(seq_len(nrow(m)), each = 2), , drop = FALSE]
     d$x <- as.vector(rbind(m$start, m$end))
-    d
+    cut_at_origin(d, x$origin)
+  }
+  centers <- function(x) {
+    d <- marks(x)
+    d$x <- (d$start + d$end) / 2
+    cut_at_origin(d, x$origin)
   }
   list(
     jbrowse_layer(ggplot2::GeomRect, data, band,
@@ -248,10 +270,10 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = score, colour = color, group = run),
       list(...), keyed = FALSE),
-    jbrowse_layer(ggplot2::GeomPath, data, of("linecenter", marks),
+    jbrowse_layer(ggplot2::GeomPath, data, of("linecenter", centers),
       for_geom(mapping, ggplot2::GeomPath),
-      ggplot2::aes(x = (start + end) / 2, y = score, colour = color,
-        group = run), list(...), keyed = FALSE))
+      ggplot2::aes(x = x, y = score, colour = color, group = run),
+      list(...), keyed = FALSE))
 }
 
 #' @rdname geom_jbrowse_wiggle

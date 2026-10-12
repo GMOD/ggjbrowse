@@ -207,23 +207,34 @@ autoplot(jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700",
 
 A track of several BigWigs, read through a `MultiWiggleAdapter` config,
 draws a row per source in `w$sources`' order. Reorder or filter that table
-to rearrange them, as for a variant matrix's rows:
+to rearrange them, as for a variant matrix's rows.
 
 ```r
-cells <- c("gm12878", "h1hesc", "hsmm", "huvec", "k562", "nhek", "nhlf")
-h3k27ac <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
+cells <- c("gm12878", "k562", "hepg2", "huvec", "hmec", "nhek", "helas3",
+  "a549", "mcf7", "hsmm", "hcm", "hct116")
+dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
   function(cell) list(type = "BigWigAdapter", name = toupper(cell),
-    bigWigLocation = list(uri = e(sprintf("gapdh_h3k27ac_%s.bw", cell))))))
-autoplot(jbrowse_wiggle(h3k27ac, "chr12:6,534,201-6,538,700",
-  display = list(mark = "span")))
+    bigWigLocation = list(uri = e(sprintf("hbb_dnase_%s.bw", cell))))))
+autoplot(jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000"))
 ```
 
-![H3K27ac signal across GAPDH in seven ENCODE cell lines, a row each, strongest in HUVEC near the transcription start](man/figures/multi-wiggle.png)
+![ENCODE DNase signal across the beta-globin locus control region in twelve cell lines, a row each: K562's hypersensitive sites tower over the one site the other lines share](man/figures/multi-wiggle.png)
+
+Clustering the rows works as it does for a variant matrix:
 
 - `as.matrix(w)` is the matrix the display's "Cluster rows" clusters: a row
   per source, a column per pixel.
 - `w$tree <- hclust(dist(as.matrix(w)), "average")` puts the rows in the
-  tree's order, and `autoplot()` draws the tree beside them.
+  tree's order, and `autoplot()` draws the tree beside them:
+
+```r
+w <- jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000",
+  display = list(mark = "span"))
+w$tree <- hclust(dist(as.matrix(w)), "average")
+autoplot(w)
+```
+
+![The same rows as density, clustered: K562 splits off alone from the other eleven lines](man/figures/multi-wiggle-clustered.png)
 
 ## Variant matrices
 
