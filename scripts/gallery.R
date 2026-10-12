@@ -57,6 +57,7 @@ rows_json <- function(files, names) {
 
 fasta <- c("--fasta", extdata("gapdh_hg38.fa.gz"))
 hg38 <- c("--hub", "hg38")
+grow <- c("heightMode:grow", "growMaxHeight=2000")
 gapdh <- "chr12:6,534,201-6,538,700"
 two_loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
 rna <- extdata("gapdh_direct_rna.bam")
@@ -77,19 +78,19 @@ peach_grape <- jbrowse_dotplot(extdata("peach_grape.paf.gz"))
 examples <- list(
   genes_and_reads = list(
     title = "GENCODE genes over direct RNA reads", locus = gapdh,
-    jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "showLegend=true",
+    jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "showLegend=true", grow,
       "--loc", gapdh),
     r = function() autoplot(jbrowse_alignments(rna, gapdh),
       above = jbrowse_features(gencode, gapdh))),
   sashimi = list(
     title = "Splice junctions over direct RNA reads", locus = gapdh,
-    jbrowse = c(fasta, "--bam", rna, "showLegend=true", "--loc", gapdh),
+    jbrowse = c(fasta, "--bam", rna, "showLegend=true", grow, "--loc", gapdh),
     r = function() autoplot(jbrowse_alignments(rna, gapdh))),
   long_reads_sv = list(
     title = "COLO829 der(3) split reads chained across its two chr3 breakpoints",
     locus = "chr3:25,358,500-25,359,800",
     jbrowse = c(hg38, "--bam", extdata("colo829_tumor_chr3.bam"),
-      "showLegend=true",
+      "showLegend=true", grow,
       "arcs:down", "unit=chain", "color.field=strand", "filter.split=only",
       "--loc", "chr3:25,358,500-25,359,800"),
     r = function() autoplot(jbrowse_alignments(
@@ -99,7 +100,7 @@ examples <- list(
   deletion = list(
     title = "Reads sorted by the base at the center, over a somatic deletion",
     locus = "chr10:122,831,700-122,840,800",
-    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", "sort:base",
+    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", grow, "sort:base",
       "--loc",
       "chr10:122,831,700-122,840,800"),
     r = function() autoplot(jbrowse_alignments(deletion,
@@ -108,7 +109,7 @@ examples <- list(
   compact_reads = list(
     title = "Compact reads over the same deletion",
     locus = "chr10:122,831,700-122,840,800",
-    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", "featureHeight:compact",
+    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", grow, "featureHeight:compact",
       "--loc",
       "chr10:122,831,700-122,840,800"),
     r = function() autoplot(jbrowse_alignments(deletion,
@@ -116,7 +117,7 @@ examples <- list(
   base_zoom = list(
     title = "Base-level zoom at the deletion's left edge",
     locus = "chr10:122,835,300-122,835,420",
-    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", "sort:base",
+    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", grow, "sort:base",
       "--loc",
       "chr10:122,835,300-122,835,420"),
     r = function() autoplot(jbrowse_alignments(deletion,
@@ -126,7 +127,7 @@ examples <- list(
     title = "Split reads chained across an inversion, with their arcs",
     locus = "chr1:197,786,900-197,789,700",
     jbrowse = c(hg38, "--bam", extdata("hg00151_chr1_inversion.bam"),
-      "showLegend=true",
+      "showLegend=true", grow,
       "arcs:down", "unit=chain", "color.field=pairOrientation",
       "facet=split", "coverageHeight=80", "--loc",
       "chr1:197,786,900-197,789,700"),
@@ -139,7 +140,7 @@ examples <- list(
     title = "CpG methylation from MM/ML tags", locus = "20:10,001-22,000",
     jbrowse = c("--fasta", extdata("hg38_clip.fa"), "--bam",
       extdata("methylation_clip.bam"), "baseColor:methylation",
-      "showLegend=true", "--loc", "20:10,001-22,000"),
+      "showLegend=true", grow, "--loc", "20:10,001-22,000"),
     r = function() autoplot(jbrowse_alignments(extdata("methylation_clip.bam"),
       "20:10,001-22,000", reference = extdata("hg38_clip.fa"),
       display = list(baseColor = list(field = "modifications"),
@@ -161,7 +162,7 @@ examples <- list(
     title = "Genes, conservation and reads over two regions end to end",
     locus = paste(two_loci, collapse = " "),
     jbrowse = c(fasta, "--gffgz", gencode, "--bigwig", phylop, "showLegend=true",
-      "--bam", rna, "showLegend=true",
+      "--bam", rna, "showLegend=true", grow,
       "--loc", paste(two_loci, collapse = " ")),
     r = function() jbrowse_stack(jbrowse_features(gencode, two_loci),
       jbrowse_wiggle(phylop, two_loci), jbrowse_alignments(rna, two_loci))),
