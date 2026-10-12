@@ -8,6 +8,9 @@
 # ~/src/jbrowse-components); JB2EXPORT replaces the command that runs
 # jb2export. The hg38 and hg19 hubs, the clips' reference sequences and the
 # primate chrom.sizes come over the network. Needs ImageMagick for the webp.
+# Needs jb2export 5.0.0-beta or later: npm's latest, 4.3.0, cannot draw most of
+# these. The clustered rows need jbrowse-components commit e2cef5c883, in no
+# release yet.
 suppressPackageStartupMessages({
   library(ggjbrowse)
   library(ggplot2)

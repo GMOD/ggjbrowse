@@ -11,7 +11,9 @@
 - `scripts/gallery.R` redraws the README's JBrowse-and-R gallery. Each entry
   holds the `jb2export` arguments and the ggjbrowse call, so adding an example
   is adding one entry. It needs a built jbrowse-components checkout
-  (`JBROWSE_COMPONENTS`), the installed package and ImageMagick.
+  (`JBROWSE_COMPONENTS`), the installed package and ImageMagick. `@jbrowse/img`
+  4.3.0 is too old: use 5.0.0-beta or the checkout, which the two clustered
+  rows need until a release carries commit `e2cef5c883`.
 
 ## Updating the engine
 
