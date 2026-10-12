@@ -61,3 +61,39 @@ test_that("a clustered matrix draws its tree beside the rows, each leaf at its r
     ggplot2::autoplot(jbrowse_variants(vcf, locus))$layers), 0)
   expect_no_error(ggplot2::ggplotGrob(p))
 })
+
+test_that("rows draw in x$rows' order, or a tree's leaf order where x$tree holds one", {
+  v <- jbrowse_variants(vcf, locus)
+  y_of <- function(x) {
+    p <- ggplot2::ggplot(x) + geom_jbrowse_genotypes()
+    d <- p$layers[[1]]$layer_data(p$data)
+    stats::setNames(d$y, d$sample)
+  }
+  reversed <- v
+  reversed$rows <- v$rows[rev(seq_len(nrow(v$rows))), ]
+  y <- y_of(reversed)
+  expect_true(all(y[names(y) == reversed$rows$name[1]] == 1))
+  expect_true(all(y[names(y) == v$rows$name[1]] == nrow(v$rows)))
+  labels <- ggplot2::ggplot_build(ggplot2::autoplot(reversed))$data
+  expect_equal(labels[[length(labels)]]$label, reversed$rows$name)
+  kept <- v
+  kept$rows <- v$rows[1:5, ]
+  expect_setequal(names(y_of(kept)), v$rows$name[1:5])
+  own <- v
+  m <- stats::xtabs(dosage ~ row + variant, v$cells)
+  own$tree <- stats::hclust(stats::dist(m), "complete")
+  expect_equal(on_axis(own)$rows$name,
+    own$tree$labels[own$tree$order])
+  expect_equal(levels(on_axis(own)$cells$row), on_axis(own)$rows$name)
+  own$tree <- stats::as.dendrogram(own$tree)
+  expect_no_error(ggplot2::ggplotGrob(ggplot2::autoplot(own)))
+  wrong <- v
+  wrong$tree <- stats::hclust(stats::dist(m[1:5, ]))
+  expect_error(ggplot2::autoplot(wrong), "label it by x\\$rows\\$name")
+})
+
+test_that("a matrix with no rows draws an empty panel", {
+  v <- jbrowse_variants(vcf, locus)
+  v$rows <- v$rows[0, ]
+  expect_no_error(ggplot2::ggplotGrob(ggplot2::autoplot(v)))
+})

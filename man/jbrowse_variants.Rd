@@ -58,7 +58,11 @@ alleles) and \code{color}, the fill the display paints; under
 \code{referenceDrawingMode = "skip"}, the default, a reference call has no
 cell
 \item \code{rows}: \code{name}, \code{sample}, \code{haplotype}, \code{ploidy} and \code{color}, the bar
-the display marks the row with under \code{rowColor}, \code{""} where none
+the display marks the row with under \code{rowColor}, \code{""} where none. The
+matrix draws its rows in this table's order, and only these rows:
+reorder or filter it to rearrange them. Set \code{tree} to an \code{\link[=hclust]{hclust()}}
+result, or anything \code{\link[=as.hclust]{as.hclust()}} takes, labelled by \code{name}, and the
+rows take its leaf order and \code{\link[=autoplot]{autoplot()}} draws it beside them
 \item \code{legend}: the display's key, its title as the frame's \code{"title"}
 attribute
 \item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws

@@ -22,11 +22,28 @@ jbrowse_cluster <- function(x, method = "average") {
       call. = FALSE)
   }
   if (nrow(x$rows) < 2) return(x)
-  tree <- stats::hclust(stats::dist(genotype_matrix(x)), method = method)
-  x$rows <- x$rows[tree$order, , drop = FALSE]
-  rownames(x$rows) <- NULL
-  x$cells$row <- factor(as.character(x$cells$row), levels = x$rows$name)
-  x$tree <- tree
+  x$tree <- stats::hclust(stats::dist(genotype_matrix(x)), method = method)
+  in_row_order(x)
+}
+
+# A variant matrix's rows in the order it draws them: `rows`' own order, or a
+# tree's leaf order where `tree` holds one (anything stats::as.hclust()
+# takes), its labels the rows' names; the cells' `row` factor follows
+in_row_order <- function(x) {
+  if (!is.null(x$tree)) {
+    tree <- stats::as.hclust(x$tree)
+    leaves <- tree$labels[tree$order]
+    if (length(leaves) != nrow(x$rows) || !setequal(leaves, x$rows$name)) {
+      stop("the tree's leaves are not the matrix's rows: label it by ",
+        "x$rows$name, one leaf per row (", nrow(x$rows), " rows, such as ",
+        paste(utils::head(x$rows$name, 2), collapse = ", "), ")",
+        call. = FALSE)
+    }
+    x$rows <- x$rows[match(leaves, x$rows$name), , drop = FALSE]
+    rownames(x$rows) <- NULL
+  }
+  x$cells$row <- factor(as.character(x$cells$row),
+    levels = as.character(x$rows$name))
   x
 }
 
@@ -93,7 +110,7 @@ GeomTree <- ggplot2::ggproto("GeomTree", ggplot2::Geom,
 
 tree_layer <- function(tree, inner_pt, width_pt) {
   ggplot2::layer(geom = GeomTree, stat = "identity", position = "identity",
-    data = tree_segments(tree),
+    data = tree_segments(stats::as.hclust(tree)),
     mapping = ggplot2::aes(y = y, yend = yend, h = h, hend = hend),
     inherit.aes = FALSE, show.legend = FALSE,
     params = list(inner_pt = inner_pt, width_pt = width_pt))

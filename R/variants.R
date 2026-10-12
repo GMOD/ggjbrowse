@@ -51,7 +51,11 @@ variants_adapter <- function(file, index, samples) {
 #'     `referenceDrawingMode = "skip"`, the default, a reference call has no
 #'     cell
 #'   * `rows`: `name`, `sample`, `haplotype`, `ploidy` and `color`, the bar
-#'     the display marks the row with under `rowColor`, `""` where none
+#'     the display marks the row with under `rowColor`, `""` where none. The
+#'     matrix draws its rows in this table's order, and only these rows:
+#'     reorder or filter it to rearrange them. Set `tree` to an [hclust()]
+#'     result, or anything [as.hclust()] takes, labelled by `name`, and the
+#'     rows take its leaf order and [autoplot()] draws it beside them
 #'   * `legend`: the display's key, its title as the frame's `"title"`
 #'     attribute
 #'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
@@ -159,8 +163,8 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
       d$xmin <- mid - half
       d$xmax <- mid + half
     }
-    d$y <- as.integer(d$row)
-    d
+    d$y <- match(as.character(d$row), x$rows$name)
+    d[!is.na(d$y), , drop = FALSE]
   }
   jbrowse_layer(ggplot2::GeomRect, data, cells, mapping,
     ggplot2::aes(xmin = xmin, xmax = xmax, ymin = y - 0.5, ymax = y + 0.5,
@@ -195,7 +199,7 @@ autoplot.jbrowse_variants <- function(object,
   rlang::check_dots_empty()
   layout <- match.arg(layout)
   object <- on_axis(object)
-  rows <- object$rows$name
+  rows <- as.character(object$rows$name)
   genomic <- layout == "genomic"
   xlim <- if (genomic) c(object$region$start, object$region$end)
     else c(0.5, nrow(object$variants) + 0.5)
@@ -210,8 +214,9 @@ autoplot.jbrowse_variants <- function(object,
     guides_jbrowse(object) +
     row_bars(object, xlim) +
     (if (!is.null(tree)) tree_layer(tree, inner + 1, TREE_PT)) +
-    ggplot2::scale_y_reverse(breaks = seq_along(rows),
-      labels = if (named) rows else rep("", length(rows))) +
+    (if (length(rows)) ggplot2::scale_y_reverse(breaks = seq_along(rows),
+      labels = if (named) rows else rep("", length(rows)))
+    else ggplot2::scale_y_reverse(breaks = NULL)) +
     ggplot2::coord_cartesian(xlim = xlim, expand = FALSE, clip = "off") +
     (if (genomic) genomic_x(object)) +
     ggplot2::labs(x = if (genomic) axis_label(object)
