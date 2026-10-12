@@ -24,7 +24,7 @@ See [Docs](#docs) for how the engine works.
 
 Every example here runs as written, on test data installed with the
 package: clips of public human data, and JBrowse's simulated volvox genome
-where an example needs a simulated structural variant or synteny.
+where an example needs a BigWig or a synteny alignment.
 `scripts/extdata-*.sh` make the human clips.
 
 ```r
@@ -51,19 +51,30 @@ sequencing errors recede and shared variants stand. Zoomed in far enough, the
 bases and insertion lengths are written out.
 
 ```r
-l <- jbrowse_alignments(e("volvox-long-reads-sv.bam"), "ctgA:1,001-2,700",
-  reference = e("volvox.fa"), display = list(color = list(field = "strand")))
+l <- jbrowse_alignments(e("colo829_tumor_chr3.bam"),
+  "chr3:25,357,600-25,361,000",
+  display = list(color = list(field = "strand")))
 autoplot(l)
 ```
 
-![Long reads over a volvox structural variant: soft clips at the breakpoints, insertions along the reads](man/figures/long-reads.png)
+![COLO829 nanopore reads over two chr3 breakpoints: reads clipped where the tumor chromosome continues on chr12 and chr10](man/figures/long-reads.png)
 
 ```r
-autoplot(jbrowse_alignments(e("volvox-sorted.bam"), "ctgA:1,001-1,120",
-  reference = e("volvox.fa"), display = list(color = list(field = "mapq"))))
+d <- jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
+  "chr10:122,831,700-122,840,800",
+  display = list(sort = list(type = "basePair", pos = 122836300)))
+autoplot(d)
 ```
 
-![120 bp of volvox reads, colored by mapping quality, with the mismatched bases written out](man/figures/zoom.png)
+![HG008-T HiFi reads over CUZD1, sorted by the base at the center so the reads with the 1.8 kb somatic deletion gather in one block](man/figures/deletion.png)
+
+```r
+autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
+  "chr10:122,835,300-122,835,420",
+  display = list(sort = list(type = "basePair", pos = 122835344))))
+```
+
+![120 bp at the deletion's left edge: most reads draw the deletion as a line from the left edge, and a heterozygous G is written out as a base](man/figures/zoom.png)
 
 ```r
 m <- jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
@@ -81,12 +92,14 @@ pair's and split read's arc, colored by insert size and pair orientation.
 the reads into the display's stacked sections, each packed separately:
 
 ```r
-inv <- jbrowse_alignments(e("volvox-simple-inv-paired.bam"), "ctgA:18,001-32,000",
-  display = list(readConnections = "arc", facet = list(field = "strand")))
+inv <- jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
+  "chr1:197,786,900-197,789,700",
+  display = list(readConnections = "arc", color = list(field = "strand"),
+    facet = list(field = "split")))
 autoplot(inv)
 ```
 
-![Mate pairs across a volvox inversion, split by strand: both-forward pairs arc green over the forward reads, both-reverse pairs blue over the reverse](man/figures/inversion.png)
+![HG00151 nanopore reads over a 1.2 kb chr1 inversion, split by whether a read has an SA tag: the split reads' arcs join the breakpoints, a reverse-strand core running between forward flanks](man/figures/inversion.png)
 
 Each band is its own ggplot too (`autoplot(a, "pileup")`,
 `"coverage"`, `"junctions"`, `"arcs"`), to restyle or stack with patchwork.

@@ -16,19 +16,25 @@ save("gapdh.png", autoplot(rna))
 save("genes-over-reads.png", autoplot(rna,
   above = jbrowse_features(extdata("gapdh_gencode.gff3.gz"), gapdh)))
 
-long <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA",
-  1000, 2700, reference = extdata("volvox.fa"),
+long <- jbrowse_alignments(extdata("colo829_tumor_chr3.bam"),
+  "chr3:25,357,600-25,361,000",
   display = list(color = list(field = "strand")))
 save("long-reads.png", autoplot(long))
 
-zoom <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 1120,
-  reference = extdata("volvox.fa"),
-  display = list(color = list(field = "mapq")))
+deletion <- jbrowse_alignments(extdata("hg008t_cuzd1_deletion.bam"),
+  "chr10:122,831,700-122,840,800",
+  display = list(sort = list(type = "basePair", pos = 122836300)))
+save("deletion.png", autoplot(deletion))
+
+zoom <- jbrowse_alignments(extdata("hg008t_cuzd1_deletion.bam"),
+  "chr10:122,835,300-122,835,420",
+  display = list(sort = list(type = "basePair", pos = 122835344)))
 save("zoom.png", autoplot(zoom))
 
-inv <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA",
-  18000, 32000,
-  display = list(readConnections = "arc", facet = list(field = "strand")))
+inv <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
+  "chr1:197,786,900-197,789,700",
+  display = list(readConnections = "arc", color = list(field = "strand"),
+    facet = list(field = "split")))
 save("inversion.png", autoplot(inv))
 
 meth <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
