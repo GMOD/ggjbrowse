@@ -410,26 +410,14 @@ autoplot(m)
 
 ## The engine
 
-`inst/js/jbrowse-tables.js` is
-[`@jbrowse/tables`](https://github.com/GMOD/jbrowse-components/tree/main/packages/tables)
-bundled for a bare JavaScript host, committed so installing needs no
-JavaScript toolchain. Its first line names the release, or the
-jbrowse-components commit it was built from. JBrowse's own tests hold the
-bundle, run with no web globals, to the browser's engine.
-
-To rebuild it from a jbrowse-components checkout beside this repo:
-
-```console
-cd ../jbrowse-components && pnpm install && cd -
-scripts/build-js.sh
-```
-
-`scripts/check-against-jbrowse.sh` rebuilds, installs and tests in one step,
-against `$JBROWSE_COMPONENTS` or `../jbrowse-components`; jbrowse-components'
-downstream canary runs it against its main nightly, so a change there that
-breaks this package shows up there. The `Bundle` workflow takes each new
-`@jbrowse/tables` release from npm (`scripts/take-release.sh`) into the
-committed bundle once R CMD check passes.
+- `inst/js/jbrowse-tables.js` is
+  [`@jbrowse/tables`](https://github.com/GMOD/jbrowse-components/tree/main/packages/tables)
+  bundled for a bare JavaScript host, committed so installing needs no
+  JavaScript toolchain.
+- JBrowse's own tests hold the bundle, run with no web globals, to the
+  browser's engine.
+- [CONTRIBUTING.md](CONTRIBUTING.md#updating-the-engine) covers rebuilding it
+  and the CI that takes each new release.
 
 ## Not yet
 
@@ -441,10 +429,15 @@ overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own depende
 
 ## Docs
 
+- [docs/api.md](docs/api.md): every reader, helper and geom, and what each
+  returns
 - [docs/how-does-this-work.md](docs/how-does-this-work.md): the V8 engine, how
   it reads files through R, and which side decides colors and geometry
+- [docs/dataflow.md](docs/dataflow.md): a diagram of one call from path to plot
+- [docs/faq.md](docs/faq.md): V8 versus QuickJS, caching, indexes, coordinates
 - [agent-docs/engine-owns-display-decisions.md](agent-docs/engine-owns-display-decisions.md):
   the plan to move the rules R still copies into the engine
+- [CONTRIBUTING.md](CONTRIBUTING.md): development, rebuilding the engine and CI
 
 ## See also
 
@@ -452,3 +445,13 @@ overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own depende
 - [JBrowseR](https://github.com/GMOD/JBrowseR) - JBrowse 2 as an R htmlwidget
 - [ggbandage](https://github.com/GMOD/ggbandage) - pangenome graphs as ggplot2 layers
 - [ggtubemap](https://github.com/GMOD/ggtubemap) - pangenome tubemaps as ggplot2 layers
+
+## Academic use
+
+Written with [NHGRI](http://genome.gov) funding as part of
+[JBrowse](http://jbrowse.org). If you use this in a publication, please cite the
+most recent JBrowse paper at [jbrowse.org](http://jbrowse.org).
+
+## License
+
+Apache License 2.0 © [Colin Diesh](https://github.com/cmdcolin)
