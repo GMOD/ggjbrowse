@@ -102,8 +102,11 @@ Each band is its own ggplot too (`autoplot(a, "pileup")`,
   and takes any column of its table in `aes()`.
 - **Scales:** each table's `color` column is the display's color, which
   ggplot paints through an identity scale. Map another column and ggplot's
-  own scales take over. `scale_fill_jbrowse(a)` adds the display's key, and
-  `scale_y_jbrowse(w)` a quantitative display's score axis.
+  own scales take over. `scale_fill_jbrowse(a)` adds the display's key,
+  `scale_y_jbrowse(w)` a quantitative display's score axis, and
+  `scale_x_jbrowse(a)` the axis of several regions laid end to end, which
+  `ggplot(a)` adds unasked, moving the result's tables in your own layers
+  onto it.
 - **Facets:** the `section` column is the display's facet, so
   `facet_grid(section ~ .)` splits a plot the way `facet =` splits the track.
 

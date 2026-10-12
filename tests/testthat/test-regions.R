@@ -77,6 +77,27 @@ test_that("each band of a stack marks the seam between regions with a bar", {
   expect_false(any(vapply(one$data, function(d) !is.null(d$xintercept), NA)))
 })
 
+test_that("a plain ggplot of several regions draws them, and one's own layers, end to end", {
+  loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
+  a <- jbrowse_alignments(bam, loci)
+  p <- ggplot2::ggplot(a) + geom_jbrowse_coverage() +
+    ggplot2::geom_point(ggplot2::aes(position, 1), data = a$mismatches)
+  b <- ggplot2::ggplot_build(p)
+  expect_equal(b$layout$panel_params[[1]]$x$get_labels(),
+    c("1,000", "2,000", "3,000", "7,000", "8,000", "9,000"))
+  r <- a$regions
+  expect_lte(max(b$data[[2]]$x), max(r$cum_end))
+  m <- a$mismatches
+  second <- m$.region == 2 & m$position >= r$start[2] & m$position < r$end[2]
+  expect_equal(sort(b$data[[2]]$x[b$data[[2]]$x > r$cum_end[1]]),
+    sort(a$mismatches$position[second] - r$start[2] + r$offset[2]))
+  own <- ggplot2::ggplot(a) + geom_jbrowse_coverage() +
+    ggplot2::scale_x_continuous(name = "mine")
+  expect_equal(ggplot2::ggplot_build(own)$plot$scales$get_scales("x")$name,
+    "mine")
+  expect_s3_class(scale_x_jbrowse(a)[[1]], "ScaleContinuousPosition")
+})
+
 test_that("jbrowse_stack takes a contig's other spelling and warns at another contig", {
   a <- jbrowse_features(gff, "ctgA:1,001-3,000")
   b <- jbrowse_features(gff, "ctgB:1,001-3,000")

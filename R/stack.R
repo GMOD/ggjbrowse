@@ -118,6 +118,19 @@ same_regions <- function(results) {
 # labels, a result's table in it moved onto the axis, and its own y limits and
 # x scale kept
 own_band <- function(p, axis) {
+  ylim <- if (inherits(p$coordinates, "CoordCartesian")) {
+    p$coordinates$limits$y
+  }
+  p <- suppressMessages(p + ggplot2::coord_cartesian(xlim = xlim_of(axis),
+    ylim = ylim, expand = FALSE))
+  list(plots = list(onto_axis(p, axis)), heights = 100)
+}
+
+# A plot over a result's regions with every table in it on the axis that lays
+# them end to end, the plot's own and each layer's, and that axis's scale
+# where the plot sets none
+onto_axis <- function(p, axis) {
+  if (is.null(axis$regions)) return(p)
   if (is.data.frame(p$data)) p$data <- frame_on_axis(p$data, axis$regions)
   p$layers <- lapply(p$layers, function(layer) {
     if (!is.data.frame(layer$data)) return(layer)
@@ -125,14 +138,40 @@ own_band <- function(p, axis) {
     moved$data <- frame_on_axis(layer$data, axis$regions)
     moved
   })
-  ylim <- if (inherits(p$coordinates, "CoordCartesian")) {
-    p$coordinates$limits$y
-  }
-  p <- suppressMessages(p + ggplot2::coord_cartesian(xlim = xlim_of(axis),
-    ylim = ylim, expand = FALSE))
   if (is.null(p$scales$get_scales("x"))) p <- p + genomic_x(axis)
-  list(plots = list(p), heights = 100)
+  p
 }
+
+#' @exportS3Method ggplot2::ggplot
+ggplot.jbrowse_result <- function(data = NULL, mapping = ggplot2::aes(), ...,
+                                  environment = parent.frame()) {
+  p <- NextMethod()
+  class(p) <- c("ggjbrowse_plot", class(p))
+  p
+}
+
+#' @exportS3Method ggplot2::ggplot_build
+ggplot_build.ggjbrowse_plot <- function(plot, ...) {
+  plot <- onto_axis(plot, attr(plot$data, "jbrowse"))
+  NextMethod()
+}
+
+#' The x axis of a result's regions as a ggplot scale
+#'
+#' The scale a result's regions draw on: genomic positions written with
+#' commas, or, for several regions laid end to end, each tick labelled with
+#' its position in its own region and a bar at each seam. `ggplot(<result>)`
+#' adds it where the plot sets no x scale of its own, and moves the result's
+#' tables in other layers onto it.
+#' @param object a ggjbrowse reader's result
+#' @return a list of a ggplot scale and the seams' layer
+#' @export
+#' @examples
+#' gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
+#' g <- jbrowse_features(gff, c("ctgA:1,001-4,000", "ctgA:6,001-9,000"))
+#' library(ggplot2)
+#' ggplot(g) + geom_jbrowse_glyphs() + scale_x_jbrowse(g)
+scale_x_jbrowse <- function(object) genomic_x(object)
 
 # A track's bands and their heights in display pixels: a feature track as
 # tall as its laid-out pixels, an alignments track's bands as its display
