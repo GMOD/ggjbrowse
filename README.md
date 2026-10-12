@@ -225,6 +225,19 @@ of your own stacks as a band on the same axis.
 A track's settings decide its bands: an alignments track read with
 `display = list(showCoverage = FALSE)` stacks no coverage band.
 
+Each band takes the pixels the display gives it. Reads draw at the display's
+`featureHeight` (7, or 3 and 1 for its compact and super-compact settings),
+and `jbrowse_height()` gives the figure height that keeps those proportions,
+so a compact pileup saves as a shorter figure:
+
+```r
+compact <- jbrowse_alignments(e("volvox-sorted.bam"), loci,
+  display = list(featureHeight = 3, color = list(field = "strand")))
+fig <- jbrowse_stack(genes, signal, compact)
+ggsave("stack.png", fig, width = 10,
+  height = jbrowse_height(genes, signal, compact))
+```
+
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference, as a FASTA with its `.fai` or a 2bit. There
 is no Bioconductor dependency: the BAM, CRAM, FASTA, GFF3, BED, BigBed,

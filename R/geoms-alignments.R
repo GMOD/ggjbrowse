@@ -9,6 +9,20 @@ px_of <- function(x, px_per_bp) {
 
 xlim_of <- function(x) c(x$region$start, x$region$end)
 
+# The share of a pileup row left empty above and below a read: the display
+# draws a read `featureHeight` pixels tall and, above 3, a 1 px gap under it
+# (featureSpacingForHeight), so a compact read fills its row. A table drawn
+# without its result takes the display's default of 7.
+read_inset <- function(x) {
+  h <- x$settings$featureHeight %||% 7
+  (1 - h / (h + (h > 3))) / 2
+}
+
+with_inset <- function(d, model) {
+  d$inset <- rep(read_inset(model), nrow(d))
+  d
+}
+
 #' The alignments track's marks as ggplot layers
 #'
 #' One geom per table of a [jbrowse_alignments()] result. Each draws the
@@ -66,8 +80,9 @@ NULL
 #' @export
 geom_jbrowse_reads <- function(mapping = NULL, data = NULL, ...) {
   jbrowse_layer(ggplot2::GeomRect, data, read_blocks, mapping,
-    ggplot2::aes(xmin = start, xmax = end, ymin = row + 0.1, ymax = row + 0.9,
-      fill = color), list(...))
+    ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
+      ymax = row + 1 - inset,
+      fill = color), list(...), rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -96,9 +111,10 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_modifications <- function(mapping = NULL, data = NULL, ...) {
-  jbrowse_layer(ggplot2::GeomRect, data, function(x) x$modifications, mapping,
-    ggplot2::aes(xmin = position, xmax = position + 1, ymin = row + 0.1,
-      ymax = row + 0.9, fill = color, alpha = I(opacity)), list(...))
+  jbrowse_layer(ggplot2::GeomRect, data,
+    function(x) x$modifications, mapping,
+    ggplot2::aes(xmin = position, xmax = position + 1, ymin = row + inset,
+      ymax = row + 1 - inset, fill = color, alpha = I(opacity)), list(...), rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -111,8 +127,8 @@ geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = TRUE,
     d$width <- rep(cell_width(xlim_of(x)), nrow(d))
     d
   }, mapping, ggplot2::aes(x = position + 0.5, xend = position + 0.5,
-    y = row + 0.1, yend = row + 0.9, colour = color, alpha = I(alpha),
-    linewidth = I(width)), list(lineend = "butt", ...))
+    y = row + inset, yend = row + 1 - inset, colour = color, alpha = I(alpha),
+    linewidth = I(width)), list(lineend = "butt", ...), rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -123,9 +139,10 @@ geom_jbrowse_insertions <- function(mapping = NULL, data = NULL, fade = TRUE,
     d <- x$insertions
     d$alpha <- mark_alpha(px_of(x, px_per_bp)^2, d$fade, fade)
     d
-  }, mapping, ggplot2::aes(x = position, xend = position, y = row + 0.05,
-    yend = row + 0.95, colour = color, alpha = I(alpha)),
-    list(linewidth = 0.4, ...), keyed = FALSE)
+  }, mapping, ggplot2::aes(x = position, xend = position,
+    y = row + inset / 2, yend = row + 1 - inset / 2, colour = color,
+    alpha = I(alpha)),
+    list(linewidth = 0.4, ...), keyed = FALSE, rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -136,9 +153,10 @@ geom_jbrowse_clips <- function(mapping = NULL, data = NULL, fade = TRUE,
     d <- x$clips
     d$alpha <- mark_alpha(px_of(x, px_per_bp), d$fade, fade)
     d
-  }, mapping, ggplot2::aes(x = position, xend = position, y = row + 0.05,
-    yend = row + 0.95, colour = color, alpha = I(alpha)),
-    list(linewidth = 0.7, ...), keyed = FALSE)
+  }, mapping, ggplot2::aes(x = position, xend = position,
+    y = row + inset / 2, yend = row + 1 - inset / 2, colour = color,
+    alpha = I(alpha)),
+    list(linewidth = 0.7, ...), keyed = FALSE, rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads

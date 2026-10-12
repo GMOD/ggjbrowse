@@ -105,12 +105,16 @@ band <- function(p, x, xlim, xlab, rows = FALSE, ylim = NULL) {
     across
 }
 
+# The depth axis labels 0 and the peak, as the display does, so a band at its
+# 45 pixels stays legible
 coverage_plot <- function(x, min_allele_frequency, xlim, xlab) {
   band(ggplot2::ggplot(x) +
     geom_jbrowse_coverage() +
     geom_jbrowse_alleles(min_allele_frequency = min_allele_frequency) +
     geom_jbrowse_modification_coverage() +
     scale_colour_jbrowse(x, "bases"), x, xlim, xlab) +
+    ggplot2::scale_y_continuous(breaks = function(l) unique(c(0,
+      floor(l[2])))) +
     ggplot2::labs(y = "depth")
 }
 
@@ -272,27 +276,49 @@ alignment_options <- function(object, min_allele_frequency = NULL,
     junctions = !isFALSE(s$showSashimiArcs))
 }
 
-# An alignments track's bands, top to bottom, and their relative heights
+# Which of an alignments track's bands draw, top to bottom
+alignment_shown <- function(object, o) {
+  c(junctions = o$coverage && o$junctions &&
+      any(object$junctions$count >= o$min_junction_reads),
+    coverage = o$coverage,
+    arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
+    sequence = o$pileup && o$letters && !is.null(object$reference) &&
+      is.null(object$regions),
+    pileup = o$pileup)
+}
+
+# Each shown band's height in the display's pixels: the coverage, sashimi
+# and read-connection bands at their configured heights per section, the
+# pileup its rows at the read height's pitch
+alignment_px <- function(object, shown) {
+  s <- object$settings
+  sections <- nrow(object$sections)
+  h <- s$featureHeight
+  rows <- sum(vapply(split(object$reads$row, object$reads$section),
+    function(r) if (length(r)) max(r) + 1 else 0, 0))
+  c(junctions = s$sashimiArcsHeight * sections,
+    coverage = s$coverageHeight * sections,
+    arcs = s$readConnectionsHeight * sections,
+    sequence = 25,
+    pileup = max(30, rows * (h + (h > 3))))[shown]
+}
+
+# An alignments track's bands, top to bottom, and their heights in hundreds
+# of display pixels
 alignment_bands <- function(object, o = alignment_options(object)) {
   object <- on_axis(object)
   xlab <- axis_label(object)
   xlim <- xlim_of(object)
-  sections <- nrow(object$sections)
-  connected <- nrow(object$arcs) + nrow(object$arc_ticks) > 0
-  spliced <- o$coverage && o$junctions &&
-    any(object$junctions$count >= o$min_junction_reads)
-  sequenced <- o$pileup && o$letters && !is.null(object$reference) &&
-    is.null(object$regions)
+  shown <- alignment_shown(object, o)
   plots <- c(
-    if (spliced) list(junctions_plot(object, o$min_junction_reads, xlim,
-      xlab)),
-    if (o$coverage) list(coverage_plot(object, o$min_allele_frequency, xlim,
-      xlab)),
-    if (connected) list(arcs_plot(object, xlim, xlab)),
-    if (sequenced) list(sequence_plot(object, jbrowse_colors(), xlim, xlab)),
-    if (o$pileup) list(pileup_plot(object, o$letters, xlim, xlab,
+    if (shown[["junctions"]]) list(junctions_plot(object,
+      o$min_junction_reads, xlim, xlab)),
+    if (shown[["coverage"]]) list(coverage_plot(object,
+      o$min_allele_frequency, xlim, xlab)),
+    if (shown[["arcs"]]) list(arcs_plot(object, xlim, xlab)),
+    if (shown[["sequence"]]) list(sequence_plot(object, jbrowse_colors(),
+      xlim, xlab)),
+    if (shown[["pileup"]]) list(pileup_plot(object, o$letters, xlim, xlab,
       o$px_per_bp, o$fade)))
-  heights <- c(if (spliced) 0.8 * sections, if (o$coverage) sections,
-    if (connected) 0.8 * sections, if (sequenced) 0.25, if (o$pileup) 3)
-  list(plots = plots, heights = heights)
+  list(plots = plots, heights = unname(alignment_px(object, shown)) / 100)
 }

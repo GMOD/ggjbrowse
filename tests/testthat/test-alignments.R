@@ -234,3 +234,22 @@ test_that("a region over the byte limit is refused with its size", {
       byte_limit = 1000),
     "over the 1000-byte limit")
 })
+
+test_that("reads draw at the display's read height, and the pileup band is as tall as its rows", {
+  bam <- extdata("volvox-sorted.bam")
+  read_at <- function(h) jbrowse_alignments(bam, "ctgA:1,001-9,000",
+    display = list(featureHeight = h))
+  normal <- read_at(7)
+  compact <- read_at(3)
+  expect_equal(compact$settings$featureHeight, 3)
+  body <- function(x) {
+    d <- ggplot2::layer_data(ggplot2::ggplot(x) + geom_jbrowse_reads(), 1)
+    unique(round(d$ymax - d$ymin, 6))
+  }
+  expect_equal(body(normal), 7 / 8)
+  expect_equal(body(compact), 1)
+  rows <- max(normal$reads$row) + 1
+  expect_equal(track_heights(normal), c(45, rows * 8) / 100)
+  expect_equal(track_heights(compact), c(45, rows * 3) / 100)
+  expect_lt(jbrowse_height(compact), jbrowse_height(normal))
+})

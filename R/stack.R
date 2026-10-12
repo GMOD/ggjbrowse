@@ -21,10 +21,7 @@
 #' reads <- jbrowse_alignments(e("volvox-sorted.bam"), locus)
 #' jbrowse_stack(genes, signal, reads)
 jbrowse_stack <- function(...) {
-  tracks <- list(...)
-  tracks <- do.call(c, lapply(tracks, function(t)
-    if (inherits(t, "jbrowse_result") || ggplot2::is_ggplot(t)) list(t)
-    else t))
+  tracks <- flat_tracks(list(...))
   results <- Filter(function(t) inherits(t, "jbrowse_result"), tracks)
   if (!length(results)) {
     stop("jbrowse_stack needs at least one ggjbrowse reader's result",
@@ -34,6 +31,33 @@ jbrowse_stack <- function(...) {
   axis <- results[[1]]
   stack_bands(lapply(tracks, function(t)
     if (ggplot2::is_ggplot(t)) own_band(t, axis) else track_bands(t)))
+}
+
+#' The figure height that draws a stack at its display's sizes
+#'
+#' The inches a [jbrowse_stack()] of these tracks needs to give each band the
+#' pixels the JBrowse display gives it, at 150 pixels an inch (a 1,500 pixel
+#' view across a 10 inch figure), with room for the x axis: a compact pileup
+#' makes a shorter figure than a normal one. Pass it as `ggsave()`'s `height`.
+#' @param ... the tracks given to [jbrowse_stack()]
+#' @return inches, from 2 to 49
+#' @export
+#' @examples
+#' bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
+#' reads <- jbrowse_alignments(bam, "ctgA:1,001-3,000",
+#'   display = list(featureHeight = 3))
+#' jbrowse_height(reads)
+jbrowse_height <- function(...) {
+  tracks <- Filter(function(t) inherits(t, "jbrowse_result"),
+    flat_tracks(list(...)))
+  heights <- unlist(lapply(tracks, track_heights))
+  min(49, max(2, sum(heights) * 100 / 150 + 0.08 * length(heights) + 0.7))
+}
+
+flat_tracks <- function(tracks) {
+  do.call(c, lapply(tracks, function(t)
+    if (inherits(t, "jbrowse_result") || ggplot2::is_ggplot(t)) list(t)
+    else t))
 }
 
 # The loci a result reads, as JBrowse's location box writes them
@@ -80,15 +104,24 @@ own_band <- function(p, axis) {
   list(plots = list(p), heights = 1)
 }
 
-# A track's bands and their relative heights: a feature track as tall as its
-# laid-out pixels against a pileup band of about 300
+# A track's bands and their heights in hundreds of display pixels: a feature
+# track as tall as its laid-out pixels, an alignments track's bands as its
+# display sizes them
 track_bands <- function(x) {
   if (inherits(x, "jbrowse_alignments")) return(alignment_bands(x))
-  height <- if (inherits(x, "jbrowse_features")) max(0.3, x$height / 100)
-    else if (inherits(x, "jbrowse_variants")) max(1, nrow(x$rows) / 15)
-    else if (isTRUE(x$row_layout)) 0.6 * nrow(x$sources)
-    else 1
-  list(plots = list(ggplot2::autoplot(x)), heights = height)
+  list(plots = list(ggplot2::autoplot(x)), heights = track_heights(x))
+}
+
+track_heights <- function(x) {
+  if (inherits(x, "jbrowse_alignments")) {
+    x <- on_axis(x)
+    return(unname(alignment_px(x, alignment_shown(x,
+      alignment_options(x)))) / 100)
+  }
+  if (inherits(x, "jbrowse_features")) max(0.3, x$height / 100)
+  else if (inherits(x, "jbrowse_variants")) max(1, nrow(x$rows) / 15)
+  else if (isTRUE(x$row_layout)) 0.6 * nrow(x$sources)
+  else 1
 }
 
 stack_bands <- function(bands) {

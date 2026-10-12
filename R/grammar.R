@@ -31,9 +31,9 @@ scale_type.jbrowse_color <- function(x) "identity"
 # What a geom draws: the jbrowse result its plot or its `data` holds, on its
 # axis and read through `pick`, or a data frame the caller handed it, on its
 # plot's axis where it is a result's table
-table_from <- function(data, pick) {
+table_from <- function(data, pick, finish = function(d, model) d) {
   if (inherits(data, "jbrowse_result")) {
-    return(pick(on_axis(data)))
+    return(finish(pick(on_axis(data)), data))
   }
   if (is.null(data)) {
     return(function(plot_data) {
@@ -42,12 +42,13 @@ table_from <- function(data, pick) {
         stop("a jbrowse geom needs ggplot(<jbrowse result>) or data = <jbrowse result>",
           call. = FALSE)
       }
-      pick(on_axis(model))
+      finish(pick(on_axis(model)), model)
     })
   }
-  if (is.data.frame(data) && !is.null(data$.region)) {
+  if (is.data.frame(data)) {
     return(function(plot_data) {
-      frame_on_axis(data, attr(plot_data, "jbrowse")$regions)
+      model <- attr(plot_data, "jbrowse")
+      finish(frame_on_axis(data, model$regions), model)
     })
   }
   data
@@ -59,11 +60,14 @@ with_defaults <- function(mapping, defaults) {
 }
 
 # A layer of a jbrowse table. One whose display colors no key lists stays
-# out of the legend until the caller maps an aesthetic of their own.
+# out of the legend until the caller maps an aesthetic of their own; one of
+# pileup `rows` draws each at the display's read height.
 jbrowse_layer <- function(geom, data, pick, mapping, defaults, params,
-                          keyed = TRUE) {
+                          keyed = TRUE, rows = FALSE) {
+  finish <- if (rows) with_inset else function(d, model) d
   ggplot2::layer(geom = geom, stat = "identity", position = "identity",
-    data = table_from(data, pick), mapping = with_defaults(mapping, defaults),
+    data = table_from(data, pick, finish),
+    mapping = with_defaults(mapping, defaults),
     inherit.aes = FALSE,
     show.legend = if (keyed || !is.null(mapping)) NA else FALSE,
     params = params)
