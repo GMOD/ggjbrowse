@@ -27,19 +27,19 @@ geom_jbrowse_deletions(
   mapping = NULL,
   data = NULL,
   fade = TRUE,
-  px_per_bp = NULL,
+  width = NULL,
   ...
 )
 
-geom_jbrowse_modifications(mapping = NULL, data = NULL, px_per_bp = NULL, ...)
+geom_jbrowse_modifications(mapping = NULL, data = NULL, width = NULL, ...)
 
-geom_jbrowse_qualities(mapping = NULL, data = NULL, px_per_bp = NULL, ...)
+geom_jbrowse_qualities(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_mismatches(
   mapping = NULL,
   data = NULL,
   fade = TRUE,
-  px_per_bp = NULL,
+  width = NULL,
   ...
 )
 
@@ -47,17 +47,11 @@ geom_jbrowse_insertions(
   mapping = NULL,
   data = NULL,
   fade = TRUE,
-  px_per_bp = NULL,
+  width = NULL,
   ...
 )
 
-geom_jbrowse_clips(
-  mapping = NULL,
-  data = NULL,
-  fade = TRUE,
-  px_per_bp = NULL,
-  ...
-)
+geom_jbrowse_clips(mapping = NULL, data = NULL, fade = TRUE, width = NULL, ...)
 
 geom_jbrowse_letters(mapping = NULL, data = NULL, ...)
 
@@ -92,8 +86,8 @@ result, such as a filtered copy of it}
 \item{fade}{fade a mark narrower than a pixel by its site's share of the
 depth, as the display does (\code{fadeLowFrequencyMismatches})}
 
-\item{px_per_bp}{how many pixels a base spans, which the fade and a
-mismatch's line width read; \code{NULL} takes a figure 1,500 pixels wide}
+\item{width}{the pixels the figure spans across its region, which decide
+the fade and a mismatch's line width; \code{NULL} takes 1,500}
 
 \item{min_allele_frequency}{leave out an allele segment whose share of the
 depth is below this, the display's \code{coverageSnpMinFrequency}}

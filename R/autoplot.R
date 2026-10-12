@@ -185,19 +185,19 @@ sequence_plot <- function(x, o) {
 }
 
 pileup_plot <- function(x, o) {
-  px <- o$px_per_bp
+  px <- o$width
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_reads() +
     scale_fill_jbrowse(x, "reads") +
     guides_jbrowse(x) +
-    geom_jbrowse_qualities(px_per_bp = px) +
+    geom_jbrowse_qualities(width = px) +
     geom_jbrowse_skips() +
-    geom_jbrowse_deletions(fade = o$fade, px_per_bp = px) +
-    geom_jbrowse_modifications(px_per_bp = px) +
-    geom_jbrowse_mismatches(fade = o$fade, px_per_bp = px) +
+    geom_jbrowse_deletions(fade = o$fade, width = px) +
+    geom_jbrowse_modifications(width = px) +
+    geom_jbrowse_mismatches(fade = o$fade, width = px) +
     scale_colour_jbrowse(x, "bases") +
-    geom_jbrowse_insertions(fade = o$fade, px_per_bp = px) +
-    geom_jbrowse_clips(fade = o$fade, px_per_bp = px)
+    geom_jbrowse_insertions(fade = o$fade, width = px) +
+    geom_jbrowse_clips(fade = o$fade, width = px)
   if (o$letters) p <- p + geom_jbrowse_letters()
   band(p + ggplot2::scale_y_reverse(), x, rows = TRUE) + no_y
 }
@@ -257,8 +257,8 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #' @param fade_low_frequency fade a mismatch, indel or clip narrower than a
 #'   pixel by its site's share of the depth, so sequencing errors recede on a
 #'   deep pileup; `NULL` takes the display's `fadeLowFrequencyMismatches`
-#' @param px_per_bp how many pixels a base spans, which that fade reads;
-#'   `NULL` takes a figure 1,500 pixels wide
+#' @param width the pixels the figure spans across its region, which that
+#'   fade reads; `NULL` takes 1,500
 #' @param above,below tracks to draw above and below a `"track"`, each a
 #'   ggjbrowse result over the same regions or a ggplot, or a list of them, as
 #'   [jbrowse_stack()] stacks them
@@ -281,13 +281,13 @@ autoplot.jbrowse_alignments <- function(object,
                                         min_reads = NULL,
                                         letters = NULL,
                                         fade_low_frequency = NULL,
-                                        px_per_bp = NULL, above = NULL,
+                                        width = NULL, above = NULL,
                                         below = NULL, ...) {
   rlang::check_dots_empty()
   what <- match.arg(what)
   object <- on_axis(object)
   o <- alignment_options(object, min_allele_frequency, min_reads,
-    letters, fade_low_frequency, px_per_bp)
+    letters, fade_low_frequency, width)
   if (what != "track") return(BAND_PLOTS[[what]](object, o))
   above <- listed_tracks(above)
   below <- listed_tracks(below)
@@ -300,7 +300,7 @@ autoplot.jbrowse_alignments <- function(object,
 # What the alignments bands draw: the caller's settings, else the display's
 alignment_options <- function(object, min_allele_frequency = NULL,
                               min_reads = NULL, letters = NULL,
-                              fade_low_frequency = NULL, px_per_bp = NULL) {
+                              fade_low_frequency = NULL, width = NULL) {
   s <- object$settings %||% list()
   xlim <- xlim_of(object)
   list(
@@ -309,7 +309,7 @@ alignment_options <- function(object, min_allele_frequency = NULL,
     min_reads = min_reads %||% s$minSashimiScore %||% 2,
     letters = letters %||% (xlim[2] - xlim[1] <= 300),
     fade = fade_low_frequency %||% s$fadeLowFrequencyMismatches %||% TRUE,
-    px_per_bp = px_per_bp,
+    width = width,
     coverage = !isFALSE(s$showCoverage),
     pileup = !isFALSE(s$showPileup),
     junctions = !isFALSE(s$showSashimiArcs))

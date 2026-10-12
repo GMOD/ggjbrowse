@@ -129,7 +129,7 @@ print.jbrowse_variants <- function(x, ...) {
 #'
 #' Each row's cell at each record, filled as the display paints it. At
 #' `"genomic"` positions a cell spans its record, widened to two pixels of a
-#' figure `px_per_bp` describes, as the display widens a record narrower than
+#' figure `width` pixels across, as the display widens a record narrower than
 #' a cell; in `"columns"` each record is a column of the genotype matrix, x
 #' being its row number in `variants`. Map `genotype`, `dosage`, `sample` or
 #' any other column of the cells table to draw it your own way.
@@ -138,8 +138,8 @@ print.jbrowse_variants <- function(x, ...) {
 #'   or a data frame in place of the table the geom draws from the plot's
 #'   result, such as a filtered copy of it
 #' @param layout `"genomic"` or `"columns"`
-#' @param px_per_bp how many pixels a base spans at genomic positions; `NULL`
-#'   takes a figure 1,500 pixels wide
+#' @param width the pixels the figure spans across its region at genomic
+#'   positions; `NULL` takes 1,500
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a ggplot layer
 #' @export
@@ -151,7 +151,7 @@ print.jbrowse_variants <- function(x, ...) {
 #' ggplot(v) + geom_jbrowse_genotypes(aes(fill = genotype), layout = "columns")
 geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
                                    layout = c("genomic", "columns"),
-                                   px_per_bp = NULL, ...) {
+                                   width = NULL, ...) {
   data <- replacing(data, "cells", "geom_jbrowse_genotypes")
   layout <- match.arg(layout)
   cells <- function(x) {
@@ -160,7 +160,7 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
       d$xmin <- d$variant - 0.5
       d$xmax <- d$variant + 0.5
     } else {
-      floor_bp <- 2 / px_of(x, px_per_bp)
+      floor_bp <- 2 / px_of(x, width)
       mid <- (d$start + d$end) / 2
       half <- pmax(d$end - d$start, floor_bp) / 2
       d$xmin <- mid - half

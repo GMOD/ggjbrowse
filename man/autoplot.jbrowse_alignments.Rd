@@ -11,7 +11,7 @@
   min_reads = NULL,
   letters = NULL,
   fade_low_frequency = NULL,
-  px_per_bp = NULL,
+  width = NULL,
   above = NULL,
   below = NULL,
   ...
@@ -49,8 +49,8 @@ base is wide enough to read}
 pixel by its site's share of the depth, so sequencing errors recede on a
 deep pileup; \code{NULL} takes the display's \code{fadeLowFrequencyMismatches}}
 
-\item{px_per_bp}{how many pixels a base spans, which that fade reads;
-\code{NULL} takes a figure 1,500 pixels wide}
+\item{width}{the pixels the figure spans across its region, which that
+fade reads; \code{NULL} takes 1,500}
 
 \item{above, below}{tracks to draw above and below a \code{"track"}, each a
 ggjbrowse result over the same regions or a ggplot, or a list of them, as

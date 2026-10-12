@@ -8,7 +8,7 @@ geom_jbrowse_genotypes(
   mapping = NULL,
   data = NULL,
   layout = c("genomic", "columns"),
-  px_per_bp = NULL,
+  width = NULL,
   ...
 )
 }
@@ -21,8 +21,8 @@ result, such as a filtered copy of it}
 
 \item{layout}{\code{"genomic"} or \code{"columns"}}
 
-\item{px_per_bp}{how many pixels a base spans at genomic positions; \code{NULL}
-takes a figure 1,500 pixels wide}
+\item{width}{the pixels the figure spans across its region at genomic
+positions; \code{NULL} takes 1,500}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 }
@@ -32,7 +32,7 @@ a ggplot layer
 \description{
 Each row's cell at each record, filled as the display paints it. At
 \code{"genomic"} positions a cell spans its record, widened to two pixels of a
-figure \code{px_per_bp} describes, as the display widens a record narrower than
+figure \code{width} pixels across, as the display widens a record narrower than
 a cell; in \code{"columns"} each record is a column of the genotype matrix, x
 being its row number in \code{variants}. Map \code{genotype}, \code{dosage}, \code{sample} or
 any other column of the cells table to draw it your own way.
