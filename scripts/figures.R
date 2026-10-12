@@ -69,6 +69,19 @@ tracks <- list(
     display = list(color = list(field = "strand"))))
 save("stack.png", jbrowse_stack(tracks))
 
+gff <- read.delim(gzfile(extdata("gapdh_gencode.gff3.gz")), header = FALSE,
+  comment.char = "#")
+exon <- gff[gff$V3 == "exon" &
+  grepl("transcript_id=ENST00000229239.10;", gff$V9), ]
+exon <- exon[order(exon$V4), ]
+window <- 20
+exons <- data.frame(chrom = exon$V1, start = exon$V4 - 1 - window,
+  end = exon$V5 + window)
+genes <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"), exons)
+reads <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"), exons,
+  display = list(color = list(field = "strand")))
+save("collapsed-introns.png", jbrowse_stack(genes, reads))
+
 people <- jbrowse_variants(extdata("1000g_dcst2.vcf.gz"),
   "1:155,000,001-155,050,000", samples = extdata("1000g_dcst2_samples.tsv"),
   display = list(rowColor = list(field = "superpopulation")))
@@ -81,13 +94,13 @@ inversion <- "5,250,001-14,250,000"
 synteny <- jbrowse_synteny(chain, paste0("chr8_MATERNAL:", inversion),
   paste0("chr8_PATERNAL:", inversion),
   view = list(color = list(field = "strand")), swap = TRUE)
-genes <- function(file, contig) jbrowse_features(extdata(file),
+gene_track <- function(file, contig) jbrowse_features(extdata(file),
   paste0(contig, ":", inversion),
   display = list(displayMode = "compact", showLabels = FALSE,
     showOnlyGenes = TRUE))
 synteny_plot <- autoplot(synteny,
-  above = genes("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
-  below = genes("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
+  above = gene_track("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
+  below = gene_track("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
 save("synteny.png", synteny_plot)
 
 amylase <- jbrowse_synteny(extdata("hprc_amylase.paf"),

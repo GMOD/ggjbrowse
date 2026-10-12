@@ -308,6 +308,26 @@ fig <- jbrowse_stack(genes, signal, compact)
 ggsave("stack.png", fig, width = 10, height = jbrowse_height(fig))
 ```
 
+Regions need not be loci of one gene's neighbors. A transcript's exons, each
+with a few bases of flank, lay the exons side by side with the introns
+collapsed, as JBrowse's **Collapse introns** does. Each splice junction then
+arcs from one exon straight to the next:
+
+```r
+gff <- read.delim(gzfile(e("gapdh_gencode.gff3.gz")), header = FALSE,
+  comment.char = "#")
+exon <- gff[gff$V3 == "exon" &
+  grepl("transcript_id=ENST00000229239.10;", gff$V9), ]
+exons <- data.frame(chrom = exon$V1, start = exon$V4 - 1 - 20,
+  end = exon$V5 + 20)
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), exons)
+reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), exons,
+  display = list(color = list(field = "strand")))
+jbrowse_stack(genes, reads)
+```
+
+![GAPDH's nine exons side by side, each junction's read count over the arc joining its two exons, and the direct RNA reads running across](man/figures/collapsed-introns.png)
+
 A file can be a path or a URL; a remote file is read in byte ranges through
 `curl`. CRAM needs the reference: a FASTA with its `.fai`, a bgzipped one
 with its `.fai` and `.gzi`, or a 2bit. There is no Bioconductor dependency:
@@ -330,12 +350,12 @@ r <- "5,250,001-14,250,000"
 s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   paste0("chr8_PATERNAL:", r),
   view = list(color = list(field = "strand")), swap = TRUE)
-genes <- function(file, contig) jbrowse_features(e(file),
+gene_track <- function(file, contig) jbrowse_features(e(file),
   paste0(contig, ":", r),
   display = list(displayMode = "compact", showLabels = FALSE,
     showOnlyGenes = TRUE))
-autoplot(s, above = genes("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
-  below = genes("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
+autoplot(s, above = gene_track("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
+  below = gene_track("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
 ```
 
 ![HG002's maternal chr8 over its paternal copy at 8p23.1: forward blocks in tomato, the 4 Mb inversion crossing in blue, the genes above and below](man/figures/synteny.png)

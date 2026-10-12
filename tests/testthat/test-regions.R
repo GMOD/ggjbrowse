@@ -195,3 +195,14 @@ test_that("a line breaks at the seam between regions", {
     function(r) length(unique(r)))
   expect_true(all(regions_per_run == 1))
 })
+
+test_that("a splice junction across two regions arcs over the seam, kept once", {
+  r <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    c("chr12:6,534,451-6,534,700", "chr12:6,534,751-6,534,900"))
+  drawn <- on_axis(r)$junctions
+  axis <- r$regions
+  across <- drawn$start < axis$cum_end[1] & drawn$end > axis$cum_start[2]
+  expect_true(any(across))
+  expect_false(any(duplicated(drawn[c("start", "end", "strand", "count")])))
+  expect_true(all(drawn$start >= 0 & drawn$end <= axis$cum_end[2]))
+})

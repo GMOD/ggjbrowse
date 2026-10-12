@@ -167,15 +167,16 @@ on_axis <- function(x) {
   if (is.null(r)) return(x)
   for (name in names(x)) {
     if (!is.data.frame(x[[name]])) next
-    x[[name]] <- if (name == "arcs") arcs_on_axis(x[[name]], r)
-      else frame_on_axis(x[[name]], r)
+    x[[name]] <- if (name %in% c("arcs", "junctions"))
+      arcs_on_axis(x[[name]], r) else frame_on_axis(x[[name]], r)
   }
   x
 }
 
-# A read connection with each foot on the axis by the region holding it, so
-# a split read across two regions arcs over the gap between them, and a foot
-# outside every region at its own region's edge. Each region's fetch reports
+# A read connection or splice junction with each foot on the axis by the
+# region holding it, so a split read or splice across two regions arcs over
+# the gap between them, and a foot outside every region at its own region's
+# edge. Each region's fetch reports
 # a connection reaching the other, so it is kept once.
 arcs_on_axis <- function(d, regions) {
   if (is.null(d$.region) || !is.null(d$.on_axis)) return(d)
