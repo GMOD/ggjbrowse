@@ -85,12 +85,15 @@ examples <- list(
     jbrowse = c(fasta, "--bam", rna, "--loc", gapdh),
     r = function() autoplot(jbrowse_alignments(rna, gapdh))),
   strand_sections = list(
-    title = "Reads split into strand sections", locus = gapdh,
-    jbrowse = c(fasta, "--bam", rna, "facet=strand", "--loc", gapdh),
-    r = function() autoplot(jbrowse_alignments(rna, gapdh,
+    title = "COLO829 long reads split into forward and reverse strand sections",
+    locus = "chr3:25,357,600-25,361,000",
+    jbrowse = c(hg38, "--bam", extdata("colo829_tumor_chr3.bam"),
+      "facet=strand", "--loc", "chr3:25,357,600-25,361,000"),
+    r = function() autoplot(jbrowse_alignments(
+      extdata("colo829_tumor_chr3.bam"), "chr3:25,357,600-25,361,000",
       display = list(facet = list(field = "strand"))))),
   long_reads_sv = list(
-    title = "Long reads across two breakpoints of the COLO829 der(3)",
+    title = "Long reads colored by strand across two breakpoints of the COLO829 der(3)",
     locus = "chr3:25,357,600-25,361,000",
     jbrowse = c(hg38, "--bam", extdata("colo829_tumor_chr3.bam"),
       "color.field=strand", "--loc", "chr3:25,357,600-25,361,000"),
@@ -178,7 +181,7 @@ examples <- list(
       "--chromSizes", chrom_sizes(chain, "query", "paternal"),
       paste0("loc:chr8_PATERNAL:", inversion), "--colorBy", "strand"),
     r = function() autoplot(jbrowse_synteny(chain,
-      paste0("chr8_PATERNAL:", inversion), paste0("chr8_MATERNAL:", inversion),
+      paste0("chr8_MATERNAL:", inversion), paste0("chr8_PATERNAL:", inversion),
       view = list(color = list(field = "strand")), swap = TRUE,
       labels = c(query = "paternal", target = "maternal")))),
   whole_genome = list(
