@@ -540,8 +540,6 @@ overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own depende
 
 - [docs/api.md](docs/api.md): every reader, helper and geom, and what each
   returns
-- [docs/how-does-this-work.md](docs/how-does-this-work.md): the V8 engine, how
-  it reads files through R, and which side decides colors and geometry
 - [docs/dataflow.md](docs/dataflow.md): a diagram of one call from path to plot
 - [docs/faq.md](docs/faq.md): V8 versus QuickJS, caching, indexes, coordinates
 - [agent-docs/engine-owns-display-decisions.md](agent-docs/engine-owns-display-decisions.md):
@@ -552,6 +550,9 @@ overlay on a zoomed-in CDS. A CRAN release, which needs the bundle's own depende
 
 - [JBrowse 2](https://jbrowse.org)
 - [JBrowseR](https://github.com/GMOD/JBrowseR) - JBrowse 2 as an R htmlwidget
+
+Other R tools
+
 - [ggbandage](https://github.com/GMOD/ggbandage) - pangenome graphs as ggplot2 layers
 - [ggtubemap](https://github.com/GMOD/ggtubemap) - pangenome tubemaps as ggplot2 layers
 
