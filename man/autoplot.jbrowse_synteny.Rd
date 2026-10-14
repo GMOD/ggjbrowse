@@ -20,7 +20,7 @@ does}
 }
 \value{
 a ggplot of the band alone, or with tracks a patchwork, whose
-height \code{\link[=jbrowse_height]{jbrowse_height()}} measures
+height and width \code{\link[=jbrowse_height]{jbrowse_height()}} and \code{\link[=jbrowse_width]{jbrowse_width()}} measure
 }
 \description{
 The band of ribbons between the two rows, the query row's ruler above it

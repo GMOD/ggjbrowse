@@ -142,3 +142,28 @@ test_that("a gene's exons with the introns collapsed keep each feature on one ro
   expect_gt(length(unique(vapply(apart, function(a)
     a$features$top[a$features$name == "EDEN"], 0))), 1)
 })
+
+test_that("a figure at jbrowse_width() draws labels the same size at any view width", {
+  gff <- extdata("gapdh_gencode.gff3.gz")
+  label_pt <- function(px) {
+    fig <- jbrowse_stack(jbrowse_features(gff, "chr12:6,534,201-6,538,700",
+      width = px))
+    grDevices::pdf(NULL, width = jbrowse_width(fig),
+      height = jbrowse_height(fig))
+    on.exit(grDevices::dev.off())
+    grid::grid.draw(patchwork::patchworkGrob(fig))
+    grid::grid.force()
+    first_label(grid::grid.grab())
+  }
+  first_label <- function(g) {
+    if (inherits(g, "ggjbrowse_display_text")) {
+      return(grid::makeContent(g)$children[[1]]$gp$fontsize[1])
+    }
+    for (child in if (inherits(g, "gTree")) g$children) {
+      pt <- first_label(child)
+      if (!is.null(pt)) return(pt)
+    }
+  }
+  expect_equal(label_pt(2500), label_pt(800), tolerance = 0.05)
+  expect_equal(label_pt(800), 11 / 150 * 72.27, tolerance = 0.05)
+})

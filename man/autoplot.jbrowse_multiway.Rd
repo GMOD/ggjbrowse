@@ -19,7 +19,7 @@ result or a list of them}
 }
 \value{
 a ggplot of the stack alone, or with tracks a patchwork, whose
-height \code{\link[=jbrowse_height]{jbrowse_height()}} measures
+height and width \code{\link[=jbrowse_height]{jbrowse_height()}} and \code{\link[=jbrowse_width]{jbrowse_width()}} measure
 }
 \description{
 The lanes top to bottom, each with its own ruler and its genome named on

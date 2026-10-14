@@ -1,6 +1,6 @@
 Package: ggjbrowse
 Title: Genome Browser Tracks as Data Frames for 'ggplot2'
-Version: 0.7.0
+Version: 0.8.0
 Authors@R: person("Colin", "Diesh", email = "colindiesh@berkeley.edu", role = c("aut", "cre"))
 Description: Reads a region of a BAM, CRAM or feature file as the 'JBrowse 2'
     genome browser draws it, through the browser's own data engine run in

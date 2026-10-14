@@ -47,8 +47,8 @@ band_of <- function(track, axis) {
 #' The figure height that draws a stack at its display's sizes
 #'
 #' The inches a [jbrowse_stack()] figure needs to give each band the pixels
-#' the JBrowse display gives it, at 150 pixels an inch (a 1,500 pixel view
-#' across a 10 inch figure), with room for the x axis and for the keys beside
+#' the JBrowse display gives it, at 150 pixels an inch, the scale
+#' [jbrowse_width()] gives the panels across, with room for the x axis and for the keys beside
 #' the stack, measured as ggplot2 lays them out: a compact pileup makes a
 #' shorter figure than a normal one. Pass it as `ggsave()`'s `height`.
 #' @param fig a [jbrowse_stack()] figure, restyled or not
@@ -71,6 +71,44 @@ jbrowse_height <- function(fig) {
     function(g) grid::convertHeight(grid::grobHeight(g), "in",
       valueOnly = TRUE), 0)
   min(49, max(2, bands, max(0, keys) + 0.3))
+}
+
+#' The figure width that draws a stack at its display's sizes
+#'
+#' The inches a [jbrowse_stack()] figure needs to give its panels the pixels
+#' the tracks were read at, at the 150 pixels an inch [jbrowse_height()]
+#' gives each band, with room for the y axis and the keys beside the stack.
+#' A track read at a `width` of 2,500 pixels then draws its labels as large
+#' as one read at 800, where a fixed figure width would shrink them to fit.
+#' Pass it as `ggsave()`'s `width`.
+#' @inheritParams jbrowse_height
+#' @return inches, at most 49; a stack of tracks read with no `width` of
+#'   their own spans 1,500 pixels
+#' @export
+#' @examples
+#' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
+#' genes <- jbrowse_features(gff, "chr12:6,534,201-6,538,700", width = 2500)
+#' jbrowse_width(jbrowse_stack(genes))
+jbrowse_width <- function(fig) {
+  if (is.null(fig$patches$layout$heights)) {
+    stop("jbrowse_width() measures a jbrowse_stack() figure", call. = FALSE)
+  }
+  px <- max(vapply(c(fig$patches$plots, list(fig)), read_px, 0))
+  if (px == 0) px <- 10 * PX_PER_INCH
+  grob <- patchwork::patchworkGrob(fig)
+  margins <- grid::convertWidth(sum(grob$widths), "in", valueOnly = TRUE)
+  min(49, px / PX_PER_INCH + margins)
+}
+
+# The display pixels a band's track was read across, 0 for a plot of one's
+# own or a track read with no width
+read_px <- function(p) {
+  x <- attr(p$data, "jbrowse")
+  if (is.null(x)) return(0)
+  if (!is.null(x$width)) return(x$width)
+  if (is.null(x$bp_per_px)) return(0)
+  r <- regions_read(x)
+  sum(r$end - r$start) / x$bp_per_px
 }
 
 # The display pixels a figure gives an inch: a 1,500 pixel view across 10

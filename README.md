@@ -248,7 +248,9 @@ with the keys collected.
 Each band takes the pixels the display gives it. Reads draw at the display's
 `featureHeight` (7, or 3 and 1 for its compact and super-compact settings),
 and `jbrowse_height()` gives the figure height that keeps those proportions,
-so a compact pileup saves as a shorter figure:
+so a compact pileup saves as a shorter figure. `jbrowse_width()` gives the
+width at the same scale, so a track read at a wide view's `width` draws its
+labels at the display's size:
 
 ```r
 loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
@@ -256,7 +258,8 @@ genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci)
 reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
   display = list(featureHeight = 3))
 fig <- jbrowse_stack(genes, reads)
-ggsave("stack.png", fig, width = 10, height = jbrowse_height(fig))
+ggsave("stack.png", fig, width = jbrowse_width(fig),
+  height = jbrowse_height(fig))
 ```
 
 ## Synteny
@@ -325,7 +328,8 @@ alignments' own coordinates, and the ribbons between adjacent lanes
 
 JBrowse's linear genome view is gaining an **Export R script** menu item, not
 yet in a release. It writes one ggjbrowse reader per open track, then
-`jbrowse_stack()` and `ggsave(height = jbrowse_height(fig))`.
+`jbrowse_stack()` and `ggsave()` at `jbrowse_width(fig)` by
+`jbrowse_height(fig)`.
 
 ## The engine
 

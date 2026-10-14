@@ -14,8 +14,8 @@ inches, from 2 to 49
 }
 \description{
 The inches a \code{\link[=jbrowse_stack]{jbrowse_stack()}} figure needs to give each band the pixels
-the JBrowse display gives it, at 150 pixels an inch (a 1,500 pixel view
-across a 10 inch figure), with room for the x axis and for the keys beside
+the JBrowse display gives it, at 150 pixels an inch, the scale
+\code{\link[=jbrowse_width]{jbrowse_width()}} gives the panels across, with room for the x axis and for the keys beside
 the stack, measured as ggplot2 lays them out: a compact pileup makes a
 shorter figure than a normal one. Pass it as \code{ggsave()}'s \code{height}.
 }

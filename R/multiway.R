@@ -383,7 +383,7 @@ lane_band <- function(track, x, lane, where) {
 #'   `drawCurves` does; unset, as the result's settings say
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot of the stack alone, or with tracks a patchwork, whose
-#'   height [jbrowse_height()] measures
+#'   height and width [jbrowse_height()] and [jbrowse_width()] measure
 #' @exportS3Method ggplot2::autoplot
 #' @examples
 #' e <- function(f) system.file("extdata", f, package = "ggjbrowse")

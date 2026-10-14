@@ -663,7 +663,7 @@ row_tracks <- function(tracks, layout, row) {
 #'   does
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot of the band alone, or with tracks a patchwork, whose
-#'   height [jbrowse_height()] measures
+#'   height and width [jbrowse_height()] and [jbrowse_width()] measure
 #' @exportS3Method ggplot2::autoplot
 #' @examples
 #' e <- function(f) system.file("extdata", f, package = "ggjbrowse")
