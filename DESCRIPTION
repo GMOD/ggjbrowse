@@ -1,7 +1,15 @@
 Package: ggjbrowse
 Title: Genome Browser Tracks as Data Frames for 'ggplot2'
 Version: 0.8.1
-Authors@R: person("Colin", "Diesh", email = "colindiesh@berkeley.edu", role = c("aut", "cre"))
+Authors@R: c(
+    person("Colin", "Diesh", email = "colindiesh@berkeley.edu",
+      role = c("aut", "cre")),
+    person("JBrowse authors", role = "cph",
+      comment = "@jbrowse/tables, bundled in inst/js/jbrowse-tables.js"),
+    person("Authors of the bundled JavaScript packages",
+      role = c("ctb", "cph"),
+      comment = "listed in inst/COPYRIGHTS")
+    )
 Description: Reads a region of a BAM, CRAM or feature file as the 'JBrowse 2'
     genome browser draws it, through the browser's own data engine run in
     'V8': the reads on their pileup rows in the browser's colors, their
@@ -10,6 +18,7 @@ Description: Reads a region of a BAM, CRAM or feature file as the 'JBrowse 2'
     or the ribbons and dotplot lines of a pairwise alignment,
     each as a data frame, and draws the browser's tracks with 'ggplot2'.
 License: Apache License (>= 2)
+Copyright: See file inst/COPYRIGHTS
 URL: https://github.com/GMOD/ggjbrowse
 BugReports: https://github.com/GMOD/ggjbrowse/issues
 Encoding: UTF-8

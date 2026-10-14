@@ -1,0 +1,342 @@
+inst/js/jbrowse-tables.js bundles @jbrowse/tables (Apache-2.0, copyright
+the JBrowse authors) with the packages below, minified.
+
+- Source: https://github.com/GMOD/jbrowse-components/tree/main/packages/tables
+- Build: packages/tables/scripts/build-bundle.mjs there, at the commit or
+  release the bundle's first line names
+- Each package's source is on npm under its name and version
+- The Apache-2.0 text: https://www.apache.org/licenses/LICENSE-2.0
+
+- @babel/runtime 7.29.10
+  License: MIT
+  Copyright: Copyright (c) 2014-present Sebastian McKenzie and other contributors
+- @babel/runtime 8.0.7
+  License: MIT
+  Copyright: Copyright (c) 2014-present Sebastian McKenzie and other contributors
+- @base-ui/utils 0.4.0
+  License: MIT
+  Copyright: Copyright (c) 2019 Material-UI SAS
+- @emotion/cache 11.14.0
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/hash 0.9.2
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/is-prop-valid 1.4.0
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/memoize 0.9.0
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/react 11.14.0
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/serialize 1.3.3
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/sheet 1.4.0
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/styled 11.14.1
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/unitless 0.10.0
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/use-insertion-effect-with-fallbacks 1.2.0
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/utils 1.4.2
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @emotion/weak-memoize 0.4.0
+  License: MIT
+  Copyright: Copyright (c) Emotion team and other contributors
+- @gmod/bam 10.0.6
+  License: MIT
+  Copyright: Copyright (c) 2018 Colin Diesh
+- @gmod/bbi 11.3.2
+  License: MIT
+  Copyright: Copyright (c) 2019 Colin Diesh
+- @gmod/bed 2.3.2
+  License: MIT
+  Copyright: Copyright (c) 2026 Colin Diesh
+- @gmod/bgzf-filehandle 6.7.0
+  License: MIT
+  Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
+- @gmod/cram 14.3.1
+  License: MIT
+  Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
+- @gmod/gff-nostream 5.6.1
+  License: MIT
+  Copyright: Copyright (c) 2017 Robert Buels
+- @gmod/indexedfasta 5.0.13
+  License: MIT
+  Copyright: Copyright (c) 2018 Colin Diesh
+- @gmod/range-cache-filehandle 1.5.1
+  License: MIT
+  Copyright: Copyright (c) 2021 Colin Diesh
+- @gmod/shared-read-cache 2.0.1
+  License: MIT
+  Copyright: Copyright (c) 2021 Colin Diesh
+- @gmod/tabix 3.10.2
+  License: MIT
+  Copyright: Copyright (c) 2017 Robert Buels
+- @gmod/trix 3.0.22
+  License: Apache-2.0
+  Copyright: Matt Morgan
+- @gmod/twobit 6.0.14
+  License: MIT
+  Copyright: Copyright (c) 2017 Robert Buels
+- @gmod/vcf 7.3.0
+  License: MIT
+  Copyright: Copyright (c) 2017 Garrett Stevens
+- @jbrowse/add-track-core 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/alignments-core 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/cigar-utils 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/core 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/display-kit 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/display-ui 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/jexl 6.0.0
+  License: MIT
+  Copyright: Copyright (c) 2025 Colin Diesh; Copyright (c) 2020 Tom Shawver
+- @jbrowse/mobx-state-tree 6.7.0
+  License: MIT
+  Copyright: Copyright (c) 2016 Michel Weststrate
+- @jbrowse/modifications-utils 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-alignments 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-bed 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-canvas 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-comparative-adapters 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-dotplot-view 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-gff3 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-gtf 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-linear-comparative-view 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-sequence 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-variants 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-wiggle 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/quick-lru 8.0.0
+  License: MIT
+  Copyright: Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+- @jbrowse/render-core 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/synteny-core 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/tables 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/tree-sidebar 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/wiggle-core 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @mui/icons-material 9.5.0
+  License: MIT
+  Copyright: Copyright (c) 2014 Call-Em-All
+- @mui/material 9.5.0
+  License: MIT
+  Copyright: Copyright (c) 2014 Call-Em-All
+- @mui/private-theming 9.5.0
+  License: MIT
+  Copyright: Copyright (c) 2014 Call-Em-All
+- @mui/styled-engine 9.5.0
+  License: MIT
+  Copyright: Copyright (c) 2014 Call-Em-All
+- @mui/system 9.5.0
+  License: MIT
+  Copyright: Copyright (c) 2014 Call-Em-All
+- @mui/utils 9.5.0
+  License: MIT
+  Copyright: Copyright (c) 2014 Call-Em-All
+- @mui/x-data-grid 9.15.0
+  License: MIT
+  Copyright: Copyright (c) 2020 Material-UI SAS
+- @mui/x-internals 9.15.0
+  License: MIT
+  Copyright: Copyright (c) 2020 Material-UI SAS
+- @mui/x-virtualizer 0.7.3
+  License: MIT
+  Copyright: Copyright (c) 2020 Material-UI SAS
+- @popperjs/core 2.11.8
+  License: MIT
+  Copyright: Copyright (c) 2019 Federico Zivolo
+- charenc 0.0.2
+  License: BSD-3-Clause
+  Copyright: Copyright (c) 2011, Paul Vorbach. All rights reserved.; Copyright (c) 2009, Jeff Mott. All rights reserved.
+- clsx 2.1.1
+  License: MIT
+  Copyright: Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
+- crc 4.3.2
+  License: MIT
+  Copyright: Copyright 2014 Alex Gorbatchev
+- crypt 0.0.2
+  License: BSD-3-Clause
+  Copyright: Copyright (c) 2011, Paul Vorbach. All rights reserved.; Copyright (c) 2009, Jeff Mott. All rights reserved.
+- dompurify 3.4.16
+  License: (MPL-2.0 OR Apache-2.0)
+  Copyright: Dr.-Ing. Mario Heiderich, Cure53
+- generic-filehandle2 2.5.1
+  License: MIT
+  Copyright: Colin Diesh
+- hoist-non-react-statics 3.3.2
+  License: BSD-3-Clause
+  Copyright: Copyright (c) 2015, Yahoo! Inc. All rights reserved.
+- is-buffer 1.1.6
+  License: MIT
+  Copyright: Copyright (c) Feross Aboukhadijeh
+- md5 2.3.0
+  License: BSD-3-Clause
+  Copyright: Copyright (c) 2011-2012, Paul Vorbach.; Copyright (c) 2009, Jeff Mott.
+- mobx 7.0.6
+  License: MIT
+  Copyright: Copyright (c) 2015 Michel Weststrate
+- mobx-react 10.0.2
+  License: MIT
+  Copyright: Copyright (c) 2015 Michel Weststrate
+- mobx-react-lite 5.1.0
+  License: MIT
+  Copyright: Copyright (c) 2015 Michel Weststrate
+- pako-esm2 2.0.2
+  License: MIT
+  Copyright: Copyright (C) 2025 Colin Diesh; Copyright (c) 2020 Progress Software Corporation and/or one of its subsidiaries or; Copyright (C) 2014-2017 by Vitaly Puzrin and Andrei Tuputcyn
+- react 19.3.0
+  License: MIT
+  Copyright: Copyright (c) Meta Platforms, Inc. and affiliates.
+- react-dom 19.3.0
+  License: MIT
+  Copyright: Copyright (c) Meta Platforms, Inc. and affiliates.
+- react-is 16.13.1
+  License: MIT
+  Copyright: Copyright (c) Facebook, Inc. and its affiliates.
+- react-is 19.3.0
+  License: MIT
+  Copyright: Copyright (c) Meta Platforms, Inc. and affiliates.
+- react-transition-group 4.4.5
+  License: BSD-3-Clause
+  Copyright: Copyright (c) 2018, React Community
+- reselect 5.3.0
+  License: MIT
+  Copyright: Copyright (c) 2015-2018 Reselect Contributors
+- rxjs 7.8.2
+  License: Apache-2.0
+  Copyright: Copyright (c) 2015-2018 Google, Inc., Netflix, Inc., Microsoft Corp. and contributors
+- source-map-js 1.2.2
+  License: BSD-3-Clause
+  Copyright: Copyright (c) 2009-2011, Mozilla Foundation and contributors
+- stylis 4.2.0
+  License: MIT
+  Copyright: Copyright (c) 2016-present Sultan Tarimo
+- tslib 2.8.1
+  License: 0BSD
+  Copyright: Copyright (c) Microsoft Corporation.
+- use-sync-external-store 1.7.0
+  License: MIT
+  Copyright: Copyright (c) Meta Platforms, Inc. and affiliates.
+
+------------------------------------------------------------------------
+
+MIT, as in @babel/runtime's LICENSE:
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+------------------------------------------------------------------------
+
+BSD-3-Clause, as in charenc's LICENSE:
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+* Neither the name Crypto-JS nor the names of its contributors may be used to
+  endorse or promote products derived from this software without specific prior
+  written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+------------------------------------------------------------------------
+
+0BSD, as in tslib's LICENSE:
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
