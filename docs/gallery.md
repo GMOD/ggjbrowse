@@ -200,6 +200,32 @@ jb2export --fasta inst/extdata/hg38_clip.fa \
   --width 1200 --out methylation.png
 ```
 
+<a id="bisulfite"></a>
+
+## CHH methylation from bisulfite reads
+
+`NC_003070.9:4,398,001-4,412,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/bisulfite-jbrowse.webp" alt="CHH methylation from bisulfite reads in JBrowse. Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left." width="100%"></td><td width="50%"><img src="../gallery/bisulfite-r.webp" alt="CHH methylation from bisulfite reads drawn by ggjbrowse. Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left." width="100%"></td></tr>
+</table>
+
+Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left.
+
+```r
+autoplot(jbrowse_alignments(e("arabidopsis_wgbs.bam"),
+  "NC_003070.9:4,398,001-4,412,000", reference = e("arabidopsis_tair10.fa.gz"),
+  display = list(baseColor = list(field = "bisulfite"),
+    modifications = list(cytosineContext = "CHH"))))
+```
+
+```sh
+jb2export --fasta inst/extdata/arabidopsis_tair10.fa.gz \
+  --bam inst/extdata/arabidopsis_wgbs.bam baseColor:bisulfite modifications.cytosineContext=CHH showLegend=true heightMode:grow growMaxHeight=2000 \
+  --loc NC_003070.9:4,398,001-4,412,000 \
+  --width 1200 --out bisulfite.png
+```
+
 <a id="dnase_rows"></a>
 
 ## DNase in twelve cell lines over the beta-globin locus

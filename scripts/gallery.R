@@ -265,6 +265,20 @@ autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
   display = list(baseColor = list(field = "modifications"),
     modifications = list(unmodified = "all"))))
 )-"),
+  bisulfite = list(
+    caption = "Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left.",
+    title = "CHH methylation from bisulfite reads",
+    locus = "NC_003070.9:4,398,001-4,412,000",
+    jbrowse = c("--fasta", inst("arabidopsis_tair10.fa.gz"), "--bam",
+      inst("arabidopsis_wgbs.bam"), "baseColor:bisulfite",
+      "modifications.cytosineContext=CHH", "showLegend=true", grow, "--loc",
+      "NC_003070.9:4,398,001-4,412,000"),
+    r = r"-(
+autoplot(jbrowse_alignments(e("arabidopsis_wgbs.bam"),
+  "NC_003070.9:4,398,001-4,412,000", reference = e("arabidopsis_tair10.fa.gz"),
+  display = list(baseColor = list(field = "bisulfite"),
+    modifications = list(cytosineContext = "CHH"))))
+)-"),
   dnase_rows = list(
     caption = "Most lines share one peak near 5,281,000, and K562 alone shows several more to either side.",
     title = "DNase in twelve cell lines over the beta-globin locus",

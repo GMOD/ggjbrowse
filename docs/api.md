@@ -60,3 +60,5 @@
   passes it. The default is 200 MB.
 - A CRAM needs `reference`, because it stores reads against the FASTA it was
   encoded with.
+- The bisulfite layer needs `reference`, because it calls each cytosine by
+  comparing the read's base to the reference's.

@@ -46,6 +46,8 @@ remotes::install_github("GMOD/ggjbrowse")
 <tr><td width="50%"><img src="gallery/inversion-jbrowse.webp" alt="Split reads chained across an inversion, with their arcs in JBrowse. The split reads, in their own section above the unsplit ones, are colored inverted between the two breakpoints, where inversion-type arcs join their segments." width="100%"></td><td width="50%"><img src="gallery/inversion-r.webp" alt="Split reads chained across an inversion, with their arcs drawn by ggjbrowse. The split reads, in their own section above the unsplit ones, are colored inverted between the two breakpoints, where inversion-type arcs join their segments." width="100%"></td></tr>
 <tr><td colspan="2"><b><a href="docs/gallery.md#methylation">CpG methylation from MM/ML tags</a></b> <code>20:10,001-22,000</code></td></tr>
 <tr><td width="50%"><img src="gallery/methylation-jbrowse.webp" alt="CpG methylation from MM/ML tags in JBrowse. Each read's 5mC calls in red where methylated and blue where not." width="100%"></td><td width="50%"><img src="gallery/methylation-r.webp" alt="CpG methylation from MM/ML tags drawn by ggjbrowse. Each read's 5mC calls in red where methylated and blue where not." width="100%"></td></tr>
+<tr><td colspan="2"><b><a href="docs/gallery.md#bisulfite">CHH methylation from bisulfite reads</a></b> <code>NC_003070.9:4,398,001-4,412,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/bisulfite-jbrowse.webp" alt="CHH methylation from bisulfite reads in JBrowse. Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left." width="100%"></td><td width="50%"><img src="gallery/bisulfite-r.webp" alt="CHH methylation from bisulfite reads drawn by ggjbrowse. Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left." width="100%"></td></tr>
 <tr><td colspan="2"><b><a href="docs/gallery.md#dnase_rows">DNase in twelve cell lines over the beta-globin locus</a></b> <code>chr11:5,270,001-5,320,000</code></td></tr>
 <tr><td width="50%"><img src="gallery/dnase_rows-jbrowse.webp" alt="DNase in twelve cell lines over the beta-globin locus in JBrowse. Most lines share one peak near 5,281,000, and K562 alone shows several more to either side." width="100%"></td><td width="50%"><img src="gallery/dnase_rows-r.webp" alt="DNase in twelve cell lines over the beta-globin locus drawn by ggjbrowse. Most lines share one peak near 5,281,000, and K562 alone shows several more to either side." width="100%"></td></tr>
 <tr><td colspan="2"><b><a href="docs/gallery.md#dnase_clustered">DNase in twelve cell lines as density, clustered by signal</a></b> <code>chr11:5,270,001-5,320,000</code></td></tr>
@@ -119,6 +121,10 @@ JBrowse does:
   ([compact reads](docs/gallery.md#compact_reads)).
 - `baseColor = list(field = "modifications")` paints MM/ML modification calls
   ([CpG methylation](docs/gallery.md#methylation)).
+- `baseColor = list(field = "bisulfite")` paints the methylation bisulfite or
+  EM-seq reads show against `reference`, in the context
+  `modifications = list(cytosineContext = "CHH")` names
+  ([CHH methylation](docs/gallery.md#bisulfite)).
 - `readConnections = "arc"` adds the read-pair band, an arc per mate pair and
   split read colored by insert size and pair orientation. `"cloud"`
   plots each abnormal pair at its insert size instead.
@@ -346,7 +352,6 @@ yet in a release. It writes one ggjbrowse reader per open track, then
 
 - The variant display's row arrangements other than clustering (bands, a
   saved order) and its zoomed-out density fade
-- The bisulfite layer
 - Facets on a feature track
 - The amino-acid overlay on a zoomed-in CDS
 - A CRAN release, which needs the bundle's own dependencies credited (`cph`
