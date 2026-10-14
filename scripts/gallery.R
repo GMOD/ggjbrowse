@@ -10,7 +10,7 @@
 # jb2export. The hg38 and hg19 hubs and the primate chrom.sizes come over the
 # network. Needs ImageMagick for the webp.
 # Needs jb2export 5.0.0-beta or later: npm's latest, 4.3.0, cannot draw most of
-# these. The clustered rows need jbrowse-components commit e2cef5c883, in no
+# these. The clustered rows need jbrowse-components commit c50aaedcda, in no
 # release yet.
 suppressPackageStartupMessages({
   library(ggjbrowse)
@@ -554,7 +554,7 @@ write_recipes <- function(examples) writeLines(c(
   "- **JBrowse:** each shell recipe runs `jb2export` from `@jbrowse/img`,",
   "  JBrowse's own renderer, from the root of a checkout of this repo. It needs",
   "  5.0.0-beta or later, and the clustered rows need jbrowse-components",
-  "  commit `e2cef5c883`, in no release yet.",
+  "  commit `c50aaedcda`, in no release yet.",
   "- `scripts/gallery.R` draws both and writes this page, so edit an example",
   "  there.",
   "",

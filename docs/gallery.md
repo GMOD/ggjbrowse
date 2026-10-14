@@ -13,7 +13,7 @@ ggjbrowse and by JBrowse.
 - **JBrowse:** each shell recipe runs `jb2export` from `@jbrowse/img`,
   JBrowse's own renderer, from the root of a checkout of this repo. It needs
   5.0.0-beta or later, and the clustered rows need jbrowse-components
-  commit `e2cef5c883`, in no release yet.
+  commit `c50aaedcda`, in no release yet.
 - `scripts/gallery.R` draws both and writes this page, so edit an example
   there.
 
