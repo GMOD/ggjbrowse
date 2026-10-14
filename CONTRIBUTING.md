@@ -10,11 +10,15 @@
 - `scripts/figures.R` redraws the README's quick-start figure.
 - `scripts/gallery.R` redraws the README's JBrowse-and-R gallery and writes
   `docs/gallery.md`, the configs in `gallery/jb2export` and the README's
-  table. Each entry holds the `jb2export` arguments and the ggjbrowse recipe,
-  so adding an example is adding one entry. It needs a built jbrowse-components checkout
-  (`JBROWSE_COMPONENTS`), the installed package and ImageMagick. `@jbrowse/img`
-  4.3.0 is too old: use 5.0.0-beta or the checkout, which the two clustered
-  rows need until a release carries commit `c50aaedcda`.
+  table. Each entry holds a caption, the `jb2export` arguments and the
+  ggjbrowse recipe, so adding an example is adding one entry.
+  - Drawing needs a built jbrowse-components checkout (`JBROWSE_COMPONENTS`)
+    at the version [docs/gallery.md](docs/gallery.md) names, the installed
+    package and ImageMagick.
+  - `--docs` rewrites the table and `docs/gallery.md` without drawing.
+  - `--check` runs each R recipe, then rewrites as `--docs` does. CI runs it
+    and `scripts/check-readme.R`, which runs the README's R blocks, and fails
+    if either leaves the docs changed.
 
 ## Updating the engine
 

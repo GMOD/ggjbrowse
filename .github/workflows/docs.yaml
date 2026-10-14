@@ -1,0 +1,29 @@
+name: Docs
+
+# Runs every R example the README and docs/gallery.md print, and fails if
+# scripts/gallery.R would write the gallery table or docs/gallery.md
+# differently from what is committed.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  examples:
+    name: README and gallery examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
+        with:
+          extra-packages: local::.
+      - run: Rscript scripts/check-readme.R
+      - run: Rscript scripts/gallery.R --check
+      - run: git diff --exit-code README.md docs gallery

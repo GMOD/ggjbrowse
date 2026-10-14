@@ -2,16 +2,14 @@
 # The README's gallery: each example drawn twice from the package's test data,
 # by JBrowse's own renderer (`jb2export`, @jbrowse/img) and by ggjbrowse, side
 # by side. Writes the images, the README's table and docs/gallery.md, which
-# holds both recipes of each. Run from the repo root with the package installed
-# and jbrowse-components built; name examples to redraw only those.
-#   Rscript scripts/gallery.R [example ...]
-# JBROWSE_COMPONENTS is the jbrowse-components checkout (default
-# ~/src/jbrowse-components); JB2EXPORT replaces the command that runs
-# jb2export. The hg38 and hg19 hubs and the primate chrom.sizes come over the
-# network. Needs ImageMagick for the webp.
-# Needs jb2export 5.0.0-beta or later: npm's latest, 4.3.0, cannot draw most of
-# these. The clustered rows need jbrowse-components commit c50aaedcda, in no
-# release yet.
+# holds both recipes of each. Run from the repo root with the package installed.
+#   Rscript scripts/gallery.R [example ...]  redraw all, or the examples named
+#   Rscript scripts/gallery.R --docs         rewrite the table and docs only
+#   Rscript scripts/gallery.R --check        run each R recipe, then as --docs
+# Drawing needs jbrowse-components built, at JBROWSE_COMPONENTS (default
+# ~/src/jbrowse-components), or JB2EXPORT naming the command that runs
+# jb2export; `jb2export_version` below says which. The hg38 and hg19 hubs and
+# the primate chrom.sizes come over the network. Needs ImageMagick for the webp.
 suppressPackageStartupMessages({
   library(ggjbrowse)
   library(ggplot2)
@@ -24,6 +22,10 @@ jb2export <- strsplit(Sys.getenv("JB2EXPORT",
   " ")[[1]]
 width <- 1200
 dir <- "gallery"
+jb2export_version <- c(
+  "It needs 5.0.0-beta or later, since 4.3.0 cannot draw most of these, and",
+  "the clustered rows need jbrowse-components commit `c50aaedcda`, in no",
+  "release yet.")
 
 # jb2export reads the checkout's copy of the data, and configs committed beside
 # the images, so each command in docs/gallery.md runs from the repo root
@@ -171,12 +173,13 @@ exon_locs <- function(transcript, window = 20) {
   sprintf("%s:%d-%d", exon$V1, exon$V4 - window, exon$V5 + window)
 }
 
-# name -> `title`; `locus`, as the JBrowse location box writes it, for the
-# caption; `jbrowse`, every jb2export argument; `r`, the ggjbrowse recipe,
+# name -> `title`; `caption`, what to see in it; `locus`, as the JBrowse
+# location box writes it; `jbrowse`, every jb2export argument; `r`, the ggjbrowse recipe,
 # whose last value is the figure; `height`, its inches where the figure is not
 # a track stack
 examples <- list(
   genes_and_reads = list(
+    caption = "Junction arcs count each splice, from 31 to 68 reads, over the coverage band and the reads split at every intron.",
     title = "GENCODE genes over direct RNA reads", locus = gapdh,
     jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "showLegend=true", grow,
       "--loc", gapdh),
@@ -188,6 +191,7 @@ genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"),
 autoplot(reads, above = genes)
 )-"),
   long_reads_sv = list(
+    caption = "Coverage halves at the first breakpoint, and each read's segments share a row, overlapping in dark grey and colored by strand past it, joined by duplication-type arcs.",
     title = "COLO829 der(3) split reads chained across its two chr3 breakpoints",
     locus = "chr3:25,358,500-25,359,800",
     jbrowse = c(hg38, "--bam", inst("colo829_tumor_chr3.bam"),
@@ -201,6 +205,7 @@ autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
     color = list(field = "strand"), filter = list(split = "only"))))
 )-"),
   deletion = list(
+    caption = "Coverage halves across the deletion, and the reads sorted to the top span it with dark deletion bars, each labelled with its length.",
     title = "Reads sorted by the base at the center, over a somatic deletion",
     locus = "chr10:122,831,700-122,840,800",
     jbrowse = c(hg38, "--bam", deletion, "showLegend=true", grow, "sort:base",
@@ -211,6 +216,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   display = list(sort = list(type = "basePair", pos = 122836300))))
 )-"),
   compact_reads = list(
+    caption = "At 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it.",
     title = "Compact reads over the same deletion",
     locus = "chr10:122,831,700-122,840,800",
     jbrowse = c(hg38, "--bam", deletion, "showLegend=true", grow,
@@ -220,6 +226,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,831,700-122,840,800", display = list(featureHeight = 3)))
 )-"),
   base_zoom = list(
+    caption = "At 120 bp the pileup writes out each mismatch's base, and every read sorted to the top carries a G a few bases before its deletion.",
     title = "Base-level zoom at the deletion's left edge",
     locus = "chr10:122,835,300-122,835,420",
     jbrowse = c(hg38, "--bam", deletion, "showLegend=true", grow, "sort:base",
@@ -230,6 +237,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   display = list(sort = list(type = "basePair", pos = 122835344))))
 )-"),
   inversion = list(
+    caption = "The split reads, in their own section above the unsplit ones, are colored inverted between the two breakpoints, where inversion-type arcs join their segments.",
     title = "Split reads chained across an inversion, with their arcs",
     locus = "chr1:197,786,900-197,789,700",
     jbrowse = c(hg38, "--bam", inst("hg00151_chr1_inversion.bam"),
@@ -244,6 +252,7 @@ autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
     color = list(field = "pairOrientation"), facet = list(field = "split"))))
 )-"),
   methylation = list(
+    caption = "Each read's 5mC calls in red where methylated and blue where not.",
     title = "CpG methylation from MM/ML tags", locus = "20:10,001-22,000",
     jbrowse = c("--fasta", inst("hg38_clip.fa"), "--bam",
       inst("methylation_clip.bam"), "baseColor:methylation",
@@ -255,6 +264,7 @@ autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
     modifications = list(unmodified = "all"))))
 )-"),
   dnase_rows = list(
+    caption = "Most lines share one peak near 5,281,000, and K562 alone shows several more to either side.",
     title = "DNase in twelve cell lines over the beta-globin locus",
     locus = "chr11:5,270,001-5,320,000", height = 6,
     jbrowse = c(hg38, "--multiwig", dnase_json(), "showLegend=true",
@@ -268,6 +278,7 @@ dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
 autoplot(jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000"))
 )-"),
   dnase_clustered = list(
+    caption = "K562 splits off alone from the other eleven lines.",
     title = "DNase in twelve cell lines as density, clustered by signal",
     locus = "chr11:5,270,001-5,320,000", height = 4,
     jbrowse = c(hg38, "--multiwig", dnase_json(), "showLegend=true",
@@ -285,6 +296,7 @@ w$tree <- hclust(dist(as.matrix(w)), "average")
 autoplot(w)
 )-"),
   conservation = list(
+    caption = "The exons stand out as runs of high scores in bars, in a mean line over its min-max band, and in a density strip.",
     title = "phyloP conservation across GAPDH as bars, a line and density",
     locus = gapdh, height = 6,
     jbrowse = c(fasta, "--bigwig", phylop, "showLegend=true",
@@ -301,6 +313,7 @@ patchwork::wrap_plots(ncol = 1,
     display = list(mark = "span"))))
 )-"),
   two_regions = list(
+    caption = "A grey divider separates the two loci, and each tick gives a position in its own region.",
     title = "Genes, conservation and strand-colored reads over two regions end to end",
     locus = paste(two_loci, collapse = " "),
     jbrowse = c(fasta, "--gffgz", gencode, "--bigwig", phylop, "showLegend=true",
@@ -315,6 +328,7 @@ reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
 jbrowse_stack(genes, signal, reads)
 )-"),
   variants_by_population = list(
+    caption = "20 people from each superpopulation genotyped at 249 variants, a column per record, the East Asians homozygous for the alt allele at many of the first 40.",
     title = "100 people's genotypes across DCST2 (GRCh37), colored by superpopulation",
     locus = "1:155,000,001-155,050,000", height = 7,
     jbrowse = c("--hub", "hg19", "--tracks", population_tracks(), "--track",
@@ -326,6 +340,7 @@ v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
 autoplot(v, layout = "columns")
 )-"),
   variants_clustered = list(
+    caption = "Most East Asians gather near the top, the Africans and Europeans further down.",
     title = "100 people's genotypes across DCST2 clustered, the tree beside the rows",
     locus = "1:155,000,001-155,050,000", height = 7,
     jbrowse = c("--hub", "hg19", "--tracks", population_tracks(), "--track",
@@ -338,6 +353,7 @@ v$tree <- hclust(dist(as.matrix(v)), "average")
 autoplot(v, layout = "columns")
 )-"),
   collapsed_introns = list(
+    caption = "Each junction's read count sits over the arc joining its two exons, and the direct RNA reads run across.",
     title = "GAPDH's nine exons side by side, with the junctions between them as arcs",
     locus = "ENST00000229239.10's exons, each padded by 20 bp", height = 7,
     jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "sashimi:auto",
@@ -357,6 +373,7 @@ reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), exons,
 jbrowse_stack(genes, reads)
 )-"),
   inversion_synteny = list(
+    caption = "Forward blocks in tomato flank the 4 Mb inversion, whose reverse ribbon crosses in blue.",
     title = "HG002's maternal chr8 over its paternal copy at 8p23.1",
     locus = sprintf("chr8_MATERNAL:%s chr8_PATERNAL:%s", inversion, inversion),
     jbrowse = c("synteny", "--chromSizes", chrom_sizes(chain, "target",
@@ -371,6 +388,7 @@ autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   labels = c(query = "paternal", target = "maternal")))
 )-"),
   inversion_dotplot = list(
+    caption = "One forward diagonal runs the length of chr8, broken only by the inversion's short reverse segment near 10 Mb.",
     title = "HG002's maternal chr8 against its paternal copy as a dotplot",
     locus = "chr8_MATERNAL chr8_PATERNAL", height = 6,
     jbrowse = c("dotplot", "--chromSizes", axis_sizes(hg002_dot$x, "maternal"),
@@ -382,6 +400,7 @@ autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
   labels = c(query = "paternal", target = "maternal")))
 )-"),
   whole_genome = list(
+    caption = "Short diagonal runs scatter over most pairs of peach and grape chromosomes.",
     title = "Peach against grape, every chromosome", locus = "whole genome",
     height = 5.5,
     jbrowse = c("dotplot", "--chromSizes", axis_sizes(peach_grape$x, "peach"),
@@ -392,6 +411,7 @@ autoplot(jbrowse_dotplot(e("peach_grape.paf.gz"),
   labels = c(query = "peach", target = "grape")))
 )-"),
   amylase_synteny = list(
+    caption = "Forward blocks flank a reversed copy in the middle, with alignments of the other copies crossing over it.",
     title = "GRCh38 over HG00133 at the amylase genes",
     locus = "GRCh38#0#chr1:103,520,894-103,832,637",
     jbrowse = c("synteny", "--chromSizes",
@@ -409,6 +429,7 @@ autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   labels = c(query = "GRCh38", target = "HG00133")))
 )-"),
   amylase_zoom = list(
+    caption = "The deletion shows as a purple wedge narrowing to a point on HG00133's row.",
     title = "3 kb at the amylase genes, the match block cut by an 80 bp deletion",
     locus = "GRCh38#0#chr1:103,619,501-103,622,500", height = 2.2,
     jbrowse = c("synteny", "--chromSizes",
@@ -426,6 +447,7 @@ autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   labels = c(query = "GRCh38", target = "HG00133")))
 )-"),
   synteny_genes = list(
+    caption = "Forward blocks in tomato, the 4 Mb inversion crossing in blue, and the genes above and below.",
     title = "HG002's maternal chr8 over its paternal copy, each with its genes",
     locus = sprintf("chr8_MATERNAL:%s chr8_PATERNAL:%s", inversion, inversion),
     jbrowse = synteny_genes_args(),
@@ -443,6 +465,7 @@ autoplot(s, above = gene_track("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
   below = gene_track("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
 )-"),
   multiway = list(
+    caption = "Each lane runs in its own genome's coordinates, every liftOver ribbon in hg38's orientation, with gaps where a genome lacks sequence the one above has.",
     title = "The TP53 neighbourhood on hg38 over chimp, gorilla and orangutan",
     locus = "chr17:7,400,001-7,700,000", height = 4.5,
     jbrowse = c(multiway_args(c("panTro6", "gorGor6", "ponAbe3")), "--loc",
@@ -478,10 +501,20 @@ draw_jbrowse <- function(name, example) {
   if (status != 0 || !file.exists(out)) stop(name, ": jb2export failed")
 }
 
-draw_r <- function(name, example) {
+recipe_figure <- function(example) {
   env <- new.env()
   env$e <- function(f) system.file("extdata", f, package = "ggjbrowse")
-  figure <- eval(parse(text = example$r), env)
+  eval(parse(text = example$r), env)
+}
+
+check_r <- function(name, example) {
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off())
+  print(recipe_figure(example))
+}
+
+draw_r <- function(name, example) {
+  figure <- recipe_figure(example)
   height <- tryCatch(jbrowse_height(figure), error = function(e)
     example$height %||% 4)
   ggsave(png_of(name, "r"), figure, width = width / 120, height = height,
@@ -497,9 +530,9 @@ to_webp <- function(name) {
 }
 
 image_pair <- function(name, e, prefix) sprintf(
-  "<tr><td width=\"50%%\"><img src=\"%s%s\" alt=\"%s in JBrowse\" width=\"100%%\"></td><td width=\"50%%\"><img src=\"%s%s\" alt=\"%s drawn by ggjbrowse\" width=\"100%%\"></td></tr>",
-  prefix, webp_of(name, "jbrowse"), e$title, prefix, webp_of(name, "r"),
-  e$title)
+  "<tr><td width=\"50%%\"><img src=\"%s%s\" alt=\"%s in JBrowse. %s\" width=\"100%%\"></td><td width=\"50%%\"><img src=\"%s%s\" alt=\"%s drawn by ggjbrowse. %s\" width=\"100%%\"></td></tr>",
+  prefix, webp_of(name, "jbrowse"), e$title, e$caption, prefix,
+  webp_of(name, "r"), e$title, e$caption)
 
 gallery_table <- function(examples) {
   row <- function(name, e) c(
@@ -537,6 +570,7 @@ recipe <- function(name, e) c(
   paste("##", e$title), "",
   sprintf("`%s`", e$locus), "",
   "<table>", image_pair(name, e, "../"), "</table>", "",
+  e$caption, "",
   "```r", e$r, "```", "",
   "```sh", jb2export_command(name, e$jbrowse), "```", "")
 
@@ -552,9 +586,8 @@ write_recipes <- function(examples) writeLines(c(
   "  ```",
   "",
   "- **JBrowse:** each shell recipe runs `jb2export` from `@jbrowse/img`,",
-  "  JBrowse's own renderer, from the root of a checkout of this repo. It needs",
-  "  5.0.0-beta or later, and the clustered rows need jbrowse-components",
-  "  commit `c50aaedcda`, in no release yet.",
+  "  JBrowse's own renderer, from the root of a checkout of this repo.",
+  paste0("  ", jb2export_version),
   "- `scripts/gallery.R` draws both and writes this page, so edit an example",
   "  there.",
   "",
@@ -562,12 +595,19 @@ write_recipes <- function(examples) writeLines(c(
   file.path("docs", "gallery.md"))
 
 wanted <- commandArgs(trailingOnly = TRUE)
-todo <- if (length(wanted)) examples[wanted] else examples
-for (name in names(todo)) {
-  message(name)
-  draw_jbrowse(name, todo[[name]])
-  draw_r(name, todo[[name]])
-  to_webp(name)
+if (identical(wanted, "--check")) {
+  for (name in names(examples)) {
+    message(name)
+    check_r(name, examples[[name]])
+  }
+} else if (!identical(wanted, "--docs")) {
+  todo <- if (length(wanted)) examples[wanted] else examples
+  for (name in names(todo)) {
+    message(name)
+    draw_jbrowse(name, todo[[name]])
+    draw_r(name, todo[[name]])
+    to_webp(name)
+  }
 }
 update_readme(examples)
 write_recipes(examples)
