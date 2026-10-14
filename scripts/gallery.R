@@ -216,14 +216,16 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   display = list(sort = list(type = "basePair", pos = 122836300))))
 )-"),
   compact_reads = list(
-    caption = "At 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it.",
+    caption = "Sorted by the base at the center, at 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it.",
     title = "Compact reads over the same deletion",
     locus = "chr10:122,831,700-122,840,800",
-    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", grow,
+    jbrowse = c(hg38, "--bam", deletion, "showLegend=true", grow, "sort:base",
       "featureHeight:compact", "--loc", "chr10:122,831,700-122,840,800"),
     r = r"-(
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
-  "chr10:122,831,700-122,840,800", display = list(featureHeight = 3)))
+  "chr10:122,831,700-122,840,800",
+  display = list(featureHeight = 3,
+    sort = list(type = "basePair", pos = 122836300))))
 )-"),
   base_zoom = list(
     caption = "At 120 bp the pileup writes out each mismatch's base, and every read sorted to the top carries a G a few bases before its deletion.",

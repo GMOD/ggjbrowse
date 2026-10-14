@@ -104,19 +104,21 @@ jb2export --hub hg38 \
 `chr10:122,831,700-122,840,800`
 
 <table>
-<tr><td width="50%"><img src="../gallery/compact_reads-jbrowse.webp" alt="Compact reads over the same deletion in JBrowse. At 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it." width="100%"></td><td width="50%"><img src="../gallery/compact_reads-r.webp" alt="Compact reads over the same deletion drawn by ggjbrowse. At 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it." width="100%"></td></tr>
+<tr><td width="50%"><img src="../gallery/compact_reads-jbrowse.webp" alt="Compact reads over the same deletion in JBrowse. Sorted by the base at the center, at 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it." width="100%"></td><td width="50%"><img src="../gallery/compact_reads-r.webp" alt="Compact reads over the same deletion drawn by ggjbrowse. Sorted by the base at the center, at 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it." width="100%"></td></tr>
 </table>
 
-At 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it.
+Sorted by the base at the center, at 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it.
 
 ```r
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
-  "chr10:122,831,700-122,840,800", display = list(featureHeight = 3)))
+  "chr10:122,831,700-122,840,800",
+  display = list(featureHeight = 3,
+    sort = list(type = "basePair", pos = 122836300))))
 ```
 
 ```sh
 jb2export --hub hg38 \
-  --bam inst/extdata/hg008t_cuzd1_deletion.bam showLegend=true heightMode:grow growMaxHeight=2000 featureHeight:compact \
+  --bam inst/extdata/hg008t_cuzd1_deletion.bam showLegend=true heightMode:grow growMaxHeight=2000 sort:base featureHeight:compact \
   --loc chr10:122,831,700-122,840,800 \
   --width 1200 --out compact_reads.png
 ```
