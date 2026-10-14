@@ -454,3 +454,15 @@ test_that("a chain's overlapping segments come back as overlap spans", {
   expect_true(all(chained$overlaps$end > chained$overlaps$start))
   expect_equal(nrow(jbrowse_alignments(colo, locus)$overlaps), 0)
 })
+
+test_that("a stacked pileup draws at the width its stack's tracks were read at", {
+  locus <- "chr12:6,534,201-6,538,700"
+  reads <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"), locus)
+  genes <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"), locus,
+    width = 2500)
+  built <- function(p) lapply(ggplot2::ggplot_build(p)$data, function(d)
+    d[setdiff(names(d), c("PANEL", "group"))])
+  pileup <- built(jbrowse_stack(genes, reads))
+  expect_equal(pileup, built(autoplot(reads, "pileup", width = 2500)))
+  expect_false(identical(pileup, built(autoplot(reads, "pileup"))))
+})

@@ -277,7 +277,8 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   pixel by its site's share of the depth, so sequencing errors recede on a
 #'   deep pileup; `NULL` takes the display's `fadeLowFrequencyMismatches`
 #' @param width the pixels the figure spans across its region, which that
-#'   fade and the read-connection band's reach read; `NULL` takes 1,500
+#'   fade and the read-connection band's reach read; `NULL` takes the widest
+#'   `width` the tracks above and below were read at, else 1,500
 #' @param above,below tracks to draw above and below a `"track"`, each a
 #'   ggjbrowse result over the same regions or a ggplot, or a list of them, as
 #'   [jbrowse_stack()] stacks them
@@ -312,10 +313,12 @@ autoplot.jbrowse_alignments <- function(object,
   if (what != "track") return(BAND_PLOTS[[what]](object, o))
   above <- listed_tracks(above)
   below <- listed_tracks(below)
-  same_regions(Filter(function(t) inherits(t, "jbrowse_result"),
-    c(above, list(object), below)))
-  stack_bands(c(lapply(above, band_of, object), list(alignment_bands(object,
-    o)), lapply(below, band_of, object)))
+  results <- Filter(function(t) inherits(t, "jbrowse_result"),
+    c(above, list(object), below))
+  same_regions(results)
+  o$width <- o$width %||% stack_px(results)
+  stack_bands(c(lapply(above, band_of, object, o$width),
+    list(alignment_bands(object, o)), lapply(below, band_of, object, o$width)))
 }
 
 # What the alignments bands draw: the caller's settings, else the display's

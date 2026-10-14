@@ -50,7 +50,8 @@ pixel by its site's share of the depth, so sequencing errors recede on a
 deep pileup; \code{NULL} takes the display's \code{fadeLowFrequencyMismatches}}
 
 \item{width}{the pixels the figure spans across its region, which that
-fade and the read-connection band's reach read; \code{NULL} takes 1,500}
+fade and the read-connection band's reach read; \code{NULL} takes the widest
+\code{width} the tracks above and below were read at, else 1,500}
 
 \item{above, below}{tracks to draw above and below a \code{"track"}, each a
 ggjbrowse result over the same regions or a ggplot, or a list of them, as

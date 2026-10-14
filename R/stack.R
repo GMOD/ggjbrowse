@@ -28,7 +28,7 @@ jbrowse_stack <- function(...) {
       call. = FALSE)
   }
   same_regions(results)
-  stack_bands(lapply(tracks, band_of, results[[1]]))
+  stack_bands(lapply(tracks, band_of, results[[1]], stack_px(results)))
 }
 
 # Tracks as a list: one result or ggplot, or a list of them
@@ -39,9 +39,10 @@ listed_tracks <- function(tracks) {
 }
 
 # A track's bands on the axis of `axis`, a result: a ggplot of one's own as
-# one band, a result as its display's
-band_of <- function(track, axis) {
-  if (ggplot2::is_ggplot(track)) own_band(track, axis) else track_bands(track)
+# one band, a result as its display's at the stack's `px`
+band_of <- function(track, axis, px = NULL) {
+  if (ggplot2::is_ggplot(track)) own_band(track, axis)
+  else track_bands(track, px)
 }
 
 #' The figure height that draws a stack at its display's sizes
@@ -93,22 +94,29 @@ jbrowse_width <- function(fig) {
   if (is.null(fig$patches$layout$heights)) {
     stop("jbrowse_width() measures a jbrowse_stack() figure", call. = FALSE)
   }
-  px <- max(vapply(c(fig$patches$plots, list(fig)), read_px, 0))
+  px <- max(vapply(c(fig$patches$plots, list(fig)), function(p)
+    result_px(attr(p$data, "jbrowse")), 0))
   if (px == 0) px <- 10 * PX_PER_INCH
   grob <- patchwork::patchworkGrob(fig)
   margins <- grid::convertWidth(sum(grob$widths), "in", valueOnly = TRUE)
   min(49, px / PX_PER_INCH + margins)
 }
 
-# The display pixels a band's track was read across, 0 for a plot of one's
-# own or a track read with no width
-read_px <- function(p) {
-  x <- attr(p$data, "jbrowse")
+# The display pixels a result was read across, 0 for none or a track read
+# with no width
+result_px <- function(x) {
   if (is.null(x)) return(0)
   if (!is.null(x$width)) return(x$width)
   if (is.null(x$bp_per_px)) return(0)
   r <- regions_read(x)
   sum(r$end - r$start) / x$bp_per_px
+}
+
+# The widest pixels any of `results` was read across, NULL if none was read
+# at a width, so an alignments track stacked with them draws at that width
+stack_px <- function(results) {
+  px <- max(0, vapply(results, result_px, 0))
+  if (px > 0) px
 }
 
 # The display pixels a figure gives an inch: a 1,500 pixel view across 10
@@ -243,9 +251,11 @@ scale_x_jbrowse <- function(object, ...) genomic_x(object, ...)
 
 # A track's bands and their heights in display pixels: a feature track as
 # tall as its laid-out pixels, an alignments track's bands as its display
-# sizes them
-track_bands <- function(x) {
-  if (inherits(x, "jbrowse_alignments")) return(alignment_bands(x))
+# sizes them at `px`
+track_bands <- function(x, px = NULL) {
+  if (inherits(x, "jbrowse_alignments")) {
+    return(alignment_bands(x, alignment_options(x, width = px)))
+  }
   height <- if (inherits(x, "jbrowse_features")) max(30, x$height)
     else if (inherits(x, "jbrowse_variants")) row_px(x) * nrow(x$rows)
     else x$height
