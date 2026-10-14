@@ -41,6 +41,16 @@ test_that("the display's settings reach the tables", {
   expect_equal(attr(typed$legend, "title"), "type")
 })
 
+test_that("an identity key lists every domain color, drawn or not, as the browser does", {
+  keyed <- jbrowse_features(gff, "ctgA", 0, 25000, display = list(color = list(
+    scale = "identity", domain = c("goldenrod", "purple"),
+    labels = c("Drawn", "Not drawn"))))
+  expect_false("#800080" %in% keyed$rects$color)
+  expect_equal(keyed$legend$label, c("Drawn", "Not drawn"))
+  guide <- ggplot2::get_guide_data(ggplot2::autoplot(keyed), "fill")
+  expect_equal(guide$.label, c("Drawn", "Not drawn"))
+})
+
 test_that("a fitted track gives up what the browser gives up to fit it", {
   fit <- jbrowse_features(gff, "ctgA", 0, 25000,
     display = list(heightMode = "fit", height = 100))

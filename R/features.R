@@ -120,6 +120,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
   t <- call_engine("features", args)
   legend <- as_frame(t$legend)
   attr(legend, "title") <- t$legendTitle
+  attr(legend, "complete") <- TRUE
   all_features <- as_frame(t$features)
   all_subfeatures <- as_frame(t$subfeatures)
   join_regions(regions, lapply(seq_len(nrow(regions)), function(i) {
@@ -280,7 +281,7 @@ geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
     jbrowse_layer(ggplot2::GeomRect, data, boxes,
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = top, ymax = top + height,
-        fill = color), list(...)),
+        fill = color), list(...), keyed = "complete"),
     jbrowse_layer(ggplot2::GeomRect, data, arrow_stems,
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
