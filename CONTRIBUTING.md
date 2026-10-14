@@ -7,10 +7,11 @@
   `scripts/extdata-*.sh` make the human clips.
 - Run `devtools::document()` after editing a roxygen comment. `man/` and
   `NAMESPACE` are generated.
-- `scripts/figures.R` redraws the figures in `man/figures`.
-- `scripts/gallery.R` redraws the README's JBrowse-and-R gallery. Each entry
-  holds the `jb2export` arguments and the ggjbrowse call, so adding an example
-  is adding one entry. It needs a built jbrowse-components checkout
+- `scripts/figures.R` redraws the README's quick-start figure.
+- `scripts/gallery.R` redraws the README's JBrowse-and-R gallery and writes
+  `docs/gallery.md`, the configs in `gallery/jb2export` and the README's
+  table. Each entry holds the `jb2export` arguments and the ggjbrowse recipe,
+  so adding an example is adding one entry. It needs a built jbrowse-components checkout
   (`JBROWSE_COMPONENTS`), the installed package and ImageMagick. `@jbrowse/img`
   4.3.0 is too old: use 5.0.0-beta or the checkout, which the two clustered
   rows need until a release carries commit `e2cef5c883`.

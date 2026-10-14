@@ -1,0 +1,25 @@
+{
+  "views": [
+    {
+      "type": "LinearSyntenyView",
+      "tracks": [
+        ["hg002"]
+      ],
+      "color": {
+        "field": "strand"
+      },
+      "views": [
+        {
+          "assembly": "maternal",
+          "loc": "chr8_MATERNAL:5,250,001-14,250,000",
+          "tracks": ["maternal genes"]
+        },
+        {
+          "assembly": "paternal",
+          "loc": "chr8_PATERNAL:5,250,001-14,250,000",
+          "tracks": ["paternal genes"]
+        }
+      ]
+    }
+  ]
+}

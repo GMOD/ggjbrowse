@@ -1,0 +1,34 @@
+[
+  {
+    "type": "VariantTrack",
+    "trackId": "people",
+    "name": "1000 Genomes",
+    "assemblyNames": ["hg19"],
+    "adapter": {
+      "type": "VcfTabixAdapter",
+      "vcfGzLocation": {
+        "localPath": "../../inst/extdata/1000g_dcst2.vcf.gz",
+        "locationType": "LocalPathLocation"
+      },
+      "index": {
+        "location": {
+          "localPath": "../../inst/extdata/1000g_dcst2.vcf.gz.tbi",
+          "locationType": "LocalPathLocation"
+        }
+      },
+      "samplesTsvLocation": {
+        "localPath": "../../inst/extdata/1000g_dcst2_samples.tsv",
+        "locationType": "LocalPathLocation"
+      }
+    },
+    "displays": [
+      {
+        "type": "LinearMultiSampleVariantDisplay",
+        "displayId": "people-display",
+        "height": 450,
+        "variantLayout": "columns",
+        "rowColor": "superpopulation"
+      }
+    ]
+  }
+]

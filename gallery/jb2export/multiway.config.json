@@ -1,0 +1,127 @@
+{
+  "assemblies": [
+    {
+      "name": "hg38",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "hg38-refseq",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "uri": "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.chrom.sizes"
+          }
+        }
+      }
+    },
+    {
+      "name": "panTro6",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "panTro6-refseq",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "uri": "https://hgdownload.soe.ucsc.edu/goldenPath/panTro6/bigZips/panTro6.chrom.sizes"
+          }
+        }
+      }
+    },
+    {
+      "name": "gorGor6",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "gorGor6-refseq",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "uri": "https://hgdownload.soe.ucsc.edu/goldenPath/gorGor6/bigZips/gorGor6.chrom.sizes"
+          }
+        }
+      }
+    },
+    {
+      "name": "ponAbe3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "ponAbe3-refseq",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "uri": "https://hgdownload.soe.ucsc.edu/goldenPath/ponAbe3/bigZips/ponAbe3.chrom.sizes"
+          }
+        }
+      }
+    }
+  ],
+  "tracks": [
+    {
+      "type": "SyntenyTrack",
+      "trackId": "primates",
+      "name": "liftOver to primates",
+      "assemblyNames": ["hg38", "panTro6", "gorGor6", "ponAbe3"],
+      "adapter": {
+        "type": "MultiPairwiseSyntenyAdapter",
+        "adapters": [
+          {
+            "type": "PairwiseIndexedPAFAdapter",
+            "pifGzLocation": {
+              "localPath": "../../inst/extdata/hg38ToPanTro6.over.pif.gz",
+              "locationType": "LocalPathLocation"
+            },
+            "index": {
+              "location": {
+                "localPath": "../../inst/extdata/hg38ToPanTro6.over.pif.gz.csi",
+                "locationType": "LocalPathLocation"
+              },
+              "indexType": "CSI"
+            },
+            "assemblyNames": ["panTro6", "hg38"]
+          },
+          {
+            "type": "PairwiseIndexedPAFAdapter",
+            "pifGzLocation": {
+              "localPath": "../../inst/extdata/hg38ToGorGor6.over.pif.gz",
+              "locationType": "LocalPathLocation"
+            },
+            "index": {
+              "location": {
+                "localPath": "../../inst/extdata/hg38ToGorGor6.over.pif.gz.csi",
+                "locationType": "LocalPathLocation"
+              },
+              "indexType": "CSI"
+            },
+            "assemblyNames": ["gorGor6", "hg38"]
+          },
+          {
+            "type": "PairwiseIndexedPAFAdapter",
+            "pifGzLocation": {
+              "localPath": "../../inst/extdata/hg38ToPonAbe3.over.pif.gz",
+              "locationType": "LocalPathLocation"
+            },
+            "index": {
+              "location": {
+                "localPath": "../../inst/extdata/hg38ToPonAbe3.over.pif.gz.csi",
+                "locationType": "LocalPathLocation"
+              },
+              "indexType": "CSI"
+            },
+            "assemblyNames": ["ponAbe3", "hg38"]
+          }
+        ]
+      },
+      "displays": [
+        {
+          "type": "MultiWaySyntenyDisplay",
+          "displayId": "primates-display",
+          "height": 300,
+          "rows": {
+            "domain": ["panTro6", "gorGor6", "ponAbe3"]
+          },
+          "ribbonColor": {
+            "field": "strand"
+          }
+        }
+      ]
+    }
+  ]
+}

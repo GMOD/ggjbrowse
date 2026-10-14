@@ -1,0 +1,98 @@
+[
+  {
+    "type": "BigWigAdapter",
+    "name": "GM12878",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_gm12878.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "K562",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_k562.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "HEPG2",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_hepg2.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "HUVEC",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_huvec.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "HMEC",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_hmec.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "NHEK",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_nhek.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "HELAS3",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_helas3.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "A549",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_a549.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "MCF7",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_mcf7.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "HSMM",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_hsmm.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "HCM",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_hcm.bw",
+      "locationType": "LocalPathLocation"
+    }
+  },
+  {
+    "type": "BigWigAdapter",
+    "name": "HCT116",
+    "bigWigLocation": {
+      "localPath": "../../inst/extdata/hbb_dnase_hct116.bw",
+      "locationType": "LocalPathLocation"
+    }
+  }
+]

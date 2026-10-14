@@ -1,0 +1,107 @@
+{
+  "assemblies": [
+    {
+      "name": "maternal",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "maternal-refseq",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "localPath": "../../gallery/jb2export/maternal.chrom.sizes",
+            "locationType": "LocalPathLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "paternal",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "paternal-refseq",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "localPath": "../../gallery/jb2export/paternal.chrom.sizes",
+            "locationType": "LocalPathLocation"
+          }
+        }
+      }
+    }
+  ],
+  "tracks": [
+    {
+      "type": "SyntenyTrack",
+      "trackId": "hg002",
+      "name": "hg002",
+      "assemblyNames": ["maternal", "paternal"],
+      "adapter": {
+        "type": "ChainAdapter",
+        "chainLocation": {
+          "localPath": "../../inst/extdata/hg002_chr8.chain",
+          "locationType": "LocalPathLocation"
+        },
+        "targetAssembly": "maternal",
+        "queryAssembly": "paternal"
+      }
+    },
+    {
+      "type": "FeatureTrack",
+      "trackId": "maternal genes",
+      "name": "maternal genes",
+      "assemblyNames": ["maternal"],
+      "adapter": {
+        "type": "Gff3TabixAdapter",
+        "gffGzLocation": {
+          "localPath": "../../inst/extdata/hg002_mat_genes.gff3.gz",
+          "locationType": "LocalPathLocation"
+        },
+        "index": {
+          "location": {
+            "localPath": "../../inst/extdata/hg002_mat_genes.gff3.gz.tbi",
+            "locationType": "LocalPathLocation"
+          },
+          "indexType": "TBI"
+        }
+      },
+      "displays": [
+        {
+          "type": "LinearBasicDisplay",
+          "displayId": "maternal genes-display",
+          "displayMode": "compact",
+          "showLabels": false,
+          "showOnlyGenes": true
+        }
+      ]
+    },
+    {
+      "type": "FeatureTrack",
+      "trackId": "paternal genes",
+      "name": "paternal genes",
+      "assemblyNames": ["paternal"],
+      "adapter": {
+        "type": "Gff3TabixAdapter",
+        "gffGzLocation": {
+          "localPath": "../../inst/extdata/hg002_pat_genes.gff3.gz",
+          "locationType": "LocalPathLocation"
+        },
+        "index": {
+          "location": {
+            "localPath": "../../inst/extdata/hg002_pat_genes.gff3.gz.tbi",
+            "locationType": "LocalPathLocation"
+          },
+          "indexType": "TBI"
+        }
+      },
+      "displays": [
+        {
+          "type": "LinearBasicDisplay",
+          "displayId": "paternal genes-display",
+          "displayMode": "compact",
+          "showLabels": false,
+          "showOnlyGenes": true
+        }
+      ]
+    }
+  ]
+}

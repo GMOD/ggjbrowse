@@ -1,0 +1,573 @@
+# Gallery recipes
+
+Each figure in the README's gallery, drawn from the package's own data by
+ggjbrowse and by JBrowse.
+
+- **ggjbrowse:** each R recipe runs as written after
+
+  ```r
+  library(ggjbrowse)
+  e <- function(f) system.file("extdata", f, package = "ggjbrowse")
+  ```
+
+- **JBrowse:** each shell recipe runs `jb2export` from `@jbrowse/img`,
+  JBrowse's own renderer, from the root of a checkout of this repo. It needs
+  5.0.0-beta or later, and the clustered rows need jbrowse-components
+  commit `e2cef5c883`, in no release yet.
+- `scripts/gallery.R` draws both and writes this page, so edit an example
+  there.
+
+<a id="genes_and_reads"></a>
+
+## GENCODE genes over direct RNA reads
+
+`chr12:6,534,201-6,538,700`
+
+<table>
+<tr><td width="50%"><img src="../gallery/genes_and_reads-jbrowse.webp" alt="GENCODE genes over direct RNA reads in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/genes_and_reads-r.webp" alt="GENCODE genes over direct RNA reads drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"),
+  "chr12:6,534,201-6,538,700")
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"),
+  "chr12:6,534,201-6,538,700")
+autoplot(reads, above = genes)
+```
+
+```sh
+jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
+  --gffgz inst/extdata/gapdh_gencode.gff3.gz \
+  --bam inst/extdata/gapdh_direct_rna.bam showLegend=true heightMode:grow growMaxHeight=2000 \
+  --loc chr12:6,534,201-6,538,700 \
+  --width 1200 --out genes_and_reads.png
+```
+
+<a id="long_reads_sv"></a>
+
+## COLO829 der(3) split reads chained across its two chr3 breakpoints
+
+`chr3:25,358,500-25,359,800`
+
+<table>
+<tr><td width="50%"><img src="../gallery/long_reads_sv-jbrowse.webp" alt="COLO829 der(3) split reads chained across its two chr3 breakpoints in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/long_reads_sv-r.webp" alt="COLO829 der(3) split reads chained across its two chr3 breakpoints drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
+  "chr3:25,358,500-25,359,800",
+  display = list(unit = "chain", readConnections = "arc",
+    color = list(field = "strand"), filter = list(split = "only"))))
+```
+
+```sh
+jb2export --hub hg38 \
+  --bam inst/extdata/colo829_tumor_chr3.bam showLegend=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain color.field=strand filter.split=only \
+  --loc chr3:25,358,500-25,359,800 \
+  --width 1200 --out long_reads_sv.png
+```
+
+<a id="deletion"></a>
+
+## Reads sorted by the base at the center, over a somatic deletion
+
+`chr10:122,831,700-122,840,800`
+
+<table>
+<tr><td width="50%"><img src="../gallery/deletion-jbrowse.webp" alt="Reads sorted by the base at the center, over a somatic deletion in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/deletion-r.webp" alt="Reads sorted by the base at the center, over a somatic deletion drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
+  "chr10:122,831,700-122,840,800",
+  display = list(sort = list(type = "basePair", pos = 122836300))))
+```
+
+```sh
+jb2export --hub hg38 \
+  --bam inst/extdata/hg008t_cuzd1_deletion.bam showLegend=true heightMode:grow growMaxHeight=2000 sort:base \
+  --loc chr10:122,831,700-122,840,800 \
+  --width 1200 --out deletion.png
+```
+
+<a id="compact_reads"></a>
+
+## Compact reads over the same deletion
+
+`chr10:122,831,700-122,840,800`
+
+<table>
+<tr><td width="50%"><img src="../gallery/compact_reads-jbrowse.webp" alt="Compact reads over the same deletion in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/compact_reads-r.webp" alt="Compact reads over the same deletion drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
+  "chr10:122,831,700-122,840,800", display = list(featureHeight = 3)))
+```
+
+```sh
+jb2export --hub hg38 \
+  --bam inst/extdata/hg008t_cuzd1_deletion.bam showLegend=true heightMode:grow growMaxHeight=2000 featureHeight:compact \
+  --loc chr10:122,831,700-122,840,800 \
+  --width 1200 --out compact_reads.png
+```
+
+<a id="base_zoom"></a>
+
+## Base-level zoom at the deletion's left edge
+
+`chr10:122,835,300-122,835,420`
+
+<table>
+<tr><td width="50%"><img src="../gallery/base_zoom-jbrowse.webp" alt="Base-level zoom at the deletion's left edge in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/base_zoom-r.webp" alt="Base-level zoom at the deletion's left edge drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
+  "chr10:122,835,300-122,835,420",
+  display = list(sort = list(type = "basePair", pos = 122835344))))
+```
+
+```sh
+jb2export --hub hg38 \
+  --bam inst/extdata/hg008t_cuzd1_deletion.bam showLegend=true heightMode:grow growMaxHeight=2000 sort:base \
+  --loc chr10:122,835,300-122,835,420 \
+  --width 1200 --out base_zoom.png
+```
+
+<a id="inversion"></a>
+
+## Split reads chained across an inversion, with their arcs
+
+`chr1:197,786,900-197,789,700`
+
+<table>
+<tr><td width="50%"><img src="../gallery/inversion-jbrowse.webp" alt="Split reads chained across an inversion, with their arcs in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/inversion-r.webp" alt="Split reads chained across an inversion, with their arcs drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
+  "chr1:197,786,900-197,789,700",
+  display = list(unit = "chain", readConnections = "arc",
+    color = list(field = "pairOrientation"), facet = list(field = "split"))))
+```
+
+```sh
+jb2export --hub hg38 \
+  --bam inst/extdata/hg00151_chr1_inversion.bam showLegend=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain color.field=pairOrientation facet=split coverageHeight=80 \
+  --loc chr1:197,786,900-197,789,700 \
+  --width 1200 --out inversion.png
+```
+
+<a id="methylation"></a>
+
+## CpG methylation from MM/ML tags
+
+`20:10,001-22,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/methylation-jbrowse.webp" alt="CpG methylation from MM/ML tags in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/methylation-r.webp" alt="CpG methylation from MM/ML tags drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
+  reference = e("hg38_clip.fa"),
+  display = list(baseColor = list(field = "modifications"),
+    modifications = list(unmodified = "all"))))
+```
+
+```sh
+jb2export --fasta inst/extdata/hg38_clip.fa \
+  --bam inst/extdata/methylation_clip.bam baseColor:methylation showLegend=true heightMode:grow growMaxHeight=2000 \
+  --loc 20:10,001-22,000 \
+  --width 1200 --out methylation.png
+```
+
+<a id="dnase_rows"></a>
+
+## DNase in twelve cell lines over the beta-globin locus
+
+`chr11:5,270,001-5,320,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/dnase_rows-jbrowse.webp" alt="DNase in twelve cell lines over the beta-globin locus in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/dnase_rows-r.webp" alt="DNase in twelve cell lines over the beta-globin locus drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+cells <- c("gm12878", "k562", "hepg2", "huvec", "hmec", "nhek", "helas3",
+  "a549", "mcf7", "hsmm", "hcm", "hct116")
+dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
+  function(cell) list(type = "BigWigAdapter", name = toupper(cell),
+    bigWigLocation = list(uri = e(sprintf("hbb_dnase_%s.bw", cell))))))
+autoplot(jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000"))
+```
+
+```sh
+jb2export --hub hg38 \
+  --multiwig gallery/jb2export/dnase.json showLegend=true name:DNase \
+  --loc chr11:5,270,001-5,320,000 \
+  --width 1200 --out dnase_rows.png
+```
+
+<a id="dnase_clustered"></a>
+
+## DNase in twelve cell lines as density, clustered by signal
+
+`chr11:5,270,001-5,320,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/dnase_clustered-jbrowse.webp" alt="DNase in twelve cell lines as density, clustered by signal in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/dnase_clustered-r.webp" alt="DNase in twelve cell lines as density, clustered by signal drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+cells <- c("gm12878", "k562", "hepg2", "huvec", "hmec", "nhek", "helas3",
+  "a549", "mcf7", "hsmm", "hcm", "hct116")
+dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
+  function(cell) list(type = "BigWigAdapter", name = toupper(cell),
+    bigWigLocation = list(uri = e(sprintf("hbb_dnase_%s.bw", cell))))))
+w <- jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000",
+  display = list(mark = "span"))
+w$tree <- hclust(dist(as.matrix(w)), "average")
+autoplot(w)
+```
+
+```sh
+jb2export --hub hg38 \
+  --multiwig gallery/jb2export/dnase.json showLegend=true name:DNase mark=span runClustering=true \
+  --loc chr11:5,270,001-5,320,000 \
+  --width 1200 --out dnase_clustered.png
+```
+
+<a id="conservation"></a>
+
+## phyloP conservation across GAPDH as bars, a line and density
+
+`chr12:6,534,201-6,538,700`
+
+<table>
+<tr><td width="50%"><img src="../gallery/conservation-jbrowse.webp" alt="phyloP conservation across GAPDH as bars, a line and density in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/conservation-r.webp" alt="phyloP conservation across GAPDH as bars, a line and density drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+bw <- e("gapdh_phylop100way.bw")
+gapdh <- "chr12:6,534,201-6,538,700"
+patchwork::wrap_plots(ncol = 1,
+  autoplot(jbrowse_wiggle(bw, gapdh, width = 1100)),
+  autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
+    display = list(mark = "line", interpolate = "linear"))),
+  autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
+    display = list(mark = "span"))))
+```
+
+```sh
+jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
+  --bigwig inst/extdata/gapdh_phylop100way.bw showLegend=true \
+  --bigwig inst/extdata/gapdh_phylop100way.bw mark=line interpolate=linear \
+  --bigwig inst/extdata/gapdh_phylop100way.bw mark=span \
+  --loc chr12:6,534,201-6,538,700 \
+  --width 1200 --out conservation.png
+```
+
+<a id="two_regions"></a>
+
+## Genes, conservation and strand-colored reads over two regions end to end
+
+`chr12:6,534,201-6,535,700 chr12:6,537,201-6,538,700`
+
+<table>
+<tr><td width="50%"><img src="../gallery/two_regions-jbrowse.webp" alt="Genes, conservation and strand-colored reads over two regions end to end in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/two_regions-r.webp" alt="Genes, conservation and strand-colored reads over two regions end to end drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci)
+signal <- jbrowse_wiggle(e("gapdh_phylop100way.bw"), loci)
+reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
+  display = list(color = list(field = "strand")))
+jbrowse_stack(genes, signal, reads)
+```
+
+```sh
+jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
+  --gffgz inst/extdata/gapdh_gencode.gff3.gz \
+  --bigwig inst/extdata/gapdh_phylop100way.bw showLegend=true \
+  --bam inst/extdata/gapdh_direct_rna.bam showLegend=true heightMode:grow growMaxHeight=2000 color.field=strand \
+  --loc 'chr12:6,534,201-6,535,700 chr12:6,537,201-6,538,700' \
+  --width 1200 --out two_regions.png
+```
+
+<a id="variants_by_population"></a>
+
+## 100 people's genotypes across DCST2 (GRCh37), colored by superpopulation
+
+`1:155,000,001-155,050,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/variants_by_population-jbrowse.webp" alt="100 people's genotypes across DCST2 (GRCh37), colored by superpopulation in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/variants_by_population-r.webp" alt="100 people's genotypes across DCST2 (GRCh37), colored by superpopulation drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
+  samples = e("1000g_dcst2_samples.tsv"),
+  display = list(rowColor = list(field = "superpopulation")))
+autoplot(v, layout = "columns")
+```
+
+```sh
+jb2export --hub hg19 \
+  --tracks gallery/jb2export/people.tracks.json \
+  --track people \
+  --loc 1:155,000,001-155,050,000 \
+  --width 1200 --out variants_by_population.png
+```
+
+<a id="variants_clustered"></a>
+
+## 100 people's genotypes across DCST2 clustered, the tree beside the rows
+
+`1:155,000,001-155,050,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/variants_clustered-jbrowse.webp" alt="100 people's genotypes across DCST2 clustered, the tree beside the rows in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/variants_clustered-r.webp" alt="100 people's genotypes across DCST2 clustered, the tree beside the rows drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
+  samples = e("1000g_dcst2_samples.tsv"),
+  display = list(rowColor = list(field = "superpopulation")))
+v$tree <- hclust(dist(as.matrix(v)), "average")
+autoplot(v, layout = "columns")
+```
+
+```sh
+jb2export --hub hg19 \
+  --tracks gallery/jb2export/people.tracks.json \
+  --track people runClustering=true \
+  --loc 1:155,000,001-155,050,000 \
+  --width 1200 --out variants_clustered.png
+```
+
+<a id="collapsed_introns"></a>
+
+## GAPDH's nine exons side by side, with the junctions between them as arcs
+
+`ENST00000229239.10's exons, each padded by 20 bp`
+
+<table>
+<tr><td width="50%"><img src="../gallery/collapsed_introns-jbrowse.webp" alt="GAPDH's nine exons side by side, with the junctions between them as arcs in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/collapsed_introns-r.webp" alt="GAPDH's nine exons side by side, with the junctions between them as arcs drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+gff <- read.delim(gzfile(e("gapdh_gencode.gff3.gz")), header = FALSE,
+  comment.char = "#")
+exon <- gff[gff$V3 == "exon" &
+  grepl("transcript_id=ENST00000229239.10;", gff$V9), ]
+exon <- exon[order(exon$V4), ]
+exons <- data.frame(chrom = exon$V1, start = exon$V4 - 1 - 20,
+  end = exon$V5 + 20)
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), exons)
+reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), exons,
+  display = list(color = list(field = "strand")))
+jbrowse_stack(genes, reads)
+```
+
+```sh
+jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
+  --gffgz inst/extdata/gapdh_gencode.gff3.gz \
+  --bam inst/extdata/gapdh_direct_rna.bam sashimi:auto color.field=strand showLegend=true heightMode:grow growMaxHeight=2000 \
+  --loc 'chr12:6534497-6534589 chr12:6534790-6534881 chr12:6536474-6536613 chr12:6536664-6536810 chr12:6536900-6537030 chr12:6537081-6537236 chr12:6537289-6537410 chr12:6537564-6538016 chr12:6538081-6538391' \
+  --width 1200 --out collapsed_introns.png
+```
+
+<a id="inversion_synteny"></a>
+
+## HG002's maternal chr8 over its paternal copy at 8p23.1
+
+`chr8_MATERNAL:5,250,001-14,250,000 chr8_PATERNAL:5,250,001-14,250,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/inversion_synteny-jbrowse.webp" alt="HG002's maternal chr8 over its paternal copy at 8p23.1 in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/inversion_synteny-r.webp" alt="HG002's maternal chr8 over its paternal copy at 8p23.1 drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+r <- "5,250,001-14,250,000"
+autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
+  paste0("chr8_PATERNAL:", r),
+  view = list(color = list(field = "strand")), swap = TRUE,
+  labels = c(query = "paternal", target = "maternal")))
+```
+
+```sh
+jb2export synteny \
+  --chromSizes gallery/jb2export/maternal.chrom.sizes loc:chr8_MATERNAL:5,250,001-14,250,000 \
+  --chain inst/extdata/hg002_chr8.chain \
+  --chromSizes gallery/jb2export/paternal.chrom.sizes loc:chr8_PATERNAL:5,250,001-14,250,000 \
+  --colorBy strand \
+  --width 1200 --out inversion_synteny.png
+```
+
+<a id="inversion_dotplot"></a>
+
+## HG002's maternal chr8 against its paternal copy as a dotplot
+
+`chr8_MATERNAL chr8_PATERNAL`
+
+<table>
+<tr><td width="50%"><img src="../gallery/inversion_dotplot-jbrowse.webp" alt="HG002's maternal chr8 against its paternal copy as a dotplot in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/inversion_dotplot-r.webp" alt="HG002's maternal chr8 against its paternal copy as a dotplot drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
+  view = list(color = list(field = "strand")), swap = TRUE,
+  labels = c(query = "paternal", target = "maternal")))
+```
+
+```sh
+jb2export dotplot \
+  --chromSizes gallery/jb2export/maternal.chrom.sizes \
+  --chain inst/extdata/hg002_chr8.chain \
+  --chromSizes gallery/jb2export/paternal.chrom.sizes \
+  --colorBy strand \
+  --width 1200 --out inversion_dotplot.png
+```
+
+<a id="whole_genome"></a>
+
+## Peach against grape, every chromosome
+
+`whole genome`
+
+<table>
+<tr><td width="50%"><img src="../gallery/whole_genome-jbrowse.webp" alt="Peach against grape, every chromosome in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/whole_genome-r.webp" alt="Peach against grape, every chromosome drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_dotplot(e("peach_grape.paf.gz"),
+  labels = c(query = "peach", target = "grape")))
+```
+
+```sh
+jb2export dotplot \
+  --chromSizes gallery/jb2export/peach.chrom.sizes \
+  --paf inst/extdata/peach_grape.paf.gz \
+  --chromSizes gallery/jb2export/grape.chrom.sizes \
+  --width 1200 --out whole_genome.png
+```
+
+<a id="amylase_synteny"></a>
+
+## GRCh38 over HG00133 at the amylase genes
+
+`GRCh38#0#chr1:103,520,894-103,832,637`
+
+<table>
+<tr><td width="50%"><img src="../gallery/amylase_synteny-jbrowse.webp" alt="GRCh38 over HG00133 at the amylase genes in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/amylase_synteny-r.webp" alt="GRCh38 over HG00133 at the amylase genes drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
+  "GRCh38#0#chr1:103,520,894-103,832,637",
+  "HG00133#1#CM090045.1:103,669,666-103,981,330",
+  view = list(color = list(field = "strand")),
+  labels = c(query = "GRCh38", target = "HG00133")))
+```
+
+```sh
+jb2export synteny \
+  --chromSizes gallery/jb2export/GRCh38.chrom.sizes 'loc:GRCh38#0#chr1:103,520,894-103,832,637' \
+  --paf inst/extdata/hprc_amylase.paf \
+  --chromSizes gallery/jb2export/HG00133.chrom.sizes 'loc:HG00133#1#CM090045.1:103,669,666-103,981,330' \
+  --colorBy strand \
+  --width 1200 --out amylase_synteny.png
+```
+
+<a id="amylase_zoom"></a>
+
+## 3 kb at the amylase genes, the match block cut by an 80 bp deletion
+
+`GRCh38#0#chr1:103,619,501-103,622,500`
+
+<table>
+<tr><td width="50%"><img src="../gallery/amylase_zoom-jbrowse.webp" alt="3 kb at the amylase genes, the match block cut by an 80 bp deletion in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/amylase_zoom-r.webp" alt="3 kb at the amylase genes, the match block cut by an 80 bp deletion drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
+  "GRCh38#0#chr1:103,619,501-103,622,500",
+  "HG00133#1#CM090045.1:103,768,401-103,771,400",
+  view = list(color = list(field = "strand")),
+  labels = c(query = "GRCh38", target = "HG00133")))
+```
+
+```sh
+jb2export synteny \
+  --chromSizes gallery/jb2export/GRCh38.chrom.sizes 'loc:GRCh38#0#chr1:103,619,501-103,622,500' \
+  --paf inst/extdata/hprc_amylase.paf \
+  --chromSizes gallery/jb2export/HG00133.chrom.sizes 'loc:HG00133#1#CM090045.1:103,768,401-103,771,400' \
+  --colorBy strand \
+  --width 1200 --out amylase_zoom.png
+```
+
+<a id="synteny_genes"></a>
+
+## HG002's maternal chr8 over its paternal copy, each with its genes
+
+`chr8_MATERNAL:5,250,001-14,250,000 chr8_PATERNAL:5,250,001-14,250,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/synteny_genes-jbrowse.webp" alt="HG002's maternal chr8 over its paternal copy, each with its genes in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/synteny_genes-r.webp" alt="HG002's maternal chr8 over its paternal copy, each with its genes drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+r <- "5,250,001-14,250,000"
+s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
+  paste0("chr8_PATERNAL:", r),
+  view = list(color = list(field = "strand")), swap = TRUE,
+  labels = c(query = "paternal", target = "maternal"))
+gene_track <- function(file, contig) jbrowse_features(e(file),
+  paste0(contig, ":", r),
+  display = list(displayMode = "compact", showLabels = FALSE,
+    showOnlyGenes = TRUE))
+autoplot(s, above = gene_track("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
+  below = gene_track("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
+```
+
+```sh
+jb2export --config gallery/jb2export/synteny_genes.config.json \
+  --spec gallery/jb2export/synteny_genes.spec.json \
+  --width 1200 --out synteny_genes.png
+```
+
+<a id="multiway"></a>
+
+## The TP53 neighbourhood on hg38 over chimp, gorilla and orangutan
+
+`chr17:7,400,001-7,700,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/multiway-jbrowse.webp" alt="The TP53 neighbourhood on hg38 over chimp, gorilla and orangutan in JBrowse" width="100%"></td><td width="50%"><img src="../gallery/multiway-r.webp" alt="The TP53 neighbourhood on hg38 over chimp, gorilla and orangutan drawn by ggjbrowse" width="100%"></td></tr>
+</table>
+
+```r
+liftover <- function(genome, assembly) list(type = "PairwiseIndexedPAFAdapter",
+  pifGzLocation = list(uri = e(sprintf("hg38To%s.over.pif.gz", genome))),
+  index = list(
+    location = list(uri = e(sprintf("hg38To%s.over.pif.gz.csi", genome))),
+    indexType = "CSI"),
+  assemblyNames = c(assembly, "hg38"))
+primates <- list(type = "MultiPairwiseSyntenyAdapter", adapters = list(
+  liftover("PanTro6", "panTro6"), liftover("GorGor6", "gorGor6"),
+  liftover("PonAbe3", "ponAbe3")))
+autoplot(jbrowse_multiway(primates, "chr17:7,400,001-7,700,000", "hg38",
+  lanes = c("panTro6", "gorGor6", "ponAbe3"),
+  display = list(ribbonColor = list(field = "strand"))))
+```
+
+```sh
+jb2export --config gallery/jb2export/multiway.config.json \
+  --assembly hg38 \
+  --track primates \
+  --loc chr17:7,400,001-7,700,000 \
+  --width 1200 --out multiway.png
+```
+
