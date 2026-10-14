@@ -41,8 +41,8 @@ sequence_adapter <- function(reference) {
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param reference the reference: an indexed FASTA, plain or bgzipped, or a
-#'   2bit, path or URL; a CRAM needs it, and a BAM read without an MD tag is
-#'   compared against it
+#'   2bit, path or URL; a CRAM and the bisulfite layer need it, and a BAM
+#'   read without an MD tag is compared against it
 #' @param reference_chrom the contig's name in `reference`, where the file
 #'   spells it another way (`1` in the BAM, `chr1` in the FASTA): one name
 #'   for every region, or one per region
@@ -62,12 +62,16 @@ sequence_adapter <- function(reference) {
 #'     `singletons` and `split` (each `"only"` or `"exclude"`)
 #'   * `baseColor`: the per-base layer painted over the reads:
 #'     `list(field = "modifications")` for the reads' MM/ML base
-#'     modifications, `list(field = "baseQuality")` for each base's Phred
-#'     score; unset paints none. Under `"modifications"` or `"bisulfite"` the
-#'     display greys every mismatched base so the calls stand out
+#'     modifications, `list(field = "bisulfite")` for the methylation a
+#'     bisulfite or EM-seq read shows against `reference` (a retained C is
+#'     methylated, a C read as T is not), `list(field = "baseQuality")` for
+#'     each base's Phred score; unset paints none. Under `"modifications"` or
+#'     `"bisulfite"` the display greys every mismatched base so the calls
+#'     stand out
 #'   * `modifications`: what that layer reads: any of `threshold` (the
 #'     percent probability under which a call is hidden, 10), `unmodified`
-#'     (`"hidden"`, `"calls"` or `"all"`), `cytosineContext` (`"CG"`,
+#'     (`"hidden"`, `"calls"` or `"all"`; bisulfite paints its unmethylated
+#'     calls under either of the last two), `cytosineContext` (`"CG"`,
 #'     `"CHG"`, `"CHH"` or `"all"`) and `shownModifications` (the type codes
 #'     drawn, every one when empty)
 #'   * `sort`: how the rows are laid out: `list(type = "position")` (or
@@ -111,9 +115,9 @@ sequence_adapter <- function(reference) {
 #'     `row`, `fade`
 #'   * `modifications`: each base modification call the layer paints:
 #'     `position`, `read`, `row`, `type` (the code, `m` for 5mC), `name`,
-#'     `probability`, `unmodified` (whether the call is that the base is not
-#'     modified), and the `color` and `opacity` the display paints it at;
-#'     empty without `display$baseColor`
+#'     `probability` (1 for a bisulfite call), `unmodified` (whether the
+#'     call is that the base is not modified), and the `color` and `opacity`
+#'     the display paints it at; empty without `display$baseColor`
 #'   * `qualities`: under `baseColor` `"baseQuality"`, each aligned base:
 #'     `position`, `read`, `row`, `score` (Phred) and the `color` the display
 #'     paints it
@@ -173,6 +177,10 @@ jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
   adapter <- adapter_of(file, function() alignments_adapter(file, index))
   if (adapter$type == "CramAdapter" && is.null(reference)) {
     stop("a CRAM stores its reads against the reference it was encoded with: ",
+      "pass that FASTA or 2bit as `reference =`", call. = FALSE)
+  }
+  if (paints_bisulfite(display) && is.null(reference)) {
+    stop("bisulfite calls compare each read's cytosines to the reference: ",
       "pass that FASTA or 2bit as `reference =`", call. = FALSE)
   }
   regions <- regions_of(region, start, end)
@@ -331,6 +339,10 @@ MUTED_BASE <- "#888"
 paints_modifications <- function(display) {
   is.list(display$baseColor) &&
     isTRUE(display$baseColor$field %in% c("modifications", "bisulfite"))
+}
+
+paints_bisulfite <- function(display) {
+  is.list(display$baseColor) && identical(display$baseColor$field, "bisulfite")
 }
 
 # A config object whose vector slots stay JSON arrays however many values

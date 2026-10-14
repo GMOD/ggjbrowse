@@ -30,8 +30,8 @@ with \code{start} and \code{end}}
 0-based half-open}
 
 \item{reference}{the reference: an indexed FASTA, plain or bgzipped, or a
-2bit, path or URL; a CRAM needs it, and a BAM read without an MD tag is
-compared against it}
+2bit, path or URL; a CRAM and the bisulfite layer need it, and a BAM
+read without an MD tag is compared against it}
 
 \item{reference_chrom}{the contig's name in \code{reference}, where the file
 spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA): one name
@@ -55,12 +55,16 @@ read, an insertion or deletion of 50 bp or more, or a discordant pair),
 \code{singletons} and \code{split} (each \code{"only"} or \code{"exclude"})
 \item \code{baseColor}: the per-base layer painted over the reads:
 \code{list(field = "modifications")} for the reads' MM/ML base
-modifications, \code{list(field = "baseQuality")} for each base's Phred
-score; unset paints none. Under \code{"modifications"} or \code{"bisulfite"} the
-display greys every mismatched base so the calls stand out
+modifications, \code{list(field = "bisulfite")} for the methylation a
+bisulfite or EM-seq read shows against \code{reference} (a retained C is
+methylated, a C read as T is not), \code{list(field = "baseQuality")} for
+each base's Phred score; unset paints none. Under \code{"modifications"} or
+\code{"bisulfite"} the display greys every mismatched base so the calls
+stand out
 \item \code{modifications}: what that layer reads: any of \code{threshold} (the
 percent probability under which a call is hidden, 10), \code{unmodified}
-(\code{"hidden"}, \code{"calls"} or \code{"all"}), \code{cytosineContext} (\code{"CG"},
+(\code{"hidden"}, \code{"calls"} or \code{"all"}; bisulfite paints its unmethylated
+calls under either of the last two), \code{cytosineContext} (\code{"CG"},
 \code{"CHG"}, \code{"CHH"} or \code{"all"}) and \code{shownModifications} (the type codes
 drawn, every one when empty)
 \item \code{sort}: how the rows are laid out: \code{list(type = "position")} (or
@@ -109,9 +113,9 @@ fills it with, which is neither read's color; empty otherwise
 \code{row}, \code{fade}
 \item \code{modifications}: each base modification call the layer paints:
 \code{position}, \code{read}, \code{row}, \code{type} (the code, \code{m} for 5mC), \code{name},
-\code{probability}, \code{unmodified} (whether the call is that the base is not
-modified), and the \code{color} and \code{opacity} the display paints it at;
-empty without \code{display$baseColor}
+\code{probability} (1 for a bisulfite call), \code{unmodified} (whether the
+call is that the base is not modified), and the \code{color} and \code{opacity}
+the display paints it at; empty without \code{display$baseColor}
 \item \code{qualities}: under \code{baseColor} \code{"baseQuality"}, each aligned base:
 \code{position}, \code{read}, \code{row}, \code{score} (Phred) and the \code{color} the display
 paints it

@@ -237,6 +237,40 @@ test_that("modification coloring greys the mismatched bases and drops their key"
   expect_equal(nrow(m$keys$bases), 0)
 })
 
+test_that("bisulfite reads paint their methylated cytosines by context", {
+  bam <- extdata("arabidopsis_wgbs.bam")
+  fa <- extdata("arabidopsis_tair10.fa.gz")
+  locus <- "NC_003070.9:4,406,001-4,408,000"
+  bisulfite <- function(modifications = NULL) jbrowse_alignments(bam, locus,
+    reference = fa, display = list(baseColor = list(field = "bisulfite"),
+      modifications = modifications))
+  cg <- bisulfite()
+  expect_gt(nrow(cg$modifications), 100)
+  expect_false(any(cg$modifications$unmodified))
+  expect_setequal(cg$modifications$probability, 1)
+  expect_equal(cg$modifications$row, cg$reads$row[cg$modifications$read])
+  expect_true("5mC methylated" %in% cg$legend$label)
+  expect_gt(nrow(cg$modification_coverage), 0)
+  expect_setequal(as.character(cg$mismatches$color), "#888")
+  expect_equal(nrow(cg$keys$bases), 0)
+  seq <- jbrowse_sequence(fa, "NC_003070.9", 4406000, 4408000)
+  base_at <- function(p, offset) toupper(substring(seq, p - 4406000 + 1 +
+    offset, p - 4406000 + 1 + offset))
+  forward <- cg$modifications[base_at(cg$modifications$position, 0) == "C", ]
+  expect_gt(nrow(forward), 0)
+  expect_setequal(base_at(forward$position, 1), "G")
+  chh <- bisulfite(list(cytosineContext = "CHH"))
+  expect_false(any(chh$modifications$position %in% cg$modifications$position))
+  calls <- bisulfite(list(unmodified = "calls"))
+  expect_gt(sum(calls$modifications$unmodified), 0)
+  expect_equal(sum(!calls$modifications$unmodified), nrow(cg$modifications))
+  expect_true("Unmethylated" %in% calls$legend$label)
+  p <- ggplot2::ggplot_build(ggplot2::autoplot(cg, "pileup"))
+  expect_true(any(vapply(p$data, nrow, 0) == nrow(cg$modifications)))
+  expect_error(jbrowse_alignments(bam, locus,
+    display = list(baseColor = list(field = "bisulfite"))), "reference")
+})
+
 test_that("base quality paints each aligned base on its read, keyed as a bar", {
   bam <- extdata("methylation_clip.bam")
   q <- jbrowse_alignments(bam, "20", 10000, 10300,
