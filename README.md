@@ -119,8 +119,8 @@ JBrowse does:
   ([compact reads](docs/gallery.md#compact_reads)).
 - `baseColor = list(field = "modifications")` paints MM/ML modification calls
   ([CpG methylation](docs/gallery.md#methylation)).
-- `readConnections = "arc"` adds the read-pair band: each mate pair's and
-  split read's arc, colored by insert size and pair orientation. `"cloud"`
+- `readConnections = "arc"` adds the read-pair band, an arc per mate pair and
+  split read colored by insert size and pair orientation. `"cloud"`
   plots each abnormal pair at its insert size instead.
 - `unit = "chain"` puts a read's mate or split segments on one row, joined by
   a hairline ([COLO829 split reads](docs/gallery.md#long_reads_sv)).
@@ -217,8 +217,7 @@ the fill the display paints it, its hue shaded by the alt dosage
   haplotype, `color`, `filter`, `minorAlleleFrequencyFilter`, ...
 - `samples` is a table of the samples' attributes, which `rowColor` marks the
   rows by.
-- The matrix draws its rows in `v$rows`' order: reorder or filter that table
-  to rearrange them.
+- Reordering or filtering `v$rows` rearranges the matrix's rows.
 - `as.matrix(v)` is the genotype matrix the display's "Cluster rows by
   genotype" clusters, a column per ALT allele with `NA` for a no-call.
 - A tree in `v$tree` puts the rows in its leaf order, and `autoplot()` draws
@@ -233,18 +232,18 @@ the fill the display paints it, its hue shaded by the alt dosage
 an alignments track's bands, top to bottom in the order given, on one x axis,
 with the keys collected.
 
-- Several loci draw end to end, as a view lays out several regions, each tick
-  labelled in its own region's positions
+- `jbrowse_stack()` lays several loci end to end, as a view lays out several
+  regions, and labels each tick in its own region's positions
   ([two regions](docs/gallery.md#two_regions)).
 - A transcript's exons, each with a few bases of flank, lay out side by side
   with the introns collapsed, as JBrowse's **Collapse introns** does, and each
   splice junction arcs from one exon straight to the next
   ([GAPDH's exons](docs/gallery.md#collapsed_introns)).
-- Each band is an ordinary ggplot. Restyle every band with patchwork's `&`,
-  `jbrowse_stack(genes, signal, reads) & theme_classic()`, or draw one alone
-  and add to it. A ggplot of your own stacks as a band on the same axis.
-- A track's settings decide its bands: an alignments track read with
-  `display = list(showCoverage = FALSE)` stacks no coverage band.
+- Each band is an ordinary ggplot, so patchwork's `&` restyles them all, as
+  in `jbrowse_stack(genes, signal, reads) & theme_classic()`. A ggplot of
+  your own stacks as a band on the same axis.
+- An alignments track read with `display = list(showCoverage = FALSE)`
+  stacks no coverage band.
 
 Each band takes the pixels the display gives it. Reads draw at the display's
 `featureHeight` (7, or 3 and 1 for its compact and super-compact settings),
@@ -262,51 +261,59 @@ ggsave("stack.png", fig, width = 10, height = jbrowse_height(fig))
 
 ## Synteny
 
-`jbrowse_synteny()` reads a pairwise alignment (PAF, indexed PIF, MUMmer
-delta, UCSC chain, MashMap) through JBrowse's linear synteny display: the
-blocks two rows of regions share, and the ribbons between them in the view's
-colors and opacity, with each CIGAR insertion, deletion and skip wider than a
-pixel ([HG002's chr8 inversion](docs/gallery.md#inversion_synteny),
+`jbrowse_synteny()`, `jbrowse_dotplot()` and `jbrowse_multiway()` read
+alignments (PAF, indexed PIF, MUMmer delta, UCSC chain, MashMap) through
+JBrowse's synteny displays.
+
+- A file guessed from its extension names its sides `query` and `target`. A
+  PAF names its sequences by assembly when they read `sample#haplotype#contig`
+  ([the amylase locus](docs/gallery.md#amylase_synteny)), and a JBrowse
+  adapter config names assemblies, which `assemblies = c(query, target)` puts
+  on rows.
+- `swap = TRUE` puts the file's target on the top row.
+- `labels = c(query = "peach", target = "grape")` writes those names in the
+  axis titles, whichever side each is on.
+- `guides_jbrowse()` keys a continuous field such as
+  `list(field = "identity")` as the display's `0%` to `100%` bar. A threshold
+  field such as `mapq` keys its bins as chips.
+
+### Two rows
+
+`jbrowse_synteny()` returns the blocks two rows of regions share and the
+ribbons the linear synteny display draws between them, in its colors and
+opacity, with each CIGAR insertion, deletion and skip wider than a pixel
+([HG002's chr8 inversion](docs/gallery.md#inversion_synteny),
 [a CIGAR zoom](docs/gallery.md#amylase_zoom)).
 
 - `view` takes the `LinearSyntenyView`'s settings (`color`, `opacity`,
   `cigarMode`, `minAlignmentLength`, `drawLocationMarkers`, ...).
 - `autoplot(s, above = genes, below = genes2)` stacks tracks over either row
   ([genes on both rows](docs/gallery.md#synteny_genes)).
-- A PAF names its sequences by assembly when they read
-  `sample#haplotype#contig` ([the amylase locus](docs/gallery.md#amylase_synteny)).
-- A file guessed from its extension names its sides `query` and `target`; a
-  JBrowse adapter config names assemblies, and `assemblies = c(query, target)`
-  picks which goes on which row.
-- `swap = TRUE` puts the file's target on the top row instead.
-- `labels = c(query = "peach", target = "grape")` writes those names in the
-  axis titles, whichever side each is on.
-
-`jbrowse_dotplot()` reads the same files through JBrowse's dotplot display, a
-line per block, or per CIGAR step where a block is wide enough on the plot,
-and `view` takes the `DotplotView`'s settings
-([HG002's chr8](docs/gallery.md#inversion_dotplot)). With no regions given, a
-row shows every contig of its assembly in natural order, so a whole-genome
-dotplot is one call ([peach against grape](docs/gallery.md#whole_genome)).
-
-- A continuous field such as `list(field = "identity")` keys as the display's
-  bar, `0%` to `100%`, through `guides_jbrowse()`; a threshold field such as
-  `mapq` keys its bins as chips.
-- The tables are `s$alignments`, `s$ribbons` (each foot's span on its row, and
-  `thin` where the band draws a one-pixel line) and `s$offscreen` (blocks
-  whose mate the other row does not show), which `geom_jbrowse_ribbons()` and
-  `geom_jbrowse_dotplot()` draw.
+- `geom_jbrowse_ribbons()` draws `s$ribbons`, each foot's span on its row,
+  with `thin` set where the band draws a one-pixel line. `s$alignments` holds
+  the blocks.
 - `geom_jbrowse_offscreen_mates()` draws `s$offscreen_strip`, the marks and
-  contig names the band hangs off a row's edge for those blocks, and
-  `autoplot()` keys each contig from `s$offscreen_contigs`.
+  contig names the band hangs off a row's edge for blocks whose mate the other
+  row does not show (`s$offscreen`). `autoplot()` keys each contig from
+  `s$offscreen_contigs`.
+
+### Dotplots
+
+`jbrowse_dotplot()` reads the same files through JBrowse's dotplot display,
+which draws a line per block, or per CIGAR step where a block is wide enough
+on the plot, and `view` takes the `DotplotView`'s settings
+([HG002's chr8](docs/gallery.md#inversion_dotplot)). With no regions given,
+each axis shows every contig of its assembly in natural order, so a
+whole-genome dotplot is one call
+([peach against grape](docs/gallery.md#whole_genome)).
+`geom_jbrowse_dotplot()` draws its lines.
 
 ### Several genomes
 
-`jbrowse_multiway()` reads an all-vs-all PAF (sequences named
-`sample#haplotype#contig`), an indexed PIF or a multi-genome adapter config
-through JBrowse's multi-way synteny display: an anchor lane over the locus
-given, a lane per other genome in the alignments' own coordinates, and the
-ribbons between adjacent lanes
+`jbrowse_multiway()` reads an all-vs-all PAF, an indexed PIF or a
+multi-genome adapter config through JBrowse's multi-way synteny display. It
+returns an anchor lane over the locus given, a lane per other genome in the
+alignments' own coordinates, and the ribbons between adjacent lanes
 ([TP53 in four primates](docs/gallery.md#multiway)).
 
 - `lanes` picks and orders the genomes, or pins a lane to a contig.
