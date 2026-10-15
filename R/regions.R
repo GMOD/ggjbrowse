@@ -21,6 +21,11 @@ reader_regions <- function(adapter, region, start, end) {
   if (is.null(region)) file_regions(adapter) else regions_of(region, start, end)
 }
 
+# Regions as the engine's `regions` argument names them
+engine_regions <- function(regions) {
+  data.frame(refName = regions$chrom, start = regions$start, end = regions$end)
+}
+
 # The regions a reader was asked for, 0-based half-open: a contig with
 # `start` and `end`, locus strings as JBrowse's location box writes them
 # ("ctgA:1,001-9,000", 1-based and inclusive), or a data frame of chrom,
@@ -67,25 +72,6 @@ region_layout <- function(regions, gap_frac = 0.012) {
   regions
 }
 
-# Read each region with read(chrom, start, end, i), and answer one result
-# (join_regions())
-read_regions <- function(regions, read) {
-  join_regions(regions, lapply(seq_len(nrow(regions)), function(i)
-    read(regions$chrom[i], regions$start[i], regions$end[i], i)))
-}
-
-# One result from each region's: the region's own where there is one, else
-# every region's bound. Every row of a table with a position names its contig
-# and region. Warns where no region's contig is one the file has, which is a
-# misspelt contig rather than a region that holds nothing.
-join_regions <- function(regions, parts) {
-  parts <- lapply(seq_along(parts), function(i)
-    placed(parts[[i]], regions$chrom[i], i))
-  warn_missing(lapply(parts, `[[`, "missing_contig"))
-  if (length(parts) == 1) parts[[1]] else bind_regions(region_layout(regions),
-    parts)
-}
-
 # Each region's missing-contig message, "" or NULL where the file has the
 # region's contig; warns with the first where no region's contig is the file's
 warn_missing <- function(messages) {
@@ -94,14 +80,14 @@ warn_missing <- function(messages) {
   missing
 }
 
-# A result the engine read over every region in one call, as join_regions()
-# answers one: each row of a table the engine numbers by its 0-based `region`
-# names its contig and region, and several regions lie on the axis
-# region_layout() lays them on
+# A result the engine read over every region in one call: each row of a
+# table the engine numbers by its 0-based `region` names its contig and its
+# 1-based `.region`, and several regions lie on the axis region_layout() lays
+# them on
 in_one_call <- function(x, regions, missing_contigs) {
   missing <- warn_missing(lapply(seq_len(nrow(regions)), function(i)
     missing_contigs[[i]]))
-  for (name in setdiff(names(x), LISTING)) {
+  for (name in names(x)) {
     d <- x[[name]]
     if (!is.data.frame(d) || is.null(d$region)) next
     i <- as.integer(d$region) + 1L
@@ -127,84 +113,6 @@ on_layout <- function(x, regions) {
   x
 }
 
-# The tables that list a result's keys and fields rather than marks on the
-# reference, which bind_regions() binds, each row once, and those every
-# region shares, which it takes from the first
-KEY_TABLES <- c("legend", "arc_legend", "info_fields", "format_fields",
-  "attribute_fields", "annotation_fields")
-SHARED_TABLES <- c("sections", "sources", "rows", "rules", "bands")
-LISTING <- c(KEY_TABLES, SHARED_TABLES)
-
-placed <- function(x, chrom, i) {
-  for (name in setdiff(names(x), LISTING)) {
-    d <- x[[name]]
-    if (is.data.frame(d) && (!is.null(d$start) || !is.null(d$position))) {
-      d$chrom <- rep(chrom, nrow(d))
-      d$.region <- rep(i, nrow(d))
-      x[[name]] <- d
-    }
-  }
-  x
-}
-
-# Bind each region's result into one of the same class, its rows at their
-# genomic positions. A read or variant number indexes the bound table. A key
-# lists each entry once, and the result's region is the axis region_layout()
-# lays them on, which on_axis() moves them onto.
-bind_regions <- function(regions, parts) {
-  indexes <- c(read = "reads", variant = "variants")
-  counts <- stats::setNames(numeric(length(indexes)), indexes)
-  for (i in seq_along(parts)) {
-    x <- parts[[i]]
-    for (name in setdiff(names(x), LISTING)) {
-      d <- x[[name]]
-      if (!is.data.frame(d)) next
-      for (column in intersect(names(indexes), names(d))) {
-        d[[column]] <- d[[column]] + counts[[indexes[[column]]]]
-      }
-      x[[name]] <- d
-    }
-    for (table in intersect(indexes, names(x))) {
-      counts[[table]] <- counts[[table]] + nrow(parts[[i]][[table]])
-    }
-    parts[[i]] <- x
-  }
-  bound <- function(pick) {
-    first <- pick(parts[[1]])
-    frames <- lapply(parts, pick)
-    columns <- unique(unlist(lapply(frames, names)))
-    nested <- Filter(function(column)
-      any(vapply(frames, function(f) is.list(f[[column]]), NA)), columns)
-    d <- do.call(rbind, lapply(frames, function(f) {
-      for (column in setdiff(columns, names(f))) f[[column]] <- rep(NA, nrow(f))
-      for (column in nested) f[[column]] <- as.list(f[[column]])
-      f[columns]
-    }))
-    rownames(d) <- NULL
-    for (a in setdiff(names(attributes(first)),
-      c("names", "row.names", "class"))) {
-      attr(d, a) <- attr(first, a)
-    }
-    d
-  }
-  out <- parts[[1]]
-  for (name in names(out)) {
-    if (is.data.frame(out[[name]]) && !name %in% SHARED_TABLES) {
-      out[[name]] <- bound(function(x) x[[name]])
-      if (name %in% KEY_TABLES) out[[name]] <- unique(out[[name]])
-    }
-  }
-  for (key in names(out$keys)) {
-    out$keys[[key]] <- unique(bound(function(x) x$keys[[key]]))
-  }
-  if (!is.null(out$coverage_scale)) {
-    domain <- range(lapply(parts, function(p) p$coverage_scale$domain))
-    out$coverage_scale$domain <- domain
-    out$coverage_scale$ticks <- unique(c(domain[1], domain[2]))
-  }
-  on_layout(out, regions)
-}
-
 # A result's tables as its geoms draw them, on the axis that lays several
 # regions end to end. One region's result draws as it is.
 on_axis <- function(x) {
@@ -223,26 +131,19 @@ on_axis <- function(x) {
   x
 }
 
-# A read connection or splice junction with each foot on the axis by the
-# region holding it, so a split read or splice across two regions arcs over
-# the gap between them, and a foot outside every region at its own region's
-# edge. Each region's fetch reports
-# a connection reaching the other, so it is kept once.
+# A read connection or splice junction with each foot on the axis in the
+# region the engine names it by (`startRegion`, `endRegion`), so one across
+# two regions arcs over the gap between them, and a foot outside every region
+# at the edge of the connection's own region
 arcs_on_axis <- function(d, regions) {
   if (is.null(d$.region) || !is.null(d$.on_axis)) return(d)
   r <- regions
-  place <- function(pos) {
-    i <- vapply(seq_along(pos), function(k) {
-      hit <- which(r$chrom == d$chrom[k] & pos[k] >= r$start &
-        pos[k] <= r$end)
-      if (length(hit)) hit[1] else d$.region[k]
-    }, 0)
+  place <- function(pos, foot) {
+    i <- ifelse(foot >= 0, foot + 1L, d$.region)
     pmin(pmax(pos, r$start[i]), r$end[i]) - r$start[i] + r$offset[i]
   }
-  d$start <- place(d$start)
-  d$end <- place(d$end)
-  same <- setdiff(names(d), c(".region", "region", "startRegion", "endRegion"))
-  d <- d[!duplicated(d[same]), , drop = FALSE]
+  d$start <- place(d$start, d$startRegion)
+  d$end <- place(d$end, d$endRegion)
   d$.on_axis <- rep(TRUE, nrow(d))
   d
 }

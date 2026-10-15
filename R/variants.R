@@ -23,8 +23,8 @@ variants_adapter <- function(file, index, samples) {
 #'   a path or a URL; or a JBrowse track's `adapter` config, as a list
 #' @param region the region: a locus as JBrowse's location box writes it
 #'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
-#'   are read in turn and drawn end to end on one axis as a JBrowse view lays
-#'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
+#'   the engine reads as one view and draws end to end on one axis as a
+#'   JBrowse view lays them out, a data frame of `chrom`, `start` and `end`, or a contig name
 #'   with `start` and `end`. With `NULL`, the default, the reader reads the
 #'   whole file, each contig it lists, and refuses with a message past 5
 #'   million rows in any one table
@@ -63,7 +63,9 @@ variants_adapter <- function(file, index, samples) {
 #'     `FALSE` where the record lacks it; a `Number=1` key is integer,
 #'     numeric or character as its `Type` says; any other `Number` (`A`,
 #'     `R`, `G`, `.`, 2) is a list column of vectors, so `AC` at a site with
-#'     two alts is `c(33L, 1L)`. A record lacking a key has `NA`
+#'     two alts is `c(33L, 1L)`. A record lacking a key has `NA`. Over
+#'     several regions a record is listed once in each region it falls in,
+#'     its copies sharing `key`
 #'   * `info_fields`: each INFO column's `key`, `number`, `type` and
 #'     `description` off the header, and the `column` it takes in `variants`
 #'   * `annotations`: each record's SnpEff `ANN` or VEP `CSQ` consequences, a
@@ -107,21 +109,17 @@ jbrowse_variants <- function(file, region = NULL, start = NULL, end = NULL,
                              display = NULL, assembly = NULL, samples = NULL,
                              index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
-  read_regions(reader_regions(adapter, region, start, end),
-    function(chrom, start, end, i) variants_region(adapter, chrom, start, end,
-      display, assembly, byte_limit, whole = is.null(region)))
-}
-
-variants_region <- function(adapter, chrom, start, end, display, assembly,
-                            byte_limit, whole = FALSE) {
-  args <- list(
-    adapterConfig = adapter,
-    region = list(refName = chrom, start = start, end = end),
+  regions <- reader_regions(adapter, region, start, end)
+  args <- list(adapterConfig = adapter, regions = engine_regions(regions),
     byteLimit = byte_limit)
   args$assembly <- assembly_config(assembly)
-  if (whole) args$rowLimit <- WHOLE_FILE_ROWS
+  if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("variants", args)
+  in_one_call(variants_result(t, display), regions, t$missingContigs)
+}
+
+variants_result <- function(t, display) {
   variants <- as_frame(t$variants)
   variants$color <- jbrowse_color(variants$color)
   variants$filter <- as.character(variants$filter)
@@ -154,9 +152,7 @@ variants_region <- function(adapter, chrom, start, end, display, assembly,
         unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
       ramps = ramp_frames(t$ramps),
       unit = display$unit %||% "allele",
-      row_height = display$rowHeight %||% 0,
-      region = list(chrom = chrom, start = start, end = end),
-      missing_contig = t$missingContig),
+      row_height = display$rowHeight %||% 0),
     primary = "cells",
     class = c("jbrowse_variants", "jbrowse_result"))
 }

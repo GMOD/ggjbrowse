@@ -22,8 +22,8 @@ a path or a URL; or a JBrowse track's \code{adapter} config, as a list}
 
 \item{region}{the region: a locus as JBrowse's location box writes it
 (\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
-are read in turn and drawn end to end on one axis as a JBrowse view lays
-them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
+the engine reads as one view and draws end to end on one axis as a
+JBrowse view lays them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
 with \code{start} and \code{end}. With \code{NULL}, the default, the reader reads the
 whole file, each contig it lists, and refuses with a message past 5
 million rows in any one table}
@@ -71,7 +71,9 @@ declares or a record uses, named as the key (\code{AC}, \code{AN}, ...), or
 \code{FALSE} where the record lacks it; a \code{Number=1} key is integer,
 numeric or character as its \code{Type} says; any other \code{Number} (\code{A},
 \code{R}, \code{G}, \code{.}, 2) is a list column of vectors, so \code{AC} at a site with
-two alts is \code{c(33L, 1L)}. A record lacking a key has \code{NA}
+two alts is \code{c(33L, 1L)}. A record lacking a key has \code{NA}. Over
+several regions a record is listed once in each region it falls in,
+its copies sharing \code{key}
 \item \code{info_fields}: each INFO column's \code{key}, \code{number}, \code{type} and
 \code{description} off the header, and the \code{column} it takes in \code{variants}
 \item \code{annotations}: each record's SnpEff \code{ANN} or VEP \code{CSQ} consequences, a

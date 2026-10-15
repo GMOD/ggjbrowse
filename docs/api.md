@@ -73,6 +73,12 @@
   by, within one call. Filtering `reads` keeps it. `reads$id` is the record's
   own id, the same in every call, where mates and supplementary segments
   share a `name`.
+- Every reader reads several regions in one engine call, which lays them out
+  as one view, with one pileup layout, one set of variant rows and one depth
+  axis. A read reaching
+  two regions is listed in each, its copies sharing `key` and `row`, and a
+  record in two overlapping regions likewise. Each row's `.region` numbers
+  the region it sits in, from 1.
 - `coverage` and the band's other tables stop at the region's ends, though
   the reads reach past them. A band the `display` hides (`showCoverage =
   FALSE`, ...) reads as empty tables.
@@ -104,7 +110,7 @@
   `Parent` and the rest beside the table's own `id` and `name`, and a BigBed's
   autoSql columns, typed as it declares them. A key naming a table column
   takes `attr_<key>`. A GFF3 has no header, so its columns are the keys the
-  region's records use, and binding regions fills a missing one with `NA`.
+  regions' records use, `NA` where a record lacks one.
   `attribute_fields` lists each key's type and column.
 - The marks of a gene (`rects`, `lines`, `chevrons`, `arrows`,
   `amino_acids`) name the transcript they draw in `subfeature`, a row number

@@ -171,7 +171,7 @@ test_that("an alignments track refuses tracks above it over other regions", {
     above = jbrowse_features(gff, "ctgA:20,001-30,000")), "same regions")
 })
 
-test_that("a split read across two regions arcs over the gap, kept once", {
+test_that("a split read across two regions arcs over the gap, listed once", {
   r <- jbrowse_alignments(
     system.file("extdata", "volvox-long-reads-sv.bam", package = "ggjbrowse"),
     c("ctgA:1,800-3,000", "ctgA:33,900-35,100"),
@@ -180,8 +180,8 @@ test_that("a split read across two regions arcs over the gap, kept once", {
   axis <- r$regions
   feet <- cbind(pmin(drawn$start, drawn$end), pmax(drawn$start, drawn$end))
   expect_true(all(feet[, 1] < axis$cum_end[1] & feet[, 2] > axis$cum_start[2]))
-  expect_equal(nrow(drawn), nrow(unique(r$arcs[c("start", "end")])))
-  expect_lt(nrow(drawn), nrow(r$arcs))
+  expect_equal(nrow(drawn), nrow(r$arcs))
+  expect_equal(nrow(r$arcs), nrow(unique(r$arcs[c("start", "end")])))
 })
 
 test_that("a line breaks at the seam between regions", {
@@ -192,7 +192,7 @@ test_that("a line breaks at the seam between regions", {
   expect_true(all(regions_per_run == 1))
 })
 
-test_that("a splice junction across two regions arcs over the seam, kept once", {
+test_that("a splice junction across two regions arcs over the seam, listed once", {
   r <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     c("chr12:6,534,451-6,534,700", "chr12:6,534,751-6,534,900"))
   drawn <- on_axis(r)$junctions
@@ -201,4 +201,25 @@ test_that("a splice junction across two regions arcs over the seam, kept once", 
   expect_true(any(across))
   expect_false(any(duplicated(drawn[c("start", "end", "strand", "count")])))
   expect_true(all(drawn$start >= 0 & drawn$end <= axis$cum_end[2]))
+})
+
+test_that("a read crossing a seam keeps one row in both regions", {
+  a <- jbrowse_alignments(bam, c("ctgA:1,001-3,000", "ctgA:3,001-5,000"))
+  r <- a$reads
+  shared <- intersect(r$key[r$.region == 1], r$key[r$.region == 2])
+  expect_gt(length(shared), 10)
+  first <- r[r$.region == 1 & r$key %in% shared, ]
+  second <- r[r$.region == 2 & r$key %in% shared, ]
+  expect_equal(second$row[match(first$key, second$key)], first$row)
+  expect_equal(second$id[match(first$key, second$key)], first$id)
+})
+
+test_that("a facet value only the second region holds stacks its section", {
+  a <- jbrowse_alignments(bam, c("ctgA:100-110", "ctgA:6000-6100"),
+    display = list(facet = list(field = "strand")))
+  expect_setequal(as.character(a$reads$section), a$sections$label)
+  expect_equal(nrow(a$sections), 2)
+  expect_equal(unique(as.character(a$reads$section[a$reads$.region == 1])),
+    "Forward strand")
+  expect_length(alignment_bands(a)$plots, 4)
 })

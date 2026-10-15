@@ -56,8 +56,7 @@ jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
   args <- list(
     adapterConfig = adapter_of(file, function()
       list(type = "BigWigAdapter", bigWigLocation = location(file))),
-    regions = data.frame(refName = regions$chrom, start = regions$start,
-      end = regions$end),
+    regions = engine_regions(regions),
     bpPerPx = sum(regions$end - regions$start) / width)
   args$assembly <- assembly_config(assembly)
   args$display <- display_config(display)

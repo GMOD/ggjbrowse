@@ -20,8 +20,8 @@ alignments_adapter <- function(file, index) {
 #'   `adapter` config, as a list
 #' @param region the region: a locus as JBrowse's location box writes it
 #'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
-#'   are read in turn and drawn end to end on one axis as a JBrowse view lays
-#'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
+#'   the engine reads as one view and draws end to end on one axis as a
+#'   JBrowse view lays them out, a data frame of `chrom`, `start` and `end`, or a contig name
 #'   with `start` and `end`. With `NULL`, the default, the reader reads the
 #'   whole file, each contig it lists, and refuses with a message past 5
 #'   million rows in any one table
@@ -91,7 +91,9 @@ alignments_adapter <- function(file, index) {
 #'     `flags`, `name`,
 #'     `insert_size`, `pair_orientation`, `color` (the fill the display paints,
 #'     as `#rrggbb`) and `category` (the bucket the display files the read
-#'     under: `fwdStrand`, `mapq`, `unmappedMate`, ...)
+#'     under: `fwdStrand`, `mapq`, `unmappedMate`, ...). Over several
+#'     regions a read is listed once in each region it reaches, its copies
+#'     sharing `key` and `row`
 #'   * `mismatches`: `position`, `base`, `read`, `row`, `frequency` (how many
 #'     reads carry that base there, over the depth), `quality`, `fade`
 #'   * `gaps`: `start`, `end`, `type` (`"deletion"` or `"skip"`), `read`, `row`,
@@ -129,7 +131,8 @@ alignments_adapter <- function(file, index) {
 #'     `position`, `type` (the most common there), `color`
 #'   * `coverage_scale`: the band's depth axis as the display autoscales it,
 #'     shared by every section: `domain`, `type` and `ticks`
-#'   * `junctions`: the reads' splice gaps merged, each once: `start`, `end`,
+#'   * `junctions`: the reads' splice gaps merged, each once over every
+#'     region: `start`, `end`,
 #'     `count` (the reads supporting it), `strand` (1, -1, or 0 where neither
 #'     the reads' tags nor the splice motif says) and `motif` (`"GT-AG
 #'     (canonical)"`, `"non-canonical"`, or `""` where the region's sequence
@@ -176,20 +179,21 @@ jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
     stop("bisulfite calls compare each read's cytosines to the reference: ",
       "pass that FASTA or 2bit as `assembly =`", call. = FALSE)
   }
-  read_regions(reader_regions(adapter, region, start, end),
-    function(chrom, start, end, i) alignments_region(adapter, chrom, start,
-      end, assembly, display, byte_limit, whole = is.null(region)))
-}
-
-alignments_region <- function(adapter, chrom, start, end, assembly, display,
-                              byte_limit, whole = FALSE) {
-  args <- list(adapterConfig = adapter,
-    region = list(refName = chrom, start = start, end = end),
+  regions <- reader_regions(adapter, region, start, end)
+  args <- list(adapterConfig = adapter, regions = engine_regions(regions),
     byteLimit = byte_limit)
   args$assembly <- assembly
-  if (whole) args$rowLimit <- WHOLE_FILE_ROWS
+  if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("alignments", args)
+  x <- alignments_result(t, display, assembly)
+  x$junctions$region <- junction_region(x$junctions,
+    unlist(t$readAs$refName), regions)
+  x$junctions$refName <- NULL
+  in_one_call(x, regions, t$missingContigs)
+}
+
+alignments_result <- function(t, display, assembly) {
   sections <- as_frame(t$sections)
   frame <- function(table) {
     d <- as_frame(table)
@@ -282,11 +286,9 @@ alignments_region <- function(adapter, chrom, start, end, assembly, display,
       keys = list(reads = legend, bases = base_key, arcs = arc_legend,
         junctions = junction_key, interbase = interbase_key),
       ramps = ramp_frames(t$ramps), coverage_scale = t$coverageScale,
-      region = list(chrom = chrom, start = start, end = end),
       reference = if (has_sequence(assembly))
         list(assembly = assembly, chrom = t$readAs$originalRefName[[1]]),
-      settings = t$settings, glyph = t$glyph,
-      missing_contig = t$missingContig),
+      settings = t$settings, glyph = t$glyph),
     primary = "reads",
     class = c("jbrowse_alignments", "jbrowse_result"))
 }
@@ -307,6 +309,17 @@ jbrowse_sequence <- function(assembly, chrom, start, end) {
     assembly = assembly_config(assembly))
   in_engine(function(ctx) ctx$call("jbrowse.sequence",
     as_engine_json(args), await = TRUE))
+}
+
+# The 0-based region a junction draws in: the one holding its start, else its
+# end, else the first on its contig that it crosses
+junction_region <- function(j, contigs, regions) {
+  region <- ifelse(j$startRegion >= 0, j$startRegion, j$endRegion)
+  for (k in which(region < 0)) {
+    region[k] <- c(which(contigs == j$refName[k] & j$start[k] < regions$end &
+      j$end[k] > regions$start), 1L)[1] - 1L
+  }
+  as.integer(region)
 }
 
 # The grey JBrowse paints every mismatched base in while the per-base layer

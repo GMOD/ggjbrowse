@@ -21,8 +21,8 @@ jbrowse_alignments(
 
 \item{region}{the region: a locus as JBrowse's location box writes it
 (\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
-are read in turn and drawn end to end on one axis as a JBrowse view lays
-them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
+the engine reads as one view and draws end to end on one axis as a
+JBrowse view lays them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
 with \code{start} and \code{end}. With \code{NULL}, the default, the reader reads the
 whole file, each contig it lists, and refuses with a message past 5
 million rows in any one table}
@@ -102,7 +102,9 @@ segments share its \code{name}), \code{start}, \code{end}, \code{row}, \code{str
 \code{flags}, \code{name},
 \code{insert_size}, \code{pair_orientation}, \code{color} (the fill the display paints,
 as \verb{#rrggbb}) and \code{category} (the bucket the display files the read
-under: \code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...)
+under: \code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...). Over several
+regions a read is listed once in each region it reaches, its copies
+sharing \code{key} and \code{row}
 \item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{row}, \code{frequency} (how many
 reads carry that base there, over the depth), \code{quality}, \code{fade}
 \item \code{gaps}: \code{start}, \code{end}, \code{type} (\code{"deletion"} or \code{"skip"}), \code{read}, \code{row},
@@ -140,7 +142,8 @@ those events number over 30\% of a depth of 8 reads or more:
 \code{position}, \code{type} (the most common there), \code{color}
 \item \code{coverage_scale}: the band's depth axis as the display autoscales it,
 shared by every section: \code{domain}, \code{type} and \code{ticks}
-\item \code{junctions}: the reads' splice gaps merged, each once: \code{start}, \code{end},
+\item \code{junctions}: the reads' splice gaps merged, each once over every
+region: \code{start}, \code{end},
 \code{count} (the reads supporting it), \code{strand} (1, -1, or 0 where neither
 the reads' tags nor the splice motif says) and \code{motif} (\code{"GT-AG (canonical)"}, \code{"non-canonical"}, or \code{""} where the region's sequence
 does not cover both ends)

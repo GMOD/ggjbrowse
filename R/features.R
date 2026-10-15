@@ -160,8 +160,7 @@ jbrowse_features <- function(file, region = NULL, start = NULL, end = NULL,
   regions <- reader_regions(adapter, region, start, end)
   args <- list(
     adapterConfig = adapter,
-    regions = data.frame(refName = regions$chrom, start = regions$start,
-      end = regions$end),
+    regions = engine_regions(regions),
     bpPerPx = sum(regions$end - regions$start) / width,
     colorByCDS = color_by_cds,
     aminoAcids = amino_acids,

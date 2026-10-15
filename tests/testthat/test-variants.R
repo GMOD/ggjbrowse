@@ -142,7 +142,7 @@ test_that("an INFO key named like a record column takes an info_ prefix", {
   expect_equal(v$variants$EXTRA, list(c("x", "y"), NA_character_))
   apart <- jbrowse_variants(vcf, data.frame(chrom = "ctgA", start = c(0, 150),
     end = c(150, 1000)))
-  expect_equal(apart$variants$EXTRA, list(c("x", "y"), NA))
+  expect_equal(apart$variants$EXTRA, v$variants$EXTRA)
   expect_equal(apart$info_fields$key, c("type", "DB", "EXTRA"))
 })
 
@@ -170,6 +170,17 @@ test_that("two regions bind their INFO columns, each record once", {
   expect_equal(both$variants$AC, whole$variants$AC)
   expect_equal(both$variants$filter, whole$variants$filter)
   expect_equal(both$info_fields, whole$info_fields)
+})
+
+test_that("a first region with no records leaves every row and the second region's cells", {
+  vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
+  both <- jbrowse_variants(vcf, c("1:1,001-2,000", "1:155,000,001-155,050,000"))
+  alone <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
+  expect_equal(both$rows$name, alone$rows$name)
+  expect_equal(nrow(both$cells), nrow(alone$cells))
+  expect_true(all(both$variants$.region == 2))
+  drawn <- ggplot2::layer_data(ggplot2::autoplot(both), 2)
+  expect_equal(nrow(drawn), nrow(alone$cells))
 })
 
 test_that("a VCF with no region reads whole", {
