@@ -108,7 +108,29 @@ as_engine_json <- function(args) {
 call_engine <- function(table, args) {
   json <- in_engine(function(ctx) ctx$call(sprintf("jbrowse.%s", table),
     as_engine_json(args), await = TRUE))
-  jsonlite::fromJSON(json, simplifyVector = TRUE, simplifyDataFrame = FALSE)
+  from_wire(jsonlite::fromJSON(json, simplifyVector = TRUE,
+    simplifyDataFrame = FALSE))
+}
+
+# The engine's tables as R values: each nested column, which the engine writes
+# as its rows' `lengths` (-1 for a missing row) and their `values` end to end,
+# as a list column, a missing row NA
+from_wire <- function(x) {
+  if (!is.list(x)) return(x)
+  if (identical(names(x), "$list")) return(list_column(x[["$list"]]))
+  x[] <- lapply(x, from_wire)
+  x
+}
+
+list_column <- function(wire) {
+  lengths <- as.integer(unlist(wire$lengths))
+  values <- wire$values
+  if (is.list(values)) values <- unlist(values) %||% logical(0)
+  rows <- split(values, factor(rep(seq_along(lengths), pmax(lengths, 0L)),
+    levels = seq_along(lengths)))
+  names(rows) <- NULL
+  rows[lengths < 0] <- list(values[NA_integer_])
+  rows
 }
 
 # A file's location for the engine: a URL as given, and a local path as a
@@ -174,10 +196,14 @@ shorthand_uri <- function(path) {
 }
 
 # A table's columns as a data frame, an empty column read as an empty vector
+# and a nested column kept a list column
 as_frame <- function(columns) {
-  as.data.frame(lapply(columns, function(x)
-    if (is.list(x)) unlist(x) %||% logical(0) else x),
-    stringsAsFactors = FALSE)
+  columns <- lapply(columns, function(x)
+    if (is.null(x) || (is.list(x) && !length(x))) logical(0) else x)
+  n <- unique(lengths(columns))
+  if (length(n) > 1) stop("the engine's columns differ in length", call. = FALSE)
+  structure(columns, names = names(columns) %||% character(0),
+    row.names = .set_row_names(if (length(n)) n else 0L), class = "data.frame")
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a

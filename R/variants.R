@@ -185,16 +185,14 @@ vcf_columns <- function(vcf, n, taken) {
 
 # An INFO key's values as a column, typed by its header line: a flag as
 # logical, a Number=1 key as a vector, any other Number as a list of vectors,
-# one per record; NA where a record lacks the key
+# one per record; NA where a record lacks the key. A key no record in the
+# region gives arrives as NAs, which a list column takes one per record.
 info_column <- function(x, number, type) {
   if (type == "Flag" || number == "0") return(as.logical(unlist(x)))
   cast <- switch(type, Integer = as.integer, Float = as.numeric,
     as.character)
-  if (is.list(x)) x[vapply(x, is.null, NA)] <- NA
   if (number == "1") return(cast(unlist(x)))
-  rows <- if (is.matrix(x)) lapply(seq_len(nrow(x)), function(i) x[i, ])
-    else as.list(x)
-  lapply(rows, cast)
+  lapply(as.list(x), cast)
 }
 
 #' @export

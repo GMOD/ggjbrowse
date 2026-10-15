@@ -149,10 +149,17 @@ test_that("an INFO key named like a record column takes an info_ prefix", {
 test_that("an INFO column keeps its type with no records or no values", {
   expect_equal(info_column(list(), "A", "Integer"), list())
   expect_identical(info_column(c(1L, NA), "1", "Integer"), c(1L, NA))
-  expect_identical(info_column(list(c(1L, 2L), NULL), "A", "Integer"),
+  expect_identical(info_column(list(c(1L, 2L), NA), "A", "Integer"),
     list(c(1L, 2L), NA_integer_))
-  expect_identical(info_column(matrix(c(1, 2), 2), "R", "Float"),
-    list(1, 2))
+  expect_identical(info_column(c(NA, NA), "R", "Float"),
+    list(NA_real_, NA_real_))
+})
+
+test_that("a list column stays a list whatever lengths its rows share", {
+  v <- jbrowse_variants(dogs, "chr30", 38259000, 38259200)$variants
+  expect_true(all(lengths(v$AC) == 1))
+  expect_type(v$AC, "list")
+  expect_identical(v$AC[[1]], v$AC[[1]][1])
 })
 
 test_that("two regions bind their INFO columns, each record once", {

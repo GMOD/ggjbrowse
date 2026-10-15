@@ -591,3 +591,18 @@ test_that("the junction band hides non-canonical junctions where the display doe
   expect_equal(arcs(read(FALSE)),
     arcs(shown) - sum(shown$junctions$motif == "non-canonical"))
 })
+
+test_that("coverage stops at the region's ends, where the reads do not", {
+  expect_lt(min(bam$reads$start), 1000)
+  expect_gt(max(bam$reads$end), 6000)
+  expect_equal(range(c(bam$coverage$start, bam$coverage$end)), c(1000, 6000))
+  expect_equal(nrow(bam$coverage), 5000)
+})
+
+test_that("a band the display hides reads as an empty table", {
+  hidden <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000,
+    6000, display = list(showCoverage = FALSE))
+  expect_equal(nrow(hidden$coverage), 0)
+  expect_equal(nrow(hidden$allele_coverage), 0)
+  expect_equal(hidden$reads$start, bam$reads$start)
+})
