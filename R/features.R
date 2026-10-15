@@ -45,11 +45,13 @@ features_adapter <- function(file, index) {
 #'   `"nameAndDescription"`, `"description"`, `"none"`), `geneGlyphMode`
 #'   (`"auto"`, `"all"`, `"longestCoding"`), `subfeatureLabels` (`"none"`,
 #'   `"below"`, `"overlay"`), `featureHeight`, `showOnlyGenes`, `filter` (jexl
-#'   expressions), `displayDirectionalChevrons`, and `heightMode` with
-#'   `height`. A figure has no track height to fit, so `heightMode` defaults to
-#'   `"grow"`, every feature at full size; `list(heightMode = "fit", height =
-#'   100)` gives up the labels, isoforms and row height the browser gives up to
-#'   fit a 100 px track
+#'   expressions), `displayDirectionalChevrons`, `facet` (a field such as
+#'   `"strand"` or `"type"`, or `list(field = , domain = , hidden = )`, which
+#'   packs a section per value, as alignments' `facet` does), and `heightMode`
+#'   with `height`. A figure has no track height to fit, so `heightMode`
+#'   defaults to `"grow"`, every feature at full size; `list(heightMode =
+#'   "fit", height = 100)` gives up the labels, isoforms and row height the
+#'   browser gives up to fit a 100 px track
 #' @param width the width in pixels the display lays the region out across:
 #'   whether a name fits beside its feature, which chevrons and arrows draw and
 #'   how the `auto` modes resolve all follow from it. [autoplot()] scales those
@@ -68,7 +70,7 @@ features_adapter <- function(file, index) {
 #' @return a `jbrowse_features` list of data frames:
 #'   * `features`: each top-level feature on its row: `id`, `name`, `type`,
 #'     `start`, `end`, `strand`, `top` and `bottom` (its row's pixels, labels
-#'     included) and `gene`
+#'     included), `gene` and `section`
 #'   * `subfeatures`: a gene's transcripts: `id`, `name`, `type`, `start`,
 #'     `end`, `top`, `bottom`, `feature`
 #'   * `rects`: the boxes the glyph draws (exons, CDS, UTRs, a plain feature):
@@ -84,14 +86,19 @@ features_adapter <- function(file, index) {
 #'     shows: `text`, `kind`, `position` (its left edge, in bp), `y` (its top),
 #'     `color`, `feature`, and `subfeature`, the transcript a transcript label
 #'     names (a row number of `subfeatures`, `NA` for a feature's own label)
+#'   * `sections`: under `display$facet`, each section's `key`, `label`, `top`
+#'     and `height` in stacking order, the chip row the display names it in
+#'     included; ungrouped, one section labelled `""`
 #'   * `legend`: `label` and `color`, the key the display shows for a color
 #'     field, its title as the frame's `"title"` attribute
 #'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
 #'     them
 #'
-#'   `feature` is a row number of `features`. `glyph` gives the pixel sizes
-#'   the display draws text, arrows and chevrons at, and `height` the track's
-#'   laid-out height in pixels.
+#'   `feature` is a row number of `features`, and every mark table carries its
+#'   feature's `section`, a factor in stacking order. `glyph` gives the pixel
+#'   sizes the display draws text, arrows, chevrons and section chips
+#'   (`sectionLabelHeight`) at, and `height` the track's laid-out height in
+#'   pixels.
 #' @export
 #' @examples
 #' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
@@ -116,6 +123,9 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
   display$heightMode <- display$heightMode %||% "grow"
   display$color <- config_color(display$color)
   if (!is.null(display$filter)) display$filter <- I(display$filter)
+  if (is.list(display$facet)) {
+    display$facet <- in_json(display$facet, c("domain", "hidden"))
+  }
   args$display <- display
   t <- call_engine("features", args)
   legend <- as_frame(t$legend)
@@ -123,6 +133,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
   attr(legend, "complete") <- TRUE
   all_features <- as_frame(t$features)
   all_subfeatures <- as_frame(t$subfeatures)
+  sections <- as_frame(t$sections)
   join_regions(regions, lapply(seq_len(nrow(regions)), function(i) {
     # the engine numbers features and subfeatures across every region
     before <- sum(all_features$region < i - 1)
@@ -134,11 +145,12 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
       d
     }
     features <- of_region(t$features)
+    features$section <- factor(features$section, levels = sections$label)
     on_feature <- function(table) {
       d <- of_region(table)
       d$feature <- d$feature - before + 1
-      for (column in setdiff(c("name", "type", "strand", "start", "end"),
-        names(d))) {
+      for (column in setdiff(c("name", "type", "strand", "start", "end",
+        "section"), names(d))) {
         d[[column]] <- features[[column]][d$feature]
       }
       if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
@@ -153,7 +165,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
       list(features = features,
         subfeatures = on_feature(t$subfeatures), rects = on_feature(t$rects),
         lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
-        arrows = arrows, labels = labels, legend = legend,
+        arrows = arrows, labels = labels, sections = sections, legend = legend,
         keys = list(features = legend), ramps = ramp_frames(t$ramps),
         glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
         region = as.list(regions[i, ]),
@@ -301,7 +313,8 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
     n <- nrow(d)
     d$size <- rep(x$glyph$fontSize, n)
     d$px_wide <- rep((x$region$end - x$region$start) / x$bp_per_px, n)
-    d$px_tall <- rep(x$height, n)
+    d$px_tall <- if (is.null(d$section)) rep(x$height, n)
+      else section_px(x)[as.integer(d$section)]
     d
   }
   jbrowse_layer(GeomDisplayText, data, labels, mapping,
@@ -317,7 +330,8 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 #' `color` object. The y axis is the display's pixels. Labels scale with the
 #' panel: at draw time they take the display's pixel size across the panel's
 #' width or down its height, whichever is smaller, so they keep inside the
-#' room the layout left them at any output size.
+#' room the layout left them at any output size. Under the display's `facet`,
+#' each section draws in its own panel over its rows, named by its strip.
 #'
 #' @param object a [jbrowse_features()] result
 #' @param ... must be empty, so a misspelt argument errors
@@ -331,7 +345,10 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 autoplot.jbrowse_features <- function(object, ...) {
   rlang::check_dots_empty()
   object <- on_axis(object)
-  ggplot2::ggplot(object) +
+  faceted <- !identical(object$sections$label %||% "", "")
+  p <- ggplot2::ggplot(object)
+  if (faceted) p <- p + section_extents(object)
+  p +
     geom_jbrowse_glyphs() +
     scale_fill_jbrowse(object) +
     guides_jbrowse(object) +
@@ -339,9 +356,33 @@ autoplot.jbrowse_features <- function(object, ...) {
     ggplot2::scale_y_reverse() +
     ggplot2::coord_cartesian(
       xlim = c(object$region$start, object$region$end),
-      ylim = c(0, object$height), expand = FALSE) +
+      ylim = if (!faceted) c(0, object$height), expand = FALSE) +
+    by_section(object, rows = TRUE) +
     genomic_x(object) +
     ggplot2::labs(x = axis_label(object), y = NULL) +
     ggplot2::theme_minimal() +
+    across +
     no_y
+}
+
+# Each section's rows in display pixels, below the chip row a facet strip
+# stands in for
+section_rows <- function(x) {
+  s <- x$sections
+  chip <- x$glyph$sectionLabelHeight %||% 0
+  data.frame(section = factor(s$label, levels = s$label),
+    top = s$top + chip, bottom = s$top + s$height)
+}
+
+section_px <- function(x) {
+  r <- section_rows(x)
+  r$bottom - r$top
+}
+
+# Each panel spans its section's rows, whatever marks it holds
+section_extents <- function(x) {
+  r <- section_rows(x)
+  ggplot2::geom_blank(ggplot2::aes(y = y),
+    data = data.frame(section = rep(r$section, 2), y = c(r$top, r$bottom)),
+    inherit.aes = FALSE)
 }

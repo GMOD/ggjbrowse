@@ -21,7 +21,8 @@ the display shows (\code{\link[=geom_jbrowse_labels]{geom_jbrowse_labels()}}), k
 \code{color} object. The y axis is the display's pixels. Labels scale with the
 panel: at draw time they take the display's pixel size across the panel's
 width or down its height, whichever is smaller, so they keep inside the
-room the layout left them at any output size.
+room the layout left them at any output size. Under the display's \code{facet},
+each section draws in its own panel over its rows, named by its strip.
 }
 \examples{
 gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")

@@ -41,10 +41,12 @@ such as \code{list(field = "type")}), \code{displayMode} (\code{"normal"}, \code
 \code{"nameAndDescription"}, \code{"description"}, \code{"none"}), \code{geneGlyphMode}
 (\code{"auto"}, \code{"all"}, \code{"longestCoding"}), \code{subfeatureLabels} (\code{"none"},
 \code{"below"}, \code{"overlay"}), \code{featureHeight}, \code{showOnlyGenes}, \code{filter} (jexl
-expressions), \code{displayDirectionalChevrons}, and \code{heightMode} with
-\code{height}. A figure has no track height to fit, so \code{heightMode} defaults to
-\code{"grow"}, every feature at full size; \code{list(heightMode = "fit", height = 100)} gives up the labels, isoforms and row height the browser gives up to
-fit a 100 px track}
+expressions), \code{displayDirectionalChevrons}, \code{facet} (a field such as
+\code{"strand"} or \code{"type"}, or \code{list(field = , domain = , hidden = )}, which
+packs a section per value, as alignments' \code{facet} does), and \code{heightMode}
+with \code{height}. A figure has no track height to fit, so \code{heightMode}
+defaults to \code{"grow"}, every feature at full size; \code{list(heightMode = "fit", height = 100)} gives up the labels, isoforms and row height the
+browser gives up to fit a 100 px track}
 
 \item{width}{the width in pixels the display lays the region out across:
 whether a name fits beside its feature, which chevrons and arrows draw and
@@ -72,7 +74,7 @@ a \code{jbrowse_features} list of data frames:
 \itemize{
 \item \code{features}: each top-level feature on its row: \code{id}, \code{name}, \code{type},
 \code{start}, \code{end}, \code{strand}, \code{top} and \code{bottom} (its row's pixels, labels
-included) and \code{gene}
+included), \code{gene} and \code{section}
 \item \code{subfeatures}: a gene's transcripts: \code{id}, \code{name}, \code{type}, \code{start},
 \code{end}, \code{top}, \code{bottom}, \code{feature}
 \item \code{rects}: the boxes the glyph draws (exons, CDS, UTRs, a plain feature):
@@ -88,15 +90,20 @@ on screen: \code{position}, \code{y}, \code{direction}, \code{head_half_height},
 shows: \code{text}, \code{kind}, \code{position} (its left edge, in bp), \code{y} (its top),
 \code{color}, \code{feature}, and \code{subfeature}, the transcript a transcript label
 names (a row number of \code{subfeatures}, \code{NA} for a feature's own label)
+\item \code{sections}: under \code{display$facet}, each section's \code{key}, \code{label}, \code{top}
+and \code{height} in stacking order, the chip row the display names it in
+included; ungrouped, one section labelled \code{""}
 \item \code{legend}: \code{label} and \code{color}, the key the display shows for a color
 field, its title as the frame's \code{"title"} attribute
 \item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
 them
 }
 
-\code{feature} is a row number of \code{features}. \code{glyph} gives the pixel sizes
-the display draws text, arrows and chevrons at, and \code{height} the track's
-laid-out height in pixels.
+\code{feature} is a row number of \code{features}, and every mark table carries its
+feature's \code{section}, a factor in stacking order. \code{glyph} gives the pixel
+sizes the display draws text, arrows, chevrons and section chips
+(\code{sectionLabelHeight}) at, and \code{height} the track's laid-out height in
+pixels.
 }
 \description{
 Runs JBrowse's own feature display in V8: the features it fetches, the gene

@@ -167,3 +167,47 @@ test_that("a figure at jbrowse_width() draws labels the same size at any view wi
   expect_equal(label_pt(2500), label_pt(800), tolerance = 0.05)
   expect_equal(label_pt(800), 11 / 150 * 72.27, tolerance = 0.05)
 })
+
+test_that("the display's facet packs a section per value, each on its own rows", {
+  s <- jbrowse_features(gff, "ctgA", 0, 25000,
+    display = list(facet = "strand"))
+  expect_gt(nrow(s$sections), 1)
+  expect_equal(nrow(s$features), nrow(g$features))
+  expect_equal(levels(s$features$section), s$sections$label)
+  chip <- s$glyph$sectionLabelHeight
+  expect_gt(chip, 0)
+  for (i in seq_len(nrow(s$sections))) {
+    f <- s$features[s$features$section == s$sections$label[i], ]
+    expect_true(all(f$top >= s$sections$top[i] + chip))
+    expect_true(all(f$bottom <= s$sections$top[i] + s$sections$height[i]))
+    expect_length(unique(f$strand), 1)
+  }
+  for (table in c("rects", "lines", "chevrons", "arrows", "labels")) {
+    d <- s[[table]]
+    expect_equal(d$section, s$features$section[d$feature])
+  }
+  keys <- s$sections$key
+  hidden <- jbrowse_features(gff, "ctgA", 0, 25000,
+    display = list(facet = list(field = "strand", hidden = keys[1])))
+  expect_false(keys[1] %in% hidden$sections$key)
+  expect_lt(nrow(hidden$features), nrow(s$features))
+  reordered <- jbrowse_features(gff, "ctgA", 0, 25000,
+    display = list(facet = list(field = "strand", domain = rev(keys))))
+  expect_equal(reordered$sections$key, rev(keys))
+  expect_equal(g$sections$label, "")
+})
+
+test_that("autoplot draws each section in its own panel over its rows", {
+  s <- jbrowse_features(gff, "ctgA", 0, 25000,
+    display = list(facet = "strand"))
+  built <- ggplot2::ggplot_build(ggplot2::autoplot(s))
+  expect_equal(nrow(built$layout$layout), nrow(s$sections))
+  chip <- s$glyph$sectionLabelHeight
+  ranges <- lapply(built$layout$panel_params, function(q)
+    sort(-q$y$continuous_range))
+  expect_equal(ranges, lapply(seq_len(nrow(s$sections)), function(i)
+    c(s$sections$top[i] + chip, s$sections$top[i] + s$sections$height[i])))
+  labels <- built$data[[length(built$data)]]
+  expect_equal(labels$px_tall,
+    (s$sections$height - chip)[as.integer(s$labels$section)])
+})

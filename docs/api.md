@@ -12,7 +12,7 @@
 | Function | Reads | Returns a `jbrowse_*` list of |
 |---|---|---|
 | `jbrowse_alignments()` | BAM, CRAM | `reads`, `mismatches`, `gaps`, `insertions`, `clips`, `coverage`, `allele_coverage`, `junctions`, `arcs`, ... |
-| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `labels` |
+| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `labels`, `sections` |
 | `jbrowse_wiggle()` | BigWig | `bins`, `marks`, `sources`, `rules` |
 | `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands` |
 | `jbrowse_synteny()` | PAF, PIF, delta, chain, MashMap | `alignments`, `ribbons`, `offscreen*` |
@@ -54,6 +54,9 @@
 
 - `reads$read` is the id every other alignments table names a read by.
   Filtering `reads` keeps the id.
+- Under `display$facet`, an alignments or feature result lists its
+  `sections` in stacking order, and each table's `section` column names the
+  one a row sits in.
 - `fade` is the share of the depth a mark's site holds, zero under the
   display's threshold. R applies it at the figure's pixels per base.
 - `jbrowse_variants()` returns its `rows` in the display's arrangement, by

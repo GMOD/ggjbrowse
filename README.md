@@ -159,7 +159,8 @@ display paints it, and `a$legend` is the display's key.
   `ggplot(a)` adds unasked, moving the result's tables in your own layers
   onto it.
 - **Facets:** the `section` column is the display's facet, so
-  `facet_grid(section ~ .)` splits a plot the way `facet =` splits the track.
+  `facet_grid(section ~ .)` splits a plot the way `facet =` splits the track,
+  on an alignments or a feature track.
 
 ```r
 library(ggplot2)
@@ -196,6 +197,10 @@ JBrowse's feature display and returns what it draws:
 pixel width the display lays the region out across, which decides which
 names fit. `autoplot(reads, above = genes)` draws genes over reads
 ([GENCODE genes](docs/gallery.md#genes_and_reads)).
+
+- Under `facet = "strand"`, or `list(field = "type", domain = ...,
+  hidden = ...)`, the display packs a section per value, and `autoplot()`
+  draws each section in its own panel.
 
 ## Quantitative tracks
 
@@ -363,7 +368,6 @@ yet in a release. It writes one ggjbrowse reader per open track, then
 
 ## Not yet
 
-- Facets on a feature track
 - The amino-acid overlay on a zoomed-in CDS
 - A CRAN submission: `R CMD check --as-cran` leaves the new-submission NOTE,
   and the 7.9 MB installed size, 4.3 MB of it `inst/extdata`, may need
