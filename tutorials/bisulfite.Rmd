@@ -150,12 +150,13 @@ reads <- lapply(contexts, function(context)
     display = list(baseColor = list(field = "bisulfite"),
       modifications = list(cytosineContext = context))))
 
-fig <- jbrowse_stack(genes, repeats, reads)
+fig <- jbrowse_stack(`RefSeq genes` = genes, RepeatMasker = repeats,
+  setNames(reads, contexts))
 ```
 
-`jbrowse_stack()` stacks them as the view does, the pileups CpG, CHG and CHH
-from the top. AT1G12930 is red in CpG only, and the LTR/Copia element on the
-right is red in all three:
+`jbrowse_stack()` stacks them as the view does, each titled by its name.
+AT1G12930 is red in CpG only, and the LTR/Copia element on the right is red in
+all three:
 
 ```{r stack, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "RefSeq genes, RepeatMasker and three copies of the WGBS pileup colored by CpG, CHG and CHH: AT1G12930 is red in CpG only, the LTR/Copia element in all three"}
 fig

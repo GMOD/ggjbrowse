@@ -80,7 +80,7 @@ R variables as they stand:
 <!-- jbrowse
 chunk: files
 assign:
-  genes_gff: dm6_ncbiRefSeq.adapter.uri
+  genes_adapter: dm6_ncbiRefSeq.adapter
   fst_bw: fst_in2lt.adapter.uri
   tajd_bw: tajd_all.adapter.uri
   pi_bw: pi_all.adapter.uri
@@ -133,12 +133,12 @@ shade:
 ```{r cyp6g1-read}
 locus <- "chr2R:12,000,000-12,400,000"
 sweep <- c(12130000, 12200000)
-genes <- jbrowse_features(genes_gff, locus, index = paste0(genes_gff, ".csi"),
-  width = 1200)
+genes <- jbrowse_features(genes_adapter, locus, width = 1200)
 scan_at <- function(bigwig) jbrowse_wiggle(bigwig, "2R", 12000000 - 1, 12400000,
   width = 1200)
-fig <- suppressWarnings(jbrowse_stack(genes, scan_at(tajd_bw), scan_at(pi_bw),
-  scan_at(sites_bw))) &
+fig <- suppressWarnings(jbrowse_stack(`RefSeq genes` = genes,
+  `Tajima's D` = scan_at(tajd_bw), π = scan_at(pi_bw),
+  `called variants` = scan_at(sites_bw))) &
   annotate("rect", xmin = sweep[1], xmax = sweep[2], ymin = -Inf,
     ymax = Inf, fill = "#f0b429", alpha = 0.25)
 ```
@@ -299,10 +299,10 @@ extent <- ggplot(inversion$variants) +
     colour = "white") +
   theme_void()
 fig <- jbrowse_stack(extent,
-  jbrowse_wiggle(fst_bw, "2L", 0, arms$length[1],
+  Fst = jbrowse_wiggle(fst_bw, "2L", 0, arms$length[1],
     display = list(extent = "none"), width = 1200),
-  jbrowse_wiggle(ratio_bw, "2L", 0, arms$length[1], display = ratio_display,
-    width = 1200))
+  `log2 π, inverted over standard` = jbrowse_wiggle(ratio_bw, "2L", 0,
+    arms$length[1], display = ratio_display, width = 1200))
 ```
 
 ```{r in2lt, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "The In(2L)t extent from the VCF, Fst between inverted and standard lines, and log2 of π in the inverted lines over π in the standard ones in 250 kb bins, across 2L: Fst is high and the ratio mostly orange, inverted lower, between the breakpoints, and both settle past the right breakpoint"}
@@ -368,8 +368,9 @@ Reading the tables against the figures:
 - Point `vcf` and `karyotypes` at your own genotyped event and samples file. The
   `facet` field of `jbrowse_variants()`'s `display` names any column of that
   file.
-- Give `jbrowse_features()` your gene file, and its `index` where the file has a
-  CSI index beside it, as the RefSeq file here does.
+- Give `jbrowse_features()` your gene file, or an adapter config as a JBrowse
+  track writes it, with `csi = TRUE` where the file has a CSI index beside it,
+  as the RefSeq file here does.
 
 ## See also
 

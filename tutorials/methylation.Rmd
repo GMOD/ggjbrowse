@@ -218,7 +218,8 @@ profile <- ggplot(snrpn, aes(start, colour = haplotype)) +
   facet_grid(haplotype ~ .) +
   scale_y_continuous(limits = c(0, 100)) +
   labs(y = "% 5mC")
-fig <- jbrowse_stack(islands, profile, by_haplotype)
+fig <- jbrowse_stack(`CpG islands` = islands, `modkit 5mC` = profile,
+  `HG002 ONT reads` = by_haplotype)
 ```
 
 ```{r profile-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "Imprinting at the SNRPN center: the CpG island, modkit's per-haplotype profile, and the reads faceted by HP, with HP1 methylated in both"}
@@ -276,7 +277,7 @@ smoothed <- function(data) {
     scale_x_continuous(labels = scales::label_comma()) +
     labs(x = NULL, y = "% 5mC")
 }
-fig <- jbrowse_stack(genes,
+fig <- jbrowse_stack(`RefSeq Select` = genes,
   smoothed(filter(domain, between(start, 24800000, 25200000))))
 ```
 

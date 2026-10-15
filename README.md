@@ -124,6 +124,12 @@ Whole analyses done in R, each on the data and question of a
   ENCODE muscle and liver quantifications, written into GENCODE and drawn over
   each tissue's coverage, checked at the exon that tells _ATP5F1C_'s isoforms
   apart
+- [Selection scans (Drosophila DGRP) in R](docs/tutorials/population_genomics.md):
+  Fst, π and Tajima's D at the _Cyp6g1_ sweep and the `In(2L)t` inversion,
+  each ranked against the rest of the genome
+- [A loss-of-function allele across breeds (Dog10K) in R](docs/tutorials/dog10k_lof.md):
+  the _CYP1A2_ stop codon derived from the reference, its frequency per breed
+  with wolves and coyotes as controls, and the gene's copy number
 
 ## Alignments
 
