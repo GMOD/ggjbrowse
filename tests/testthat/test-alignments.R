@@ -228,7 +228,9 @@ test_that("modification coloring greys the mismatched bases and drops their key"
   fa <- extdata("hg38_clip.fa")
   plain <- jbrowse_alignments(bam, "20", 10000, 12000, reference = fa)
   expect_gt(length(unique(plain$mismatches$color)), 1)
-  expect_equal(nrow(plain$keys$bases), 5)
+  expect_setequal(as.character(plain$keys$bases$color),
+    unique(as.character(c(plain$mismatches$color,
+      plain$allele_coverage$color))))
   m <- jbrowse_alignments(bam, "20", 10000, 12000, reference = fa,
     display = list(baseColor = list(field = "modifications")))
   expect_gt(nrow(m$mismatches), 0)
@@ -560,7 +562,22 @@ test_that("a stack draws a key two tracks share once, with every entry either ho
     text <- collected(fig)
     expect_equal(sum(text == "Insertions and clips"), 1)
     expect_equal(sum(text == "Hard clip"), 1)
+    expect_equal(sum(text == "Base"), 1)
   }
+
+  locus <- "chr12:6,534,201-6,538,700"
+  forward <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"), locus,
+    display = list(showPileup = FALSE))
+  expect_equal(unique(forward$junctions$strand), 1)
+  reverse <- forward
+  reverse$junctions$strand <- -1
+  reverse$junctions$color <- jbrowse_color(rep(jbrowse_colors()$reverse,
+    nrow(reverse$junctions)))
+  reverse$keys$junctions <- key_frame("Reverse", jbrowse_colors()$reverse,
+    "Junction strand")
+  text <- collected(jbrowse_stack(forward, reverse))
+  expect_equal(sum(text == "Junction strand"), 1)
+  expect_equal(sum(text %in% c("Forward", "Reverse")), 2)
 })
 
 test_that("the junction band hides non-canonical junctions where the display does", {

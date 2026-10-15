@@ -49,8 +49,8 @@ sequence_adapter <- function(reference) {
 #'   for every region, or one per region. An `assembly` with aliases finds it
 #' @param assembly a [jbrowse_assembly()], or an assembly as a JBrowse
 #'   config's `assemblies` entry writes it: `region` may name a contig by any
-#'   alias it lists, the file is read under its own, and the tables name the
-#'   contig as `region` does
+#'   alias it lists, the engine reads the file under the file's own, and the
+#'   reader names the contig in its tables as `region` does
 #' @param index the BAI, CSI or CRAI, if not beside `file` under its usual name
 #' @param display the display's config, as a track's `displays` entry
 #'   writes it for a `LinearAlignmentsDisplay`, which is what JBrowse's
@@ -285,6 +285,10 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   attr(arc_legend, "title") <- t$arcLegendTitle
   base_key <- if (muted) key_frame(character(0), character(0), "Base")
     else key_frame(names(colors$bases), colors$bases, "Base")
+  base_key <- base_key[base_key$color %in% c(mismatches$color,
+    alleles$color), , drop = FALSE]
+  attr(base_key, "title") <- "Base"
+  attr(base_key, "complete") <- TRUE
   interbase_key <- key_frame(c("Insertion", "Soft clip", "Hard clip"),
     interbase_colors, "Insertions and clips")
   interbase_key <- interbase_key[interbase_colors %in%

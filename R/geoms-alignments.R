@@ -222,7 +222,7 @@ geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = TRUE,
                                     width = NULL, ...) {
   position_rects("mismatches", "geom_jbrowse_mismatches", data, mapping,
     width, list(...), ggplot2::aes(colour = color, alpha = I(alpha)),
-    rect = GeomSwatch, fade = fade)
+    rect = GeomSwatch, fade = fade, keyed = "complete")
 }
 
 # A per-position table drawn as vertical ticks, faded as the pixels per base
@@ -290,7 +290,7 @@ geom_jbrowse_alleles <- function(mapping = NULL, data = NULL,
                                  min_allele_frequency = 0, width = NULL, ...) {
   position_rects("allele_coverage", "geom_jbrowse_alleles", data, mapping,
     width, list(...), with_defaults(ggplot2::aes(colour = color), stack_rect),
-    rect = GeomSwatch, rows = FALSE,
+    rect = GeomSwatch, rows = FALSE, keyed = "complete",
     prep = function(a, x) on_bar(x, a[a$to - a$from >= min_allele_frequency, ,
       drop = FALSE]))
 }
@@ -440,7 +440,8 @@ geom_jbrowse_junctions <- function(mapping = NULL, data = NULL,
   jbrowse_layer(ggplot2::GeomPath, data,
     function(x) junction_paths(x, min_reads), mapping,
     ggplot2::aes(x = x, y = y, group = id, colour = color,
-      linewidth = I(width)), list(lineend = "round", ...))
+      linewidth = I(width)), list(lineend = "round", ...),
+    keyed = "complete")
 }
 
 #' @rdname geom_jbrowse_reads
