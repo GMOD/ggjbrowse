@@ -368,9 +368,6 @@ keep:
   - "minimap2 -cx asm5"
 drop_lines:
   - "jbrowse make-pif"
-replace:
-  - from: "# asm5: same-species preset; -c: base-level CIGAR, to draw junctions at base scale\nminimap2 -cx asm5 GRCh38.fa"
-    to: "# asm5: same-species preset; -c: base-level CIGAR; -s 50: keep blocks\n# under 200 bases, such as the two inserts below\nminimap2 -cx asm5 -s 50 GRCh38.fa"
 -->
 
 `jbrowse_synteny()` reads that PAF as it is. The demo hosts the indexed PIF its
