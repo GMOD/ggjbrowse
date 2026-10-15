@@ -145,7 +145,7 @@ band <- function(p, x, rows = FALSE, ylim = NULL, expand = FALSE) {
 # by every section, inset at both ends by the room the display keeps for its
 # labels, the triangles sitting in the top one
 coverage_plot <- function(x, o) {
-  scale <- x$coverage_scale
+  scale <- x$y_scale
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_coverage() +
     geom_jbrowse_alleles(min_allele_frequency = o$min_allele_frequency,
@@ -168,7 +168,7 @@ coverage_plot <- function(x, o) {
 # The display's depth scale: log, linear, or its symlog,
 # sign(x) log(1 + |x| / C), which scales' asinh-based pseudo-log is not
 depth_transform <- function(scale) {
-  c <- scale$symlogConstant
+  c <- scale$symlog_constant
   switch(scale$type,
     log = "log10",
     symlog = scales::new_transform("symlog",

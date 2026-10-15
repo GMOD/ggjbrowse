@@ -52,7 +52,10 @@ variants_adapter <- function(file, index, samples) {
 #'   `assemblies` entry writes it, or its FASTA or 2bit alone: `region` may
 #'   name a contig by any alias it lists, and the reader names the contig in
 #'   its tables as `region` does
-#' @return a `jbrowse_variants` list of data frames:
+#' @param width the pixels the figure spans across the regions, at which
+#'   records sharing a pixel fade as the display fades them
+#' @return a `jbrowse_variants` list of data frames, beside the slots
+#'   [jbrowse_result] lists:
 #'   * `variants`: each record the display keeps: `start`, `end`, `id`,
 #'     `name`, `ref`, `alt`, `type`, `color`, its lane color, `filter`, the
 #'     FILTER column as the file writes it (`"PASS"`, or the failed filters
@@ -65,16 +68,12 @@ variants_adapter <- function(file, index, samples) {
 #'     two alts is `c(33L, 1L)`. A record lacking a key has `NA`. Over
 #'     several regions a record is listed once in each region it falls in,
 #'     its copies sharing `key`
-#'   * `info_fields`: each INFO column's `key`, `number`, `type` and
-#'     `description` off the header, and the `column` it takes in `variants`
 #'   * `annotations`: each record's SnpEff `ANN` or VEP `CSQ` consequences, a
 #'     row per record and consequence: `variant` (a row number of
 #'     `variants`), `key` (`"ANN"` or `"CSQ"`) and a column per field the
 #'     key's header line names (`Consequence`, `IMPACT`, `SYMBOL`, ...), each
 #'     character, as the header types none. The raw string leaves the INFO
 #'     columns
-#'   * `annotation_fields`: each consequence key's `key` and `field`, in the
-#'     header's order
 #'   * `cells`: each row's cell at a record: `variant` (a row number of
 #'     `variants`), `start`, `end`, `row` (a factor in `rows`' order),
 #'     `sample`, `genotype`, `dosage` (the share of the called alleles that
@@ -95,20 +94,20 @@ variants_adapter <- function(file, index, samples) {
 #'     apart
 #'   * `bands`: each band's `key` and `label`, in the order they stack. Banded
 #'     rows stay in their band whatever order `rows` or `tree` gives them
-#'   * `legend`: the display's key, its title as the frame's `"title"`
-#'     attribute
-#'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
-#'     them
 #'
-#'   `display` is the display's config as JBrowse resolves it, every slot
-#'   under JBrowse's own name and the schema's defaults filled in. `unit` and `row_height` are its `unit` and `rowHeight`.
+#'   `fields$info` declares each INFO column's `key`, `number`, `type` and
+#'   `description` off the header, and the `column` it takes in `variants`;
+#'   `fields$annotations` each consequence key's `key` and `field`, in the
+#'   header's order. `keys` holds `genotypes`, the display's key, and `rows`,
+#'   the row colors' key.
 #' @export
 #' @examples
 #' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
 #' v <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
 #' head(v$cells)
-jbrowse_variants <- function(file, region = NULL, display = NULL, assembly = NULL, samples = NULL,
-                             index = NULL, byte_limit = 2e8) {
+jbrowse_variants <- function(file, region = NULL, display = NULL,
+                             width = DEFAULT_WIDTH, assembly = NULL,
+                             samples = NULL, index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
   assembly <- assembly_config(assembly)
   regions <- reader_regions(adapter, region, assembly)
@@ -118,7 +117,7 @@ jbrowse_variants <- function(file, region = NULL, display = NULL, assembly = NUL
   if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("variants", args)
-  in_one_call(variants_result(t), regions, t$missingContigs)
+  in_one_call(variants_result(t), regions, t, width)
 }
 
 variants_result <- function(t) {
@@ -140,21 +139,19 @@ variants_result <- function(t) {
   cells$sample <- rows$sample[match(cells$row, rows$name)]
   cells$row <- factor(cells$row, levels = rows$name)
   cells$color <- jbrowse_color(cells$color)
-  legend <- as_frame(t$legend)
-  legend$color <- jbrowse_color(legend$color)
-  attr(legend, "title") <- c(legend$section[legend$section != ""],
+  genotypes <- as_frame(t$legend)
+  genotypes$color <- jbrowse_color(genotypes$color)
+  attr(genotypes, "title") <- c(genotypes$section[genotypes$section != ""],
     "Genotypes")[1]
   structure(
     list(variants = variants, cells = cells, rows = rows, bands = bands,
-      legend = legend, info_fields = info_fields,
-      annotations = annotations,
-      annotation_fields = annotation_fields(t$annotationFields),
-      keys = list(genotypes = legend, rows = key_frame(
+      annotations = annotations, display = t$config,
+      keys = list(genotypes = genotypes, rows = key_frame(
         unlist(t$rowLegend$label) %||% character(0),
         unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
-      ramps = ramp_frames(t$ramps),
-      unit = t$config$unit, row_height = t$config$rowHeight,
-      display = t$config),
+      ramps = ramp_frames(t$ramps), y_scale = NULL,
+      fields = Filter(Negate(is.null), list(info = info_fields,
+        annotations = annotation_fields(t$annotationFields)))),
     primary = "cells",
     class = c("jbrowse_variants", "jbrowse_result"))
 }
@@ -253,7 +250,7 @@ print.jbrowse_variants <- function(x, ...) {
 #'   result, such as a filtered copy of it
 #' @param layout `"genomic"` or `"columns"`
 #' @param width the pixels the figure spans across its region at genomic
-#'   positions; `NULL` takes 1,500
+#'   positions; `NULL` takes the result's `width`
 #' @param fade `FALSE` draws every cell opaque at genomic positions, where by
 #'   default records sharing a pixel fade as the display fades them
 #' @param ... passed to [ggplot2::layer()] params
@@ -311,7 +308,7 @@ density_alpha <- function(variants, bp_per_px) {
 # as the display paints a row behind the cells it draws
 reference_rows <- function(x) {
   background <- data.frame(xmin = -Inf, xmax = Inf, ymin = 0.5,
-    ymax = nrow(x$rows) + 0.5, color = x$legend$color[1])
+    ymax = nrow(x$rows) + 0.5, color = x$keys$genotypes$color[1])
   ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin,
     ymax = ymax, fill = color), data = background, inherit.aes = FALSE)
 }
@@ -427,6 +424,6 @@ row_bars <- function(x, xlim) {
 # A matrix row's height in display pixels: the display's rowHeight, or for
 # 0, the rows fitted to the display's height, as the display fits them
 row_px <- function(x) {
-  if (isTRUE(x$row_height > 0)) x$row_height
+  if (isTRUE(x$display$rowHeight > 0)) x$display$rowHeight
   else x$display$height / max(1, nrow(x$rows))
 }

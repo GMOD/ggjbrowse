@@ -82,11 +82,11 @@ test_that("the interbase tables count the reads' insertions and clips", {
 })
 
 test_that("the coverage band draws on the display's depth axis, inset as the display insets it", {
-  scale <- sv$coverage_scale
+  scale <- sv$y_scale
   built <- ggplot2::ggplot_build(ggplot2::autoplot(sv, "coverage"))
   y <- built$layout$panel_params[[1]]$y
   expect_equal(y$breaks[!is.na(y$breaks)], scale$ticks)
-  inset <- sv$glyph$coverageInset / (sv$settings$coverageHeight -
+  inset <- sv$glyph$coverageInset / (sv$display$coverageHeight -
     2 * sv$glyph$coverageInset)
   span <- diff(scale$domain)
   expect_equal(y$continuous_range,
@@ -112,7 +112,7 @@ test_that("a stack hangs from the triangles' tip, as deep a share of the depth a
     geom_jbrowse_coverage())
   d <- b$data[[1]]
   ib <- sv$interbase_coverage
-  top <- 2 * sv$coverage_scale$domain[2]
+  top <- 2 * sv$y_scale$domain[2]
   expect_equal(d$hang, ib$from / top)
   expect_equal(d$hang_end, ib$to / top)
   grob <- ggplot2::layer_grob(ggplot2::ggplot(sv) + geom_jbrowse_interbase() +
@@ -130,11 +130,11 @@ test_that("a stack hangs from the triangles' tip, as deep a share of the depth a
 test_that("a log depth axis leaves the hang linear", {
   log <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000",
      display = list(scales = list(y = list(type = "log"))))
-  expect_equal(log$coverage_scale$domain[1], 1)
+  expect_equal(log$y_scale$domain[1], 1)
   built <- ggplot2::ggplot_build(ggplot2::autoplot(log, "coverage"))
   hang <- built$data[[4]]
   expect_equal(hang$hang, log$interbase_coverage$from /
-    (2 * log$coverage_scale$domain[2]))
+    (2 * log$y_scale$domain[2]))
   # an allele keeps its share of the bar's drawn height from the bar's base,
   # one read: on a log axis its top is at depth^to
   a <- ggplot2::layer_data(ggplot2::ggplot(log) + geom_jbrowse_alleles())
@@ -151,7 +151,7 @@ test_that("every section shares the display's one depth axis", {
   built <- ggplot2::ggplot_build(ggplot2::autoplot(s, "coverage"))
   ranges <- lapply(built$layout$panel_params, function(p) p$y$continuous_range)
   expect_true(all(vapply(ranges, identical, TRUE, ranges[[1]])))
-  expect_gte(s$coverage_scale$domain[2], max(s$coverage$depth))
+  expect_gte(s$y_scale$domain[2], max(s$coverage$depth))
 })
 
 test_that("several regions' indicators land on the axis that lays them end to end", {
@@ -203,14 +203,14 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   expect_setequal(unique(m$modifications$name), "5mC")
   expect_equal(m$modifications$row, m$reads$row[m$modifications$read])
   expect_true(all(m$modifications$opacity >= 0.1 & m$modifications$opacity <= 1))
-  expect_true("5mC" %in% m$legend$label)
+  expect_true("5mC" %in% m$keys$reads$label)
   expect_setequal(unique(m$reads$category), c("modFwd", "modRev"))
   expect_gt(nrow(m$modification_coverage), 0)
   band <- ggplot2::ggplot_build(ggplot2::autoplot(m, "coverage"))$data[[3]]
   expect_equal(nrow(band), nrow(m$modification_coverage))
   p <- ggplot2::ggplot_build(ggplot2::autoplot(m, "pileup"))
   expect_equal(nrow(p$data[[6]]), nrow(m$modifications))
-  expect_true(all(p$data[[6]]$fill %in% m$legend$color))
+  expect_true(all(p$data[[6]]$fill %in% m$keys$reads$color))
   calls <- jbrowse_alignments(bam, "20:10,001-20,000",
     display = list(baseColor = list(field = "modifications"),
       modifications = list(unmodified = "calls")))
@@ -250,7 +250,7 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   expect_false(any(cg$modifications$unmodified))
   expect_setequal(cg$modifications$probability, 1)
   expect_equal(cg$modifications$row, cg$reads$row[cg$modifications$read])
-  expect_true("5mC methylated" %in% cg$legend$label)
+  expect_true("5mC methylated" %in% cg$keys$reads$label)
   expect_gt(nrow(cg$modification_coverage), 0)
   expect_setequal(as.character(cg$mismatches$color), "#888888")
   expect_equal(nrow(cg$keys$bases), 0)
@@ -265,7 +265,7 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   calls <- bisulfite(list(unmodified = "calls"))
   expect_gt(sum(calls$modifications$unmodified), 0)
   expect_equal(sum(!calls$modifications$unmodified), nrow(cg$modifications))
-  expect_true("Unmethylated" %in% calls$legend$label)
+  expect_true("Unmethylated" %in% calls$keys$reads$label)
   p <- ggplot2::ggplot_build(ggplot2::autoplot(cg, "pileup"))
   expect_true(any(vapply(p$data, nrow, 0) == nrow(cg$modifications)))
   expect_error(jbrowse_alignments(bam, locus,
@@ -360,10 +360,10 @@ test_that("a spliced read splits into its blocks at its skips", {
 
 test_that("the pileup and coverage draw in the display's colors", {
   expect_setequal(names(base_colors()), c("A", "C", "G", "T", "N"))
-  expect_equal(bam$legend$label, "Reads")
-  expect_equal(unique(as.character(bam$reads$color)), bam$legend$color)
+  expect_equal(bam$keys$reads$label, "Reads")
+  expect_equal(unique(as.character(bam$reads$color)), bam$keys$reads$color)
   p <- ggplot2::ggplot_build(ggplot2::autoplot(bam))
-  expect_equal(unique(p$data[[1]]$fill), bam$legend$color)
+  expect_equal(unique(p$data[[1]]$fill), bam$keys$reads$color)
   expect_equal(nrow(p$data[[7]]), nrow(bam$mismatches))
   cov <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage"))
   expect_equal(nrow(cov$data[[1]]), nrow(bam$coverage))
@@ -390,24 +390,24 @@ test_that("every mark takes the engine's color, and every key the browser's word
 test_that("reads fill as the display's color object paints them, with its key", {
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(color = list(field = "strand")))
-  expect_equal(attr(s$legend, "title"), "Read colors")
-  expect_equal(s$legend$label, c("Forward strand", "Reverse strand"))
-  expect_equal(unique(s$reads$color[s$reads$strand == 1]), s$legend$color[1])
-  expect_equal(unique(s$reads$color[s$reads$strand == -1]), s$legend$color[2])
+  expect_equal(attr(s$keys$reads, "title"), "Read colors")
+  expect_equal(s$keys$reads$label, c("Forward strand", "Reverse strand"))
+  expect_equal(unique(s$reads$color[s$reads$strand == 1]), s$keys$reads$color[1])
+  expect_equal(unique(s$reads$color[s$reads$strand == -1]), s$keys$reads$color[2])
   expect_setequal(unique(s$reads$category), c("fwdStrand", "revStrand"))
   p <- ggplot2::ggplot_build(ggplot2::autoplot(s))
-  expect_setequal(unique(p$data[[1]]$fill), s$legend$color)
+  expect_setequal(unique(p$data[[1]]$fill), s$keys$reads$color)
 
   own <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(color = list(field = "strand",
       range = c("#ff0000", "#0000ff"), title = "Mine")))
   expect_equal(unique(own$reads$color[own$reads$strand == 1]), "#ff0000")
-  expect_equal(attr(own$legend, "title"), "Mine")
+  expect_equal(attr(own$keys$reads, "title"), "Mine")
 
   m <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(color = list(field = "mapq")))
-  expect_equal(attr(m$legend, "title"), "Mapping quality")
-  expect_true(all(m$reads$color %in% m$legend$color))
+  expect_equal(attr(m$keys$reads, "title"), "Mapping quality")
+  expect_true(all(m$reads$color %in% m$keys$reads$color))
   expect_equal(unique(m$reads$category), "mapq")
 })
 
@@ -507,7 +507,7 @@ test_that("reads draw at the display's read height, and the pileup band is as ta
     display = list(featureHeight = h))
   normal <- read_at(7)
   compact <- read_at(3)
-  expect_equal(compact$settings$featureHeight, 3)
+  expect_equal(compact$display$featureHeight, 3)
   body <- function(x) {
     d <- ggplot2::layer_data(ggplot2::ggplot(x) + geom_jbrowse_reads(), 1)
     unique(round(d$ymax - d$ymin, 6))
@@ -674,7 +674,7 @@ test_that("the coverage band stacks the alleles the display shows", {
 test_that("a result carries the display's resolved config and read pitch", {
   expect_equal(bam$display$type, "LinearAlignmentsDisplay")
   expect_equal(bam$display$minSashimiScore, 2)
-  expect_equal(bam$read_connections, "off")
+  expect_equal(bam$display$readConnections, "off")
   expect_equal(bam$read_pitch, list(featureHeight = 7L, featureSpacing = 1L))
   compact <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
      display = list(featureHeight = 3))

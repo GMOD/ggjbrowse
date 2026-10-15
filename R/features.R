@@ -73,7 +73,8 @@ features_adapter <- function(file, index) {
 #'   name
 #' @param byte_limit the most compressed bytes the region may need, refused
 #'   off the index before any feature is fetched
-#' @return a `jbrowse_features` list of data frames:
+#' @return a `jbrowse_features` list of data frames, beside the slots
+#'   [jbrowse_result] lists:
 #'   * `features`: each top-level feature on its row: `id` (the engine's key
 #'     for it), `name`, `type`, `start`, `end`, `strand`, `top` and `bottom`
 #'     (its row's pixels, labels included), `gene` and `section`, then a
@@ -103,13 +104,6 @@ features_adapter <- function(file, index) {
 #'     `transl_except`, `feature`, and the letter the display writes over it,
 #'     `text` (empty under 8 pixels a base or in a box too short), `font_size`
 #'     and `y` (its baseline) in pixels, and `color`
-#'   * `legend`: `label` and `color`, the key the display shows for a color
-#'     field, its title as the frame's `"title"` attribute
-#'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
-#'     them
-#'   * `attribute_fields`: each field the file states for its features:
-#'     `key`, `type`, `number` (`"1"`, or `"."` for a list column),
-#'     `description` and the `column` it takes
 #'
 #'   **The file's fields.** `features` and `subfeatures` carry a column per
 #'   field the file states, keyed as the file writes it. A GFF3 gives its
@@ -122,21 +116,25 @@ features_adapter <- function(file, index) {
 #'   several of, is a list column. A BED or BigBed field takes the type its
 #'   autoSql declares. A GFF3 has no header, so its columns are the keys the
 #'   region's records use, and a region lacking one reads `NA` there when
-#'   regions bind.
+#'   regions bind. `fields$attributes` declares each field: its `key`,
+#'   `type`, `number` (`"1"`, or `"."` for a list column), `description` and
+#'   the `column` it takes. `keys$features` is the key the display shows for
+#'   a color field.
 #'
 #'   A VCF reads as JBrowse's plain variant track draws it, every record
 #'   whether or not it calls a genotype, so a calls VCF with no GT reads
 #'   here where [jbrowse_variants()] keeps none. `features` then also holds
 #'   each record's `ref`, `alt`, `filter` and a column per INFO key, typed as
 #'   [jbrowse_variants()] types them, and the result adds:
-#'   * `info_fields`: each INFO column's `key`, `number`, `type`,
-#'     `description` and `column`
 #'   * `samples`: a row per record and sample, `feature`, `sample` and a
 #'     column per FORMAT key, typed as INFO is (`AD`, `DP`, ...), named
 #'     `format_<key>` where the key names a column above
-#'   * `format_fields`: each FORMAT column's declaration, as `info_fields`
-#'   * `annotations` and `annotation_fields`: its SnpEff `ANN` or VEP `CSQ`
-#'     consequences, as [jbrowse_variants()] gives them, keyed by `feature`
+#'   * `annotations`: its SnpEff `ANN` or VEP `CSQ` consequences, as
+#'     [jbrowse_variants()] gives them, keyed by `feature`
+#'
+#'   `fields$info` and `fields$format` declare each INFO and FORMAT column's
+#'   `key`, `number`, `type`, `description` and `column`, and
+#'   `fields$annotations` each consequence key's fields.
 #'
 #'   `feature` is a row number of `features`, and `subfeature`, the
 #'   transcript a gene's mark draws, a row number of `subfeatures` (`NA` for
@@ -145,14 +143,13 @@ features_adapter <- function(file, index) {
 #'   sizes the display draws text, arrows, chevrons and section chips
 #'   (`sectionLabelHeight`) at, and `height` the track's laid-out height in
 #'   pixels.
-#'   `display` is the display's config as JBrowse resolves it, every slot
-#'   under JBrowse's own name and the schema's defaults filled in.
 #' @export
 #' @examples
 #' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
 #' g <- jbrowse_features(gff, "chr12:6,534,201-6,538,700")
 #' head(g$features)
-jbrowse_features <- function(file, region = NULL, display = NULL, width = 800, assembly = NULL,
+jbrowse_features <- function(file, region = NULL, display = NULL,
+                             width = DEFAULT_WIDTH, assembly = NULL,
                              color_by_cds = FALSE, amino_acids = TRUE,
                              index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() features_adapter(file, index))
@@ -171,7 +168,7 @@ jbrowse_features <- function(file, region = NULL, display = NULL, width = 800, a
   args$display <- display_config(display)
   if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
   t <- call_engine("features", args)
-  legend <- structure(as_frame(t$legend), title = t$legendTitle,
+  key <- structure(as_frame(t$legend), title = t$legendTitle,
     complete = TRUE)
   features <- as_frame(t$features)
   subfeatures <- as_frame(t$subfeatures)
@@ -202,23 +199,26 @@ jbrowse_features <- function(file, region = NULL, display = NULL, width = 800, a
   }
   arrows <- on_feature(t$arrows)
   names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
+  tables <- list(features = features,
+    subfeatures = cbind(on_feature(t$subfeatures), subfeature_attributes),
+    rects = on_feature(t$rects), lines = on_feature(t$lines),
+    chevrons = on_feature(t$chevrons), arrows = arrows,
+    amino_acids = snake(on_feature(t$aminoAcids)),
+    labels = on_feature(t$labels), sections = sections,
+    samples = vcf$samples, annotations = vcf$annotations)
+  fields <- list(
+    attributes = if (nrow(attributes$fields)) attributes$fields,
+    info = vcf$info_fields, format = vcf$format_fields,
+    annotations = vcf$annotation_fields)
   in_one_call(structure(
-    list(features = features,
-      subfeatures = cbind(on_feature(t$subfeatures), subfeature_attributes),
-      rects = on_feature(t$rects), lines = on_feature(t$lines),
-      chevrons = on_feature(t$chevrons), arrows = arrows,
-      amino_acids = snake(on_feature(t$aminoAcids)),
-      labels = on_feature(t$labels), sections = sections, legend = legend,
-      attribute_fields = if (nrow(attributes$fields)) attributes$fields,
-      info_fields = vcf$info_fields, samples = vcf$samples,
-      format_fields = vcf$format_fields, annotations = vcf$annotations,
-      annotation_fields = vcf$annotation_fields,
-      keys = list(features = legend), ramps = ramp_frames(t$ramps),
-      glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
-      display = t$config),
+    c(Filter(Negate(is.null), tables),
+      list(display = t$config, keys = list(features = key),
+        ramps = ramp_frames(t$ramps), y_scale = NULL,
+        fields = Filter(Negate(is.null), fields), glyph = t$glyph,
+        height = t$height, bp_per_px = t$bpPerPx)),
     primary = "features",
     class = c("jbrowse_features", "jbrowse_result")),
-    regions, t$missingContigs)
+    regions, t, width)
 }
 
 # Text sized in the display's pixels, scaled to the panel when it draws:

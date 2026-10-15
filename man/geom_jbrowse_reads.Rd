@@ -111,7 +111,7 @@ result, such as a filtered copy of it}
 
 \item{width}{the pixels the figure spans across its region, which decide
 the fade, whether a one-base mark reaches a pixel and how high the
-read-connection band reaches; \code{NULL} takes 1,500}
+read-connection band reaches; \code{NULL} takes the result's \code{width}}
 
 \item{fade}{fade a mark narrower than a pixel by its site's share of the
 depth, as the display does; \code{NULL} follows the display's

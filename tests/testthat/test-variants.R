@@ -133,8 +133,8 @@ test_that("an INFO key named like a record column takes an info_ prefix", {
     paste("ctgA", "200", ".", "C", "T", "50", "q10;s50", "type=other", "GT",
       "1/1", sep = "\t")), vcf)
   v <- jbrowse_variants(vcf, "ctgA:1-1,000")
-  expect_equal(v$info_fields$key, c("type", "DB", "EXTRA"))
-  expect_equal(v$info_fields$column, c("info_type", "DB", "EXTRA"))
+  expect_equal(v$fields$info$key, c("type", "DB", "EXTRA"))
+  expect_equal(v$fields$info$column, c("info_type", "DB", "EXTRA"))
   expect_equal(v$variants$type, c("SNV", "SNV"))
   expect_equal(v$variants$info_type, c("snv", "other"))
   expect_equal(v$variants$filter, c(NA, "q10;s50"))
@@ -143,7 +143,7 @@ test_that("an INFO key named like a record column takes an info_ prefix", {
   apart <- jbrowse_variants(vcf, data.frame(chrom = "ctgA", start = c(0, 150),
     end = c(150, 1000)))
   expect_equal(apart$variants$EXTRA, v$variants$EXTRA)
-  expect_equal(apart$info_fields$key, c("type", "DB", "EXTRA"))
+  expect_equal(apart$fields$info$key, c("type", "DB", "EXTRA"))
 })
 
 test_that("an INFO column keeps its type with no records or no values", {
@@ -169,7 +169,7 @@ test_that("two regions bind their INFO columns, each record once", {
   whole <- jbrowse_variants(dogs, cyp1a2)
   expect_equal(both$variants$AC, whole$variants$AC)
   expect_equal(both$variants$filter, whole$variants$filter)
-  expect_equal(both$info_fields, whole$info_fields)
+  expect_equal(both$fields$info, whole$fields$info)
 })
 
 test_that("a first region with no records leaves every row and the second region's cells", {
@@ -193,10 +193,10 @@ test_that("a VCF with no region reads whole", {
 test_that("the result keeps the display's resolved unit, row height and config", {
   v <- jbrowse_variants(people, dcst2)
   expect_equal(v$display$type, "LinearMultiSampleVariantDisplay")
-  expect_equal(v$unit, "sample")
-  expect_equal(v$row_height, 0)
+  expect_equal(v$display$unit, "sample")
+  expect_equal(v$display$rowHeight, 0)
   phased <- jbrowse_variants(people, dcst2,
     display = list(unit = "haplotype", rowHeight = 4))
-  expect_equal(phased$unit, "haplotype")
-  expect_equal(phased$row_height, 4)
+  expect_equal(phased$display$unit, "haplotype")
+  expect_equal(phased$display$rowHeight, 4)
 })

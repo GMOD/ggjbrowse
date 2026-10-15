@@ -8,6 +8,7 @@ jbrowse_alignments(
   file,
   region = NULL,
   display = NULL,
+  width = DEFAULT_WIDTH,
   assembly = NULL,
   index = NULL,
   byte_limit = 2e+08,
@@ -77,6 +78,9 @@ set not to show (\code{showCoverage}, \code{showPileup}, \code{showMismatches},
 \code{showInterbaseIndicators}, \code{showSashimiArcs}) reads as empty tables
 }}
 
+\item{width}{the pixels the figure spans across the regions, which the
+sub-pixel fade and the read-connection band's reach read}
+
 \item{assembly}{the reference: a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, an assembly as a
 JBrowse config's \code{assemblies} entry writes it, or an indexed FASTA,
 plain or bgzipped, or a 2bit alone, path or URL. A CRAM and the
@@ -95,7 +99,8 @@ memory}
 anything is fetched, since the coverage band holds every base of them}
 }
 \value{
-a \code{jbrowse_alignments} list of data frames:
+a \code{jbrowse_alignments} list of data frames, beside the slots
+\link{jbrowse_result} lists:
 \itemize{
 \item \code{reads}: \code{read} (the row number the other tables' \code{read} column names
 it by, kept through filtering, within this call), \code{id} (the record's
@@ -142,17 +147,11 @@ soft clips and hard clips at each position, stacked in that order:
 \item \code{indicators}: the positions the display marks with a triangle, where
 those events number over 30\% of a depth of 8 reads or more:
 \code{position}, \code{type} (the most common there), \code{color}
-\item \code{coverage_scale}: the band's depth axis as the display autoscales it,
-shared by every section: \code{domain}, \code{type} and \code{ticks}
 \item \code{junctions}: the reads' splice gaps merged, each once over every
 region: \code{start}, \code{end},
 \code{count} (the reads supporting it), \code{strand} (1, -1, or 0 where neither
 the reads' tags nor the splice motif says) and \code{motif} (\code{"GT-AG (canonical)"}, \code{"non-canonical"}, or \code{""} where the region's sequence
 does not cover both ends)
-\item \code{legend}: \code{label} and \code{color}, the key the display shows for \code{color},
-its title as the frame's \code{"title"} attribute
-\item \code{ramps}: the color bars the display keys (a linear tag or MAPQ, base
-quality), as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws them
 \item \code{arcs}: under \code{display$readConnections}, each connection the band draws:
 \code{start} and \code{end} (its feet), \code{shape} (\code{"arc"}, or the read cloud's
 \code{"flat"}, \code{"flatSplit"} for a split read, and \code{"unplaced"} for one whose
@@ -162,23 +161,21 @@ insert size, jittered as the display jitters it), \code{span} (the distance
 itself), \code{support} (the reads behind it) and \code{width} (the stroke in px)
 \item \code{arc_ticks}: the interchromosomal ticks: \code{position}, \code{support},
 \code{partners} (the contigs reached), \code{color}, \code{width}
-\item \code{arc_legend}: the band's key, its title as the \code{"title"} attribute
 \item \code{sections}: under \code{display$facet}, each section's \code{key} and \code{label} in stacking
 order; ungrouped, one section labelled \code{""}
-\item \code{keys}: the display's keys, each titled as the browser titles it:
-\code{reads}, \code{bases} (empty while a modifications or bisulfite layer greys
-the bases), \code{junctions}, \code{interbase} and \code{arcs}
 }
 
-Every table but the keys carries \code{section}, a factor in stacking order,
+\code{keys} holds \code{reads}, \code{bases} (empty while a modifications or bisulfite
+layer greys the bases), \code{junctions}, \code{interbase} and \code{arcs}, and
+\code{y_scale} the coverage band's depth axis, shared by every section.
+Every table carries \code{section}, a factor in stacking order,
 and each section's rows start at 0, and every mark table carries \code{color},
 the color the display paints the mark. \code{read} is a row number of
 \code{reads}. \code{fade} is the share of the depth a mark's site holds, zeroed
 under the display's depth-dependent threshold, which the pileup fades a
 sub-pixel mark by.
-\code{display} is the display's config as JBrowse resolves it, every slot
-under JBrowse's own name and the schema's defaults filled in. \code{read_pitch} gives the
-\code{featureHeight} a read draws at and the \code{featureSpacing} under it.
+\code{read_pitch} gives the \code{featureHeight} a read draws at and the
+\code{featureSpacing} under it.
 }
 \description{
 Runs JBrowse's own alignments engine in V8: the reads it fetches, the
@@ -192,5 +189,5 @@ bam <- system.file("extdata", "gapdh_direct_rna.bam",
 a <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
   display = list(color = list(field = "strand")))
 head(a$reads)
-a$legend
+a$keys$reads
 }

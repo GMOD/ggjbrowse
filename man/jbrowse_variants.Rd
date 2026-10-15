@@ -8,6 +8,7 @@ jbrowse_variants(
   file,
   region = NULL,
   display = NULL,
+  width = DEFAULT_WIDTH,
   assembly = NULL,
   samples = NULL,
   index = NULL,
@@ -40,6 +41,9 @@ order, \code{labels}, a label by row name, and \code{kept}, the rows shown) and
 each take a band of rows) and \code{rowHeight} (pixels a row, where
 \code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the rows into the display's height)}
 
+\item{width}{the pixels the figure spans across the regions, at which
+records sharing a pixel fade as the display fades them}
+
 \item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, an assembly as a JBrowse config's
 \code{assemblies} entry writes it, or its FASTA or 2bit alone: \code{region} may
 name a contig by any alias it lists, and the reader names the contig in
@@ -56,7 +60,8 @@ name}
 off the index before any record is fetched}
 }
 \value{
-a \code{jbrowse_variants} list of data frames:
+a \code{jbrowse_variants} list of data frames, beside the slots
+\link{jbrowse_result} lists:
 \itemize{
 \item \code{variants}: each record the display keeps: \code{start}, \code{end}, \code{id},
 \code{name}, \code{ref}, \code{alt}, \code{type}, \code{color}, its lane color, \code{filter}, the
@@ -70,16 +75,12 @@ numeric or character as its \code{Type} says; any other \code{Number} (\code{A},
 two alts is \code{c(33L, 1L)}. A record lacking a key has \code{NA}. Over
 several regions a record is listed once in each region it falls in,
 its copies sharing \code{key}
-\item \code{info_fields}: each INFO column's \code{key}, \code{number}, \code{type} and
-\code{description} off the header, and the \code{column} it takes in \code{variants}
 \item \code{annotations}: each record's SnpEff \code{ANN} or VEP \code{CSQ} consequences, a
 row per record and consequence: \code{variant} (a row number of
 \code{variants}), \code{key} (\code{"ANN"} or \code{"CSQ"}) and a column per field the
 key's header line names (\code{Consequence}, \code{IMPACT}, \code{SYMBOL}, ...), each
 character, as the header types none. The raw string leaves the INFO
 columns
-\item \code{annotation_fields}: each consequence key's \code{key} and \code{field}, in the
-header's order
 \item \code{cells}: each row's cell at a record: \code{variant} (a row number of
 \code{variants}), \code{start}, \code{end}, \code{row} (a factor in \code{rows}' order),
 \code{sample}, \code{genotype}, \code{dosage} (the share of the called alleles that
@@ -100,14 +101,13 @@ trees is a forest, one per band, as the display clusters each band
 apart
 \item \code{bands}: each band's \code{key} and \code{label}, in the order they stack. Banded
 rows stay in their band whatever order \code{rows} or \code{tree} gives them
-\item \code{legend}: the display's key, its title as the frame's \code{"title"}
-attribute
-\item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
-them
 }
 
-\code{display} is the display's config as JBrowse resolves it, every slot
-under JBrowse's own name and the schema's defaults filled in. \code{unit} and \code{row_height} are its \code{unit} and \code{rowHeight}.
+\code{fields$info} declares each INFO column's \code{key}, \code{number}, \code{type} and
+\code{description} off the header, and the \code{column} it takes in \code{variants};
+\code{fields$annotations} each consequence key's \code{key} and \code{field}, in the
+header's order. \code{keys} holds \code{genotypes}, the display's key, and \code{rows},
+the row colors' key.
 }
 \description{
 Runs JBrowse's own multi-sample variant display in V8: the records its

@@ -107,6 +107,6 @@ test_that("a calls VCF with no GT reads as features with its FILTER, INFO and FO
   expect_equal(calls$samples$feature, 1:2)
   expect_equal(calls$samples$sample, c("TUMOR", "TUMOR"))
   expect_equal(calls$samples$AD, c(12, 2))
-  expect_equal(calls$format_fields$key, c("DP", "AD"))
-  expect_equal(calls$info_fields$column, c("SVTYPE", "SVLEN"))
+  expect_equal(calls$fields$format$key, c("DP", "AD"))
+  expect_equal(calls$fields$info$column, c("SVTYPE", "SVLEN"))
 })

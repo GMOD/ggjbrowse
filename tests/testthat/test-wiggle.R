@@ -6,14 +6,14 @@ test_that("a BigWig region reads as the wiggle display scales and colors it", {
   expect_gt(nrow(w$bins), 100)
   expect_equal(nrow(w$marks), nrow(w$bins))
   expect_equal(w$rendering, "xyplot")
-  expect_lte(w$domain[1], min(w$bins$score))
-  expect_gte(w$domain[2], max(w$bins$score))
+  expect_lte(w$y_scale$domain[1], min(w$bins$score))
+  expect_gte(w$y_scale$domain[2], max(w$bins$score))
   sides <- split(w$marks$color, w$marks$score < 0)
   expect_equal(lengths(lapply(sides, unique)), c(`FALSE` = 1, `TRUE` = 1))
   expect_false(identical(sides[[1]][1], sides[[2]][1]))
   pinned <- jbrowse_wiggle(bw, "ctgA:1-50,000",
     display = list(scales = list(y = list(domainMin = -50, domainMax = 300))))
-  expect_equal(pinned$domain, c(-50, 300))
+  expect_equal(pinned$y_scale$domain, c(-50, 300))
 })
 
 test_that("density keys its ramp as a bar beside the plot, and bars key none", {
@@ -21,7 +21,7 @@ test_that("density keys its ramp as a bar beside the plot, and bars key none", {
   expect_length(d$ramps, 1)
   ramp <- d$ramps[[1]]
   expect_equal(attr(ramp, "title"), "Score")
-  expect_equal(attr(ramp, "labels"), as.character(d$domain))
+  expect_equal(attr(ramp, "labels"), as.character(d$y_scale$domain))
   expect_equal(range(ramp$offset), c(0, 1))
   expect_length(w$ramps, 0)
   keyed <- function(x) {
@@ -158,11 +158,11 @@ test_that("several regions share one score axis and color ramp", {
   colors <- tapply(m$color, m$score, function(c) length(unique(c)))
   expect_true(all(colors == 1))
   expect_true(any(duplicated(m$score[!duplicated(m[c("score", "region")])])))
-  expect_equal(as.numeric(attr(d$ramps[[1]], "labels")), d$domain)
+  expect_equal(as.numeric(attr(d$ramps[[1]], "labels")), d$y_scale$domain)
   alone <- jbrowse_wiggle(bw, loci[1], display = list(mark = "span"))
   expect_equal(d$marks[d$marks$region == 1, c("start", "end", "score")],
     alone$marks[c("start", "end", "score")])
-  expect_false(isTRUE(all.equal(d$domain, alone$domain)))
+  expect_false(isTRUE(all.equal(d$y_scale$domain, alone$y_scale$domain)))
 })
 
 test_that("as.matrix() bins each source into the display's pixel columns", {
@@ -171,7 +171,7 @@ test_that("as.matrix() bins each source into the display's pixel columns", {
       bigWigLocation = list(uri = normalizePath(bw)))))
   m3 <- jbrowse_wiggle(sources, "ctgA:1-50,000", display = list(mark = "span"))
   m <- as.matrix(m3)
-  expect_equal(dim(m), c(3, 800))
+  expect_equal(dim(m), c(3, m3$width))
   expect_equal(rownames(m), c("rep1", "rep2", "rep3"))
   b <- m3$bins[m3$bins$source == "rep1", ]
   covering <- function(k) {
@@ -183,7 +183,7 @@ test_that("as.matrix() bins each source into the display's pixel columns", {
     vapply(c(1, 2, 400), function(k) mean(covering(k)), 0))
   two <- jbrowse_wiggle(sources, c("ctgA:1-10,000", "ctgA:20,001-30,000"),
     display = list(mark = "span"))
-  expect_equal(colnames(as.matrix(two))[c(1, 401)], c("ctgA:1", "ctgA:20001"))
+  expect_equal(colnames(as.matrix(two))[c(1, two$width / 2 + 1)], c("ctgA:1", "ctgA:20001"))
 
   m3$tree <- stats::hclust(stats::dist(m + c(0, 5, 1)), "average")
   drawn <- on_axis(m3)
@@ -216,9 +216,9 @@ test_that("a mark narrower than a pixel draws a pixel wide", {
 
 test_that("the result keeps the display's resolved config and aggregate", {
   expect_equal(w$display$type, "LinearWiggleDisplay")
-  expect_equal(w$aggregate, "mean")
+  expect_equal(w$display$aggregate, "mean")
   expect_equal(jbrowse_wiggle(bw, "ctgA:1-50,000",
-    display = list(aggregate = "max"))$aggregate, "max")
+    display = list(aggregate = "max"))$display$aggregate, "max")
 })
 
 test_that("a BigWig with no region reads whole, each contig it lists", {

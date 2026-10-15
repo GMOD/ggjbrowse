@@ -8,7 +8,7 @@ jbrowse_features(
   file,
   region = NULL,
   display = NULL,
-  width = 800,
+  width = DEFAULT_WIDTH,
   assembly = NULL,
   color_by_cds = FALSE,
   amino_acids = TRUE,
@@ -73,7 +73,8 @@ name}
 off the index before any feature is fetched}
 }
 \value{
-a \code{jbrowse_features} list of data frames:
+a \code{jbrowse_features} list of data frames, beside the slots
+\link{jbrowse_result} lists:
 \itemize{
 \item \code{features}: each top-level feature on its row: \code{id} (the engine's key
 for it), \code{name}, \code{type}, \code{start}, \code{end}, \code{strand}, \code{top} and \code{bottom}
@@ -104,13 +105,6 @@ by an intron in a piece on each side: \code{start}, \code{end}, \code{amino_acid
 \code{transl_except}, \code{feature}, and the letter the display writes over it,
 \code{text} (empty under 8 pixels a base or in a box too short), \code{font_size}
 and \code{y} (its baseline) in pixels, and \code{color}
-\item \code{legend}: \code{label} and \code{color}, the key the display shows for a color
-field, its title as the frame's \code{"title"} attribute
-\item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
-them
-\item \code{attribute_fields}: each field the file states for its features:
-\code{key}, \code{type}, \code{number} (\code{"1"}, or \code{"."} for a list column),
-\code{description} and the \code{column} it takes
 }
 
 \strong{The file's fields.} \code{features} and \code{subfeatures} carry a column per
@@ -124,7 +118,10 @@ of the table's own columns takes \verb{attr_<key>}, as an INFO key takes
 several of, is a list column. A BED or BigBed field takes the type its
 autoSql declares. A GFF3 has no header, so its columns are the keys the
 region's records use, and a region lacking one reads \code{NA} there when
-regions bind.
+regions bind. \code{fields$attributes} declares each field: its \code{key},
+\code{type}, \code{number} (\code{"1"}, or \code{"."} for a list column), \code{description} and
+the \code{column} it takes. \code{keys$features} is the key the display shows for
+a color field.
 
 A VCF reads as JBrowse's plain variant track draws it, every record
 whether or not it calls a genotype, so a calls VCF with no GT reads
@@ -132,15 +129,16 @@ here where \code{\link[=jbrowse_variants]{jbrowse_variants()}} keeps none. \code
 each record's \code{ref}, \code{alt}, \code{filter} and a column per INFO key, typed as
 \code{\link[=jbrowse_variants]{jbrowse_variants()}} types them, and the result adds:
 \itemize{
-\item \code{info_fields}: each INFO column's \code{key}, \code{number}, \code{type},
-\code{description} and \code{column}
 \item \code{samples}: a row per record and sample, \code{feature}, \code{sample} and a
 column per FORMAT key, typed as INFO is (\code{AD}, \code{DP}, ...), named
 \verb{format_<key>} where the key names a column above
-\item \code{format_fields}: each FORMAT column's declaration, as \code{info_fields}
-\item \code{annotations} and \code{annotation_fields}: its SnpEff \code{ANN} or VEP \code{CSQ}
-consequences, as \code{\link[=jbrowse_variants]{jbrowse_variants()}} gives them, keyed by \code{feature}
+\item \code{annotations}: its SnpEff \code{ANN} or VEP \code{CSQ} consequences, as
+\code{\link[=jbrowse_variants]{jbrowse_variants()}} gives them, keyed by \code{feature}
 }
+
+\code{fields$info} and \code{fields$format} declare each INFO and FORMAT column's
+\code{key}, \code{number}, \code{type}, \code{description} and \code{column}, and
+\code{fields$annotations} each consequence key's fields.
 
 \code{feature} is a row number of \code{features}, and \code{subfeature}, the
 transcript a gene's mark draws, a row number of \code{subfeatures} (\code{NA} for
@@ -149,8 +147,6 @@ feature's \code{section}, a factor in stacking order. \code{glyph} gives the pix
 sizes the display draws text, arrows, chevrons and section chips
 (\code{sectionLabelHeight}) at, and \code{height} the track's laid-out height in
 pixels.
-\code{display} is the display's config as JBrowse resolves it, every slot
-under JBrowse's own name and the schema's defaults filled in.
 }
 \description{
 Runs JBrowse's own feature display in V8: the features it fetches, the gene

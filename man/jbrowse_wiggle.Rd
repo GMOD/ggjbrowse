@@ -8,7 +8,7 @@ jbrowse_wiggle(
   file,
   region = NULL,
   display = NULL,
-  width = 800,
+  width = DEFAULT_WIDTH,
   assembly = NULL
 )
 }
@@ -41,7 +41,7 @@ name a contig by any alias it lists, and the reader names the contig in
 its tables as \code{region} does}
 }
 \value{
-a \code{jbrowse_wiggle} list:
+a \code{jbrowse_wiggle} list, beside the slots \link{jbrowse_result} lists:
 \itemize{
 \item \code{bins}: each bin's scores as the file serves them at this zoom:
 \code{source}, \code{start}, \code{end}, \code{score}, and \code{min} and \code{max} where the file
@@ -53,15 +53,12 @@ down to: the origin, or a whisker band's min), \code{band}, \code{color} and
 layers of their own, tinted as the display tints them
 \item \code{sources}: \code{name}, \code{label}, \code{group}, \code{color}
 \item \code{rules}: the reference lines \code{scales$y$rules} draws
-\item \code{ramps}: the score's color bar where one ramp paints every row
-(density, or a gradient), as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws it
 }
 
-\code{domain} is the score axis the display autoscales to, \code{scale_type} its
-type, and \code{rendering} what the display draws (\code{"xyplot"}, \code{"line"},
+\code{y_scale} is the score axis the display autoscales to, \code{ramps} the
+score's color bar where one ramp paints every row (density, or a
+gradient), and \code{rendering} what the display draws (\code{"xyplot"}, \code{"line"},
 \code{"linecenter"}, \code{"scatter"}, \code{"density"}).
-\code{display} is the display's config as JBrowse resolves it, every slot
-under JBrowse's own name and the schema's defaults filled in.
 }
 \description{
 Runs JBrowse's own quantitative display in V8: the scores it fetches at

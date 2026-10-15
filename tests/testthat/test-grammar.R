@@ -122,7 +122,7 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
   for (layout in c("genomic", "columns")) {
     built <- ggplot_build(autoplot(v, layout = layout))
     expect_equal(as.character(built$data[[1]]$fill),
-      as.character(v$legend$color[1]))
+      as.character(v$keys$genotypes$color[1]))
     expect_equal(nrow(built$data[[2]]), nrow(v$cells))
   }
   p <- autoplot(v, layout = "columns")
@@ -155,7 +155,7 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
 test_that("a key row names every label its color stands for", {
   paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA:18,001-32,000",
      display = list(readConnections = "arc"))
-  legend <- paired$arc_legend
+  legend <- paired$keys$arcs
   expect_true(anyDuplicated(legend$color) > 0)
   key <- get_guide_data(ggplot(paired) + geom_jbrowse_arcs() +
     scale_colour_jbrowse(paired, "arcs"), "colour")

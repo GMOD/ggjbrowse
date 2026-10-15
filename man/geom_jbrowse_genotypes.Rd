@@ -23,7 +23,7 @@ result, such as a filtered copy of it}
 \item{layout}{\code{"genomic"} or \code{"columns"}}
 
 \item{width}{the pixels the figure spans across its region at genomic
-positions; \code{NULL} takes 1,500}
+positions; \code{NULL} takes the result's \code{width}}
 
 \item{fade}{\code{FALSE} draws every cell opaque at genomic positions, where by
 default records sharing a pixel fade as the display fades them}

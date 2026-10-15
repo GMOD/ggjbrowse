@@ -86,7 +86,10 @@ alignments_adapter <- function(file, index) {
 #'   memory
 #' @param span_limit the most bp the regions may span in all, refused before
 #'   anything is fetched, since the coverage band holds every base of them
-#' @return a `jbrowse_alignments` list of data frames:
+#' @param width the pixels the figure spans across the regions, which the
+#'   sub-pixel fade and the read-connection band's reach read
+#' @return a `jbrowse_alignments` list of data frames, beside the slots
+#'   [jbrowse_result] lists:
 #'   * `reads`: `read` (the row number the other tables' `read` column names
 #'     it by, kept through filtering, within this call), `id` (the record's
 #'     own id, the same in every call, where its mates and supplementary
@@ -132,18 +135,12 @@ alignments_adapter <- function(file, index) {
 #'   * `indicators`: the positions the display marks with a triangle, where
 #'     those events number over 30% of a depth of 8 reads or more:
 #'     `position`, `type` (the most common there), `color`
-#'   * `coverage_scale`: the band's depth axis as the display autoscales it,
-#'     shared by every section: `domain`, `type` and `ticks`
 #'   * `junctions`: the reads' splice gaps merged, each once over every
 #'     region: `start`, `end`,
 #'     `count` (the reads supporting it), `strand` (1, -1, or 0 where neither
 #'     the reads' tags nor the splice motif says) and `motif` (`"GT-AG
 #'     (canonical)"`, `"non-canonical"`, or `""` where the region's sequence
 #'     does not cover both ends)
-#'   * `legend`: `label` and `color`, the key the display shows for `color`,
-#'     its title as the frame's `"title"` attribute
-#'   * `ramps`: the color bars the display keys (a linear tag or MAPQ, base
-#'     quality), as [guides_jbrowse()] draws them
 #'   * `arcs`: under `display$readConnections`, each connection the band draws:
 #'     `start` and `end` (its feet), `shape` (`"arc"`, or the read cloud's
 #'     `"flat"`, `"flatSplit"` for a split read, and `"unplaced"` for one whose
@@ -153,22 +150,20 @@ alignments_adapter <- function(file, index) {
 #'     itself), `support` (the reads behind it) and `width` (the stroke in px)
 #'   * `arc_ticks`: the interchromosomal ticks: `position`, `support`,
 #'     `partners` (the contigs reached), `color`, `width`
-#'   * `arc_legend`: the band's key, its title as the `"title"` attribute
 #'   * `sections`: under `display$facet`, each section's `key` and `label` in stacking
 #'     order; ungrouped, one section labelled `""`
-#'   * `keys`: the display's keys, each titled as the browser titles it:
-#'     `reads`, `bases` (empty while a modifications or bisulfite layer greys
-#'     the bases), `junctions`, `interbase` and `arcs`
 #'
-#'   Every table but the keys carries `section`, a factor in stacking order,
+#'   `keys` holds `reads`, `bases` (empty while a modifications or bisulfite
+#'   layer greys the bases), `junctions`, `interbase` and `arcs`, and
+#'   `y_scale` the coverage band's depth axis, shared by every section.
+#'   Every table carries `section`, a factor in stacking order,
 #'   and each section's rows start at 0, and every mark table carries `color`,
 #'   the color the display paints the mark. `read` is a row number of
 #'   `reads`. `fade` is the share of the depth a mark's site holds, zeroed
 #'   under the display's depth-dependent threshold, which the pileup fades a
 #'   sub-pixel mark by.
-#'   `display` is the display's config as JBrowse resolves it, every slot
-#'   under JBrowse's own name and the schema's defaults filled in. `read_pitch` gives the
-#'   `featureHeight` a read draws at and the `featureSpacing` under it.
+#'   `read_pitch` gives the `featureHeight` a read draws at and the
+#'   `featureSpacing` under it.
 #' @export
 #' @examples
 #' bam <- system.file("extdata", "gapdh_direct_rna.bam",
@@ -176,8 +171,10 @@ alignments_adapter <- function(file, index) {
 #' a <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
 #'   display = list(color = list(field = "strand")))
 #' head(a$reads)
-#' a$legend
-jbrowse_alignments <- function(file, region = NULL, display = NULL, assembly = NULL, index = NULL,
+#' a$keys$reads
+jbrowse_alignments <- function(file, region = NULL, display = NULL,
+                               width = DEFAULT_WIDTH, assembly = NULL,
+                               index = NULL,
                                byte_limit = 2e8, span_limit = 1e7) {
   adapter <- adapter_of(file, function() alignments_adapter(file, index))
   assembly <- assembly_config(assembly)
@@ -207,7 +204,7 @@ jbrowse_alignments <- function(file, region = NULL, display = NULL, assembly = N
   x$junctions$region <- junction_region(x$junctions,
     unlist(t$readAs$refName), regions)
   x$junctions$refName <- NULL
-  in_one_call(x, regions, t$missingContigs)
+  in_one_call(x, regions, t, width)
 }
 
 alignments_result <- function(t, assembly) {
@@ -250,13 +247,13 @@ alignments_result <- function(t, assembly) {
   junctions <- painted(frame(t$junctions))
   arcs <- painted(frame(t$arcs))
   arc_ticks <- painted(frame(t$arcTicks))
-  legend <- frame(t$legend)
+  read_key <- frame(t$legend)
   if (nrow(overlaps)) {
-    legend <- rbind(legend, data.frame(label = "Pair/chain reads overlap here",
-      color = overlaps$color[1]))
+    read_key <- rbind(read_key, data.frame(
+      label = "Pair/chain reads overlap here", color = overlaps$color[1]))
   }
-  legend <- structure(legend, title = t$legendTitle, complete = TRUE)
-  arc_legend <- structure(frame(t$arcLegend), title = t$arcLegendTitle)
+  read_key <- structure(read_key, title = t$legendTitle, complete = TRUE)
+  arc_key <- structure(frame(t$arcLegend), title = t$arcLegendTitle)
   engine_key <- function(key, title, complete = FALSE) {
     key_frame(unlist(key$label) %||% character(0),
       unlist(key$color) %||% character(0), title, complete)
@@ -273,18 +270,15 @@ alignments_result <- function(t, assembly) {
       coverage = coverage, allele_coverage = alleles,
       modification_coverage = modification_coverage,
       interbase_coverage = interbase_coverage, indicators = indicators,
-      junctions = junctions,
-      legend = legend, arcs = arcs, arc_ticks = arc_ticks,
-      arc_legend = arc_legend, arc_span_max = t$arcSpanMax,
-      read_connections = t$config$readConnections,
-      sections = sections,
-      keys = list(reads = legend, bases = base_key, arcs = arc_legend,
+      junctions = junctions, arcs = arcs, arc_ticks = arc_ticks,
+      sections = sections, display = t$config,
+      keys = list(reads = read_key, bases = base_key, arcs = arc_key,
         junctions = junction_key, interbase = interbase_key),
-      ramps = ramp_frames(t$ramps), coverage_scale = t$coverageScale,
+      ramps = ramp_frames(t$ramps), y_scale = y_scale(t$coverageScale),
+      fields = list(),
       reference = if (has_sequence(assembly))
         list(assembly = assembly, chrom = t$readAs$originalRefName[[1]]),
-      settings = t$settings, display = t$config, read_pitch = t$readPitch,
-      glyph = t$glyph),
+      read_pitch = t$readPitch, glyph = t$glyph, arc_span_max = t$arcSpanMax),
     primary = "reads",
     class = c("jbrowse_alignments", "jbrowse_result"))
 }
@@ -325,6 +319,13 @@ junction_region <- function(j, contigs, regions) {
       j$end[k] > regions$start), 1L)[1] - 1L
   }
   as.integer(region)
+}
+
+# A band's y axis as the display autoscales it: its domain, its type
+# (`"linear"`, `"log"` or `"symlog"`), the symlog's constant, and its ticks
+y_scale <- function(s) {
+  list(domain = unlist(s$domain), type = s$type %||% s$scaleType,
+    symlog_constant = s$symlogConstant, ticks = unlist(s$ticks))
 }
 
 paints_bisulfite <- function(display) {

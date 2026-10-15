@@ -28,7 +28,7 @@
 #'   `assemblies` entry writes it, or its FASTA or 2bit alone: `region` may
 #'   name a contig by any alias it lists, and the reader names the contig in
 #'   its tables as `region` does
-#' @return a `jbrowse_wiggle` list:
+#' @return a `jbrowse_wiggle` list, beside the slots [jbrowse_result] lists:
 #'   * `bins`: each bin's scores as the file serves them at this zoom:
 #'     `source`, `start`, `end`, `score`, and `min` and `max` where the file
 #'     summarizes the bin
@@ -39,22 +39,19 @@
 #'     layers of their own, tinted as the display tints them
 #'   * `sources`: `name`, `label`, `group`, `color`
 #'   * `rules`: the reference lines `scales$y$rules` draws
-#'   * `ramps`: the score's color bar where one ramp paints every row
-#'     (density, or a gradient), as [guides_jbrowse()] draws it
 #'
-#'   `domain` is the score axis the display autoscales to, `scale_type` its
-#'   type, and `rendering` what the display draws (`"xyplot"`, `"line"`,
+#'   `y_scale` is the score axis the display autoscales to, `ramps` the
+#'   score's color bar where one ramp paints every row (density, or a
+#'   gradient), and `rendering` what the display draws (`"xyplot"`, `"line"`,
 #'   `"linecenter"`, `"scatter"`, `"density"`).
-#'   `display` is the display's config as JBrowse resolves it, every slot
-#'   under JBrowse's own name and the schema's defaults filled in.
 #' @export
 #' @examples
 #' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
 #' w <- jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700")
 #' head(w$marks)
-jbrowse_wiggle <- function(file, region = NULL, display = NULL, width = 800,
-                           assembly = NULL) {
+jbrowse_wiggle <- function(file, region = NULL, display = NULL,
+                           width = DEFAULT_WIDTH, assembly = NULL) {
   adapter <- adapter_of(file, function()
     list(type = "BigWigAdapter", bigWigLocation = location(file)))
   assembly <- assembly_config(assembly)
@@ -72,15 +69,13 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL, width = 800,
   rules$color <- jbrowse_color(rules$color)
   in_one_call(structure(
     list(bins = bins, marks = marks, sources = as_frame(t$sources),
-      rules = rules, keys = list(), ramps = ramp_frames(t$ramps),
-      domain = unlist(t$domain), scale_type = t$scaleType,
-      symlog_constant = t$symlogConstant, rendering = t$rendering,
-      origin = t$origin, row_layout = t$rowLayout, height = t$height,
-      bp_per_px = args$bpPerPx, aggregate = t$config$aggregate,
-      display = t$config),
+      rules = rules, display = t$config, keys = list(),
+      ramps = ramp_frames(t$ramps), y_scale = y_scale(t), fields = list(),
+      rendering = t$rendering, origin = t$origin, row_layout = t$rowLayout,
+      height = t$height, bp_per_px = args$bpPerPx),
     primary = "marks",
     class = c("jbrowse_wiggle", "jbrowse_result")),
-    regions, t$missingContigs)
+    regions, t, width)
 }
 
 #' A quantitative track's sources as the display's clustering reads them
@@ -112,7 +107,8 @@ as.matrix.jbrowse_wiggle <- function(x, ...) {
   columns <- pmax(0, floor((r$end - r$start) * per_px))
   offset <- cumsum(c(0, columns))[seq_along(columns)]
   b <- x$bins[x$bins$source %in% x$sources$name, , drop = FALSE]
-  value <- switch(x$aggregate, min = b$min, max = b$max, b$score) %||% b$score
+  value <- switch(x$display$aggregate, min = b$min, max = b$max,
+    b$score) %||% b$score
   i <- b$region
   from <- pmax(0, trunc((b$start - r$start[i]) * per_px))
   to <- pmin(columns[i], pmax(trunc((b$end - r$start[i]) * per_px), from + 1))
@@ -136,7 +132,8 @@ print.jbrowse_wiggle <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_wiggle> %s, %d bins from %d source(s), drawn as %s on %s axis %g to %g\n",
     print_loci(x), nrow(x$bins),
-    nrow(x$sources), x$rendering, x$scale_type, x$domain[1], x$domain[2]))
+    nrow(x$sources), x$rendering, x$y_scale$type, x$y_scale$domain[1],
+    x$y_scale$domain[2]))
   invisible(x)
 }
 
@@ -163,10 +160,11 @@ symlog_transform <- function(constant) {
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle() + scale_y_jbrowse(w)
 scale_y_jbrowse <- function(object, ...) {
-  switch(object$scale_type,
+  s <- object$y_scale
+  switch(s$type,
     log = ggplot2::scale_y_log10(...),
     symlog = scale_with(ggplot2::scale_y_continuous,
-      list(transform = symlog_transform(object$symlog_constant)), ...),
+      list(transform = symlog_transform(s$symlog_constant)), ...),
     ggplot2::scale_y_continuous(...))
 }
 
@@ -185,10 +183,10 @@ in_rows <- function(x, d) {
   n <- nrow(x$sources)
   d$base <- if (isTRUE(x$row_layout)) n - 1 - d$row else rep(0, nrow(d))
   if (isTRUE(x$row_layout)) {
-    t <- switch(x$scale_type, log = scales::transform_log10(),
-      symlog = symlog_transform(x$symlog_constant),
+    t <- switch(x$y_scale$type, log = scales::transform_log10(),
+      symlog = symlog_transform(x$y_scale$symlog_constant),
       scales::transform_identity())
-    lim <- t$transform(x$domain)
+    lim <- t$transform(x$y_scale$domain)
     at <- function(v) {
       d$base + pmin(1, pmax(0, (t$transform(v) - lim[1]) / diff(lim)))
     }
@@ -337,7 +335,8 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
     (if (!rows && !density) scale_y_jbrowse(object)) +
     ggplot2::coord_cartesian(
       xlim = xlim_of(object),
-      ylim = if (rows) c(0, n) else if (density) c(0, 1) else object$domain,
+      ylim = if (rows) c(0, n) else if (density) c(0, 1)
+        else object$y_scale$domain,
       expand = FALSE, clip = if (rows) "off" else "on") +
     genomic_x(object) +
     ggplot2::labs(x = axis_label(object), y = NULL) +

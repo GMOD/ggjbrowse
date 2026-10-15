@@ -4,7 +4,7 @@
 # The pixels a base spans, which the display's sub-pixel fade reads, in a
 # figure `width` pixels across its region, else 1,500
 px_of <- function(x, width) {
-  (width %||% (10 * PX_PER_INCH)) / diff(xlim_of(x))
+  (width %||% x$width %||% DEFAULT_WIDTH) / diff(xlim_of(x))
 }
 
 # The share of a pileup row left empty above and below a read, from the
@@ -78,7 +78,7 @@ with_inset <- function(d, model) {
 #'   `fadeLowFrequencyMismatches`
 #' @param width the pixels the figure spans across its region, which decide
 #'   the fade, whether a one-base mark reaches a pixel and how high the
-#'   read-connection band reaches; `NULL` takes 1,500
+#'   read-connection band reaches; `NULL` takes the result's `width`
 #' @param min_allele_frequency leave out an allele segment whose share of the
 #'   depth is below this; `NULL` draws the segments the display shows, by its
 #'   `coverageSnpMinFrequency`
@@ -308,13 +308,13 @@ stack_rect <- ggplot2::aes(ymin = low, ymax = high)
 
 # The depth the band's bars grow from: the axis's bottom, which a log axis
 # floors at one read
-bar_base <- function(x) x$coverage_scale$domain[1] %||% 0
+bar_base <- function(x) x$y_scale$domain[1] %||% 0
 
 # A stack's `from` and `to` as the display places them, shares of its bar's
 # drawn height from the bar's base, so a share means the same length on a
 # log or symlog axis as on a linear one
 on_bar <- function(x, d) {
-  tr <- scales::as.transform(depth_transform(x$coverage_scale))
+  tr <- scales::as.transform(depth_transform(x$y_scale))
   base <- tr$transform(bar_base(x))
   at <- function(share) tr$inverse(base + share * (tr$transform(d$depth) -
     base))
@@ -346,7 +346,7 @@ geom_jbrowse_interbase <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "interbase_coverage", "geom_jbrowse_interbase")
   jbrowse_layer(GeomInterbase, data, function(x) {
     d <- x$interbase_coverage
-    full <- 2 * x$coverage_scale$domain[2]
+    full <- 2 * x$y_scale$domain[2]
     n <- nrow(d)
     d$hang <- if (full > 0) d$from / full else rep(0, n)
     d$hang_end <- if (full > 0) d$to / full else rep(0, n)
@@ -485,7 +485,7 @@ connection_domes <- function(arcs, top, points = 48) {
   d
 }
 
-is_cloud <- function(x) x$read_connections == "cloud"
+is_cloud <- function(x) identical(x$display$readConnections, "cloud")
 
 #' @rdname geom_jbrowse_reads
 #' @export

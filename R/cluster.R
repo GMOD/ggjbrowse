@@ -24,7 +24,7 @@ as.matrix.jbrowse_variants <- function(x, ...) {
   cells <- x$cells[as.character(x$cells$row) %in% x$rows$name, , drop = FALSE]
   i <- match(as.character(cells$row), x$rows$name)
   rows <- as.character(x$rows$name)
-  if (identical(x$unit, "haplotype")) {
+  if (identical(x$display$unit, "haplotype")) {
     m <- matrix(0, length(rows), nrow(x$variants),
       dimnames = list(rows, seq_len(nrow(x$variants))))
     m[cbind(i, cells$variant)] <- cells$dosage

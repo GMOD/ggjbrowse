@@ -201,6 +201,10 @@ stack_px <- function(results) {
 # inches
 PX_PER_INCH <- 150
 
+# The pixels a reader lays its regions out across, unless given: a 10 inch
+# figure at PX_PER_INCH, and jb2export's default
+DEFAULT_WIDTH <- 1500
+
 
 # Regions as JBrowse's location box writes them
 loci_of_layout <- function(layout) {

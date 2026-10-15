@@ -134,13 +134,14 @@ warn_missing <- function(messages) {
   missing
 }
 
-# A result the engine read over every region in one call: each row of a table
-# the engine numbers by its 0-based `region` gets its contig and its 1-based
-# `region`, and `regions` lays the regions on one axis, each with its
-# missing-contig message
-in_one_call <- function(x, regions, missing_contigs) {
+# A result the engine `t` read over every region in one call, laid out for
+# `width` px: each row of a table the engine numbers by its 0-based `region`
+# gets its contig and its 1-based `region`, `regions` lays the regions on one
+# axis, each with its missing-contig message, and `warnings` holds what the
+# engine warned of
+in_one_call <- function(x, regions, t, width) {
   missing <- warn_missing(lapply(seq_len(nrow(regions)), function(i)
-    missing_contigs[[i]]))
+    t$missingContigs[[i]]))
   for (name in names(x)) {
     d <- x[[name]]
     if (!is.data.frame(d) || is.null(d$region)) next
@@ -153,6 +154,8 @@ in_one_call <- function(x, regions, missing_contigs) {
   layout <- region_layout(regions[c("chrom", "start", "end")])
   layout$missing <- missing
   x$regions <- layout
+  x$width <- width
+  x$warnings <- unique(c(unlist(t$warnings), missing[missing != ""]))
   x
 }
 

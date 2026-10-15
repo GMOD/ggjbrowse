@@ -36,9 +36,9 @@ test_that("the display's settings reach the tables", {
   purple <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(color = "purple"))
   expect_equal(unique(as.character(purple$rects$color)), "#800080")
-  expect_gt(nrow(typed$legend), 1)
-  expect_true(all(typed$legend$color %in% typed$rects$color))
-  expect_equal(attr(typed$legend, "title"), "type")
+  expect_gt(nrow(typed$keys$features), 1)
+  expect_true(all(typed$keys$features$color %in% typed$rects$color))
+  expect_equal(attr(typed$keys$features, "title"), "type")
 })
 
 test_that("an identity key lists every domain color, drawn or not, as the browser does", {
@@ -46,7 +46,7 @@ test_that("an identity key lists every domain color, drawn or not, as the browse
     scale = "identity", domain = c("goldenrod", "purple"),
     labels = c("Drawn", "Not drawn"))))
   expect_false("#800080" %in% keyed$rects$color)
-  expect_equal(keyed$legend$label, c("Drawn", "Not drawn"))
+  expect_equal(keyed$keys$features$label, c("Drawn", "Not drawn"))
   guide <- ggplot2::get_guide_data(ggplot2::autoplot(keyed), "fill")
   expect_equal(guide$.label, c("Drawn", "Not drawn"))
 })
@@ -103,7 +103,7 @@ test_that("labels take the display's pixel size at the panel's scale", {
     unique(grid::makeContent(text)$children[[1]]$gp$fontsize)
   }
   pt <- g$glyph$fontSize * ggplot2::.pt
-  expect_equal(font_at(100, 1000), pt * 100 / 800)
+  expect_equal(font_at(100, 1000), pt * 100 / g$width, tolerance = 1e-4)
   expect_equal(font_at(1000, 10), pt * 10 / g$height)
 })
 
@@ -310,7 +310,7 @@ test_that("a GFF3's attributes are columns keyed as the file writes them", {
   expect_gt(nrow(tx), 1)
   expect_true(all(unlist(tx$Parent) == gapdh$ID))
   expect_equal(tx$transcript_name, tx$name)
-  expect_true(all(c("ID", "gene_name", "tag") %in% g$attribute_fields$key))
+  expect_true(all(c("ID", "gene_name", "tag") %in% g$fields$attributes$key))
 })
 
 test_that("an exon names its transcript, so its box joins to it", {
@@ -338,7 +338,7 @@ test_that("an attribute named like a table column takes an attr_ prefix", {
   expect_equal(g$features$attr_end, c("x", NA))
   expect_equal(g$features$ID, c("g1", "g2"))
   expect_equal(g$features$Alias, list(NA_character_, c("a", "b")))
-  expect_equal(g$attribute_fields$column[g$attribute_fields$key == "type"],
+  expect_equal(g$fields$attributes$column[g$fields$attributes$key == "type"],
     "attr_type")
   apart <- jbrowse_features(gff, data.frame(chrom = "ctgA",
     start = c(0, 500), end = c(500, 1000)))
@@ -347,7 +347,7 @@ test_that("an attribute named like a table column takes an attr_ prefix", {
 })
 
 test_that("a GFF3's attributes are text, a list where the spec lists several", {
-  fields <- g$attribute_fields
+  fields <- g$fields$attributes
   declared <- function(key) {
     paste(fields$type[fields$key == key], fields$number[fields$key == key])
   }
@@ -363,7 +363,7 @@ test_that("a GFF3's attributes are text, a list where the spec lists several", {
 
 test_that("a BigBed's fields take the types its autoSql declares", {
   b <- jbrowse_features(extdata("volvox.bb"), "ctgA:1-50,000")
-  fields <- b$attribute_fields
+  fields <- b$fields$attributes
   expect_equal(fields$type[fields$key == "score"], "Integer")
   expect_equal(fields$description[fields$key == "geneName"], "Gene name")
   expect_type(b$features$score, "integer")
@@ -411,7 +411,7 @@ test_that("a VCF's CSQ reads as a row per record and consequence", {
   expect_equal(a$variant, c(1, 1))
   expect_equal(a$Consequence, c("missense_variant", "upstream_gene_variant"))
   expect_equal(a$DISTANCE, c(NA, "420"))
-  expect_equal(v$annotation_fields$field,
+  expect_equal(v$fields$annotations$field,
     c("Allele", "Consequence", "IMPACT", "SYMBOL", "DISTANCE"))
   expect_null(v$variants$CSQ)
   expect_equal(v$variants$DP, c(9L, 4L))
