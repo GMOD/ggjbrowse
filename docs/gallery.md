@@ -521,7 +521,7 @@ Forward blocks in tomato flank the 4 Mb inversion, whose reverse ribbon crosses 
 r <- "5,250,001-14,250,000"
 autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   paste0("chr8_PATERNAL:", r),
-  view = list(color = list(field = "strand")), swap = TRUE,
+  display = list(color = list(field = "strand")), swap = TRUE,
   labels = c(query = "paternal", target = "maternal")))
 ```
 
@@ -548,7 +548,7 @@ One forward diagonal runs the length of chr8, broken only by the inversion's sho
 
 ```r
 autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
-  view = list(color = list(field = "strand")), swap = TRUE,
+  display = list(color = list(field = "strand")), swap = TRUE,
   labels = c(query = "paternal", target = "maternal")))
 ```
 
@@ -602,7 +602,7 @@ Forward blocks flank a reversed copy in the middle, with alignments of the other
 autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,520,894-103,832,637",
   "HG00133#1#CM090045.1:103,669,666-103,981,330",
-  view = list(color = list(field = "strand")),
+  display = list(color = list(field = "strand")),
   labels = c(query = "GRCh38", target = "HG00133")))
 ```
 
@@ -631,7 +631,7 @@ The deletion shows as a purple wedge narrowing to a point on HG00133's row.
 autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,619,501-103,622,500",
   "HG00133#1#CM090045.1:103,768,401-103,771,400",
-  view = list(color = list(field = "strand")),
+  display = list(color = list(field = "strand")),
   labels = c(query = "GRCh38", target = "HG00133")))
 ```
 
@@ -660,7 +660,7 @@ Forward blocks in tomato, the 4 Mb inversion crossing in blue, and the genes abo
 r <- "5,250,001-14,250,000"
 s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   paste0("chr8_PATERNAL:", r),
-  view = list(color = list(field = "strand")), swap = TRUE,
+  display = list(color = list(field = "strand")), swap = TRUE,
   labels = c(query = "paternal", target = "maternal"))
 gene_track <- function(file, contig) jbrowse_features(e(file),
   paste0(contig, ":", r),
