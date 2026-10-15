@@ -56,6 +56,23 @@ DOTPLOT_DEFAULTS <- list(minAlignmentLength = 0, minIdentity = 0,
 MULTIWAY_DEFAULTS <- list(hideUnlabelled = FALSE, bridgeSkippedLanes = TRUE,
   splitStrands = TRUE, showGeneLabels = TRUE, inlineLaneNames = FALSE)
 
+# The values a view's enumerated settings take
+SYNTENY_CHOICES <- list(cigarMode = c("full", "matches", "off"),
+  fadeThinAlignmentsMode = c("auto", "on", "off"))
+
+# Stops where a setting holds a value its view does not take, as the
+# linear displays' config schemas refuse one
+check_choices <- function(display, choices) {
+  for (slot in intersect(names(choices), names(display))) {
+    value <- display[[slot]]
+    if (length(value) == 1 && value %in% choices[[slot]]) next
+    rlang::abort(sprintf("`display$%s` is %s; the view takes %s", slot,
+      paste(format(value), collapse = ", "), paste(encodeString(
+        choices[[slot]], quote = "\""), collapse = ", ")),
+      class = "ggjbrowse_bad_display")
+  }
+}
+
 # The settings the engine drew with: those given over the defaults, and over
 # both the values the engine resolved
 resolved_display <- function(given, defaults, engine) {
@@ -148,51 +165,58 @@ memo <- function(f) {
   }
 }
 
-# The regions an axis shows: each locus given, each contig named alone whole,
-# and with none given every contig of the axis's assembly, in natural order
+# The regions an axis shows, each with its missing-contig message, `""`
+# where the file has its contig: any region a linear reader takes, a data
+# frame's rows narrowed to the axis's assembly where it names an `assembly`,
+# and with none given every contig of the axis's assembly in natural order.
 # `side` picks the file's side where the axis names no assembly the file has.
 axis_regions <- function(given, contigs, assembly, side) {
-  if (is.data.frame(given) || inherits(given, "GRanges")) {
-    return(regions_of(given))
-  }
-  whole <- !grepl(LOCUS, given)
-  if (length(given) && !any(whole)) return(regions_of(given))
   all <- contigs()
   named <- length(assembly) && !is.na(assembly) && assembly %in% all$assembly
+  name <- if (named) assembly else side
   own <- all[if (named) all$assembly == assembly else all$side == side, ]
   own <- own[!duplicated(own$chrom), ]
-  if (!length(given)) {
+  where <- if (name %in% c("query", "target")) paste(name, "side")
+    else paste("assembly", name)
+  bad <- function(...) rlang::abort(paste0(...), class = "ggjbrowse_bad_region")
+  if (is.null(given)) {
+    if (!nrow(own)) bad("the file names no contig on its ", where)
     given <- own$chrom[natural_order(own$chrom)]
-    whole <- rep(TRUE, length(given))
   }
-  where <- if (named) paste("assembly", assembly) else paste(side, "side")
-  if (!length(given)) {
-    stop("the file names no contig on its ", where, call. = FALSE)
+  if (is.data.frame(given) && "assembly" %in% names(given)) {
+    mine <- given[as.character(given[["assembly"]]) %in% name, , drop = FALSE]
+    if (!nrow(mine)) {
+      bad("the region frame names assembly ", paste(unique(
+        given[["assembly"]]), collapse = ", "), ", none of them this axis's ",
+        name)
+    }
+    given <- mine
   }
-  unknown <- given[whole & !given %in% own$chrom]
-  if (length(unknown)) {
-    stop(sprintf("\"%s\" is neither a locus such as \"ctgA:1-1,000\" nor a contig of the file's %s, whose contigs are %s",
-      unknown[1], where, paste(utils::head(own$chrom, 20), collapse = ", ")),
-      call. = FALSE)
+  regions <- regions_of(given, function()
+    data.frame(chrom = own$chrom, start = 0, end = own$length))
+  if (anyNA(regions$end)) {
+    bad("the file does not state the length of ", regions$chrom[
+      is.na(regions$end)][1], ": give the axis its regions, as loci")
   }
-  length <- own$length[match(given, own$chrom)]
-  if (anyNA(length[whole])) {
-    stop("the file does not state the length of ", given[whole][is.na(
-      length[whole])][1], ": give the axis its regions, as loci",
-      call. = FALSE)
-  }
-  do.call(rbind, lapply(seq_along(given), function(i)
-    if (whole[i]) data.frame(chrom = given[i], start = 0, end = length[i])
-    else regions_of(given[i])))
+  regions$missing <- if (!nrow(own)) "" else ifelse(regions$chrom %in%
+    own$chrom, "", sprintf("%s is not a contig of the file's %s, whose contigs are %s",
+      regions$chrom, where, paste(utils::head(own$chrom, 20), collapse = ", ")))
+  regions
 }
 
-# Both axes of a comparative view: the assembly each is on and its regions
+# Both axes of a comparative view: the assembly each is on and its regions.
+# Axes none of whose contigs the file has stop; a region on a contig the file
+# lacks beside others warns, its warning in `warnings`. A row with no contig
+# of the file still draws the strip of the other row's off-screen mates.
 comparative_axes <- function(config, first, second, assemblies, swap) {
   names <- axis_assemblies(config, assemblies, swap)
   contigs <- memo(function() contigs_of(config))
-  list(names = names,
-    first = axis_regions(first, contigs, names[1], "query"),
-    second = axis_regions(second, contigs, names[2], "target"))
+  first <- axis_regions(first, contigs, names[1], "query")
+  second <- axis_regions(second, contigs, names[2], "target")
+  missing <- check_missing(c(first$missing, second$missing),
+    c(first$chrom, second$chrom))
+  list(names = names, first = first, second = second,
+    warnings = attr(missing, "warning"))
 }
 
 # An axis's rows of a result's `regions`: each region named by the `axis` it
@@ -204,7 +228,7 @@ axis_rows <- function(regions, axis, assembly, gap_frac = 0) {
   n <- nrow(l)
   data.frame(axis = rep(axis, n),
     assembly = rep(if (length(assembly)) assembly else NA_character_, n), l,
-    missing = rep("", n))
+    missing = regions$missing %||% rep("", n))
 }
 
 # The rows of `regions` on `axis`
@@ -227,12 +251,17 @@ on_axis_of <- function(regions, axis) {
 #'   tabix index beside it), a MUMmer `.delta`, a UCSC `.chain` or a MashMap
 #'   `.out` file, a path or a URL; or a JBrowse synteny track's `adapter`
 #'   config, as a list, such as an `MCScanAnchorsAdapter`'s
-#' @param query,target the regions each row shows: a locus as JBrowse's
-#'   location box writes it (`"ctgA:1-50,001"`, 1-based and inclusive), a
-#'   contig's name alone for the whole of it, several of them, drawn end to
-#'   end as a view lays them out, or a data frame of `chrom`, `start` and
-#'   `end`. Unset, every contig of that row's assembly ([jbrowse_contigs()])
-#'   in natural order, `chr2` before `chr10`, as JBrowse shows a whole genome
+#' @param query,target the regions each row shows, drawn end to end as a
+#'   view lays them out, in any form a linear reader's `region` takes: loci
+#'   as JBrowse's location box writes them (`"ctgA:1-50,001"`, 1-based and
+#'   inclusive), contig names alone for whole contigs, a data frame of
+#'   `chrom`, `start` and `end` (0-based, half-open), or a GRanges. A frame
+#'   with an `assembly` column, as [jbrowse_contigs()] and a result's
+#'   `regions` write it, gives the row the regions on its assembly. With
+#'   `NULL`, the default, every contig of that row's assembly in natural
+#'   order, `chr2` before `chr10`, as JBrowse shows a whole genome. A region
+#'   on a contig the file lacks reads empty and warns, and rows with none of
+#'   the file's contigs between them stop
 #' @param display the view's settings, as a `LinearSyntenyView` snapshot
 #'   writes them: a list with any of `color` (a CSS color, or the color object's
 #'   slots, such as `list(field = "strand")`, `list(field = "identity")`,
@@ -306,6 +335,7 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
                             display = NULL, width = DEFAULT_WIDTH,
                             assemblies = NULL, swap = FALSE, labels = NULL,
                             index = NULL) {
+  check_choices(display, SYNTENY_CHOICES)
   args <- comparative_args(file, index, display)
   axes <- comparative_axes(args$adapterConfig, query, target, assemblies, swap)
   q <- axes$first
@@ -337,7 +367,8 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
       list(color = painted(display$color, r$field),
         opacity = drawn_opacity(display$opacity, r$alpha),
         height = r$height)),
-    list(ribbons = key), ramp_frames(r$ramps), read$warnings,
+    list(ribbons = key), ramp_frames(r$ramps),
+    unique(c(axes$warnings, read$warnings)),
     list(offscreen_strip = list(marks = colored_frame(r$offscreenStrip$marks),
         labels = colored_frame(r$offscreenStrip$labels),
         font_px = r$offscreenStrip$fontPx),
@@ -829,7 +860,8 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
       list(color = painted(display$color, r$field),
         opacity = drawn_opacity(display$opacity, r$alpha),
         lineWidth = r$lineWidth)),
-    list(segments = key), ramp_frames(r$ramps), read$warnings,
+    list(segments = key), ramp_frames(r$ramps),
+    unique(c(axes$warnings, read$warnings)),
     list(height = height,
       assemblies = display_names(unlist(r$assemblyNames), labels,
         args$adapterConfig), skipped = r$skipped))

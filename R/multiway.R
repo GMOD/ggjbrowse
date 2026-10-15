@@ -28,9 +28,9 @@ lane_pin <- function(locus) {
   m <- regmatches(locus, regexec("^(.+):([0-9,]+)(?:(?:-|\\.\\.)([0-9,]+))?$",
     locus, perl = TRUE))[[1]]
   if (!length(m)) {
-    stop("cannot read \"", locus, "\" as a lane's contig or position: write ",
-      "\"Chr2\", \"Chr2:1,000,000\" or \"Chr2:1,000,001-2,000,000\"",
-      call. = FALSE)
+    rlang::abort(paste0("cannot read \"", locus, "\" as a lane's contig or ",
+      "position: write \"Chr2\", \"Chr2:1,000,000\" or ",
+      "\"Chr2:1,000,001-2,000,000\""), class = "ggjbrowse_bad_region")
   }
   number <- function(x) as.numeric(gsub(",", "", x))
   from <- number(m[3]) - 1
@@ -56,9 +56,12 @@ lane_pin <- function(locus) {
 #'   config, as a list, such as a `MultiGenomePAFAdapter` declaring its
 #'   `attributeColumns`, an `MCScanBlocksAdapter` or a
 #'   `MultiPairwiseSyntenyAdapter`
-#' @param region the anchor lane's regions: a locus as JBrowse's location box
-#'   writes it (`"ctgA:1-50,001"`, 1-based and inclusive), several of them,
-#'   drawn end to end, or a data frame of `chrom`, `start` and `end`
+#' @param region the anchor lane's regions, drawn end to end: loci as
+#'   JBrowse's location box writes them (`"ctgA:1-50,001"`, 1-based and
+#'   inclusive), a data frame of `chrom`, `start` and `end` (0-based,
+#'   half-open), or a GRanges. A multi-genome file states no contig's
+#'   length, so a contig's name alone or `NULL`, which a linear reader reads
+#'   whole, raises `ggjbrowse_bad_region`
 #' @param anchor the anchor lane's assembly name, the PanSN sample name for a
 #'   PAF; for an adapter config naming its assemblies, unset takes its first
 #' @param lanes the other lanes: unset, every genome the alignments place,
@@ -129,7 +132,7 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     stop("name the anchor lane's assembly, the PanSN sample its sequences ",
       "are named after", call. = FALSE)
   }
-  regions <- regions_of(region)
+  regions <- anchor_regions(region)
   choice <- lane_choice(lanes)
   given <- display %||% list()
   if (!is.null(choice$rows)) {
@@ -179,6 +182,19 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
         drawCurves = r$curves, height = r$height)),
     list(ribbons = key), ramp_frames(r$ramps), read$warnings,
     list(tick_interval = r$tickInterval, rows_vs_anchor = r$rowsVsAnchor))
+}
+
+# The anchor lane's regions: loci, a data frame or a GRanges. A
+# multi-genome file states no contig's length, so a whole contig, or the
+# whole genome, has no extent to lay out.
+anchor_regions <- function(region) {
+  if (is.null(region) || (is.character(region) && !all(grepl(LOCUS, region)))) {
+    rlang::abort(paste("the anchor lane reads loci such as",
+      "\"ctgA:1-50,001\", a data frame of chrom, start and end, or a GRanges:",
+      "a multi-genome file states no contig's length, so a whole contig has",
+      "no extent"), class = "ggjbrowse_bad_region")
+  }
+  regions_of(region)
 }
 
 # Each lane's regions, its `axis` its assembly: the anchor's regions, laid

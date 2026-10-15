@@ -22,12 +22,17 @@ tabix index beside it), a MUMmer \code{.delta}, a UCSC \code{.chain} or a MashMa
 \code{.out} file, a path or a URL; or a JBrowse synteny track's \code{adapter}
 config, as a list, such as an \code{MCScanAnchorsAdapter}'s}
 
-\item{query, target}{the regions each row shows: a locus as JBrowse's
-location box writes it (\code{"ctgA:1-50,001"}, 1-based and inclusive), a
-contig's name alone for the whole of it, several of them, drawn end to
-end as a view lays them out, or a data frame of \code{chrom}, \code{start} and
-\code{end}. Unset, every contig of that row's assembly (\code{\link[=jbrowse_contigs]{jbrowse_contigs()}})
-in natural order, \code{chr2} before \code{chr10}, as JBrowse shows a whole genome}
+\item{query, target}{the regions each row shows, drawn end to end as a
+view lays them out, in any form a linear reader's \code{region} takes: loci
+as JBrowse's location box writes them (\code{"ctgA:1-50,001"}, 1-based and
+inclusive), contig names alone for whole contigs, a data frame of
+\code{chrom}, \code{start} and \code{end} (0-based, half-open), or a GRanges. A frame
+with an \code{assembly} column, as \code{\link[=jbrowse_contigs]{jbrowse_contigs()}} and a result's
+\code{regions} write it, gives the row the regions on its assembly. With
+\code{NULL}, the default, every contig of that row's assembly in natural
+order, \code{chr2} before \code{chr10}, as JBrowse shows a whole genome. A region
+on a contig the file lacks reads empty and warns, and rows with none of
+the file's contigs between them stop}
 
 \item{display}{the view's settings, as a \code{LinearSyntenyView} snapshot
 writes them: a list with any of \code{color} (a CSS color, or the color object's

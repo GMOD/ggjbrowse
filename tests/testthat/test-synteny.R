@@ -166,7 +166,7 @@ test_that("a comparative result holds the slots every result holds", {
 test_that("warnings the engine raises land in warnings", {
   real <- call_engine
   local_mocked_bindings(call_engine = function(table, args) {
-    warning("the engine says so", call. = FALSE)
+    if (table == "synteny") warning("the engine says so", call. = FALSE)
     real(table, args)
   })
   expect_warning(w <- jbrowse_synteny(paf, query, target), "engine says so")
@@ -175,7 +175,54 @@ test_that("warnings the engine raises land in warnings", {
 
 test_that("an unknown extension and a missing contig say so", {
   expect_error(jbrowse_synteny("aln.tsv", query, target), "expected .paf")
-  expect_equal(nrow(jbrowse_synteny(paf, query, "ctgZ:1-1,000")$alignments), 0)
+  expect_error(jbrowse_synteny(paf, "ctgY:1-1,000", "ctgZ:1-1,000"),
+    "ctgY is not a contig of the file's query side",
+    class = "ggjbrowse_missing_contig")
+  expect_error(jbrowse_dotplot(paf, "ctgY:1-1,000", "ctgZ:1-1,000"),
+    class = "ggjbrowse_missing_contig")
+  expect_warning(empty <- jbrowse_synteny(paf, query, "ctgZ:1-1,000"),
+    "ctgZ is not a contig of the file's target side")
+  expect_equal(nrow(empty$ribbons), 0)
+  expect_warning(beside <- jbrowse_synteny(paf, query,
+    c(target, "ctgZ:1-1,000")), "ctgZ is not a contig")
+  expect_equal(beside$regions$missing[1:2], c("", ""))
+  expect_match(beside$regions$missing[3], "ctgZ is not a contig")
+  expect_match(beside$warnings, "ctgZ is not a contig")
+  expect_equal(nrow(beside$alignments), 7)
+  expect_error(jbrowse_synteny(paf, "ctgZ", target),
+    class = "ggjbrowse_bad_region")
+})
+
+test_that("each axis takes every region form a linear reader takes", {
+  contigs <- jbrowse_contigs(paf)
+  whole <- jbrowse_synteny(paf, contigs, contigs)
+  expect_equal(whole$regions[c("assembly", "chrom", "start", "end")],
+    contigs[c("assembly", "chrom", "start", "end")], ignore_attr = TRUE)
+  expect_equal(jbrowse_synteny(paf, whole$regions, whole$regions)$regions,
+    whole$regions)
+  expect_equal(jbrowse_synteny(paf)$regions, whole$regions)
+  expect_equal(jbrowse_synteny(paf, "ctgA", factor("ctgA"))$regions,
+    whole$regions)
+  frame <- data.frame(chrom = "ctgA", start = 0, end = 49186)
+  expect_equal(jbrowse_synteny(paf, frame, tibble::tibble(chrom = "ctgA",
+    start = 0, end = 50001))$regions, whole$regions)
+  expect_error(jbrowse_synteny(paf, data.frame(assembly = "grape",
+    chrom = "ctgA", start = 0, end = 10)), "none of them this axis's query",
+    class = "ggjbrowse_bad_region")
+  expect_error(jbrowse_synteny(paf, data.frame(chrom = "ctgA", start = 1,
+    end = 10, width = 10)), class = "ggjbrowse_bad_region")
+  skip_if_not_installed("GenomicRanges")
+  g <- GenomicRanges::GRanges("ctgA", IRanges::IRanges(1, 49186))
+  expect_equal(jbrowse_synteny(paf, g, target)$regions$end[1], 49186)
+})
+
+test_that("a setting the view does not take raises ggjbrowse_bad_display", {
+  expect_error(jbrowse_synteny(paf, query, target,
+    display = list(cigarMode = "some")), "display\\$cigarMode",
+    class = "ggjbrowse_bad_display")
+  expect_error(jbrowse_synteny(paf, query, target,
+    display = list(fadeThinAlignmentsMode = TRUE)),
+    class = "ggjbrowse_bad_display")
 })
 
 test_that("identity keys as a bar from 0% to 100%, and mapq as chips", {
@@ -200,14 +247,15 @@ swap <- system.file("extdata", "volvox_contig_swap.paf", package = "ggjbrowse")
 
 test_that("the off-screen strip draws as the band paints it and keys its contigs", {
   skip_if(swap == "")
-  o <- jbrowse_synteny(swap, "ctgA:1-50,001", "ctgC:1-1,000")
+  expect_warning(o <- jbrowse_synteny(swap, "ctgA:1-50,001", "ctgC:1-1,000"),
+    "ctgC is not a contig")
   expect_equal(o$offscreen$mate_chrom, "ctgB")
   expect_true(o$offscreen$drawn)
   expect_equal(o$offscreen_contigs$label, "ctgB · 6.08Kbp in 1 alignments")
   expect_equal(o$offscreen_strip$marks$height, 6)
   expect_equal(o$offscreen_strip$labels$label, "ctgB")
-  t <- jbrowse_synteny(swap, "ctgA:1-50,001", "ctgC:1-1,000",
-    display = list(color = list(field = "target")))
+  t <- suppressWarnings(jbrowse_synteny(swap, "ctgA:1-50,001", "ctgC:1-1,000",
+    display = list(color = list(field = "target"))))
   expect_false(identical(t$offscreen$color, o$offscreen$color))
   built <- ggplot2::ggplot_build(autoplot(t))
   rects <- built$data[[3]]

@@ -49,7 +49,8 @@
 #' `has_cigar` and `assemblies`, the axis titles; a [jbrowse_dotplot()]
 #' result `height`, `assemblies` and `skipped`; and a [jbrowse_multiway()]
 #' result `tick_interval` and `rows_vs_anchor`. `y_scale` is `NULL` and
-#' `fields` empty for each.
+#' `fields` empty for each. A multi-genome file lists no contigs, so a
+#' [jbrowse_multiway()] result's `missing` is always `""`.
 #'
 #' @section Errors:
 #' Each error a reader raises has a class, which a [tryCatch()] handler
@@ -61,7 +62,8 @@
 #'   region on such a contig beside others on the file's contigs reads empty
 #'   and warns, its reason in `regions$missing`
 #' * `ggjbrowse_bad_display`: a `display` slot holds a value the display's
-#'   config schema refuses, which the error names
+#'   config schema refuses, or a synteny view's `cigarMode` or
+#'   `fadeThinAlignmentsMode` one it does not take, which the error names
 #' * `ggjbrowse_bad_region`: a region is neither a locus nor a contig of the
 #'   file, or a data frame of regions reads as 1-based
 #' * `ggjbrowse_forked`: the engine was started in a forked worker

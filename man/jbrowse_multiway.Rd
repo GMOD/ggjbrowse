@@ -23,9 +23,12 @@ config, as a list, such as a \code{MultiGenomePAFAdapter} declaring its
 \code{attributeColumns}, an \code{MCScanBlocksAdapter} or a
 \code{MultiPairwiseSyntenyAdapter}}
 
-\item{region}{the anchor lane's regions: a locus as JBrowse's location box
-writes it (\code{"ctgA:1-50,001"}, 1-based and inclusive), several of them,
-drawn end to end, or a data frame of \code{chrom}, \code{start} and \code{end}}
+\item{region}{the anchor lane's regions, drawn end to end: loci as
+JBrowse's location box writes them (\code{"ctgA:1-50,001"}, 1-based and
+inclusive), a data frame of \code{chrom}, \code{start} and \code{end} (0-based,
+half-open), or a GRanges. A multi-genome file states no contig's
+length, so a contig's name alone or \code{NULL}, which a linear reader reads
+whole, raises \code{ggjbrowse_bad_region}}
 
 \item{anchor}{the anchor lane's assembly name, the PanSN sample name for a
 PAF; for an adapter config naming its assemblies, unset takes its first}

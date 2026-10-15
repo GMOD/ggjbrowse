@@ -56,7 +56,8 @@ axis: \code{query_region} and \code{target_region}, \code{x_region} and \code{y_
 \code{has_cigar} and \code{assemblies}, the axis titles; a \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}}
 result \code{height}, \code{assemblies} and \code{skipped}; and a \code{\link[=jbrowse_multiway]{jbrowse_multiway()}}
 result \code{tick_interval} and \code{rows_vs_anchor}. \code{y_scale} is \code{NULL} and
-\code{fields} empty for each.
+\code{fields} empty for each. A multi-genome file lists no contigs, so a
+\code{\link[=jbrowse_multiway]{jbrowse_multiway()}} result's \code{missing} is always \code{""}.
 }
 
 \section{Errors}{
@@ -71,7 +72,8 @@ in a table
 region on such a contig beside others on the file's contigs reads empty
 and warns, its reason in \code{regions$missing}
 \item \code{ggjbrowse_bad_display}: a \code{display} slot holds a value the display's
-config schema refuses, which the error names
+config schema refuses, or a synteny view's \code{cigarMode} or
+\code{fadeThinAlignmentsMode} one it does not take, which the error names
 \item \code{ggjbrowse_bad_region}: a region is neither a locus nor a contig of the
 file, or a data frame of regions reads as 1-based
 \item \code{ggjbrowse_forked}: the engine was started in a forked worker

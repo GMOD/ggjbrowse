@@ -41,6 +41,18 @@ test_that("an anchor of two regions lays them out as a track over them does", {
   expect_equal(length(fig$patches$plots) + 1, 2)
 })
 
+test_that("the anchor takes loci, frames and GRanges, and refuses whole contigs", {
+  frame <- jbrowse_multiway(paf, data.frame(chrom = "ctgA", start = 0,
+    end = 50001), "volvox")
+  expect_equal(frame$regions, m$regions)
+  expect_error(jbrowse_multiway(paf, NULL, "volvox"),
+    class = "ggjbrowse_bad_region")
+  expect_error(jbrowse_multiway(paf, "ctgA", "volvox"), "no extent",
+    class = "ggjbrowse_bad_region")
+  expect_error(jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
+    lanes = c(volvox_del = "ctgA:x")), class = "ggjbrowse_bad_region")
+})
+
 test_that("lanes draw in the order given, and a named lane pins its contig", {
   ordered <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     lanes = c("volvox_del", "volvox_ins"))
