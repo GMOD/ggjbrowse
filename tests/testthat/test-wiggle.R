@@ -84,9 +84,8 @@ test_that("a stepped line's riser across the origin is cut there too", {
 
 test_that("an empty region draws, whatever the plot type", {
   for (mark in c("bar", "line", "span")) {
-    expect_warning(
-      empty <- jbrowse_wiggle(bw, "ctgB:1-1,000", display = list(mark = mark)),
-      "ctgB is not a contig of this file")
+    empty <- jbrowse_wiggle(bw, "ctgA:1-1,000", display = list(mark = mark))
+    empty$sources <- empty$sources[0, ]
     expect_equal(nrow(empty$marks), 0)
     expect_s3_class(ggplot2::ggplot_build(ggplot2::autoplot(empty)),
       "ggplot_built")

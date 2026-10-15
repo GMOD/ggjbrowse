@@ -195,10 +195,11 @@ jbrowse_alignments <- function(file, region = NULL, display = NULL,
   regions <- reader_regions(adapter, region, assembly)
   span <- sum(regions$end - regions$start)
   if (is.null(region) && span > span_limit) {
-    stop(sprintf(paste("the whole file spans %s bp over %d contigs, past",
-      "`span_limit` (%s bp): pass a region, or raise `span_limit`"),
+    rlang::abort(sprintf(paste("the whole file spans %s bp over %d contigs,",
+      "past `span_limit` (%s bp): pass a region, or raise `span_limit`"),
       format(span, big.mark = ",", scientific = FALSE), nrow(regions),
-      format(span_limit, big.mark = ",", scientific = FALSE)), call. = FALSE)
+      format(span_limit, big.mark = ",", scientific = FALSE)),
+      class = "ggjbrowse_too_large", limit = "span_limit", call = NULL)
   }
   args <- list(adapterConfig = adapter, regions = engine_regions(regions),
     byteLimit = byte_limit, spanLimit = span_limit)

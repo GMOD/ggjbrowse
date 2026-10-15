@@ -34,6 +34,20 @@
 #' `rendering`, `origin`, `row_layout`, `height` and `bp_per_px`; a
 #' [jbrowse_alignments()] result `read_pitch`, `glyph`, `arc_span_max` and
 #' `reference`; and a [jbrowse_variants()] result the `tree` a caller sets.
+#'
+#' @section Errors:
+#' A reader's errors carry a class, for [tryCatch()] to tell them apart:
+#' * `ggjbrowse_too_large`: the regions pass `span_limit` or `byte_limit`,
+#'   which the error names, or a whole file or contig passes 5 million rows
+#'   in a table
+#' * `ggjbrowse_missing_contig`: no region's contig is one the file lists. A
+#'   region on such a contig beside others on the file's contigs reads empty
+#'   and warns, its reason in `regions$missing`
+#' * `ggjbrowse_bad_display`: a `display` slot holds a value the display's
+#'   config schema refuses, which the error names
+#' * `ggjbrowse_bad_region`: a region is neither a locus nor a contig of the
+#'   file, or a data frame of regions reads as 1-based
+#' * `ggjbrowse_forked`: the engine was started in a forked worker
 #' @name jbrowse_result
 NULL
 

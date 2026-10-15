@@ -385,7 +385,8 @@ test_that("a file with no region reads whole, each contig it lists", {
 
 test_that("a whole file past the row limit is refused, asking for a region", {
   local_mocked_bindings(WHOLE_FILE_ROWS = 10)
-  expect_error(jbrowse_features(gff), "over the 10-row limit .*pass a region")
+  expect_error(jbrowse_features(gff), "over the 10-row limit .*pass a region",
+    class = "ggjbrowse_too_large")
   expect_gt(nrow(jbrowse_features(gff, "ctgB:1-6,079")$features), 0)
 })
 

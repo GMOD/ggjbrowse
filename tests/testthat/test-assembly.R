@@ -5,8 +5,9 @@ hg38 <- jbrowse_assembly(extdata("gapdh_hg38.fa.gz"), aliases, "hg38")
 locus <- "chr12:6,534,201-6,538,700"
 
 test_that("an assembly reads each file under its own name and the tables under the asked one", {
-  expect_warning(jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
-    "12:6,534,201-6,538,700"), "12 is not a contig of this file")
+  expect_error(jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "12:6,534,201-6,538,700"), "12 is not a contig of this file",
+    class = "ggjbrowse_missing_contig")
   reads <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"), locus)
   by_alias <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "12:6,534,201-6,538,700", assembly = hg38)

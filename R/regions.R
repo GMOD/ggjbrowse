@@ -127,10 +127,14 @@ region_layout <- function(regions, gap_frac = 0.012) {
 }
 
 # Each region's missing-contig message, "" or NULL where the file has the
-# region's contig; warns with the first where no region's contig is the file's
-warn_missing <- function(messages) {
+# region's contig: an error where no region's contig is the file's, and a
+# warning for each other
+check_missing <- function(messages) {
   missing <- vapply(messages, function(m) m %||% "", "")
-  if (all(missing != "")) warning(missing[1], call. = FALSE)
+  if (length(missing) && all(missing != "")) {
+    rlang::abort(missing[1], class = "ggjbrowse_missing_contig", call = NULL)
+  }
+  for (m in unique(missing[missing != ""])) warning(m, call. = FALSE)
   missing
 }
 
@@ -140,7 +144,7 @@ warn_missing <- function(messages) {
 # axis, each with its missing-contig message, and `warnings` holds what the
 # engine warned of
 in_one_call <- function(x, regions, t, width) {
-  missing <- warn_missing(lapply(seq_len(nrow(regions)), function(i)
+  missing <- check_missing(lapply(seq_len(nrow(regions)), function(i)
     t$missingContigs[[i]]))
   children <- child_tables(x)
   cls <- class(x)

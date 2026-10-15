@@ -97,8 +97,9 @@ read_range_deferring <- function(url, start, end) {
 
 # Runs use(<the engine's context>) and raises what the engine queued meanwhile.
 # V8 raises a rejected call's error with JavaScript's own "Error: " prefix,
-# which R would print after its own.
-in_engine <- function(use) {
+# which R would print after its own. `display` is the config the call passed,
+# which an error about it names.
+in_engine <- function(use, display = NULL) {
   ctx <- engine()
   on.exit({
     queued <- ctx$get("ggjbrowseQueued")
@@ -107,13 +108,61 @@ in_engine <- function(use) {
     deferred$warnings <- character(0)
     for (w in warnings) warning(w, call. = FALSE)
     if (length(queued$errors)) {
-      stop(paste(unique(unlist(queued$errors)), collapse = "\n"),
-        call. = FALSE)
+      engine_error(paste(unique(unlist(queued$errors)), collapse = "\n"),
+        display)
     }
   })
   tryCatch(use(ctx), "C++Error" = function(e) {
-    stop(sub("^Error: ", "", conditionMessage(e)), call. = FALSE)
+    engine_error(sub("^Error: ", "", conditionMessage(e)), display)
   })
+}
+
+TOO_LARGE <- paste0("^(.*) (spans?|needs?) ([0-9]+) (bp|bytes) of (\\w+)",
+  "( in total)?, over the ([0-9]+)-(bp|byte) limit; read a smaller region ",
+  "or raise (spanLimit|byteLimit)$")
+
+# The engine's error as R raises it: a region over a limit as
+# `ggjbrowse_too_large`, naming R's argument and the loci as the location box
+# writes them, and a display slot the config schema rejects as
+# `ggjbrowse_bad_display`, naming the slot
+engine_error <- function(message, display = NULL) {
+  big <- function(x) format(as.numeric(x), big.mark = ",", scientific = FALSE)
+  m <- regmatches(message, regexec(TOO_LARGE, message))[[1]]
+  if (length(m)) {
+    argument <- c(spanLimit = "span_limit", byteLimit = "byte_limit")[[m[10]]]
+    loci <- m[2]
+    at <- regmatches(loci, gregexpr("[^ ,]+:[0-9]+-[0-9]+", loci))[[1]]
+    if (length(at)) {
+      parts <- regmatches(at, regexec("^(.+):([0-9]+)-([0-9]+)$", at))
+      loci <- paste(vapply(parts, function(p) sprintf("%s:%s-%s", p[2],
+        big(as.numeric(p[3]) + 1), big(p[4])), ""), collapse = ", ")
+    }
+    rlang::abort(sprintf("%s %s %s %s of %s%s, past `%s` (%s): read a smaller region or raise `%s`",
+      loci, m[3], big(m[4]), m[5], m[6], m[7], argument,
+      paste(big(m[8]), if (m[9] == "bp") "bp" else "bytes"), argument),
+      class = "ggjbrowse_too_large", limit = argument, call = NULL)
+  }
+  if (grepl("-row limit", message, fixed = TRUE)) {
+    rlang::abort(message, class = "ggjbrowse_too_large", limit = "rows",
+      call = NULL)
+  }
+  union <- regmatches(message, regexec("No matching type for union (\\S+)",
+    message))[[1]]
+  if (length(union)) {
+    slot <- Filter(function(s) grepl(tolower(s), tolower(union[2]),
+      fixed = TRUE), names(display))
+    value <- if (length(slot)) unlist(display[[slot[1]]])
+    rlang::abort(if (length(slot)) {
+      sprintf(paste("`display$%s` is %s, which the display's config schema",
+        "does not accept (no type of its union %s matches)"), slot[1],
+        paste(if (is.character(value)) encodeString(value, quote = "\"")
+          else format(value), collapse = ", "), union[2])
+    } else {
+      sprintf(paste("the display config holds a value its schema does not",
+        "accept (no type of its union %s matches)"), union[2])
+    }, class = "ggjbrowse_bad_display", call = NULL)
+  }
+  rlang::abort(message, call = NULL)
 }
 
 as_engine_json <- function(args) {
@@ -133,7 +182,7 @@ call_engine <- function(table, args) {
     bytes <- ctx$get("jbrowseBytes")
     ctx$eval("jbrowseBytes = null")
     list(json = json, bytes = bytes)
-  })
+  }, args$display)
   bytes <- rawConnection(wire$bytes)
   on.exit(close(bytes))
   x <- from_wire(jsonlite::fromJSON(wire$json, simplifyVector = TRUE,

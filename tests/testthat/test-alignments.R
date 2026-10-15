@@ -473,11 +473,28 @@ test_that("a path with %, ? and # in it reads", {
   expect_equal(nrow(jbrowse_alignments(path, "ctgA:1,001-6,000")$reads), 982)
 })
 
-test_that("a region over the byte limit is refused with its size", {
-  expect_error(
-    jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1-50,000",
-      byte_limit = 1000),
-    "over the 1000-byte limit")
+test_that("a region over a limit is refused naming R's argument", {
+  bam <- extdata("volvox-sorted.bam")
+  expect_error(jbrowse_alignments(bam, "ctgA:1-50,000", byte_limit = 1000),
+    "ctgA:1-50,000 needs [0-9,]+ bytes of alignments, past `byte_limit` \\(1,000 bytes\\)",
+    class = "ggjbrowse_too_large")
+  expect_error(jbrowse_alignments(bam, c("ctgA:1-20,000", "ctgA:30,001-40,000"),
+    span_limit = 1000), paste0("ctgA:1-20,000, ctgA:30,001-40,000 span 30,000 ",
+      "bp of alignments in total, past `span_limit` \\(1,000 bp\\)"),
+    class = "ggjbrowse_too_large")
+  limit <- tryCatch(jbrowse_features(extdata("volvox.sort.gff3.gz"),
+    "ctgA:1-50,000", byte_limit = 10), error = identity)
+  expect_s3_class(limit, "ggjbrowse_too_large")
+  expect_equal(limit$limit, "byte_limit")
+})
+
+test_that("a display slot the schema refuses is named", {
+  expect_error(jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1-400",
+    display = list(unit = "bogus")), "`display\\$unit` is \"bogus\"",
+    class = "ggjbrowse_bad_display")
+  expect_error(jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1-400",
+    display = list(displayMode = "huge")), "`display\\$displayMode`",
+    class = "ggjbrowse_bad_display")
 })
 
 test_that("a whole file reads the contigs its index shows reads on, to the assembly's lengths", {
@@ -501,7 +518,7 @@ test_that("a whole file spanning past span_limit is refused before any read", {
 test_that("regions spanning past span_limit in all are refused", {
   loci <- c("ctgA:1-3,000", "ctgA:10,001-13,000")
   expect_error(jbrowse_alignments(extdata("volvox-sorted.bam"), loci,
-    span_limit = 5000), "6000 bp of alignments in total, over the 5000-bp")
+    span_limit = 5000), "6,000 bp of alignments in total, past `span_limit`")
   expect_no_error(jbrowse_alignments(extdata("volvox-sorted.bam"), loci,
     span_limit = 6000))
 })

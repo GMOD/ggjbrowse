@@ -65,10 +65,15 @@ test_that("several regions keep their genomic positions and draw end to end", {
     c(min(r$cum_start), max(r$cum_end)))
 })
 
-test_that("a contig the file lacks warns only where no region is on one it has", {
-  expect_warning(jbrowse_features(gff, "chr1:1-5,000"),
-    "chr1 is not a contig of this file, whose contigs are ctgA, ctgB")
-  expect_no_warning(jbrowse_features(gff, c("ctgA:1-5,000", "chr1:1-5,000")))
+test_that("a contig the file lacks errors where no region is on one it has", {
+  expect_error(jbrowse_features(gff, "chr1:1-5,000"),
+    "chr1 is not a contig of this file, whose contigs are ctgA, ctgB",
+    class = "ggjbrowse_missing_contig")
+  expect_warning(partial <- jbrowse_features(gff,
+    c("ctgA:1-5,000", "chr1:1-5,000")), "chr1 is not a contig")
+  expect_equal(partial$regions$missing[1], "")
+  expect_match(partial$regions$missing[2], "chr1 is not a contig")
+  expect_match(partial$warnings, "chr1 is not a contig")
 })
 
 test_that("a CRAM read without its reference says to pass one", {
