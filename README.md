@@ -109,6 +109,18 @@ autoplot(a)
   `autoplot(a, "pileup")` draws one band alone, as do `"coverage"`,
   `"junctions"` and `"arcs"`.
 
+## Tutorials
+
+Whole analyses done in R, each on the data and question of a
+[JBrowse tutorial](https://jbrowse.org/jb2/docs/tutorials/):
+
+- [Methylation (bisulfite) in R](docs/tutorials/bisulfite.md): per-read CpG,
+  CHG and CHH calls from an _Arabidopsis_ WGBS run, counted over a gene and a
+  transposon and checked against MethylDackel
+- [Methylation (long-read) in R](docs/tutorials/methylation.md): HG002
+  nanopore 5mC split by haplotype at the _SNRPN_ imprinting center, checked
+  against modkit and smoothed across the imprinted domain
+
 ## Alignments
 
 `display` is the display's config, written as a JBrowse track config writes

@@ -5,6 +5,7 @@
 ^.*\.Rproj$
 ^agent-docs$
 ^docs$
+^tutorials$
 ^gallery$
 ^CONTRIBUTING\.md$
 ^LICENSE$

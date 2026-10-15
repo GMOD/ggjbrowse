@@ -1,8 +1,8 @@
 name: Docs
 
 # Runs every R example the README and docs/gallery.md print, and fails if
-# scripts/gallery.R would write the gallery table or docs/gallery.md
-# differently from what is committed.
+# scripts/gallery.R would write the gallery table or docs/gallery.md, or
+# scripts/tutorials.R the tutorials, differently from what is committed.
 on:
   push:
     branches: [main]
@@ -23,7 +23,13 @@ jobs:
           use-public-rspm: true
       - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
         with:
-          extra-packages: local::.
+          extra-packages: |
+            local::.
+            any::knitr
+            any::yaml
+            any::dplyr
+            any::readr
       - run: Rscript scripts/check-readme.R
       - run: Rscript scripts/gallery.R --check
+      - run: Rscript scripts/tutorials.R --check
       - run: git diff --exit-code README.md docs gallery

@@ -1,0 +1,315 @@
+---
+title: Methylation (long-read) in R
+jbrowse_tutorial: methylation
+---
+
+Nanopore and PacBio basecallers record each read's DNA methylation in
+base-modification tags (`MM` and `ML`). We'll read those calls into R with
+ggjbrowse for HG002 nanopore reads over the _SNRPN_ imprinting center, where one
+parent's copy is methylated and the other's is not. We follow one dataset from
+the per-read calls, to the two parental alleles split apart, to modkit's
+per-CpG fractions, and end with a moving average of each allele across the
+imprinted domain computed in R.
+
+- **In:** a modBAM or modCRAM, and modkit's bedMethyl output.
+- **Out:** a data frame of every read's 5mC calls, faceted by haplotype, and
+  ggplot figures you restyle.
+- **The check:** the reads and modkit's aggregate have to agree on which allele
+  is methylated.
+
+The same analysis in the JBrowse app is the
+[long-read methylation tutorial](https://jbrowse.org/jb2/docs/tutorials/methylation/).
+
+## Prerequisites
+
+In R:
+
+```r
+install.packages(c("remotes", "ggplot2", "dplyr", "readr"))
+remotes::install_github("GMOD/ggjbrowse")
+```
+
+For your own data:
+
+<!-- jbrowse
+section: Prerequisites
+title: false
+replace:
+  - from: "  modification tags, which modern ONT and PacBio basecallers write by default,\n  plus a JBrowse instance to load them into (the\n  [web quickstart](/docs/quickstart_web) or the\n  [desktop quickstart](/docs/quickstart_desktop))"
+    to: "  modification tags, which modern ONT and PacBio basecallers write by default"
+-->
+
+<!-- jbrowse
+section: Where the data comes from
+replace:
+  - from: "Nothing to download: the track configs below load region slices we host, cut\nfrom these files."
+    to: "Nothing to download: every chunk below reads region slices we host, cut from\nthese files, by URL."
+-->
+
+<!-- jbrowse
+section: Two parental alleles at the SNRPN imprinting center
+replace:
+  - from: "Every view below is at `chr15:24,948,000-24,962,000`, the _SNRPN_ imprinting\ncenter; type it into the location box once the tracks are loaded."
+    to: "Every figure until the last section is at `chr15:24,948,000-24,962,000`, the\n_SNRPN_ imprinting center."
+-->
+
+## Per-read methylation from the alignments
+
+We'll start by reading the reads with their 5mC calls. The `display` list
+holds the alignments track's settings, as a JBrowse track config spells them:
+
+- **`baseColor = list(field = "modifications")`** paints each read with the
+  calls its `MM`/`ML` tags hold, as **Color by... → Modifications** does in the
+  browser.
+- **`unmodified = "all"`** also returns every CpG the tags left implicit as
+  unmethylated, in blue, as the browser's **One color per type, plus
+  low-probability & unmodified in blue** mode (IGV's "2-color" scheme) does.
+  Without it a read with no methylation draws bare, and its CpGs are missing
+  from the table.
+
+A modBAM needs no `reference`: the tags hold the calls.
+
+```{r read}
+library(ggjbrowse)
+library(ggplot2)
+library(dplyr)
+
+demo <- "https://jbrowse.org/demos/methylation/"
+bam <- paste0(demo, "HG002_SNRPN_5mC_haplotagged.bam")
+locus <- "chr15:24,948,000-24,962,000"
+
+modifications <- list(field = "modifications")
+reads <- jbrowse_alignments(bam, locus,
+  display = list(baseColor = modifications,
+    modifications = list(unmodified = "all")))
+```
+
+```{r reads, fig.height = 6, fig.cap = "HG002 ONT reads over the SNRPN CpG island, methylated CpGs red and unmethylated ones blue, interleaved in file order"}
+autoplot(reads)
+```
+
+Every call is a row of `reads$modifications`, with its read, its probability
+and whether the call is unmodified:
+
+```{r calls}
+reads$modifications |>
+  count(name)
+```
+
+The reads interleave methylated and unmethylated molecules, so the figure looks
+mixed until the alleles come apart.
+
+## Splitting the alleles apart
+
+<!-- jbrowse
+section: Splitting the alleles apart
+title: false
+only:
+  - "Each long read is one DNA molecule"
+replace:
+  - from: "In\ngrammar-of-graphics terms, **Group by...** sets a `facet`, which splits the\ndisplay into stacked sections, one per value of a field."
+    to: "In\ngrammar-of-graphics terms, `facet` splits the display into stacked\nsections, one per value of a field, as **Group by...** does in the browser."
+-->
+
+We'll facet on the `HP` tag, which `tags.HP` names:
+
+```{r facet}
+by_haplotype <- jbrowse_alignments(bam, locus,
+  display = list(baseColor = modifications,
+    modifications = list(unmodified = "all"),
+    facet = list(field = "tags.HP")))
+by_haplotype$sections
+```
+
+The pileup stacks into one section per haplotype, one methylated over the
+island and the other unmethylated, and an `HP: none` section for the reads the
+haplotagging could not assign:
+
+```{r facet-plot, fig.height = 7, fig.cap = "The same reads faceted by the HP tag: HP 1 methylated over the CpG island, HP 2 unmethylated, and the untagged reads below"}
+autoplot(by_haplotype)
+```
+
+The section is a column of the calls table, so the split is also a number.
+We'll count the methylated share per haplotype over UCSC's CpG island here.
+`!unmodified` counts 5mC and 5hmC calls alike, as modkit's `--combine-mods`
+does in the next section:
+
+```{r per-haplotype}
+ucsc <- "https://jbrowse.org/ucsc/hg38/"
+islands <- jbrowse_features(paste0(ucsc, "cpgIslandExt.bed.gz"), locus,
+  index = paste0(ucsc, "cpgIslandExt.bed.gz.csi"))
+island <- islands$features[1, c("name", "start", "end")]
+island
+
+reads_share <- by_haplotype$modifications |>
+  filter(between(position, island$start, island$end)) |>
+  group_by(section) |>
+  summarise(methylated = mean(!unmodified), calls = n())
+reads_share
+```
+
+<!-- jbrowse
+section: Splitting the alleles apart
+title: false
+only:
+  - "Reads of your own without an `HP` tag"
+  - "whatshap haplotag --reference"
+replace:
+  - from: "reads a phased VCF. The\n[alignments track guide](/docs/user_guides/alignments_track#grouping-reads)\ncovers the Group-by dialog:"
+    to: "reads a phased VCF:"
+-->
+
+<!-- jbrowse
+section: Aggregate methylation with modkit bedMethyl
+replace:
+  - from: "The file is much smaller than\nthe reads.[^dmr]"
+    to: "The file is much smaller than\nthe reads."
+-->
+
+A bedMethyl file is a tab-separated table, so `readr` reads it into a data
+frame directly. modkit documents its 18 columns; the three we use are the
+modification code, `n_valid_cov`, the reads that called the site, and
+`fraction_modified`, the percent methylated:
+
+```{r bedmethyl}
+library(readr)
+
+bedmethyl_columns <- c("chrom", "start", "end", "code", "score", "strand",
+  "thick_start", "thick_end", "rgb", "n_valid_cov", "fraction_modified",
+  "n_mod", "n_canonical", "n_other_mod", "n_delete", "n_fail", "n_diff",
+  "n_nocall")
+read_bedmethyl <- function(haplotype, file) {
+  read_tsv(file, col_names = bedmethyl_columns, show_col_types = FALSE) |>
+    filter(code == "m") |>
+    mutate(haplotype = haplotype)
+}
+snrpn <- bind_rows(
+  read_bedmethyl("HP1", paste0(demo, "HG002_SNRPN_hp1.modkit.bed.gz")),
+  read_bedmethyl("HP2", paste0(demo, "HG002_SNRPN_hp2.modkit.bed.gz")))
+```
+
+The reads and the aggregate should agree on which allele is methylated. We'll
+weight each CpG's fraction by its coverage over the same island, so the two
+numbers count the same calls:
+
+```{r agree}
+modkit_share <- snrpn |>
+  filter(between(start, island$start, island$end)) |>
+  group_by(haplotype) |>
+  summarise(methylated = weighted.mean(fraction_modified, n_valid_cov) / 100)
+modkit_share
+```
+
+HP1 is methylated and HP2 is not, in the reads and in modkit alike.
+
+### The profile over the reads
+
+The bedMethyl table draws as any data frame does. We'll draw each CpG's
+fraction as a bar, a row per haplotype on one 0 to 100 axis, and
+`jbrowse_stack()` puts that plot of our own between the CpG island and the
+faceted reads, on their axis:
+
+```{r profile}
+haplotype_colours <- scale_colour_manual(
+  values = c(HP1 = "#d62728", HP2 = "#1f77b4"), guide = "none")
+profile <- ggplot(snrpn, aes(start, colour = haplotype)) +
+  geom_segment(aes(xend = start, y = 0, yend = fraction_modified)) +
+  haplotype_colours +
+  facet_grid(haplotype ~ .) +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(y = "% 5mC")
+fig <- jbrowse_stack(islands, profile, by_haplotype)
+```
+
+```{r profile-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "Imprinting at the SNRPN center: the CpG island, modkit's per-haplotype profile, and the reads faceted by HP, with HP1 methylated in both"}
+fig
+```
+
+## Smoothing across the imprinted domain
+
+<!-- jbrowse
+section: Smoothing across the imprinted domain
+title: false
+only:
+  - "A single CpG's fraction rests on the few reads"
+replace:
+  - from: "A\n`window` step averages each CpG with a fixed number of neighbouring CpGs, so a\nCpG island weighs as many sites as it holds. We'll load both haplotypes over 5\nMb of chr15 around _SNRPN_, each in a row with its raw values under a moving\naverage:"
+    to: "A\nmoving average over a fixed number of neighbouring CpGs fixes that, and a CpG\nisland weighs as many sites as it holds. We'll read both haplotypes over 5 Mb\nof chr15 around _SNRPN_ and compute the average in R."
+-->
+
+`stats::filter()` sums a sliding window, so a coverage-weighted mean over the
+50 CpGs on either side is two of those sums divided. `group_by()` keeps each
+haplotype's average over its own CpGs:
+
+```{r smooth}
+moving_average <- function(value, weight, flank) {
+  window <- rep(1, 2 * flank + 1)
+  as.numeric(stats::filter(value * weight, window) /
+    stats::filter(weight, window))
+}
+
+domain <- bind_rows(
+  read_bedmethyl("HP1", paste0(demo, "HG002_chr15_imprinted_hp1.modkit.bed.gz")),
+  read_bedmethyl("HP2", paste0(demo, "HG002_chr15_imprinted_hp2.modkit.bed.gz"))) |>
+  arrange(haplotype, start) |>
+  group_by(haplotype) |>
+  mutate(meth = moving_average(fraction_modified, n_valid_cov, 50)) |>
+  ungroup()
+```
+
+The figure is ordinary ggplot: each CpG in grey under its haplotype's average,
+a row per haplotype, and the RefSeq genes from the hg38 hub above it.
+`jbrowse_stack()` takes a ggplot of your own and draws it on the genes' axis:
+
+```{r domain}
+window <- "chr15:24,800,000-25,200,000"
+genes <- jbrowse_features(paste0(ucsc, "ncbiRefSeqSelect.gff.gz"), window,
+  index = paste0(ucsc, "ncbiRefSeqSelect.gff.gz.csi"))
+
+smoothed <- function(data) {
+  ggplot(data, aes(start)) +
+    geom_point(aes(y = fraction_modified), colour = "#bbbbbb", size = 0.3) +
+    geom_line(aes(y = meth, colour = haplotype), linewidth = 0.8,
+      na.rm = TRUE) +
+    haplotype_colours +
+    facet_grid(haplotype ~ .) +
+    scale_x_continuous(labels = scales::label_comma()) +
+    labs(x = NULL, y = "% 5mC")
+}
+fig <- jbrowse_stack(genes,
+  smoothed(filter(domain, between(start, 24800000, 25200000))))
+```
+
+```{r domain-plot, fig.height = 5, fig.width = jbrowse_width(fig), fig.cap = "HG002 5mC by haplotype over SNRPN, each CpG in grey under its 101-CpG moving average: at the SNRPN promoter HP1 is methylated and HP2 unmethylated"}
+fig
+```
+
+At the _SNRPN_ promoter HP1 is methylated and HP2 unmethylated, as the reads
+showed, and upstream of _SNRPN_ the two rows sit at about the same level.
+
+A wider window takes the same data across the whole Prader-Willi and Angelman
+domain. A 1,001-CpG average is one argument away:
+
+```{r whole-domain, fig.height = 4, fig.cap = "The same haplotypes across the Prader-Willi and Angelman domain with a 1,001-CpG moving average"}
+domain |>
+  group_by(haplotype) |>
+  mutate(meth = moving_average(fraction_modified, n_valid_cov, 500)) |>
+  smoothed()
+```
+
+## Your own data
+
+To run this on your own reads:
+
+- Pass your modBAM or modCRAM's path or URL to `jbrowse_alignments()`, with the
+  `.bai` or `.crai` beside it. A CRAM also needs `reference =`.
+- Facet on any tag your pipeline writes with `facet = list(field = "tags.XX")`.
+- Read modkit's `--phased` output, `hp1.bedmethyl` and `hp2.bedmethyl`, with
+  `read_bedmethyl()` above, bgzipped or not.
+
+## See also
+
+- [Methylation (long-read)](https://jbrowse.org/jb2/docs/tutorials/methylation/),
+  the same analysis in the JBrowse app
+- [Methylation (bisulfite) in R](bisulfite.md)
+- [modkit documentation](https://nanoporetech.github.io/modkit/)

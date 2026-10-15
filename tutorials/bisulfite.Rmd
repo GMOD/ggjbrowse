@@ -1,0 +1,258 @@
+---
+title: Methylation (bisulfite) in R
+jbrowse_tutorial: bisulfite
+---
+
+Whole-genome bisulfite sequencing (WGBS) and enzymatic methyl sequencing
+(EM-seq) measure DNA methylation with short reads. We'll align an _Arabidopsis
+thaliana_ WGBS run with bwameth, read the reads into R with ggjbrowse, and draw
+each read's methylation in the CpG, CHG and CHH contexts as a ggplot. Then we'll
+count the calls per context over a gene and a transposon, and check those
+numbers against MethylDackel's.
+
+- **In:** a WGBS or EM-seq BAM or CRAM, and the reference it was aligned to.
+- **Out:** a data frame of every cytosine call on every read, and a figure you
+  restyle with ggplot2.
+- **No methylation caller runs first:** ggjbrowse runs JBrowse's own engine,
+  which calls each cytosine from the C→T changes in the reads, so the BAM needs
+  no base-modification tags (`MM`/`ML`).
+
+The same analysis in the JBrowse app is the
+[bisulfite tutorial](https://jbrowse.org/jb2/docs/tutorials/bisulfite/).
+
+## Prerequisites
+
+In R:
+
+```r
+install.packages(c("remotes", "ggplot2", "dplyr"))
+remotes::install_github("GMOD/ggjbrowse")
+```
+
+To align your own run, which the code below skips by reading a hosted clip:
+
+<!-- jbrowse
+section: Prerequisites
+title: false
+drop_lines:
+  - "`node`, for the"
+  - "UCSC's `bedGraphToBigWig`"
+replace:
+  - from: "[conversion-rate check](#checking-the-bisulfite-conversion-rate) and the\n  optional aggregate track"
+    to: "[conversion-rate check](#checking-the-bisulfite-conversion-rate) and the\n  per-position calls we check against"
+-->
+
+<!-- jbrowse
+section: Where the data comes from
+replace:
+  - from: "The [build script](#reproduce-it-end-to-end) fetches these files, so there is\nnothing to download by hand."
+    to: "The [build script](#reproduce-it-end-to-end) fetches these files. This page\nreads the aligned reads over one 14 kb window from a clip on jbrowse.org, so\nevery chunk runs without the alignment step."
+-->
+
+<!-- jbrowse
+section: What bisulfite data looks like
+replace:
+  - from: "JBrowse makes that comparison per read as it draws."
+    to: "JBrowse's engine makes that comparison per read, in the browser and in\nggjbrowse alike."
+  - from: "JBrowse colors the reads by one context at a time."
+    to: "The engine calls one context at a time."
+-->
+
+<!-- jbrowse
+section: Producing the BAM
+replace:
+  - from: "still there for JBrowse to find"
+    to: "still there for the engine to find"
+  - from: "becomes a bigWig once the header line is dropped and the percentage column kept:"
+    to: "becomes a bigWig once the header line is dropped and the percentage column\nkept. We'll read these three bigWigs back into R to check the per-read calls:"
+drop:
+  - "A `MultiQuantitativeTrack` with a subadapter per context"
+-->
+
+## Reading the reads into R
+
+We'll start by reading the reads over the window the website tutorial opens
+on, `NC_003070.9:4,398,001-4,412,000`. It holds the gene AT1G12930
+(RefSeq `NM_101164.5`) on the left and a transposon on the right.
+
+- **`reference`:** a CRAM stores its reads against a reference, here TAIR10's
+  2bit from the UCSC genome browser. A BAM needs it only for `bisulfite`
+  coloring, which reads each cytosine's context off the reference.
+- **`display`:** the alignments track's settings, spelled as a JBrowse track
+  config spells its `displayDefaults`.
+
+```{r read}
+library(ggjbrowse)
+library(ggplot2)
+
+tair10 <- "https://hgdownload.soe.ucsc.edu/hubs/GCF/000/001/735/GCF_000001735.4"
+reference <- file.path(tair10, "GCF_000001735.4.2bit")
+cram <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_bisulfite.cram"
+locus <- "NC_003070.9:4,398,001-4,412,000"
+
+cg <- jbrowse_alignments(cram, locus, reference = reference,
+  display = list(baseColor = list(field = "bisulfite"),
+    modifications = list(cytosineContext = "CG")))
+```
+
+<!-- jbrowse
+section: Loading the TAIR10 hub assembly and the WGBS BAM
+title: false
+only:
+  - "In grammar-of-graphics terms"
+-->
+
+`autoplot()` draws the result as the browser draws the track: the coverage band
+over the pileup, each methylated CpG painted red on its read.
+
+```{r cg, fig.height = 6, fig.cap = "The WGBS reads over AT1G12930 and a transposon, each methylated CpG red on its read under the coverage band"}
+autoplot(cg)
+```
+
+The figure is drawn from data frames you can use directly. `cg$modifications`
+holds one row per call, with the read and pileup row it sits on:
+
+```{r calls}
+head(cg$modifications[, c("position", "read", "row", "name", "unmodified",
+  "color")])
+```
+
+<!-- jbrowse
+section: Gene body methylation and transposon silencing
+drop:
+  - "Type `chr1:4,398,000-4,412,000` into the location box"
+  - "**Filter by...** in the RepeatMasker track menu"
+-->
+
+### The three contexts over genes and repeats
+
+We'll read the context the browser shows one track at a time into three
+results, and the TAIR10 genome hub's RefSeq genes and RepeatMasker annotation
+beside them:
+
+- **Genes and repeats:** `jbrowse_features()` reads the hub's BigBed files by
+  URL.
+- **Long repeats only:** RepeatMasker's table is a data frame, so `subset()`
+  keeps repeats longer than 1 kb, which drops the short simple repeats and keeps
+  the LTR retrotransposon `META1_LTR#LTR/Copia`. No RefSeq transcript overlaps
+  it.
+- **Contexts:** `lapply()` reads the CRAM once per context.
+
+```{r contexts}
+bbi <- file.path(tair10, "bbi", "GCF_000001735.4_TAIR10.1.")
+genes <- jbrowse_features(paste0(bbi, "ncbiRefSeq.bb"), locus)
+repeats <- jbrowse_features(paste0(bbi, "rmsk.bb"), locus)
+subset(repeats$features, end - start > 1000, c(name, start, end))
+
+contexts <- c("CG", "CHG", "CHH")
+reads <- lapply(contexts, function(context)
+  jbrowse_alignments(cram, locus, reference = reference,
+    display = list(baseColor = list(field = "bisulfite"),
+      modifications = list(cytosineContext = context))))
+
+fig <- jbrowse_stack(genes, repeats, reads)
+```
+
+`jbrowse_stack()` stacks them as the view does, the pileups CpG, CHG and CHH
+from the top. AT1G12930 is red in CpG only, and the LTR/Copia element on the
+right is red in all three:
+
+```{r stack, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "RefSeq genes, RepeatMasker and three copies of the WGBS pileup colored by CpG, CHG and CHH: AT1G12930 is red in CpG only, the LTR/Copia element in all three"}
+fig
+```
+
+## Counting the calls per context
+
+The figure is the reading; the numbers are the check. With
+`unmodified = "calls"` the engine returns the unmethylated calls as well, one
+row each with `unmodified = TRUE`, so the methylated share of a context is a
+mean over a data frame.
+
+We'll count over the two regions the build script compares, the gene body of
+AT1G12930 and the silenced element:
+
+```{r count}
+library(dplyr)
+
+regions <- data.frame(
+  region = c("gene body AT1G12930", "silenced element"),
+  from = c(4398322, 4406000), to = c(4405669, 4410000))
+
+calls <- bind_rows(lapply(contexts, function(context) {
+  r <- jbrowse_alignments(cram, locus, reference = reference,
+    display = list(baseColor = list(field = "bisulfite"),
+      modifications = list(cytosineContext = context, unmodified = "calls")))
+  mutate(r$modifications, context = context)
+}))
+
+per_read <- calls |>
+  inner_join(regions, by = join_by(between(position, from, to))) |>
+  group_by(region, context) |>
+  summarise(methylated = mean(!unmodified), calls = n(), .groups = "drop")
+per_read
+```
+
+```{r count-plot, fig.height = 3.5, fig.width = 7, fig.cap = "Methylated share of each context's calls over the gene body and the silenced element"}
+ggplot(per_read, aes(context, methylated, fill = region)) +
+  geom_col(position = "dodge") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = NULL, y = "methylated calls", fill = NULL)
+```
+
+Gene body methylation shows as CpG alone, and silencing as all three contexts,
+the two programs in the table above.
+
+### Checking against MethylDackel
+
+MethylDackel calls the same cytosines independently, and jbrowse.org hosts the
+three bigWigs the [aggregate step](#optional-aggregate-methylation-bigwigs-from-methyldackel)
+writes. `jbrowse_wiggle()` reads them as one multi-row track, and each bin's
+`score` is the percentage methylated:
+
+```{r methyldackel}
+demo <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_"
+methyldackel <- list(type = "MultiWiggleAdapter",
+  subadapters = lapply(c("CpG", "CHG", "CHH"), function(context)
+    list(type = "BigWigAdapter", name = context,
+      bigWigLocation = list(uri = paste0(demo, context, ".bw")))))
+aggregate <- jbrowse_wiggle(methyldackel, locus)
+
+per_site <- aggregate$bins |>
+  mutate(context = sub("CpG", "CG", source)) |>
+  inner_join(regions, by = join_by(between(start, from, to))) |>
+  group_by(region, context) |>
+  summarise(methyldackel = mean(score) / 100, .groups = "drop")
+
+per_read |>
+  select(region, context, ggjbrowse = methylated) |>
+  inner_join(per_site, by = c("region", "context"))
+```
+
+The two agree within two percentage points in every context. They differ at
+all because the bigWig averages per cytosine across a bin, where the per-read
+count weighs each cytosine by its coverage.
+
+## Your own data
+
+To run this on your own WGBS or EM-seq run:
+
+- Align it as [above](#producing-the-bam), or use a Bismark BAM, which keeps
+  the original read sequences too.
+- Pass the BAM's path and the FASTA you aligned to:
+  `jbrowse_alignments("my_wgbs.bam", "chr1:1-20000", reference = "ref.fa", display = ...)`.
+  A FASTA needs its `.fai`; a bgzipped one needs its `.gzi` as well.
+- Name the locus the way the BAM's header names the chromosome. ggjbrowse has
+  no alias table, so a BAM aligned to RefSeq TAIR10 takes `NC_003070.9`, not
+  `chr1`.
+- Set `cytosineContext` to `"all"` for every context at once.
+
+The website's [build script](https://github.com/GMOD/jbrowse-components/blob/main/scripts/build_arabidopsis_wgbs.sh)
+runs the whole alignment for this run and prints the conversion rate and the
+per-context fractions.
+
+## See also
+
+- [Methylation (bisulfite)](https://jbrowse.org/jb2/docs/tutorials/bisulfite/),
+  the same analysis in the JBrowse app
+- [The ggjbrowse gallery](../gallery.md#bisulfite), which draws the CHH reads
+  beside JBrowse's own picture

@@ -19,6 +19,17 @@
   - `--check` runs each R recipe, then rewrites as `--docs` does. CI runs it
     and `scripts/check-readme.R`, which runs the README's R blocks, and fails
     if either leaves the docs changed.
+- `scripts/tutorials.R` builds `docs/tutorials/` from `tutorials/*.Rmd`.
+  - A source is R Markdown whose `<!-- jbrowse ... -->` comments pull
+    sections of the matching JBrowse website tutorial, at the
+    jbrowse-components commit `tutorials/JBROWSE_COMPONENTS` names, with the
+    options the script's header lists.
+  - Each `drop`, `keep`, `only` or `replace` has to match the website text,
+    so a website edit that removes it fails the build.
+  - `--status` lists the website commits since the pin. Bump the pin, rerun,
+    and fix whatever directive stops matching.
+  - `--check`, which CI runs, knits each tutorial again from the data on
+    jbrowse.org and fails if its markdown changed.
 
 ## Updating the engine
 
