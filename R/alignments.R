@@ -4,7 +4,7 @@ alignments_adapter <- function(file, index) {
     list(pattern = "", type = "BamAdapter", slot = "bamLocation",
       index = "BAI")))
   if (a$type == "CramAdapter") {
-    a$craiLocation <- location(index %||% paste0(file, ".crai"))
+    a$craiLocation <- location(index %||% beside(file, ".crai"))
   }
   a
 }

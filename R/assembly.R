@@ -62,9 +62,9 @@ sequence_adapter <- function(reference) {
       slot = "fastaLocation"),
     list(pattern = "", type = "IndexedFastaAdapter", slot = "fastaLocation")))
   if (a$type == "TwoBitAdapter") return(a)
-  a$faiLocation <- location(paste0(reference, ".fai"))
+  a$faiLocation <- location(beside(reference, ".fai"))
   if (a$type == "BgzipFastaAdapter") {
-    a$gziLocation <- location(paste0(reference, ".gzi"))
+    a$gziLocation <- location(beside(reference, ".gzi"))
   }
   a
 }

@@ -19,6 +19,19 @@ test_that("an adapter guess ignores a URL's query", {
     "BgzipFastaAdapter")
 })
 
+test_that("an index beside a URL takes the URL's query after its extension", {
+  bam <- alignments_adapter("https://host/x.bam?token=abc", NULL)
+  expect_equal(bam$index$location$uri, "https://host/x.bam.bai?token=abc")
+  cram <- alignments_adapter("https://host/x.cram?token=abc", NULL)
+  expect_equal(cram$craiLocation$uri, "https://host/x.cram.crai?token=abc")
+  fasta <- sequence_adapter("https://host/x.fa.gz?x=1")
+  expect_equal(c(fasta$faiLocation$uri, fasta$gziLocation$uri),
+    c("https://host/x.fa.gz.fai?x=1", "https://host/x.fa.gz.gzi?x=1"))
+  vcf <- features_adapter("https://host/x.vcf.gz?x=1",
+    "https://host/x.vcf.gz.csi?x=1")
+  expect_equal(vcf$index$indexType, "CSI")
+})
+
 test_that("a nested column reads as a list column, a missing row NA", {
   wire <- jsonlite::fromJSON(paste0('{"t": {"n": [1, 2, 3], "x": {"$list": ',
     '{"lengths": [2, -1, 1], "values": [4, 5, 6]}}}}'), simplifyVector = TRUE,

@@ -192,14 +192,21 @@ guess_adapter <- function(file, index, formats, expected = NULL) {
     adapter <- list(type = format$type)
     adapter[[format$slot]] <- location(file)
     if (!is.null(format$index)) {
-      index <- index %||% paste0(file, ".", tolower(format$index))
+      index <- index %||% beside(file, paste0(".", tolower(format$index)))
       adapter$index <- list(location = location(index),
-        indexType = if (grepl("\\.csi$", index)) "CSI" else format$index)
+        indexType = if (grepl("\\.csi(\\?|$)", index)) "CSI"
+          else format$index)
     }
     return(adapter)
   }
   stop("cannot tell the format of ", file, ": expected ", expected,
     call. = FALSE)
+}
+
+# The file beside `file` its name and `suffix` name, a URL's query kept after
+# it, as a signed URL's index carries the same query
+beside <- function(file, suffix) {
+  sub("^([^?]*)", paste0("\\1", suffix), file)
 }
 
 # The adapter config the engine reads `file` through: a track's own adapter
