@@ -111,20 +111,21 @@ cat(sprintf("%s CDS %d bp, %d codons\ncodon 373 = %s (%s) at chr30:%d\n",
 ```
 
 The C>T at chr30:38,261,635 truncates the protein at residue 373 of 513.
-Reading the callset at exactly that position finds it:
+Reading the callset at exactly that position finds it, passing every
+filter.
 
 `jbrowse_variants()` takes the 397 GB callset's URL and fetches the records
-under one locus by range request, so a single base costs a few seconds. The
-table has a row for every canid in the callset and a cell for each non-reference
-call:
+under one locus by range request, so a single base costs a few seconds. Each
+record carries its `filter` and INFO fields as columns, and the table has a row
+for every canid in the callset and a cell for each non-reference call:
 
 
 ``` r
 callset <- "https://kiddlabshare.med.umich.edu/dog10K/SNP_and_indel_calls_2021-10-17/AutoAndXPAR.SNPs.vqsr99.vcf.gz"
 everyone <- jbrowse_variants(callset, sprintf("chr30:%d-%d", stop_site, stop_site))
-everyone$variants |> select(start, ref, alt, type)
-#>      start ref alt type
-#> 1 38261634   C   T  SNV
+everyone$variants |> select(start, ref, alt, filter, AC, AN)
+#>      start ref alt filter  AC   AN
+#> 1 38261634   C   T   PASS 174 3974
 everyone
 #> <jbrowse_variants> chr30:38,261,635-38,261,635, 1 records, 1987 rows, 158 cells
 ```
@@ -450,8 +451,8 @@ cohort |>
 
 ## The check
 
-Two numbers test the figures' reading. The first is the callset's own record at
-the stop site, from `bcftools query` over the same URL:
+Two numbers test the figures' reading. The first is the callset's own count of
+alleles at the stop site, which `bcftools query` prints from the same URL:
 
 ```bash
 SNVS=https://kiddlabshare.med.umich.edu/dog10K/SNP_and_indel_calls_2021-10-17/AutoAndXPAR.SNPs.vqsr99.vcf.gz
@@ -460,15 +461,16 @@ bcftools query -r chr30:38261635 -f '%CHROM\t%POS\t%REF\t%ALT\t%FILTER\t%AC\t%AN
 # chr30  38261635  C  T  PASS  174  3974
 ```
 
-`AC` counts the alt alleles and `AN` the alleles called. The genotypes R read
-and counted per animal have to add up to both:
+`AC` counts the alt alleles and `AN` the alleles called. R read the same record's
+INFO above, and the genotypes it counted per animal have to add up to both:
 
 
 ``` r
 called <- 2 * nrow(everyone$rows) -
   2 * sum(grepl(".", everyone$cells$genotype, fixed = TRUE))
-record <- c(AC = 174, AN = 3974)
-rbind(record, genotypes = c(AC = sum(alleles$alt), AN = called))
+record <- filter(everyone$variants, start == stop_site - 1)
+rbind(record = c(AC = unlist(record$AC), AN = record$AN),
+  genotypes = c(AC = sum(alleles$alt), AN = called))
 #>            AC   AN
 #> record    174 3974
 #> genotypes 174 3974

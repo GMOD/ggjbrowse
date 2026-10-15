@@ -207,6 +207,18 @@ vcf_displays <- list(
     rowColor = "karyotype"
   )
 )
+inversion_adapter <- list(
+  type = "FromConfigAdapter",
+  features = list(
+    list(
+      uniqueId = "in2lt",
+      refName = "chr2L",
+      start = 2225744,
+      end = 13154180,
+      name = "In(2L)t"
+    )
+  )
+)
 ```
 
 `jbrowse_wiggle()` reads a bigWig at the zoom its `width` picks. A width of one
@@ -453,18 +465,15 @@ a `domain` to a `range` of colors. Here a `threshold` scale colors each bin by
 its side of zero, and `scales.y` pins the y scale to ±1.5.
 
 The website's `displayDefaults` for that track are already in `ratio_display`.
-We'll stack the inversion's extent, read from the VCF record, over the Fst scan
-and the hosted ratio on 2L, one region for the three:
+The website's In(2L)t track writes the published extent as one feature inline
+in its config, and `jbrowse_features()` reads that adapter as it stands. We'll
+stack it over the Fst scan and the hosted ratio on 2L:
 
 
 ``` r
-extent <- ggplot(inversion$variants) +
-  geom_rect(aes(xmin = start, xmax = end, ymin = 0, ymax = 1),
-    fill = "grey40") +
-  annotate("text", x = mean(unlist(span)), y = 0.5, label = "In(2L)t",
-    colour = "white") +
-  theme_void()
-fig <- jbrowse_stack(extent,
+extent <- jbrowse_features(inversion_adapter, "chr2L", 0, arms$length[1],
+  width = 1200)
+fig <- jbrowse_stack(`In(2L)t` = extent,
   Fst = jbrowse_wiggle(fst_bw, "2L", 0, arms$length[1],
     display = list(extent = "none"), width = 1200),
   `log2 π, inverted over standard` = jbrowse_wiggle(ratio_bw, "2L", 0,
@@ -476,7 +485,7 @@ fig <- jbrowse_stack(extent,
 fig
 ```
 
-![The In(2L)t extent from the VCF, Fst between inverted and standard lines, and log2 of π in the inverted lines over π in the standard ones in 250 kb bins, across 2L: Fst is high and the ratio mostly orange, inverted lower, between the breakpoints, and both settle past the right breakpoint](figures/population_genomics-in2lt-1.png)
+![The published In(2L)t extent, Fst between inverted and standard lines, and log2 of π in the inverted lines over π in the standard ones in 250 kb bins, across 2L: Fst is high and the ratio mostly orange, inverted lower, between the breakpoints, and both settle past the right breakpoint](figures/population_genomics-in2lt-1.png)
 
 The inverted lines have less diversity than the standard ones across the
 inverted region, most near the breakpoints, where the suppressed recombination

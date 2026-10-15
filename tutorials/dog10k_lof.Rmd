@@ -105,18 +105,18 @@ only:
   - "The C>T at chr30:38,261,635"
 replace:
   - from: "Checking the callset at exactly that position finds it, passing every filter:"
-    to: "Reading the callset at exactly that position finds it:"
+    to: "Reading the callset at exactly that position finds it, passing every\nfilter."
 -->
 
 `jbrowse_variants()` takes the 397 GB callset's URL and fetches the records
-under one locus by range request, so a single base costs a few seconds. The
-table has a row for every canid in the callset and a cell for each non-reference
-call:
+under one locus by range request, so a single base costs a few seconds. Each
+record carries its `filter` and INFO fields as columns, and the table has a row
+for every canid in the callset and a cell for each non-reference call:
 
 ```{r callset}
 callset <- "https://kiddlabshare.med.umich.edu/dog10K/SNP_and_indel_calls_2021-10-17/AutoAndXPAR.SNPs.vqsr99.vcf.gz"
 everyone <- jbrowse_variants(callset, sprintf("chr30:%d-%d", stop_site, stop_site))
-everyone$variants |> select(start, ref, alt, type)
+everyone$variants |> select(start, ref, alt, filter, AC, AN)
 everyone
 ```
 
@@ -367,8 +367,8 @@ cohort |>
 
 ## The check
 
-Two numbers test the figures' reading. The first is the callset's own record at
-the stop site, from `bcftools query` over the same URL:
+Two numbers test the figures' reading. The first is the callset's own count of
+alleles at the stop site, which `bcftools query` prints from the same URL:
 
 <!-- jbrowse
 section: Deriving the CYP1A2 stop codon's coordinate from the reference
@@ -377,14 +377,15 @@ only:
   - "bcftools query -r chr30:38261635"
 -->
 
-`AC` counts the alt alleles and `AN` the alleles called. The genotypes R read
-and counted per animal have to add up to both:
+`AC` counts the alt alleles and `AN` the alleles called. R read the same record's
+INFO above, and the genotypes it counted per animal have to add up to both:
 
 ```{r check-counts}
 called <- 2 * nrow(everyone$rows) -
   2 * sum(grepl(".", everyone$cells$genotype, fixed = TRUE))
-record <- c(AC = 174, AN = 3974)
-rbind(record, genotypes = c(AC = sum(alleles$alt), AN = called))
+record <- filter(everyone$variants, start == stop_site - 1)
+rbind(record = c(AC = unlist(record$AC), AN = record$AN),
+  genotypes = c(AC = sum(alleles$alt), AN = called))
 ```
 
 The second is the control of the copy-number figure. Every Boxer sits at two
