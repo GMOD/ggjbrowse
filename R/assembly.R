@@ -73,7 +73,9 @@ sequence_adapter <- function(reference) {
 #' * a pairwise alignment file (PAF, PIF, delta, chain, MashMap) lists each
 #'   side's contigs in the order the file first names them, with the length
 #'   it states: the regions a whole-genome [jbrowse_dotplot()] or
-#'   [jbrowse_synteny()] lays end to end where it is given none
+#'   [jbrowse_synteny()] lays end to end where it is given none. Passed as
+#'   either axis, the frame gives it the rows of its assembly, as a
+#'   comparative result's `regions`, which adds `axis`, does
 #' @param x a [jbrowse_assembly()], an assembly as a JBrowse config's
 #'   `assemblies` entry writes it, or a FASTA or 2bit path or URL; or a
 #'   linear or pairwise file, a path or URL, or a JBrowse track's `adapter`

@@ -36,7 +36,9 @@ and whether its index shows records there
 \item a pairwise alignment file (PAF, PIF, delta, chain, MashMap) lists each
 side's contigs in the order the file first names them, with the length
 it states: the regions a whole-genome \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}} or
-\code{\link[=jbrowse_synteny]{jbrowse_synteny()}} lays end to end where it is given none
+\code{\link[=jbrowse_synteny]{jbrowse_synteny()}} lays end to end where it is given none. Passed as
+either axis, the frame gives it the rows of its assembly, as a
+comparative result's \code{regions}, which adds \code{axis}, does
 }
 }
 \examples{
