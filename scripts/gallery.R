@@ -449,7 +449,7 @@ jbrowse_stack(genes, reads)
 r <- "5,250,001-14,250,000"
 autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   paste0("chr8_PATERNAL:", r),
-  view = list(color = list(field = "strand")), swap = TRUE,
+  display = list(color = list(field = "strand")), swap = TRUE,
   labels = c(query = "paternal", target = "maternal")))
 )-"),
   inversion_dotplot = list(
@@ -461,7 +461,7 @@ autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
       "--colorBy", "strand"),
     r = r"-(
 autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
-  view = list(color = list(field = "strand")), swap = TRUE,
+  display = list(color = list(field = "strand")), swap = TRUE,
   labels = c(query = "paternal", target = "maternal")))
 )-"),
   whole_genome = list(
@@ -490,7 +490,7 @@ autoplot(jbrowse_dotplot(e("peach_grape.paf.gz"),
 autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,520,894-103,832,637",
   "HG00133#1#CM090045.1:103,669,666-103,981,330",
-  view = list(color = list(field = "strand")),
+  display = list(color = list(field = "strand")),
   labels = c(query = "GRCh38", target = "HG00133")))
 )-"),
   amylase_zoom = list(
@@ -508,7 +508,7 @@ autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
 autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,619,501-103,622,500",
   "HG00133#1#CM090045.1:103,768,401-103,771,400",
-  view = list(color = list(field = "strand")),
+  display = list(color = list(field = "strand")),
   labels = c(query = "GRCh38", target = "HG00133")))
 )-"),
   synteny_genes = list(
@@ -520,7 +520,7 @@ autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
 r <- "5,250,001-14,250,000"
 s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   paste0("chr8_PATERNAL:", r),
-  view = list(color = list(field = "strand")), swap = TRUE,
+  display = list(color = list(field = "strand")), swap = TRUE,
   labels = c(query = "paternal", target = "maternal"))
 gene_track <- function(file, contig) jbrowse_features(e(file),
   paste0(contig, ":", r),

@@ -8,7 +8,7 @@ jbrowse_dotplot(
   file,
   x = NULL,
   y = NULL,
-  view = NULL,
+  display = NULL,
   width = 600,
   height = 600,
   assemblies = NULL,
@@ -29,8 +29,8 @@ side and the vertical its target, unless \code{assemblies} or \code{swap} says
 otherwise. Unset, every contig of that axis's assembly, so
 \code{jbrowse_dotplot(paf)} is the whole genome against the whole genome}
 
-\item{view}{the view's settings, as a \code{DotplotView} snapshot writes them:
-a list with any of \code{color}, \code{opacity}, \code{minAlignmentLength},
+\item{display}{the view's settings, as a \code{DotplotView} snapshot writes
+them: a list with any of \code{color}, \code{opacity}, \code{minAlignmentLength},
 \code{minIdentity}, \code{drawCigar} and \code{lineWidth}}
 
 \item{width, height}{the plot's pixels, which decide which blocks are wide
@@ -63,10 +63,11 @@ to (\code{x_end}, \code{y_end}), each \verb{*_region} a row of \code{regions}, \
 it
 }
 
-\code{regions} lays out both axes, its \code{axis} \code{"x"} or \code{"y"}, \code{line_width}
-the pixels
-each line is drawn at, \code{alpha} the opacity, and \code{skipped} counts the
-blocks neither axis places.
+\code{regions} lays out both axes, its \code{axis} \code{"x"} or \code{"y"}. \code{display}
+holds the settings the view drew with: those given, the view's defaults
+for the rest, \code{color$field} the field painted, \code{opacity} the level every
+line draws at and \code{lineWidth} its pixels. \code{skipped} counts the blocks
+neither axis places.
 }
 \description{
 Runs JBrowse's own dotplot display in V8: the alignment blocks between the

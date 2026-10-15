@@ -33,7 +33,8 @@ bottom row's below.
 \examples{
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")
 s <- jbrowse_synteny(e("hg002_chr8.chain"), "chr8_PATERNAL:5,250,001-14,250,000",
-  "chr8_MATERNAL:5,250,001-14,250,000", view = list(color = list(field = "strand")),
+  "chr8_MATERNAL:5,250,001-14,250,000",
+  display = list(color = list(field = "strand")),
   labels = c(query = "paternal", target = "maternal"))
 autoplot(s)
 genes <- jbrowse_features(e("hg002_mat_genes.gff3.gz"), "chr8_MATERNAL:5,250,001-14,250,000",

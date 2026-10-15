@@ -103,10 +103,12 @@ lane_pin <- function(locus) {
 #'
 #'   `regions` lays out each lane, its `axis` the lane's assembly: the
 #'   anchor's regions, spaced as a linear track over them spaces them, and
-#'   the window each other lane shows; `width` is the view's pixels,
-#'   `tick_interval` the bp between each lane's
-#'   ticks, and `rows_vs_anchor` whether each lane is stated against the
-#'   anchor alone, as a star of pairwise files states it.
+#'   the window each other lane shows. `display` holds the settings the
+#'   display drew with: those given, `rows` as `lanes` writes it, the
+#'   display's defaults for the rest, and `ribbonColor$field` the field
+#'   painted. `width` is the view's pixels, `tick_interval` the bp between
+#'   each lane's ticks, and `rows_vs_anchor` whether each lane is stated
+#'   against the anchor alone, as a star of pairwise files states it.
 #' @export
 #' @examples
 #' e <- function(f) system.file("extdata", f, package = "ggjbrowse")
@@ -129,12 +131,16 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   }
   regions <- regions_of(region)
   choice <- lane_choice(lanes)
-  display <- display %||% list()
-  if (!is.null(choice$rows)) display$rows <- choice$rows
-  display$ribbonColor <- config_color(display$ribbonColor)
+  given <- display %||% list()
+  if (!is.null(choice$rows)) {
+    given$rows <- lapply(choice$rows, function(lanes) as.vector(lanes))
+  }
+  config <- given
+  config$rows <- choice$rows %||% given$rows
+  config$ribbonColor <- config_color(given$ribbonColor)
   args <- list(adapterConfig = adapter_of(file, function()
     multiway_adapter(file, index)),
-    anchor = axis_args(regions, anchor, width), display = display)
+    anchor = axis_args(regions, anchor, width), display = config)
   if (length(choice$pins)) args$pins <- choice$pins
   r <- call_engine("multiway", args)
   one_based <- function(d, columns) {
@@ -167,8 +173,11 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     list(lanes = lane_frame, segments = segments, blocks = blocks,
       ribbons = ribbons, alignments = snake(as_frame(r$alignments)),
       legend = key, keys = list(ribbons = key), ramps = ramp_frames(r$ramps),
-      field = r$field, tick_interval = r$tickInterval,
-      rows_vs_anchor = r$rowsVsAnchor, curves = r$curves, width = width,
+      display = resolved_display(given, MULTIWAY_DEFAULTS,
+        list(ribbonColor = painted(given$ribbonColor, r$field),
+          drawCurves = r$curves, height = r$height)),
+      tick_interval = r$tickInterval,
+      rows_vs_anchor = r$rowsVsAnchor, width = width,
       assemblies = unlist(r$assemblyNames), regions = layout),
     primary = "ribbons",
     class = c("jbrowse_multiway", "jbrowse_result"))
@@ -302,7 +311,7 @@ multiway_feet <- function(r) {
 geom_jbrowse_lane_ribbons <- function(mapping = NULL, data = NULL,
                                       curves = NULL, ...) {
   data <- replacing(data, "ribbons", "geom_jbrowse_lane_ribbons")
-  curved <- function(x) curves %||% isTRUE(x$curves)
+  curved <- function(x) curves %||% isTRUE(x$display$drawCurves)
   filled <- function(x) {
     r <- x$ribbons[!x$ribbons$thin, , drop = FALSE]
     ribbon_polygons(r, curved(x), multiway_feet(r))

@@ -8,7 +8,7 @@ jbrowse_synteny(
   file,
   query = NULL,
   target = NULL,
-  view = NULL,
+  display = NULL,
   width = 800,
   assemblies = NULL,
   swap = FALSE,
@@ -29,8 +29,8 @@ end as a view lays them out, or a data frame of \code{chrom}, \code{start} and
 \code{end}. Unset, every contig of that row's assembly (\code{\link[=jbrowse_contigs]{jbrowse_contigs()}})
 in natural order, \code{chr2} before \code{chr10}, as JBrowse shows a whole genome}
 
-\item{view}{the view's settings, as a \code{LinearSyntenyView} snapshot writes
-them: a list with any of \code{color} (a CSS color, or the color object's
+\item{display}{the view's settings, as a \code{LinearSyntenyView} snapshot
+writes them: a list with any of \code{color} (a CSS color, or the color object's
 slots, such as \code{list(field = "strand")}, \code{list(field = "identity")},
 \code{list(field = "query")} or \code{list(field = "mapq")}), \code{opacity} (a number,
 or an opacity object with a \code{field}), \code{minAlignmentLength}, \code{cigarMode}
@@ -98,9 +98,10 @@ it
 }
 
 \code{regions} lays out both rows, its \code{axis} \code{"query"} for the top row and
-\code{"target"} for the bottom, \code{height} the
-band's pixels, \code{alpha} the opacity every ribbon draws at and \code{field} the
-color field painted.
+\code{"target"} for the bottom. \code{display} holds the settings the view drew
+with: those given, the view's defaults for the rest, \code{color$field} the
+field painted, \code{opacity} the level every ribbon draws at, and \code{height}
+the band's pixels.
 }
 \description{
 Runs JBrowse's own synteny display in V8 over two rows, the query assembly

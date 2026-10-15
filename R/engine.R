@@ -182,7 +182,7 @@ call_engine <- function(table, args) {
     bytes <- ctx$get("jbrowseBytes")
     ctx$eval("jbrowseBytes = null")
     list(json = json, bytes = bytes)
-  }, args$display)
+  }, args$display %||% args$view)
   bytes <- rawConnection(wire$bytes)
   on.exit(close(bytes))
   x <- from_wire(jsonlite::fromJSON(wire$json, simplifyVector = TRUE,

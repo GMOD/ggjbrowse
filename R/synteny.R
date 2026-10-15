@@ -37,15 +37,45 @@ colored_frame <- function(columns) {
   d
 }
 
-comparative_args <- function(file, index, view) {
+comparative_args <- function(file, index, display) {
   args <- list(adapterConfig = adapter_of(file, function()
     synteny_adapter(file, index)))
-  if (!is.null(view)) {
-    view$color <- config_color(view$color)
-    args$view <- view
+  if (length(display)) {
+    display$color <- config_color(display$color)
+    args$view <- display
   }
   args
 }
+
+# The settings a view or display reads where none is given, as JBrowse
+# states them
+SYNTENY_DEFAULTS <- list(minAlignmentLength = 0, cigarMode = "full",
+  drawLocationMarkers = FALSE, fadeThinAlignmentsMode = "auto")
+DOTPLOT_DEFAULTS <- list(minAlignmentLength = 0, minIdentity = 0,
+  drawCigar = TRUE)
+MULTIWAY_DEFAULTS <- list(hideUnlabelled = FALSE, bridgeSkippedLanes = TRUE,
+  splitStrands = TRUE, showGeneLabels = TRUE, inlineLaneNames = FALSE)
+
+# The settings the engine drew with: those given over the defaults, and over
+# both the values the engine resolved
+resolved_display <- function(given, defaults, engine) {
+  out <- defaults
+  out[names(given)] <- given
+  out[names(engine)] <- engine
+  Filter(Negate(is.null), out)
+}
+
+# A color setting naming the field the engine painted, `""` for none
+painted <- function(color, field) {
+  if (!nzchar(field %||% "")) return(color)
+  if (!is.list(color)) return(list(field = field))
+  color$field <- field
+  color
+}
+
+# An opacity setting as the engine drew it: an opacity object as given, and
+# a number, or none, as the level every alignment drew at
+drawn_opacity <- function(opacity, level) if (is.list(opacity)) opacity else level
 
 # The names an axis title shows: each assembly name `labels` renames, as the
 # named vector `c(query = "peach", target = "grape")` gives it, or an unnamed
@@ -184,8 +214,8 @@ on_axis_of <- function(regions, axis) {
 #'   end as a view lays them out, or a data frame of `chrom`, `start` and
 #'   `end`. Unset, every contig of that row's assembly ([jbrowse_contigs()])
 #'   in natural order, `chr2` before `chr10`, as JBrowse shows a whole genome
-#' @param view the view's settings, as a `LinearSyntenyView` snapshot writes
-#'   them: a list with any of `color` (a CSS color, or the color object's
+#' @param display the view's settings, as a `LinearSyntenyView` snapshot
+#'   writes them: a list with any of `color` (a CSS color, or the color object's
 #'   slots, such as `list(field = "strand")`, `list(field = "identity")`,
 #'   `list(field = "query")` or `list(field = "mapq")`), `opacity` (a number,
 #'   or an opacity object with a `field`), `minAlignmentLength`, `cigarMode`
@@ -245,9 +275,10 @@ on_axis_of <- function(regions, axis) {
 #'     it
 #'
 #'   `regions` lays out both rows, its `axis` `"query"` for the top row and
-#'   `"target"` for the bottom, `height` the
-#'   band's pixels, `alpha` the opacity every ribbon draws at and `field` the
-#'   color field painted.
+#'   `"target"` for the bottom. `display` holds the settings the view drew
+#'   with: those given, the view's defaults for the rest, `color$field` the
+#'   field painted, `opacity` the level every ribbon draws at, and `height`
+#'   the band's pixels.
 #' @export
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
@@ -255,10 +286,10 @@ on_axis_of <- function(regions, axis) {
 #'   "chr8_PATERNAL:5,250,001-14,250,000",
 #'   "chr8_MATERNAL:5,250,001-14,250,000")
 #' head(s$alignments)
-jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
-                            width = 800, assemblies = NULL, swap = FALSE,
-                            labels = NULL, index = NULL) {
-  args <- comparative_args(file, index, view)
+jbrowse_synteny <- function(file, query = NULL, target = NULL,
+                            display = NULL, width = 800, assemblies = NULL,
+                            swap = FALSE, labels = NULL, index = NULL) {
+  args <- comparative_args(file, index, display)
   axes <- comparative_axes(args$adapterConfig, query, target, assemblies, swap)
   q <- axes$first
   t <- axes$second
@@ -287,7 +318,10 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
         labels = colored_frame(r$offscreenStrip$labels),
         font_px = r$offscreenStrip$fontPx),
       legend = key, keys = list(ribbons = key), ramps = ramp_frames(r$ramps),
-      field = r$field, alpha = r$alpha, height = r$height,
+      display = resolved_display(display, SYNTENY_DEFAULTS,
+        list(color = painted(display$color, r$field),
+          opacity = drawn_opacity(display$opacity, r$alpha),
+          height = r$height)),
       fade_thin = r$fadeThin, has_cigar = r$hasCigar,
       assemblies = display_names(unlist(r$assemblyNames), labels,
         args$adapterConfig), regions = regions, width = width),
@@ -462,8 +496,9 @@ strip_marks <- function(x) {
   m <- x$offscreen_strip$marks
   m$xmin <- m$x
   m$xmax <- m$x + m$width
-  m$ymax <- 1 - m$y / x$height
-  m$ymin <- 1 - (m$y + m$height) / x$height
+  px <- x$display$height
+  m$ymax <- 1 - m$y / px
+  m$ymin <- 1 - (m$y + m$height) / px
   m
 }
 
@@ -474,16 +509,17 @@ HALO_PX <- 3
 strip_labels <- function(x, halo) {
   l <- x$offscreen_strip$labels
   n <- nrow(l)
-  l$y <- 1 - l$y / x$height
+  px <- x$display$height
+  l$y <- 1 - l$y / px
   l$size <- rep(x$offscreen_strip$font_px, n)
   l$px_wide <- rep(x$width, n)
-  l$px_tall <- rep(x$height, n)
+  l$px_tall <- rep(px, n)
   if (!halo) return(l)
   angles <- seq(0, 2 * pi, length.out = 9)[-9]
   do.call(rbind, lapply(angles, function(a) {
     h <- l
     h$x <- h$x + HALO_PX / 2 * cos(a)
-    h$y <- h$y + HALO_PX / 2 * sin(a) / x$height
+    h$y <- h$y + HALO_PX / 2 * sin(a) / px
     h$color <- h$halo
     h$alpha <- rep(1, n)
     h
@@ -676,7 +712,8 @@ row_tracks <- function(tracks, layout, row) {
 #' @examples
 #' e <- function(f) system.file("extdata", f, package = "ggjbrowse")
 #' s <- jbrowse_synteny(e("hg002_chr8.chain"), "chr8_PATERNAL:5,250,001-14,250,000",
-#'   "chr8_MATERNAL:5,250,001-14,250,000", view = list(color = list(field = "strand")),
+#'   "chr8_MATERNAL:5,250,001-14,250,000",
+#'   display = list(color = list(field = "strand")),
 #'   labels = c(query = "paternal", target = "maternal"))
 #' autoplot(s)
 #' genes <- jbrowse_features(e("hg002_mat_genes.gff3.gz"), "chr8_MATERNAL:5,250,001-14,250,000",
@@ -690,7 +727,7 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
   below <- row_tracks(below, on_axis_of(object$regions, "target"), "bottom")
   if (!length(above) && !length(below)) return(band)
   bands <- c(lapply(above, track_bands),
-    list(list(plots = list(band), heights = object$height)),
+    list(list(plots = list(band), heights = object$display$height)),
     lapply(below, track_bands))
   own <- sum(lengths(lapply(bands[seq_along(above)], `[[`, "plots"))) + 1
   stack_bands(bands, axis_at = own)
@@ -710,8 +747,8 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   side and the vertical its target, unless `assemblies` or `swap` says
 #'   otherwise. Unset, every contig of that axis's assembly, so
 #'   `jbrowse_dotplot(paf)` is the whole genome against the whole genome
-#' @param view the view's settings, as a `DotplotView` snapshot writes them:
-#'   a list with any of `color`, `opacity`, `minAlignmentLength`,
+#' @param display the view's settings, as a `DotplotView` snapshot writes
+#'   them: a list with any of `color`, `opacity`, `minAlignmentLength`,
 #'   `minIdentity`, `drawCigar` and `lineWidth`
 #' @param width,height the plot's pixels, which decide which blocks are wide
 #'   enough for their CIGAR to show
@@ -734,10 +771,11 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   * `ramps`: a continuous field's color bar, as [guides_jbrowse()] draws
 #'     it
 #'
-#'   `regions` lays out both axes, its `axis` `"x"` or `"y"`, `line_width`
-#'   the pixels
-#'   each line is drawn at, `alpha` the opacity, and `skipped` counts the
-#'   blocks neither axis places.
+#'   `regions` lays out both axes, its `axis` `"x"` or `"y"`. `display`
+#'   holds the settings the view drew with: those given, the view's defaults
+#'   for the rest, `color$field` the field painted, `opacity` the level every
+#'   line draws at and `lineWidth` its pixels. `skipped` counts the blocks
+#'   neither axis places.
 #' @export
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
@@ -745,10 +783,10 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   "chr8_PATERNAL:5,250,001-14,250,000",
 #'   "chr8_MATERNAL:5,250,001-14,250,000")
 #' head(d$segments)
-jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
+jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
                             width = 600, height = 600, assemblies = NULL,
                             swap = FALSE, labels = NULL, index = NULL) {
-  args <- comparative_args(file, index, view)
+  args <- comparative_args(file, index, display)
   axes <- comparative_axes(args$adapterConfig, x, y, assemblies, swap)
   xr <- axes$first
   yr <- axes$second
@@ -768,8 +806,10 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
   structure(
     list(alignments = alignments, segments = segments, legend = key,
       keys = list(segments = key), ramps = ramp_frames(r$ramps),
-      field = r$field,
-      alpha = r$alpha, line_width = r$lineWidth,
+      display = resolved_display(display, DOTPLOT_DEFAULTS,
+        list(color = painted(display$color, r$field),
+          opacity = drawn_opacity(display$opacity, r$alpha),
+          lineWidth = r$lineWidth)),
       assemblies = display_names(unlist(r$assemblyNames), labels,
         args$adapterConfig), skipped = r$skipped,
       regions = rbind(axis_rows(xr, "x", axes$names[1]),
@@ -858,7 +898,7 @@ layout_seams <- function(layout) {
 #' @exportS3Method ggplot2::autoplot
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
-#' autoplot(jbrowse_dotplot(chain, view = list(color = list(field = "strand")),
+#' autoplot(jbrowse_dotplot(chain, display = list(color = list(field = "strand")),
 #'   labels = c(query = "paternal", target = "maternal")))
 autoplot.jbrowse_dotplot <- function(object, ...) {
   rlang::check_dots_empty()
@@ -872,7 +912,7 @@ autoplot.jbrowse_dotplot <- function(object, ...) {
       colour = "grey70") +
     ggplot2::geom_hline(data = rows, ggplot2::aes(yintercept = y),
       colour = "grey70") +
-    geom_jbrowse_dotplot(linewidth = px_to_mm(x$line_width)) +
+    geom_jbrowse_dotplot(linewidth = px_to_mm(x$display$lineWidth)) +
     scale_colour_jbrowse(x) +
     guides_jbrowse(x) +
     layout_scale(ggplot2::scale_x_continuous, h, x$width) +
