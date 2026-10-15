@@ -8,9 +8,9 @@ Genome browser tracks as ggplot2 layers.
 - **In:** a region of a BAM, CRAM, GFF3, GTF, BED, BigBed, BigWig or VCF, or
   two regions a PAF aligns.
 - **Out:** the tables the [JBrowse 2](https://jbrowse.org) genome browser's
-  own display draws from, run in V8: each read on its pileup row, each gene's
-  glyph, each bin's score, each sample's genotype, each synteny ribbon, with
-  the color the display paints it.
+  own display draws from, run in V8: reads on pileup rows, gene glyphs,
+  binned scores, genotypes and synteny ribbons, with the colors the display
+  paints them.
 - **Also:** reads CRAM, which Rsamtools cannot, and needs no Bioconductor
   packages.
 - **Drawn with:** a geom per table, so a figure is an ordinary ggplot that
@@ -23,10 +23,10 @@ remotes::install_github("GMOD/ggjbrowse")
 
 ## Gallery
 
-- Each row draws one figure twice from data installed with the package, with
-  JBrowse's own renderer (`jb2export` from `@jbrowse/img`) on the left and
+- Every figure is drawn twice from data installed with the package: by
+  JBrowse's own renderer (`jb2export` from `@jbrowse/img`) on the left and by
   ggjbrowse on the right.
-- Each title links to the figure's R and `jb2export` recipes in
+- A title links to the figure's R and `jb2export` recipes in
   [docs/gallery.md](docs/gallery.md).
 
 <!-- gallery -->
@@ -138,7 +138,7 @@ Whole analyses done in R, each on the data and question of a
 
 ## Guides
 
-One page per reader, each with its options and the gallery figures it draws:
+One page per reader, with its options and the gallery figures it draws:
 
 | Track | Reader | Guide |
 |---|---|---|
@@ -156,11 +156,11 @@ One page per reader, each with its options and the gallery figures it draws:
 
 ## How it works
 
-- **In V8:** JBrowse's `@jbrowse/tables` package, the code behind each
-  display that fetches a region and lays it out: each read's pileup row, each
-  gene's glyph, each color. JBrowse's canvas drawing and UI do not run.
-- **In R:** the file reads, which feed bytes to that package, and the
-  ggplot2 drawing of the tables it returns.
+- **In V8:** JBrowse's `@jbrowse/tables` package. It takes a region through
+  the same fetching and layout as a display and returns the result as
+  tables. JBrowse's canvas drawing and UI do not run.
+- **In R:** reading the files and passing their bytes to that package, then
+  drawing the tables it returns with ggplot2.
 - [How does this work?](docs/how-does-this-work.md) covers the engine, file
   reading and who decides what.
 - [Dataflow](docs/dataflow.md) diagrams one call from path to plot.
