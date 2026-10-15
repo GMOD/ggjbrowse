@@ -103,6 +103,7 @@ assembly_config <- function(assembly) {
     if (is.character(x$uri) && length(x$uri) == 1) {
       x$uri <- shorthand_uri(x$uri)
     }
+    if (is.character(x[["aliases"]])) x$aliases <- I(x[["aliases"]])
     x
   }
   readable(assembly)

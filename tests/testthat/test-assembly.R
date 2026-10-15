@@ -48,6 +48,15 @@ test_that("an assembly config as a JBrowse config writes it serves as one", {
     "12:6,534,201-6,538,700", assembly = config)$reads), 73)
 })
 
+test_that("an inline alias list of one alias stays a list", {
+  config <- list(name = "hg38", uri = extdata("gapdh_hg38.fa.gz"),
+    refNameAliases = list(adapter = list(type = "FromConfigAdapter",
+      features = list(list(refName = "chr12", uniqueId = "chr12",
+        aliases = "12")))))
+  expect_equal(nrow(jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "12:6,534,201-6,538,700", assembly = config)$reads), 73)
+})
+
 test_that("a calls VCF with no GT reads as features with its FILTER, INFO and FORMAT", {
   vcf <- tempfile(fileext = ".vcf")
   writeLines(c("##fileformat=VCFv4.3",
