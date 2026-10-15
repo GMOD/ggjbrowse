@@ -10,7 +10,9 @@
 #'   and [jbrowse_alignments()] results over the same regions, top to bottom,
 #'   or lists of them; or a ggplot of your own, drawn on the stack's x axis:
 #'   genomic positions over one region, and over several the axis that
-#'   `ggplot(<result>)` draws on
+#'   `ggplot(<result>)` draws on. A track's name, as an argument's or a list
+#'   element's, titles its first band, as the view labels a track:
+#'   `jbrowse_stack(genes, CHH = reads)`
 #' @return a patchwork
 #' @export
 #' @examples
@@ -20,15 +22,39 @@
 #' signal <- jbrowse_wiggle(e("gapdh_phylop100way.bw"), locus)
 #' reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), locus)
 #' jbrowse_stack(genes, signal, reads)
+#' jbrowse_stack(GENCODE = genes, phyloP = signal, reads)
 jbrowse_stack <- function(...) {
-  tracks <- do.call(c, lapply(list(...), listed_tracks))
+  args <- list(...)
+  tracks <- do.call(c, unname(Map(named_tracks, args,
+    names(args) %||% rep("", length(args)))))
   results <- Filter(function(t) inherits(t, "jbrowse_result"), tracks)
   if (!length(results)) {
     stop("jbrowse_stack needs at least one ggjbrowse reader's result",
       call. = FALSE)
   }
   same_regions(results)
-  stack_bands(lapply(tracks, band_of, results[[1]], stack_px(results)))
+  px <- stack_px(results)
+  stack_bands(unname(Map(function(track, name)
+    titled(band_of(track, results[[1]], px), name), tracks,
+    names(tracks) %||% rep("", length(tracks)))))
+}
+
+# An argument's tracks, a lone track named by the argument and a list's by
+# its own names
+named_tracks <- function(tracks, name) {
+  listed <- listed_tracks(tracks)
+  if (length(listed) == 1 && is.null(names(listed))) names(listed) <- name
+  if (is.null(names(listed))) names(listed) <- rep("", length(listed))
+  listed
+}
+
+# A band titled on its first plot, as the view labels a track above it
+titled <- function(band, name) {
+  if (!nzchar(name)) return(band)
+  band$plots[[1]] <- band$plots[[1]] + ggplot2::labs(title = name) +
+    ggplot2::theme(plot.title = ggplot2::element_text(size = 9, hjust = 0,
+      margin = ggplot2::margin(0, 0, 2, 0)))
+  band
 }
 
 # Tracks as a list: one result or ggplot, or a list of them

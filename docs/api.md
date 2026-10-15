@@ -39,7 +39,8 @@
 
 - `autoplot(result)` composes the geoms into the browser's track.
   `autoplot(a, "pileup")` draws one band of an alignments track.
-- `jbrowse_stack(...)` stacks results, and your own ggplots, on one x axis.
+- `jbrowse_stack(...)` stacks results, and your own ggplots, on one x axis,
+  each named one titled.
   `jbrowse_height()` and `jbrowse_width()` measure the figure.
 - One geom per table, all named `geom_jbrowse_*()`: `reads`, `mismatches`,
   `deletions`, `insertions`, `clips`, `coverage`, `alleles`, `junctions`,

@@ -11,7 +11,9 @@ jbrowse_stack(...)
 and \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} results over the same regions, top to bottom,
 or lists of them; or a ggplot of your own, drawn on the stack's x axis:
 genomic positions over one region, and over several the axis that
-\verb{ggplot(<result>)} draws on}
+\verb{ggplot(<result>)} draws on. A track's name, as an argument's or a list
+element's, titles its first band, as the view labels a track:
+\code{jbrowse_stack(genes, CHH = reads)}}
 }
 \value{
 a patchwork
@@ -30,4 +32,5 @@ genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), locus)
 signal <- jbrowse_wiggle(e("gapdh_phylop100way.bw"), locus)
 reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), locus)
 jbrowse_stack(genes, signal, reads)
+jbrowse_stack(GENCODE = genes, phyloP = signal, reads)
 }

@@ -282,6 +282,9 @@ with the keys collected.
 - Each band is an ordinary ggplot, so patchwork's `&` restyles them all, as
   in `jbrowse_stack(genes, signal, reads) & theme_classic()`. A ggplot of
   your own stacks as a band on the same axis.
+- A track's name titles it, as the view labels a track:
+  `jbrowse_stack(Genes = genes, reads)`, or `setNames(reads, contexts)` for
+  a list of them.
 - An alignments track read with `display = list(showCoverage = FALSE)`
   stacks no coverage band.
 

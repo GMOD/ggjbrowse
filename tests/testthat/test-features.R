@@ -254,3 +254,17 @@ test_that("the residues draw as haloed monospace letters", {
   expect_setequal(tolower(drawn[[9]]$gp$col),
     unique(near$amino_acids$color))
 })
+
+test_that("a track's name in jbrowse_stack titles its first band", {
+  bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
+  gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
+  genes <- jbrowse_features(gff, "ctgA", 1000, 3000)
+  reads <- jbrowse_alignments(bam, "ctgA", 1000, 3000)
+  titles <- function(fig) vapply(c(fig$patches$plots, list(fig)),
+    function(p) p$labels$title %||% "", "")
+  expect_equal(titles(jbrowse_stack(genes, reads)), rep("", 3))
+  expect_equal(titles(jbrowse_stack(Genes = genes, reads)),
+    c("Genes", "", ""))
+  expect_equal(titles(jbrowse_stack(genes, list(a = reads, b = reads))),
+    c("", "a", "", "b", ""))
+})
