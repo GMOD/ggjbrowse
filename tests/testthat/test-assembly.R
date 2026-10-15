@@ -48,6 +48,20 @@ test_that("an assembly config as a JBrowse config writes it serves as one", {
     "12:6,534,201-6,538,700", assembly = config)$reads), 73)
 })
 
+test_that("an alias file rewritten in place reads anew", {
+  rewritten <- tempfile(fileext = ".txt")
+  writeLines("chr12\t12", rewritten)
+  assembly <- jbrowse_assembly(extdata("gapdh_hg38.fa.gz"), rewritten)
+  bam <- extdata("gapdh_direct_rna.bam")
+  expect_gt(nrow(jbrowse_alignments(bam, "12:6,534,201-6,534,700",
+    assembly = assembly)$reads), 0)
+  writeLines("chr12\ttwelve", rewritten)
+  Sys.setFileTime(rewritten, Sys.time() + 5)
+  expect_no_warning(twelve <- jbrowse_alignments(bam,
+    "twelve:6,534,201-6,534,700", assembly = assembly))
+  expect_gt(nrow(twelve$reads), 0)
+})
+
 test_that("an inline alias list of one alias stays a list", {
   config <- list(name = "hg38", uri = extdata("gapdh_hg38.fa.gz"),
     refNameAliases = list(adapter = list(type = "FromConfigAdapter",

@@ -35,22 +35,15 @@
 #' a$region$chrom
 jbrowse_assembly <- function(sequence = NULL, aliases = NULL,
                              name = "assembly") {
-  config <- list(name = name)
-  if (!is.null(sequence)) {
-    config$sequence <- list(type = "ReferenceSequenceTrack",
-      trackId = paste0(name, "-ReferenceSequenceTrack"),
-      adapter = sequence_adapter(sequence))
-  }
+  config <- list(name = name, uri = sequence)
   if (!is.null(aliases)) config$refNameAliases <- list(uri = aliases)
-  structure(config, class = "jbrowse_assembly", files = c(sequence = sequence,
-    aliases = aliases))
+  structure(config, class = "jbrowse_assembly")
 }
 
 #' @export
 print.jbrowse_assembly <- function(x, ...) {
-  files <- attr(x, "files")
   cat(sprintf("<jbrowse_assembly> %s: sequence %s, aliases %s\n", x$name,
-    files[["sequence"]] %||% "none", files[["aliases"]] %||% "none"))
+    x$uri %||% "none", x$refNameAliases$uri %||% "none"))
   invisible(x)
 }
 
@@ -85,9 +78,13 @@ jbrowse_regions <- function(assembly) {
     list(assembly = assembly_config(assembly))))
 }
 
-# An assembly config as the engine reads it: a sequence's path or URL alone
-# as jbrowse_assembly() writes it, and each `uri` in it a path or URL made
-# readable, as a shorthand the engine expands as JBrowse's config does
+# An assembly config as the engine reads it, built afresh at each read: a
+# sequence's path or URL alone as jbrowse_assembly() writes it, the sequence
+# and alias files a config names by `uri` as the adapters sequence_adapter()
+# and alias_adapter() make of them, each location carrying its file's
+# modification time so a rewritten file reads anew, and any other `uri` a
+# path or URL made readable, as a shorthand the engine expands as JBrowse's
+# config does
 assembly_config <- function(assembly) {
   if (is.null(assembly)) return(NULL)
   if (is.character(assembly) && length(assembly) == 1) {
@@ -96,6 +93,17 @@ assembly_config <- function(assembly) {
   if (!is.list(assembly)) {
     stop("an assembly is a jbrowse_assembly(), a JBrowse assembly config as ",
       "a list, or a FASTA or 2bit path", call. = FALSE)
+  }
+  assembly <- unclass(assembly)
+  if (is.character(assembly$uri) && is.null(assembly$sequence)) {
+    assembly$sequence <- list(type = "ReferenceSequenceTrack",
+      trackId = paste0(assembly$name, "-ReferenceSequenceTrack"),
+      adapter = sequence_adapter(assembly$uri))
+    assembly$uri <- NULL
+  }
+  aliases <- assembly$refNameAliases
+  if (is.character(aliases$uri) && is.null(aliases$adapter)) {
+    assembly$refNameAliases <- list(adapter = alias_adapter(aliases$uri))
   }
   readable <- function(x) {
     if (!is.list(x)) return(x)
@@ -107,6 +115,15 @@ assembly_config <- function(assembly) {
     x
   }
   readable(assembly)
+}
+
+# The adapter an alias file is read with, by its name as the engine's
+# refNameAliasAdapterType() names it
+alias_adapter <- function(aliases) {
+  ncbi <- grepl("sequence_report\\.tsv(\\.gz)?$", sub("\\?.*$", "", aliases),
+    ignore.case = TRUE)
+  list(type = if (ncbi) "NcbiSequenceReportAliasAdapter"
+    else "RefNameAliasAdapter", location = location(aliases))
 }
 
 # Whether an assembly config names a sequence
