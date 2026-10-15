@@ -16,7 +16,7 @@ test_that("a PAF reads as the synteny band lays out and colors it", {
   expect_equal(match$query_start > match$query_end, reversed)
   expect_true(all(match$target_start < match$target_end))
   expect_equal(unique(as.character(match$color)), "#ff0000")
-  expect_equal(s$legend$label, c("match", "insertion"))
+  expect_equal(s$keys$ribbons$label, c("match", "insertion"))
   expect_s3_class(s$ribbons$color, "jbrowse_color")
   expect_equal(nrow(s$offscreen), 0)
 })
@@ -28,7 +28,7 @@ test_that("the view's settings color by strand, set the opacity and pick the CIG
   expect_equal(unique(strand$ribbons$kind), "match")
   expect_equal(length(unique(strand$ribbons$color)), 2)
   expect_equal(strand$display$opacity, 0.6)
-  expect_equal(strand$legend$label[1:2], c("forward", "reverse"))
+  expect_equal(strand$keys$ribbons$label[1:2], c("forward", "reverse"))
   grey <- jbrowse_synteny(paf, query, target, display = list(color = "grey"))
   expect_equal(unique(as.character(grey$alignments$color)), "#808080")
 })
@@ -127,7 +127,7 @@ test_that("the display slot holds the settings each view drew with", {
     display = list(color = list(field = "strand"), cigarMode = "off"))
   expect_equal(strand$display$color, list(field = "strand"))
   expect_equal(strand$display$cigarMode, "off")
-  expect_null(strand$field)
+  expect_null(strand[["field"]])
   expect_null(strand$alpha)
   expect_null(strand$height)
   ref <- jbrowse_synteny(paf, query, target,
@@ -142,6 +142,31 @@ test_that("the display slot holds the settings each view drew with", {
   expect_null(d$line_width)
   expect_error(jbrowse_synteny(paf, query, target, view = list()),
     "unused argument")
+})
+
+test_that("a comparative result holds the slots every result holds", {
+  results <- list(s, jbrowse_dotplot(paf, query, target),
+    jbrowse_multiway(system.file("extdata", "volvox_all_vs_all.paf",
+      package = "ggjbrowse"), "ctgA:1-50,001", "volvox"))
+  for (x in results) {
+    expect_true(all(c("regions", "width", "display", "keys", "ramps",
+      "y_scale", "fields", "warnings") %in% names(x)))
+    expect_null(x$y_scale)
+    expect_equal(x$fields, list())
+    expect_equal(x$warnings, character(0))
+    expect_false(any(c("legend", "field", "alpha", "line_width", "curves",
+      "query", "target", "x", "y", "anchor") %in% names(x)))
+  }
+})
+
+test_that("warnings the engine raises land in warnings", {
+  real <- call_engine
+  local_mocked_bindings(call_engine = function(table, args) {
+    warning("the engine says so", call. = FALSE)
+    real(table, args)
+  })
+  expect_warning(w <- jbrowse_synteny(paf, query, target), "engine says so")
+  expect_equal(w$warnings, "the engine says so")
 })
 
 test_that("an unknown extension and a missing contig say so", {
@@ -164,7 +189,7 @@ test_that("identity keys as a bar from 0% to 100%, and mapq as chips", {
   mapq <- jbrowse_synteny(paf, query, target,
     display = list(color = list(field = "mapq")))
   expect_length(mapq$ramps, 0)
-  expect_gt(nrow(mapq$legend), 1)
+  expect_gt(nrow(mapq$keys$ribbons), 1)
 })
 
 swap <- system.file("extdata", "volvox_contig_swap.paf", package = "ggjbrowse")
@@ -258,12 +283,12 @@ test_that("comparative axes lay their regions end to end with no gap, as the bro
 test_that("a binned key lists every bin, present in the data or not", {
   mapq <- jbrowse_synteny(paf, query, target,
     display = list(color = list(field = "mapq")))
-  expect_equal(nrow(mapq$legend), 4)
+  expect_equal(nrow(mapq$keys$ribbons), 4)
   expect_equal(length(unique(mapq$alignments$color)), 1)
   built <- ggplot2::ggplot_build(autoplot(mapq))
   fill <- built$plot$scales$get_scales("fill")
-  expect_setequal(fill$get_breaks(), as.character(mapq$legend$color))
-  expect_true(all(as.character(mapq$legend$color) %in% fill$get_limits()))
+  expect_setequal(fill$get_breaks(), as.character(mapq$keys$ribbons$color))
+  expect_true(all(as.character(mapq$keys$ribbons$color) %in% fill$get_limits()))
   reads <- jbrowse_alignments(system.file("extdata", "spliced.bam",
     package = "ggjbrowse"), "ctgA:401-1,300")
   fill <- ggplot2::ggplot_build(autoplot(reads, "pileup"))$plot$scales$get_scales("fill")

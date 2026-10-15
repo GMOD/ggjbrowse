@@ -62,7 +62,7 @@ assembly name itself, \code{"query"} and \code{"target"} for a guessed file}
 \item{index}{the tabix or CSI index of a \code{.pif.gz}, if not beside it}
 }
 \value{
-a \code{jbrowse_synteny} list:
+a \code{jbrowse_synteny} list, beside the slots \link{jbrowse_result} lists:
 \itemize{
 \item \code{alignments}: each block, in the band's paint order: \code{id}, \code{name},
 \code{query_chrom}, \code{query_start}, \code{query_end}, \code{target_chrom},
@@ -91,13 +91,10 @@ prints, \code{color} and \code{alpha}
 top left: \code{marks} (\code{axis}, \code{x}, \code{y}, \code{width}, \code{height}, \code{color},
 \code{alpha}) and \code{labels} (\code{axis}, \code{label}, \code{x}, \code{y} at the baseline,
 \code{color}, \code{alpha}, \code{halo}), in a \code{font_px} font
-\item \code{legend}: \code{label} and \code{color}, the key the view shows, its title as
-the frame's \code{"title"} attribute
-\item \code{ramps}: a continuous field's color bar, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
-it
 }
 
-\code{regions} lays out both rows, its \code{axis} \code{"query"} for the top row and
+\code{keys$ribbons} is the key the view shows, \code{ramps} a continuous field's
+color bar, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws it. \code{regions} lays out both rows, its \code{axis} \code{"query"} for the top row and
 \code{"target"} for the bottom. \code{display} holds the settings the view drew
 with: those given, the view's defaults for the rest, \code{color$field} the
 field painted, \code{opacity} the level every ribbon draws at, and \code{height}

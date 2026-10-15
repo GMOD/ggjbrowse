@@ -5,6 +5,7 @@ m <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox")
 test_that("an all-vs-all PAF reads as the multi-way display stacks it", {
   expect_equal(nrow(m$lanes), 3)
   expect_equal(m$lanes$assembly[1], "volvox")
+  expect_null(m$assemblies)
   expect_setequal(m$lanes$assembly[-1], c("volvox_ins", "volvox_del"))
   expect_equal(m$lanes$lane, 1:3)
   expect_true(all(m$ribbons$upper_lane < m$ribbons$lower_lane))
@@ -55,7 +56,7 @@ test_that("lanes draw in the order given, and a named lane pins its contig", {
 test_that("the display's settings color the ribbons", {
   strand <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     display = list(ribbonColor = list(field = "strand")))
-  expect_equal(strand$legend$label[1:2],
+  expect_equal(strand$keys$ribbons$label[1:2],
     c("Same orientation as lane above", "Inverted vs lane above"))
   expect_equal(strand$display$ribbonColor, list(field = "strand"))
   grey <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
@@ -68,7 +69,7 @@ test_that("the display's settings color the ribbons", {
   ordered <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     lanes = c("volvox_del", "volvox_ins"))
   expect_equal(ordered$display$rows$kept, c("volvox_del", "volvox_ins"))
-  expect_null(grey$field)
+  expect_null(grey[["field"]])
   expect_null(grey$curves)
 })
 

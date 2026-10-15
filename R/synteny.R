@@ -73,6 +73,25 @@ painted <- function(color, field) {
   color
 }
 
+# The engine's tables and the warnings it raised reading them, each also
+# raised as an R warning
+warned_call <- function(table, args) {
+  said <- character(0)
+  value <- withCallingHandlers(call_engine(table, args), warning = function(w)
+    said <<- c(said, conditionMessage(w)))
+  list(value = value, warnings = unique(said))
+}
+
+# A comparative result: its tables, then the slots every result holds, then
+# its own drawing state
+comparative_result <- function(cls, primary, tables, regions, width, display,
+                               keys, ramps, warnings, state = list()) {
+  structure(c(tables, list(regions = regions, width = width,
+      display = display, keys = keys, ramps = ramps, y_scale = NULL,
+      fields = list(), warnings = warnings), state),
+    primary = primary, class = c(cls, "jbrowse_result"))
+}
+
 # An opacity setting as the engine drew it: an opacity object as given, and
 # a number, or none, as the level every alignment drew at
 drawn_opacity <- function(opacity, level) if (is.list(opacity)) opacity else level
@@ -241,7 +260,7 @@ on_axis_of <- function(regions, axis) {
 #'   the adapter's query and target in that order. Unset, a title shows the
 #'   assembly name itself, `"query"` and `"target"` for a guessed file
 #' @param index the tabix or CSI index of a `.pif.gz`, if not beside it
-#' @return a `jbrowse_synteny` list:
+#' @return a `jbrowse_synteny` list, beside the slots [jbrowse_result] lists:
 #'   * `alignments`: each block, in the band's paint order: `id`, `name`,
 #'     `query_chrom`, `query_start`, `query_end`, `target_chrom`,
 #'     `target_start`, `target_end`, `strand`, `length`, the measurements the
@@ -269,12 +288,9 @@ on_axis_of <- function(regions, axis) {
 #'     top left: `marks` (`axis`, `x`, `y`, `width`, `height`, `color`,
 #'     `alpha`) and `labels` (`axis`, `label`, `x`, `y` at the baseline,
 #'     `color`, `alpha`, `halo`), in a `font_px` font
-#'   * `legend`: `label` and `color`, the key the view shows, its title as
-#'     the frame's `"title"` attribute
-#'   * `ramps`: a continuous field's color bar, as [guides_jbrowse()] draws
-#'     it
 #'
-#'   `regions` lays out both rows, its `axis` `"query"` for the top row and
+#'   `keys$ribbons` is the key the view shows, `ramps` a continuous field's
+#'   color bar, as [guides_jbrowse()] draws it. `regions` lays out both rows, its `axis` `"query"` for the top row and
 #'   `"target"` for the bottom. `display` holds the settings the view drew
 #'   with: those given, the view's defaults for the rest, `color$field` the
 #'   field painted, `opacity` the level every ribbon draws at, and `height`
@@ -295,7 +311,8 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
   t <- axes$second
   args <- c(args, list(query = axis_args(q, axes$names[1], width),
     target = axis_args(t, axes$names[2], width)))
-  r <- call_engine("synteny", args)
+  read <- warned_call("synteny", args)
+  r <- read$value
   regions <- rbind(axis_rows(q, "query", axes$names[1]),
     axis_rows(t, "target", axes$names[2]))
   alignments <- snake(as_frame(r$alignments))
@@ -311,22 +328,21 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle, complete = TRUE)
   attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
-  structure(
+  comparative_result("jbrowse_synteny", "ribbons",
     list(alignments = alignments, ribbons = ribbons, offscreen = offscreen,
-      offscreen_contigs = colored_frame(r$offscreenContigs),
-      offscreen_strip = list(marks = colored_frame(r$offscreenStrip$marks),
+      offscreen_contigs = colored_frame(r$offscreenContigs)),
+    regions, width,
+    resolved_display(display, SYNTENY_DEFAULTS,
+      list(color = painted(display$color, r$field),
+        opacity = drawn_opacity(display$opacity, r$alpha),
+        height = r$height)),
+    list(ribbons = key), ramp_frames(r$ramps), read$warnings,
+    list(offscreen_strip = list(marks = colored_frame(r$offscreenStrip$marks),
         labels = colored_frame(r$offscreenStrip$labels),
         font_px = r$offscreenStrip$fontPx),
-      legend = key, keys = list(ribbons = key), ramps = ramp_frames(r$ramps),
-      display = resolved_display(display, SYNTENY_DEFAULTS,
-        list(color = painted(display$color, r$field),
-          opacity = drawn_opacity(display$opacity, r$alpha),
-          height = r$height)),
       fade_thin = r$fadeThin, has_cigar = r$hasCigar,
       assemblies = display_names(unlist(r$assemblyNames), labels,
-        args$adapterConfig), regions = regions, width = width),
-    primary = "ribbons",
-    class = c("jbrowse_synteny", "jbrowse_result"))
+        args$adapterConfig)))
 }
 
 #' @export
@@ -757,7 +773,7 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   query on the vertical, as [jbrowse_synteny()]'s `swap` does the rows
 #' @param labels what each axis title calls its assembly, as for
 #'   [jbrowse_synteny()]: `c(query = "peach", target = "grape")`
-#' @return a `jbrowse_dotplot` list:
+#' @return a `jbrowse_dotplot` list, beside the slots [jbrowse_result] lists:
 #'   * `alignments`: each block: `name`, `x_chrom`, `x_start`, `x_end`,
 #'     `y_chrom`, `y_start`, `y_end`, `strand`, `length`, the measurements
 #'     the file carries, `color` and `alpha`
@@ -767,11 +783,9 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'     `y_region`, `y_chrom`, `y_start`, `y_end`, from (`x_start`, `y_start`)
 #'     to (`x_end`, `y_end`), each `*_region` a row of `regions`, `color` and
 #'     `alpha`
-#'   * `legend`: `label` and `color`, the key the view shows
-#'   * `ramps`: a continuous field's color bar, as [guides_jbrowse()] draws
-#'     it
 #'
-#'   `regions` lays out both axes, its `axis` `"x"` or `"y"`. `display`
+#'   `keys$segments` is the key the view shows, `ramps` a continuous field's
+#'   color bar. `regions` lays out both axes, its `axis` `"x"` or `"y"`. `display`
 #'   holds the settings the view drew with: those given, the view's defaults
 #'   for the rest, `color$field` the field painted, `opacity` the level every
 #'   line draws at and `lineWidth` its pixels. `skipped` counts the blocks
@@ -792,7 +806,8 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
   yr <- axes$second
   args <- c(args, list(x = axis_args(xr, axes$names[1], width),
     y = axis_args(yr, axes$names[2], height)))
-  r <- call_engine("dotplot", args)
+  read <- warned_call("dotplot", args)
+  r <- read$value
   alignments <- snake(as_frame(r$alignments))
   alignments$color <- jbrowse_color(alignments$color)
   segments <- snake(as_frame(r$segments))
@@ -803,20 +818,18 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle, complete = TRUE)
   attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
-  structure(
-    list(alignments = alignments, segments = segments, legend = key,
-      keys = list(segments = key), ramps = ramp_frames(r$ramps),
-      display = resolved_display(display, DOTPLOT_DEFAULTS,
-        list(color = painted(display$color, r$field),
-          opacity = drawn_opacity(display$opacity, r$alpha),
-          lineWidth = r$lineWidth)),
+  comparative_result("jbrowse_dotplot", "segments",
+    list(alignments = alignments, segments = segments),
+    rbind(axis_rows(xr, "x", axes$names[1]), axis_rows(yr, "y", axes$names[2])),
+    width,
+    resolved_display(display, DOTPLOT_DEFAULTS,
+      list(color = painted(display$color, r$field),
+        opacity = drawn_opacity(display$opacity, r$alpha),
+        lineWidth = r$lineWidth)),
+    list(segments = key), ramp_frames(r$ramps), read$warnings,
+    list(height = height,
       assemblies = display_names(unlist(r$assemblyNames), labels,
-        args$adapterConfig), skipped = r$skipped,
-      regions = rbind(axis_rows(xr, "x", axes$names[1]),
-        axis_rows(yr, "y", axes$names[2])),
-      width = width, height = height),
-    primary = "segments",
-    class = c("jbrowse_dotplot", "jbrowse_result"))
+        args$adapterConfig), skipped = r$skipped))
 }
 
 #' @export

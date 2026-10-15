@@ -48,7 +48,7 @@ ribbons are wide enough to draw}
 \item{index}{the tabix or CSI index of a \code{.pif.gz}, if not beside it}
 }
 \value{
-a \code{jbrowse_multiway} list:
+a \code{jbrowse_multiway} list, beside the slots \link{jbrowse_result} lists:
 \itemize{
 \item \code{lanes}: one row per lane, top to bottom: \code{lane}, \code{assembly},
 \code{label}, \code{anchor}, \code{chrom}, \code{flipped} (the lane runs right to left),
@@ -74,10 +74,9 @@ nothing for its group
 \code{assembly}, \code{chrom}, \code{start}, \code{end}, \code{strand}, \code{mate_assembly},
 \code{mate_chrom}, \code{mate_start}, \code{mate_end}, and the measurements and
 columns the file carries
-\item \code{legend}: \code{label} and \code{color}, the ribbons' key
 }
 
-\code{regions} lays out each lane, its \code{axis} the lane's assembly: the
+\code{keys$ribbons} is the ribbons' key. \code{regions} lays out each lane, its \code{axis} the lane's assembly: the
 anchor's regions, spaced as a linear track over them spaces them, and
 the window each other lane shows. \code{display} holds the settings the
 display drew with: those given, \code{rows} as \code{lanes} writes it, the

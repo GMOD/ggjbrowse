@@ -74,7 +74,7 @@ lane_pin <- function(locus) {
 #' @param width the view's pixels, which set each lane's zoom and which
 #'   ribbons are wide enough to draw
 #' @param index the tabix or CSI index of a `.pif.gz`, if not beside it
-#' @return a `jbrowse_multiway` list:
+#' @return a `jbrowse_multiway` list, beside the slots [jbrowse_result] lists:
 #'   * `lanes`: one row per lane, top to bottom: `lane`, `assembly`,
 #'     `label`, `anchor`, `chrom`, `flipped` (the lane runs right to left),
 #'     `bp_per_px`, `also_on` (other contigs placing a comparable share)
@@ -99,9 +99,8 @@ lane_pin <- function(locus) {
 #'     `assembly`, `chrom`, `start`, `end`, `strand`, `mate_assembly`,
 #'     `mate_chrom`, `mate_start`, `mate_end`, and the measurements and
 #'     columns the file carries
-#'   * `legend`: `label` and `color`, the ribbons' key
 #'
-#'   `regions` lays out each lane, its `axis` the lane's assembly: the
+#'   `keys$ribbons` is the ribbons' key. `regions` lays out each lane, its `axis` the lane's assembly: the
 #'   anchor's regions, spaced as a linear track over them spaces them, and
 #'   the window each other lane shows. `display` holds the settings the
 #'   display drew with: those given, `rows` as `lanes` writes it, the
@@ -142,7 +141,8 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     multiway_adapter(file, index)),
     anchor = axis_args(regions, anchor, width), display = config)
   if (length(choice$pins)) args$pins <- choice$pins
-  r <- call_engine("multiway", args)
+  read <- warned_call("multiway", args)
+  r <- read$value
   one_based <- function(d, columns) {
     for (column in intersect(columns, names(d))) d[[column]] <- d[[column]] + 1
     d
@@ -169,18 +169,15 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle, complete = TRUE)
   attr(key, "override") <- list(alpha = 0.6)
-  structure(
+  comparative_result("jbrowse_multiway", "ribbons",
     list(lanes = lane_frame, segments = segments, blocks = blocks,
-      ribbons = ribbons, alignments = snake(as_frame(r$alignments)),
-      legend = key, keys = list(ribbons = key), ramps = ramp_frames(r$ramps),
-      display = resolved_display(given, MULTIWAY_DEFAULTS,
-        list(ribbonColor = painted(given$ribbonColor, r$field),
-          drawCurves = r$curves, height = r$height)),
-      tick_interval = r$tickInterval,
-      rows_vs_anchor = r$rowsVsAnchor, width = width,
-      assemblies = unlist(r$assemblyNames), regions = layout),
-    primary = "ribbons",
-    class = c("jbrowse_multiway", "jbrowse_result"))
+      ribbons = ribbons, alignments = snake(as_frame(r$alignments))),
+    layout, width,
+    resolved_display(given, MULTIWAY_DEFAULTS,
+      list(ribbonColor = painted(given$ribbonColor, r$field),
+        drawCurves = r$curves, height = r$height)),
+    list(ribbons = key), ramp_frames(r$ramps), read$warnings,
+    list(tick_interval = r$tickInterval, rows_vs_anchor = r$rowsVsAnchor))
 }
 
 # Each lane's regions, its `axis` its assembly: the anchor's regions, laid

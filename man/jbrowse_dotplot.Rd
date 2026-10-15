@@ -47,7 +47,7 @@ query on the vertical, as \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s \c
 \item{index}{the tabix or CSI index of a \code{.pif.gz}, if not beside it}
 }
 \value{
-a \code{jbrowse_dotplot} list:
+a \code{jbrowse_dotplot} list, beside the slots \link{jbrowse_result} lists:
 \itemize{
 \item \code{alignments}: each block: \code{name}, \code{x_chrom}, \code{x_start}, \code{x_end},
 \code{y_chrom}, \code{y_start}, \code{y_end}, \code{strand}, \code{length}, the measurements
@@ -58,12 +58,10 @@ row number of \code{alignments}), \code{op} (\code{"match"}, \code{"insertion"},
 \code{y_region}, \code{y_chrom}, \code{y_start}, \code{y_end}, from (\code{x_start}, \code{y_start})
 to (\code{x_end}, \code{y_end}), each \verb{*_region} a row of \code{regions}, \code{color} and
 \code{alpha}
-\item \code{legend}: \code{label} and \code{color}, the key the view shows
-\item \code{ramps}: a continuous field's color bar, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
-it
 }
 
-\code{regions} lays out both axes, its \code{axis} \code{"x"} or \code{"y"}. \code{display}
+\code{keys$segments} is the key the view shows, \code{ramps} a continuous field's
+color bar. \code{regions} lays out both axes, its \code{axis} \code{"x"} or \code{"y"}. \code{display}
 holds the settings the view drew with: those given, the view's defaults
 for the rest, \code{color$field} the field painted, \code{opacity} the level every
 line draws at and \code{lineWidth} its pixels. \code{skipped} counts the blocks

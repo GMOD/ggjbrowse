@@ -1,9 +1,11 @@
-#' What a linear reader returns
+#' What a reader returns
 #'
-#' [jbrowse_alignments()], [jbrowse_features()], [jbrowse_variants()] and
-#' [jbrowse_wiggle()] each return a classed list, `a$reads` a data frame. A
+#' [jbrowse_alignments()], [jbrowse_features()], [jbrowse_variants()],
+#' [jbrowse_wiggle()], [jbrowse_synteny()], [jbrowse_dotplot()] and
+#' [jbrowse_multiway()] each return a classed list, `a$reads` a data frame. A
 #' fixed set of slots holds what is not a table; every other slot is a table
-#' of records or of marks, which each reader's page lists.
+#' of records or of marks, which each reader's page lists, or a class's
+#' drawing state, listed below.
 #'
 #' @section The slots every result holds:
 #' * `regions`: a data frame, a row per region read: `chrom`, `start` and
@@ -34,7 +36,20 @@
 #' `rendering`, `origin`, `row_layout`, `height` and `bp_per_px`; a
 #' [jbrowse_alignments()] result `read_pitch`, `glyph`, `arc_span_max` and
 #' `sequence`, each region's reference bases where `assembly` has a sequence,
-#' which the sequence band draws; and a [jbrowse_variants()] result the `tree` a caller sets.
+#' which the sequence band draws; and a [jbrowse_variants()] result the
+#' `tree` a caller sets.
+#'
+#' A comparative result lays out several axes: [jbrowse_synteny()]'s two
+#' rows, [jbrowse_dotplot()]'s x and y, [jbrowse_multiway()]'s lanes. Its
+#' `regions` adds `axis`, naming the axis each region lays out on, and
+#' `assembly`, the assembly it is on, and its tables name their regions by
+#' axis: `query_region` and `target_region`, `x_region` and `y_region`, or
+#' `upper_region` and `lower_region`, each a row of `regions`. A
+#' [jbrowse_synteny()] result also holds `offscreen_strip`, `fade_thin`,
+#' `has_cigar` and `assemblies`, the axis titles; a [jbrowse_dotplot()]
+#' result `height`, `assemblies` and `skipped`; and a [jbrowse_multiway()]
+#' result `tick_interval` and `rows_vs_anchor`. `y_scale` is `NULL` and
+#' `fields` empty for each.
 #'
 #' @section Errors:
 #' Each error a reader raises has a class, which a [tryCatch()] handler

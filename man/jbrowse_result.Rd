@@ -2,12 +2,14 @@
 % Please edit documentation in R/result.R
 \name{jbrowse_result}
 \alias{jbrowse_result}
-\title{What a linear reader returns}
+\title{What a reader returns}
 \description{
-\code{\link[=jbrowse_alignments]{jbrowse_alignments()}}, \code{\link[=jbrowse_features]{jbrowse_features()}}, \code{\link[=jbrowse_variants]{jbrowse_variants()}} and
-\code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} each return a classed list, \code{a$reads} a data frame. A
+\code{\link[=jbrowse_alignments]{jbrowse_alignments()}}, \code{\link[=jbrowse_features]{jbrowse_features()}}, \code{\link[=jbrowse_variants]{jbrowse_variants()}},
+\code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}}, \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}, \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}} and
+\code{\link[=jbrowse_multiway]{jbrowse_multiway()}} each return a classed list, \code{a$reads} a data frame. A
 fixed set of slots holds what is not a table; every other slot is a table
-of records or of marks, which each reader's page lists.
+of records or of marks, which each reader's page lists, or a class's
+drawing state, listed below.
 }
 \section{The slots every result holds}{
 
@@ -41,7 +43,20 @@ A \code{\link[=jbrowse_features]{jbrowse_features()}} result also holds \code{gl
 \code{rendering}, \code{origin}, \code{row_layout}, \code{height} and \code{bp_per_px}; a
 \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result \code{read_pitch}, \code{glyph}, \code{arc_span_max} and
 \code{sequence}, each region's reference bases where \code{assembly} has a sequence,
-which the sequence band draws; and a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result the \code{tree} a caller sets.
+which the sequence band draws; and a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result the
+\code{tree} a caller sets.
+
+A comparative result lays out several axes: \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s two
+rows, \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}}'s x and y, \code{\link[=jbrowse_multiway]{jbrowse_multiway()}}'s lanes. Its
+\code{regions} adds \code{axis}, naming the axis each region lays out on, and
+\code{assembly}, the assembly it is on, and its tables name their regions by
+axis: \code{query_region} and \code{target_region}, \code{x_region} and \code{y_region}, or
+\code{upper_region} and \code{lower_region}, each a row of \code{regions}. A
+\code{\link[=jbrowse_synteny]{jbrowse_synteny()}} result also holds \code{offscreen_strip}, \code{fade_thin},
+\code{has_cigar} and \code{assemblies}, the axis titles; a \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}}
+result \code{height}, \code{assemblies} and \code{skipped}; and a \code{\link[=jbrowse_multiway]{jbrowse_multiway()}}
+result \code{tick_interval} and \code{rows_vs_anchor}. \code{y_scale} is \code{NULL} and
+\code{fields} empty for each.
 }
 
 \section{Errors}{
