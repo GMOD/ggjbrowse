@@ -147,7 +147,7 @@ One page per reader, with its options and the gallery figures it draws:
 | BigWig | `jbrowse_wiggle()` | [Quantitative tracks](docs/wiggle.md): bars, lines, density, rows per source, clustering |
 | VCF | `jbrowse_variants()` | [Variant matrices](docs/variants.md): genotypes by sample, bands, clustering |
 | PAF, PIF, delta, chain, MashMap | `jbrowse_synteny()`, `jbrowse_dotplot()`, `jbrowse_multiway()` | [Synteny](docs/synteny.md): ribbons, dotplots, several genomes |
-| Several tracks | `jbrowse_stack()` | [A view of several tracks](docs/stack.md): end-to-end regions, collapsed introns, figure size |
+| Several tracks | `jbrowse_stack()` | [A view of several tracks](docs/stack.md): end-to-end regions, collapsed introns, figure size, and the **Export R script** JBrowse menu item |
 
 - [The grammar](docs/grammar.md): the geoms, scales and facets that
   `autoplot()` composes, for building a figure by hand
@@ -161,13 +161,10 @@ One page per reader, with its options and the gallery figures it draws:
   tables. JBrowse's canvas drawing and UI do not run.
 - **In R:** reading the files and passing their bytes to that package, then
   drawing the tables it returns with ggplot2.
-- [How does this work?](docs/how-does-this-work.md) covers the engine, file
-  reading and who decides what.
-- [Dataflow](docs/dataflow.md) diagrams one call from path to plot.
-- [FAQ](docs/faq.md): V8 versus QuickJS, caching, indexes, coordinates.
-- [CONTRIBUTING.md](CONTRIBUTING.md): development, rebuilding the engine and CI.
-- JBrowse's linear genome view is gaining an **Export R script** menu item,
-  not yet in a release, that writes a ggjbrowse script for the open tracks.
+- **More:** [How does this work?](docs/how-does-this-work.md), a
+  [diagram of one call](docs/dataflow.md) and the [FAQ](docs/faq.md).
+- **Developing:** [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, rebuilding
+  the engine and CI.
 
 ## Not yet
 
