@@ -39,8 +39,8 @@ which picks the BigWig zoom level that answers and so each bin's width}
 
 \item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
 config's \code{assemblies} entry writes it: \code{region} may name a contig by any
-alias it lists, the file is read under its own, and the tables name the
-contig as \code{region} does}
+alias it lists, the engine reads the file under the file's own, and the
+reader names the contig in its tables as \code{region} does}
 }
 \value{
 a \code{jbrowse_wiggle} list:

@@ -13,6 +13,11 @@ the fill the display paints it, its hue shaded by the alt dosage
   per INFO key (`AC`, `AN`, ...), typed by the header. A key with a value per
   alt, such as `AC`, is a list column. `v$info_fields` lists each key's
   header line.
+- The matrix keeps a record only where a sample calls an allele. A calls VCF
+  with no GT, such as a somatic SV caller's, reads through
+  `jbrowse_features()` instead, as JBrowse's plain variant track draws it.
+  Its `features` hold each record's `filter` and INFO columns, and its
+  `samples` each sample's FORMAT values (`AD`, `DP`, ...).
 - `rows` arranges the rows as a saved session does. `domain` lists the rows
   that lead, `labels` renames rows, and `kept` names the rows shown.
 - `facet = "superpopulation"` stacks the rows in a band per value, named

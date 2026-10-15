@@ -28,8 +28,8 @@ JBrowse config names its assembly:
 \item a region may name a contig by any of its aliases, and the engine reads
 each file under the alias that file uses, as JBrowse renames a track's
 regions
-\item the tables name the contig as the region does, so \code{\link[=jbrowse_stack]{jbrowse_stack()}}
-draws files that spell it differently on one axis
+\item the reader names the contig in its tables as the region does, so
+\code{\link[=jbrowse_stack]{jbrowse_stack()}} draws files that spell it differently on one axis
 \item its sequence is the \code{reference} where a reader takes one and none is
 given, which a CRAM and the bisulfite layer read against
 }

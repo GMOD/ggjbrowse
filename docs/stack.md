@@ -21,6 +21,12 @@ with the keys collected.
   a list of them.
 - An alignments track read with `display = list(showCoverage = FALSE)`
   stacks no coverage band.
+- A key several tracks share appears once, listing every entry any of them
+  holds. A tumor with hard clips over a normal without them gets one
+  "Insertions and clips" key, "Hard clip" included.
+- Files that spell a contig differently stack on one axis when each reader
+  takes the same `assembly`: the readers then name the contig in every table
+  as the region does.
 
 Each band takes the pixels the display gives it. Reads draw at the display's
 `featureHeight` (7, or 3 and 1 for its compact and super-compact settings),

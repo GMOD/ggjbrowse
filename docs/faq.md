@@ -108,10 +108,17 @@ sequenceDiagram
 - A CRAM stores reads against the FASTA it was encoded with. Pass that FASTA
   or 2bit as `reference =`.
 
-## The BAM and the FASTA spell a contig differently
+## The files spell a contig differently
 
-- If the BAM names a contig `1` and the FASTA `chr1`, pass `reference_chrom` with
-  the FASTA's spelling.
+- Pass each reader `assembly = jbrowse_assembly(fasta, aliases)`, the FASTA
+  and an alias table listing each contig's names on a row, such as UCSC's
+  `chromAlias.txt`. A region may name the contig as any file does. The
+  engine reads each file under that file's spelling, and the reader names the
+  contig in its tables as the region does.
+- A JBrowse config's assembly works as is: `assembly = list(name = "hg19",
+  uri = "hg19.fa.gz", refNameAliases = list(uri = "hg19_aliases.txt"))`.
+- Without an alias table, `reference_chrom` names one region's contig as the
+  FASTA spells it.
 
 ## Do R warnings from inside the engine work with `tryCatch`?
 

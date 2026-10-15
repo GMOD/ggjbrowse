@@ -7,8 +7,8 @@
 #' * a region may name a contig by any of its aliases, and the engine reads
 #'   each file under the alias that file uses, as JBrowse renames a track's
 #'   regions
-#' * the tables name the contig as the region does, so [jbrowse_stack()]
-#'   draws files that spell it differently on one axis
+#' * the reader names the contig in its tables as the region does, so
+#'   [jbrowse_stack()] draws files that spell it differently on one axis
 #' * its sequence is the `reference` where a reader takes one and none is
 #'   given, which a CRAM and the bisulfite layer read against
 #'

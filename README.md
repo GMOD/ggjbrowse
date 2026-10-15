@@ -113,6 +113,11 @@ ggplot(a) +
   (`"chr12:6,534,201-6,538,700"`), or `"chr12", 6534200, 6538700` in 0-based
   half-open coordinates. A vector of several loci draws them end to end.
 - **Files:** a path or a URL. CRAM needs a `reference`.
+- **Contig names:** where files spell a contig differently (`chr7` in a BAM,
+  `7` in the FASTA), give each reader `assembly = jbrowse_assembly(fasta,
+  aliases)`, with an alias table such as UCSC's `chromAlias.txt`. A region
+  may then name the contig either way, and the reader names it in its tables
+  as the region does.
 
 ## Tutorials
 

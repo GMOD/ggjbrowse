@@ -65,8 +65,8 @@ spells it another way: one name for every region, or one per region}
 
 \item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
 config's \code{assemblies} entry writes it: \code{region} may name a contig by any
-alias it lists, the file is read under its own, and the tables name the
-contig as \code{region} does}
+alias it lists, the engine reads the file under the file's own, and the
+reader names the contig in its tables as \code{region} does}
 
 \item{color_by_cds}{paint each CDS by its reading frame, as the view's
 "Color by CDS" does}

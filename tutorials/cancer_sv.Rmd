@@ -49,8 +49,13 @@ assign:
   tumor: COLO829_tumor_ont.uri
   normal: COLO829BL_normal_ont.uri
   calls_vcf: COLO829_somatic_sv.uri
-  truth_vcf: COLO829_truth_set.adapter.uri
+  truth_vcf: COLO829_truth_set.adapter
+  aliases: hg38.refNameAliases.uri
 -->
+
+The reads were aligned to the FASTA below, which names chromosomes `chr3`,
+and the truth set names them `3`. An assembly of that FASTA and the website's
+alias table lets every reader take `chr3` for either file:
 
 ```{r reference}
 library(ggjbrowse)
@@ -61,42 +66,39 @@ library(readr)
 
 reference <- paste0("https://ont-open-data.s3.amazonaws.com/colo829_2024.03/",
   "wf_somatic_variation/sup/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta")
+hg38 <- jbrowse_assembly(reference, aliases, "hg38")
+genome <- jbrowse_regions(hg38)
 ```
 
 ## The somatic SV calls
 
 nanomonsv's calls come as a VCF with one sample column, whose FORMAT holds the
-tumor's read counts (`DP`, `AF`, `AD`) and the normal's (`NDP`, `NAF`, `NAD`).
-`readr` reads the 260 KB file whole, and a breakend record writes its partner
-into ALT:
+tumor's read counts (`DP`, `AF`, `AD`) and the normal's (`NDP`, `NAF`, `NAD`)
+but no genotype. `jbrowse_variants()` draws a genotype matrix, which keeps a
+record only where a sample calls an allele, so it keeps none of these.
+`jbrowse_features()` reads a VCF as JBrowse's plain variant track draws it,
+every record with its FILTER and a column per INFO key, and each sample's
+FORMAT values in `samples`. Read over every contig in `genome`, it holds the
+whole callset. A breakend record writes its partner into ALT:
 
 ```{r calls}
-info <- function(x, key) {
-  value <- regmatches(x,
-    regexec(paste0("(?:^|;)", key, "=([^;]*)"), x, perl = TRUE))
-  vapply(value, function(m) if (length(m)) m[2] else NA_character_, "")
-}
-
-vcf <- read_tsv(calls_vcf, comment = "##", show_col_types = FALSE) |>
-  rename(chrom = `#CHROM`, pos = POS, id = ID, filter = FILTER)
-stopifnot(n_distinct(vcf$FORMAT) == 1)
-counts <- do.call(rbind, strsplit(vcf$COLO829, ":"))
-colnames(counts) <- strsplit(vcf$FORMAT[1], ":")[[1]]
+callset <- jbrowse_features(calls_vcf, genome, assembly = hg38)
 partner <- "[\\[\\]](CHR[0-9XYM]+):([0-9]+)[\\[\\]]"
 
-calls <- vcf |>
-  transmute(chrom, pos, id, filter, type = info(INFO, "SVTYPE"),
-    mate_id = info(INFO, "MATEID"),
+calls <- as_tibble(callset$features) |>
+  mutate(feature = row_number()) |>
+  left_join(filter(callset$samples, sample == "COLO829"), by = "feature") |>
+  transmute(chrom, pos = start + 1, id = name, filter, type = SVTYPE,
+    mate_id = MATEID,
     mate_chrom = sub("^CHR", "chr", sub(paste0(".*", partner, ".*"), "\\1",
-      ifelse(type == "BND", ALT, NA), perl = TRUE)),
+      ifelse(type == "BND", alt, NA), perl = TRUE)),
     mate_pos = as.numeric(sub(paste0(".*", partner, ".*"), "\\2",
-      ifelse(type == "BND", ALT, NA), perl = TRUE)),
+      ifelse(type == "BND", alt, NA), perl = TRUE)),
     length = case_when(
-      type %in% c("DEL", "DUP") ~ abs(as.numeric(info(INFO, "SVLEN"))),
-      type == "INS" ~ as.numeric(info(INFO, "SVINSLEN")),
+      type %in% c("DEL", "DUP") ~ abs(SVLEN),
+      type == "INS" ~ SVINSLEN,
       mate_chrom == chrom ~ abs(mate_pos - pos)),
-    tumor_reads = as.integer(counts[, "AD"]),
-    normal_reads = as.integer(counts[, "NAD"])) |>
+    tumor_reads = as.integer(AD), normal_reads = as.integer(NAD)) |>
   mutate(junction = if_else(type == "BND", pmin(id, mate_id), id))
 count(distinct(calls, junction, .keep_all = TRUE), type, filter) |>
   pivot_wider(names_from = filter, values_from = n, values_fill = 0)
@@ -205,7 +207,8 @@ loci <- chain |>
   with(sprintf("%s:%d-%d", chrom, start, end))
 
 refseq <- "https://jbrowse.org/ucsc/hg38/ncbiRefSeq.gff.gz"
-genes <- jbrowse_features(refseq, loci, index = paste0(refseq, ".csi"))$features |>
+genes <- jbrowse_features(refseq, loci, index = paste0(refseq, ".csi"),
+  assembly = hg38)$features |>
   filter(gene)
 chain |>
   inner_join(select(genes, chrom, gene = name, start, end),
@@ -272,7 +275,7 @@ replace:
   - from: "Open the SV calls and the tumor and normal read tracks at"
     to: "We'll read the SV calls and the tumor and normal reads at"
   - from: "The ONT reads are aligned to GRCh38, so we load that assembly and the two read\ntracks. Each read file needs its index beside it, a `.crai` for the CRAM and a\n`.bai` for the BAM; for your own sample, swap the `uri`:"
-    to: "The ONT reads are aligned to GRCh38. Each read file needs its index beside\nit, a `.crai` for the CRAM and a `.bai` for the BAM, and a CRAM needs the\nFASTA it was encoded against as `reference`."
+    to: "The ONT reads are aligned to GRCh38. Each read file needs its index beside\nit, a `.crai` for the CRAM and a `.bai` for the BAM, and the CRAM decodes\nagainst `hg38`'s FASTA, the one it was encoded with."
 -->
 
 The track menu's choices are `display` settings. `showSoftClipping` draws the
@@ -284,10 +287,11 @@ locus <- "chr3:25,357,600-25,361,000"
 display <- list(showSoftClipping = TRUE, sort = list(type = "split"),
   featureHeight = 3)
 fig <- jbrowse_stack(
-  `Somatic SVs` = jbrowse_features(calls_vcf, locus, width = 1200),
-  Tumor = jbrowse_alignments(tumor, locus, reference = reference,
-    display = display),
-  Normal = jbrowse_alignments(normal, locus, display = display))
+  `Somatic SVs` = jbrowse_features(calls_vcf, locus, width = 1200,
+    assembly = hg38),
+  Tumor = jbrowse_alignments(tumor, locus, assembly = hg38, display = display),
+  Normal = jbrowse_alignments(normal, locus, assembly = hg38,
+    display = display))
 ```
 
 ```{r reads-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "COLO829 tumor above COLO829BL normal at the two chr3 breakends, soft clipping shown: the tumor's split reads, sorted to the top, start at the first breakend and stop at the second with clipped ends, while normal reads run straight through both"}
@@ -312,9 +316,9 @@ clipped_reads <- function(alignments, breakends, within = 25, at_least = 100) {
 }
 
 window_reads <- list(
-  tumor = jbrowse_alignments(tumor, loci, reference = reference,
+  tumor = jbrowse_alignments(tumor, loci, assembly = hg38,
     display = list(showCoverage = FALSE)),
-  normal = jbrowse_alignments(normal, loci,
+  normal = jbrowse_alignments(normal, loci, assembly = hg38,
     display = list(showCoverage = FALSE)))
 tumor_names <- clipped_reads(window_reads$tumor, chain)
 normal_names <- clipped_reads(window_reads$normal, chain)
@@ -345,8 +349,9 @@ chain_display <- list(unit = "chain", readConnections = "arc",
   color = list(field = "strand"), filter = list(split = "only"),
   featureHeight = 3)
 fig <- jbrowse_stack(
-  `Somatic SVs` = jbrowse_features(calls_vcf, loci, width = 1200),
-  Tumor = jbrowse_alignments(tumor, loci, reference = reference,
+  `Somatic SVs` = jbrowse_features(calls_vcf, loci, width = 1200,
+    assembly = hg38),
+  Tumor = jbrowse_alignments(tumor, loci, assembly = hg38,
     display = chain_display))
 ```
 
@@ -442,13 +447,16 @@ only:
   - "The consensus was polished from these reads"
 -->
 
-The truth set names chromosomes without the `chr` prefix. We'll match each of
-the chain's breakends to the nearest truth-set breakend on its chromosome:
+The truth set names chromosomes without the `chr` prefix. Read through the
+assembly over the chain's chromosomes in `genome`, `jbrowse_features()` names
+them as `genome` does. We'll match each of the chain's breakends to the nearest
+truth-set breakend on its chromosome:
 
 ```{r truth}
-truth <- read_tsv(truth_vcf, comment = "##", show_col_types = FALSE) |>
-  transmute(chrom = paste0("chr", `#CHROM`), truth_pos = POS, truth_id = ID,
-    platforms = info(INFO, "SUPP_SEQ"))
+truth <- jbrowse_features(truth_vcf, filter(genome, chrom %in% panels$chrom),
+  assembly = hg38)$features |>
+  transmute(chrom, truth_pos = start + 1, truth_id = name,
+    platforms = vapply(SUPP_SEQ, paste, "", collapse = ","))
 matched <- chain |>
   select(breakend, chrom, pos) |>
   inner_join(truth, by = "chrom", relationship = "many-to-many") |>
@@ -471,11 +479,12 @@ cat(sprintf(paste("%d breakends: %d tumor reads clipped at all of them,",
 ## Your own data
 
 - Swap `calls_vcf`, `tumor`, `normal` and `reference` for your own files. A
-  CRAM needs its `.crai` beside it and the FASTA it was encoded against as
-  `reference`.
-- Rename the caller's FORMAT fields in `counts`. Other callers write a
-  breakend's partner into ALT the same way, but not tumor and normal counts
-  into one sample column.
+  CRAM needs its `.crai` beside it and the FASTA it was encoded against in the
+  assembly. Give `jbrowse_assembly()` your genome's alias table, such as UCSC's
+  `chromAlias.txt`, where your files spell chromosomes differently.
+- Rename the caller's FORMAT fields where `calls` reads `AD` and `NAD` from
+  `samples`. Other callers write a breakend's partner into ALT the same way,
+  but not tumor and normal counts into one sample column.
 - Start `walk()` at any breakend record. `reach` and `rejoin` set how near a
   second junction must be to join the chain.
 - Point `jbrowse_synteny()` at your own contig's PAF, or at the PIF that

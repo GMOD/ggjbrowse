@@ -32,15 +32,17 @@
 #   -->
 #
 # A directive with `assign` writes an R chunk instead, each variable taking a
-# value out of the track config whose trackId starts its path, so the R code
-# draws with the settings the website's track loads. A number in the path
-# steps into an array, from 1 (`multi.adapter.subadapters.2.uri`):
+# value out of the track config whose trackId starts its path, or the
+# assembly config whose name does, so the R code draws with the settings the
+# website's track loads. A number in the path steps into an array, from 1
+# (`multi.adapter.subadapters.2.uri`):
 #
 #   <!-- jbrowse
 #   chunk: track                   # the chunk's label
 #   assign:
 #     gff: dtu_muscle_vs_liver.uri
 #     display: dtu_muscle_vs_liver.displayDefaults
+#     hg19: hg19                   # the whole assembly config
 #   -->
 #
 # Every `drop`, `keep` and `replace` must match, so a website edit that removes
@@ -335,8 +337,9 @@ resolve_anchors <- function(text) {
   text
 }
 
-# The website tutorial's JSON fences that configure a track, a list of them
-# per trackId, since a page may show one track's config more than once
+# The website tutorial's JSON fences that configure a track or an assembly,
+# a list of them per trackId or assembly name, since a page may show one
+# config more than once
 track_configs <- function(tutorial) {
   blocks <- parse_blocks(split_frontmatter(tutorial_lines(tutorial))$body)
   configs <- list()
@@ -345,8 +348,9 @@ track_configs <- function(tutorial) {
     config <- tryCatch(jsonlite::fromJSON(paste(b$lines[-c(1,
       length(b$lines))], collapse = "\n"), simplifyDataFrame = FALSE,
       simplifyMatrix = FALSE), error = function(e) NULL)
-    id <- config$trackId
-    if (is.null(id)) next
+    id <- config$trackId %||% if (!is.null(config$uri) ||
+      !is.null(config$sequence)) config$name
+    if (!is.character(id)) next
     configs[[id]] <- c(configs[[id]], list(config))
   }
   configs
@@ -402,7 +406,8 @@ assign_chunk <- function(spec, tutorial) {
     path <- strsplit(spec[["assign"]][[name]], ".", fixed = TRUE)[[1]]
     fences <- configs[[path[1]]]
     if (is.null(fences)) {
-      stop(sprintf("no track config with trackId %s in the website tutorial",
+      stop(sprintf(
+        "no track config with trackId %s, or assembly so named, in the website tutorial",
         path[1]), call. = FALSE)
     }
     values <- Filter(Negate(is.null), lapply(fences, config_value, path[-1]))

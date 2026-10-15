@@ -50,23 +50,36 @@ Nothing to download: the code below reads these files by URL.
 
 ## Reading the alignments and genes
 
-The website's track configs name the BAMs and the gene file, and `assign` turns
-them into R variables as they stand:
+The website's configs name the BAMs, the gene file and the hg19 assembly, and
+`assign` turns them into R variables as they stand:
 
 
 ``` r
 bam <- "https://s3.amazonaws.com/jbrowse.org/genomes/hg19/paired_end_rnaseq/Pairend_StrandSpecific_51mer_Human_hg19.bam"
 gff <- "https://s3.amazonaws.com/jbrowse.org/genomes/hg19/ncbi_refseq/GRCh37_latest_genomic.sort.gff.gz"
 isoseq <- "https://s3.amazonaws.com/jbrowse.org/genomes/hg19/alzheimers_isoseq/hq_isoforms.fasta.bam"
+hg19 <- list(
+  name = "hg19",
+  uri = "https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz",
+  refNameAliases = list(
+    uri = "https://s3.amazonaws.com/jbrowse.org/genomes/hg19/hg19_aliases.txt"
+  ),
+  cytobands = "https://jbrowse.org/ucsc/hg19/cytoBandIdeo.bed.gz"
+)
 ```
 
-The website loads hg19 with an alias file, because the BAM, the FASTA and the
-RefSeq file each spell chromosomes their own way. We'll read the same alias file
-and name each contig as the file being read spells it:
+The website loads hg19 with an alias file, because the files spell chromosomes
+their own way:
 
 - **the BAM:** UCSC names, `chr7`
 - **the FASTA:** bare numbers, `7`, which the engine reads splice motifs from
 - **the RefSeq GFF:** accessions, `NC_000007.13`
+
+Each reader takes the assembly config as `assembly`, as each track names its
+assembly. A reader asked for `chr7` reads each file under that file's own name
+for it and names the contig `chr7` in its tables, so `jbrowse_stack()` draws
+the files on one axis. The engine reads the alignments against the assembly's
+FASTA:
 
 
 ``` r
@@ -74,42 +87,7 @@ library(ggjbrowse)
 library(ggplot2)
 library(dplyr)
 library(readr)
-
-fasta <- "https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz"
-aliases <- read_tsv(
-  "https://s3.amazonaws.com/jbrowse.org/genomes/hg19/hg19_aliases.txt",
-  col_names = c("fasta", "ucsc", "refseq"), col_types = "ccc")
-contig <- function(chrom, as) aliases[[as]][match(chrom, aliases$ucsc)]
-
-window <- function(locus) {
-  m <- regmatches(locus, regexec("^(.+):([0-9,]+)-([0-9,]+)$", locus))[[1]]
-  list(chrom = m[2], start = as.numeric(gsub(",", "", m[3])) - 1,
-    end = as.numeric(gsub(",", "", m[4])))
-}
-
-reads_at <- function(locus, file = bam, spelling = "ucsc", display = NULL) {
-  w <- window(locus)
-  chrom <- if (spelling == "ucsc") w$chrom else contig(w$chrom, spelling)
-  jbrowse_alignments(file, chrom, w$start, w$end, reference = fasta,
-    reference_chrom = contig(w$chrom, "fasta"), display = display)
-}
-
-genes_at <- function(locus, display = list(showOnlyGenes = TRUE)) {
-  w <- window(locus)
-  genes <- jbrowse_features(gff, contig(w$chrom, "refseq"), w$start, w$end,
-    display = display, width = 1200)
-  genes$region$chrom <- w$chrom
-  for (table in names(genes)) {
-    if (is.data.frame(genes[[table]]) && "chrom" %in% names(genes[[table]])) {
-      genes[[table]]$chrom <- rep(w$chrom, nrow(genes[[table]]))
-    }
-  }
-  genes
-}
 ```
-
-`jbrowse_stack()` draws tracks over one contig, so `genes_at()` renames the
-RefSeq accession to the BAM's `chr7` once the engine has read it.
 
 ## Spliced reads over ACTB
 
@@ -125,8 +103,11 @@ the engine computes from the reads' skips:
 
 ``` r
 actb <- "chr7:5,567,000-5,570,000"
-actb_genes <- genes_at(actb)
-actb_reads <- reads_at(actb, display = list(showPileup = FALSE))
+genes <- list(showOnlyGenes = TRUE)
+actb_genes <- jbrowse_features(gff, actb, assembly = hg19, display = genes,
+  width = 1200)
+actb_reads <- jbrowse_alignments(bam, actb, assembly = hg19,
+  display = list(showPileup = FALSE))
 fig <- jbrowse_stack(RefSeq = actb_genes, Reads = actb_reads)
 ```
 
@@ -277,10 +258,11 @@ the display's settings pull the splicing evidence out, and we'll read each:
 
 ``` r
 is_spliced <- function(r) r$reads$read %in% r$gaps$read[r$gaps$type == "skip"]
-file_order <- reads_at(actb)
-spliced_first <- reads_at(actb, display = list(sort = list(type = "spliced")))
-only_spliced <- reads_at(actb, display = list(featureHeight = 1,
-  filter = list(spliced = "only")))
+file_order <- jbrowse_alignments(bam, actb, assembly = hg19)
+spliced_first <- jbrowse_alignments(bam, actb, assembly = hg19,
+  display = list(sort = list(type = "spliced")))
+only_spliced <- jbrowse_alignments(bam, actb, assembly = hg19,
+  display = list(featureHeight = 1, filter = list(spliced = "only")))
 
 spliced_rows <- function(r) {
   rows <- r$reads$row[is_spliced(r)]
@@ -322,18 +304,15 @@ fig
 
 The motif is the other filter. `showNonCanonicalJunctions = FALSE` drops every
 arc whose intron does not begin and end with GT-AG, GC-AG or AT-AC on either
-strand:
-
-The engine's R path draws every arc it reads, so we'll apply the motif filter
-to the junction table, keeping each junction whose motif is canonical or
-unreadable, as the setting does:
+strand, and keeps one whose motif the reference cannot read. The junction
+table still lists every junction:
 
 
 ``` r
-all_junctions <- reads_at(actb, display = list(showPileup = FALSE))
-canonical <- all_junctions
-canonical$junctions <- filter(all_junctions$junctions,
-  motif != "non-canonical")
+all_junctions <- jbrowse_alignments(bam, actb, assembly = hg19,
+  display = list(showPileup = FALSE))
+canonical <- jbrowse_alignments(bam, actb, assembly = hg19,
+  display = list(showPileup = FALSE, showNonCanonicalJunctions = FALSE))
 fig <- jbrowse_stack("All junctions" = all_junctions,
   "Canonical only" = canonical)
 ```
@@ -349,7 +328,8 @@ The two sets in numbers:
 
 
 ``` r
-bind_rows(all = all_junctions$junctions, canonical = canonical$junctions,
+bind_rows(all = all_junctions$junctions,
+  canonical = filter(canonical$junctions, motif != "non-canonical"),
   .id = "set") |>
   filter(count >= 2) |>
   group_by(set) |>
@@ -381,10 +361,12 @@ gene.
 
 ``` r
 surfeit <- "chr9:136,214,000-136,229,000"
-surfeit_genes <- genes_at(surfeit)
+surfeit_genes <- jbrowse_features(gff, surfeit, assembly = hg19,
+  display = genes, width = 1200)
 by_strand <- list(showPileup = FALSE,
   facet = list(field = "firstOfPairStrand"))
-surfeit_reads <- reads_at(surfeit, display = by_strand)
+surfeit_reads <- jbrowse_alignments(bam, surfeit, assembly = hg19,
+  display = by_strand)
 fig <- jbrowse_stack(RefSeq = surfeit_genes, Reads = surfeit_reads)
 ```
 
@@ -401,8 +383,10 @@ On chr6, _NELFE_ and _SKIV2L_ sit back to back on opposite strands, in
 
 ``` r
 nelfe <- "chr6:31,920,500-31,933,000"
-nelfe_genes <- genes_at(nelfe)
-nelfe_reads <- reads_at(nelfe, display = by_strand)
+nelfe_genes <- jbrowse_features(gff, nelfe, assembly = hg19, display = genes,
+  width = 1200)
+nelfe_reads <- jbrowse_alignments(bam, nelfe, assembly = hg19,
+  display = by_strand)
 fig <- jbrowse_stack(RefSeq = nelfe_genes, Reads = nelfe_reads)
 ```
 
@@ -435,7 +419,8 @@ sense_counts <- function(genes, reads) {
       .groups = "drop")
 }
 
-actb_by_strand <- reads_at(actb, display = by_strand)
+actb_by_strand <- jbrowse_alignments(bam, actb, assembly = hg19,
+  display = by_strand)
 sense <- bind_rows(sense_counts(surfeit_genes, surfeit_reads),
   sense_counts(nelfe_genes, nelfe_reads),
   sense_counts(actb_genes, actb_by_strand)) |>
@@ -475,7 +460,7 @@ arcs and connectors from those skips. The IsoSeq alignments are a second BAM on 
 
 
 ``` r
-iso_reads <- reads_at(actb, file = isoseq, spelling = "fasta",
+iso_reads <- jbrowse_alignments(isoseq, actb, assembly = hg19,
   display = list(showPileup = FALSE))
 fig <- jbrowse_stack(RefSeq = actb_genes, IsoSeq = iso_reads)
 ```
@@ -658,9 +643,10 @@ their counts and flags:
 
 ``` r
 folh1 <- "chr11:49,220,500-49,231,500"
-w <- window(folh1)
-kept <- jbrowse_features(junction_adapter, w$chrom, w$start, w$end,
-  display = list(filter = list(junction_filter)), width = 1200)$features |>
+junction_track <- jbrowse_features(junction_adapter, folh1, assembly = hg19,
+  display = list(filter = list(junction_filter)), width = 1200)
+w <- junction_track$region
+kept <- junction_track$features |>
   select(name) |>
   inner_join(junctions, by = "name") |>
   mutate(known = ifelse(known_junction == 1, "annotated", "novel"))
@@ -727,8 +713,8 @@ arc_plot <- ggplot(arcs, aes(x, y, group = name, colour = known,
   labs(x = NULL) +
   theme_minimal() +
   theme(panel.grid = element_blank())
-fig <- jbrowse_stack(RefSeq = genes_at(folh1),
-  Junctions = arc_plot)
+fig <- jbrowse_stack(RefSeq = jbrowse_features(gff, folh1, assembly = hg19,
+  display = genes, width = 1200), Junctions = arc_plot)
 ```
 
 
@@ -749,7 +735,8 @@ should have the same count, summed over strands, since the engine merges them:
 from_table <- in_window |>
   group_by(start = chromStart, end = chromEnd) |>
   summarise(table = sum(score), .groups = "drop")
-from_reads <- reads_at(folh1, display = list(showPileup = FALSE))$junctions |>
+from_reads <- jbrowse_alignments(bam, folh1, assembly = hg19,
+  display = list(showPileup = FALSE))$junctions |>
   select(start, end, reads = count)
 both <- inner_join(from_table, from_reads, by = c("start", "end"))
 c(in_table = nrow(from_table), in_reads = nrow(from_reads),
@@ -794,9 +781,10 @@ kept |>
 - Swap `bam` for your own sorted, indexed BAM or CRAM, a path or a URL.
   `jbrowse_alignments()` finds the `.bai` or `.crai` beside it, and a CRAM takes
   `reference =`.
-- Pass `reference =` the FASTA the reads aligned to, so the engine can read
-  splice motifs. Give `reference_chrom` the FASTA's spelling of each contig when
-  it differs from the BAM's.
+- Pass `assembly = jbrowse_assembly(fasta, aliases)`, the FASTA the reads
+  aligned to and the genome's alias table, such as UCSC's `chromAlias.txt`. The
+  engine reads splice motifs from the FASTA, and each file under its own name
+  for a contig.
 - A library whose first read runs against the transcript, as dUTP libraries do,
   has its sense and antisense counts swapped: read `strand_of` the other way.
 - Point `read_tsv()` at the table your pipeline wrote, one of the BED recipes

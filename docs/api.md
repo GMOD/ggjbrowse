@@ -12,7 +12,7 @@
 | Function | Reads | Returns a `jbrowse_*` list of |
 |---|---|---|
 | `jbrowse_alignments()` | BAM, CRAM | `reads`, `mismatches`, `gaps`, `insertions`, `clips`, `coverage`, `allele_coverage`, `junctions`, `arcs`, ... |
-| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels`, `sections` |
+| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels`, `sections`; for a VCF, `samples`, `info_fields`, `format_fields` |
 | `jbrowse_wiggle()` | BigWig | `bins`, `marks`, `sources`, `rules` |
 | `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands`, `info_fields` |
 | `jbrowse_synteny()` | PAF, PIF, delta, chain, MashMap | `alignments`, `ribbons`, `offscreen*` |
@@ -27,9 +27,19 @@
   data frame of `chrom`, `start` and `end` for several regions.
 - `display` takes a track config's `displays` entry. `jbrowse_synteny()` and
   `jbrowse_dotplot()` take the view's snapshot as `view`.
+- `assembly` takes a `jbrowse_assembly()`, or an assembly as a JBrowse
+  config's `assemblies` entry writes it. A region may name a contig by any
+  alias in the assembly's alias table. The engine reads each file under the
+  file's own alias, and the reader names the contig in its tables as the
+  region does. The assembly's sequence is the `reference` where none is
+  given.
 
 ## Helpers
 
+- `jbrowse_assembly(sequence, aliases)`: an assembly, its reference sequence
+  and its contigs' alias table, for any reader's `assembly`
+- `jbrowse_regions(assembly)`: the assembly's contigs as regions, to read a
+  file whole
 - `jbrowse_contigs(file)`: each side's contigs and lengths in a pairwise
   alignment file
 - `jbrowse_sequence(reference, chrom, start, end)`: the reference's bases as
@@ -41,7 +51,8 @@
 - `autoplot(result)` composes the geoms into the browser's track.
   `autoplot(a, "pileup")` draws one band of an alignments track.
 - `jbrowse_stack(...)` stacks results, and your own ggplots, on one x axis,
-  each named one titled.
+  each named one titled. A key several tracks share is drawn once, listing
+  every entry any of them holds.
   `jbrowse_height()` and `jbrowse_width()` measure the figure.
 - One geom per table, all named `geom_jbrowse_*()`: `reads`, `mismatches`,
   `deletions`, `insertions`, `clips`, `coverage`, `alleles`, `junctions`,
@@ -69,13 +80,19 @@
   such as `type`. The header's `Number` decides the shape: a flag is logical,
   `Number=1` a plain column, and `A`, `R`, `G` or `.` a list column of
   vectors. `info_fields` names each key's column.
+- `jbrowse_variants()` keeps a record only where a sample calls an allele, as
+  the genotype matrix does, so a calls VCF with no GT keeps none.
+  `jbrowse_features()` reads every record, as the plain variant track draws
+  them: `features` gains `ref`, `alt`, `filter` and the INFO columns, and
+  `samples` holds a row per record and sample with a column per FORMAT key,
+  typed as INFO is.
 - `geom_jbrowse_genotypes()` fades records that share a pixel at the figure's
   `width`, through the engine's `variantDensityAlpha`. `fade = FALSE` turns
   it off.
 - `byte_limit` refuses a region whose compressed size, read off the index,
   passes it. The default is 200 MB.
-- A CRAM needs `reference`, because it stores reads against the FASTA it was
-  encoded with.
+- A CRAM needs `reference`, or an `assembly` with a sequence, because it
+  stores reads against the FASTA it was encoded with.
 - The bisulfite layer needs `reference`, because it calls each cytosine by
   comparing the read's base to the reference's.
 - `jbrowse_features()` with `reference` translates each CDS once `width`
