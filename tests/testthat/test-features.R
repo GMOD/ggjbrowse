@@ -295,3 +295,53 @@ test_that("features a config writes inline read as the same features in a file",
   expect_equal(from_config$labels, from_file$labels)
   expect_equal(from_config$missing_contig, "")
 })
+
+test_that("a GFF3's attributes are columns keyed as the file writes them", {
+  g <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"), "chr12", 6534200,
+    6538700, display = list(geneGlyphMode = "all"))
+  gapdh <- g$features[g$features$name == "GAPDH", ]
+  expect_equal(gapdh$ID, "ENSG00000111640.15")
+  expect_equal(gapdh$gene_name, "GAPDH")
+  expect_equal(gapdh$source, "HAVANA")
+  expect_false(identical(gapdh$id, gapdh$ID))
+  expect_type(g$subfeatures$tag, "list")
+  tx <- g$subfeatures[g$subfeatures$feature == which(g$features$name ==
+    "GAPDH"), ]
+  expect_gt(nrow(tx), 1)
+  expect_true(all(unlist(tx$Parent) == gapdh$ID))
+  expect_equal(tx$transcript_name, tx$name)
+  expect_true(all(c("ID", "gene_name", "tag") %in% g$attribute_fields$key))
+})
+
+test_that("an exon names its transcript, so its box joins to it", {
+  g <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"), "chr12", 6534200,
+    6538700, display = list(geneGlyphMode = "all"))
+  exons <- g$rects[!is.na(g$rects$subfeature), ]
+  expect_gt(nrow(exons), nrow(g$subfeatures))
+  tx <- g$subfeatures[exons$subfeature, ]
+  expect_equal(exons$feature, tx$feature)
+  expect_true(all(exons$start >= tx$start & exons$end <= tx$end))
+  expect_true(all(exons$top >= tx$top & exons$top < tx$bottom))
+  expect_setequal(unique(exons$subfeature), seq_len(nrow(g$subfeatures)))
+})
+
+test_that("an attribute named like a table column takes an attr_ prefix", {
+  gff <- tempfile(fileext = ".gff3")
+  writeLines(c("##gff-version 3",
+    paste("ctgA", "src", "gene", "101", "400", ".", "+", ".",
+      "ID=g1;Name=one;type=odd;end=x", sep = "\t"),
+    paste("ctgA", "src", "gene", "601", "900", ".", "-", ".",
+      "ID=g2;Name=two;Alias=a,b", sep = "\t")), gff)
+  g <- jbrowse_features(gff, "ctgA", 0, 1000)
+  expect_equal(g$features$type, c("gene", "gene"))
+  expect_equal(g$features$attr_type, c("odd", NA))
+  expect_equal(g$features$attr_end, c("x", NA))
+  expect_equal(g$features$ID, c("g1", "g2"))
+  expect_equal(g$features$Alias, list(NA_character_, c("a", "b")))
+  expect_equal(g$attribute_fields$column[g$attribute_fields$key == "type"],
+    "attr_type")
+  apart <- jbrowse_features(gff, data.frame(chrom = "ctgA",
+    start = c(0, 500), end = c(500, 1000)))
+  expect_equal(apart$features$Alias, list(NA_character_, c("a", "b")))
+  expect_equal(apart$features$attr_type, c("odd", NA))
+})

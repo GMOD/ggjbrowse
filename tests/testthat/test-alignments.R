@@ -606,3 +606,16 @@ test_that("a band the display hides reads as an empty table", {
   expect_equal(nrow(hidden$allele_coverage), 0)
   expect_equal(hidden$reads$start, bam$reads$start)
 })
+
+test_that("a read's id is its record's, where mates share a name", {
+  paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"),
+    "ctgA", 18000, 32000)$reads
+  expect_lt(length(unique(paired$name)), nrow(paired))
+  expect_false(anyDuplicated(paired$id) > 0)
+  later <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 3000,
+    6000)$reads
+  shared <- match(later$id, bam$reads$id)
+  expect_gt(sum(!is.na(shared)), 100)
+  expect_equal(later$start[!is.na(shared)], bam$reads$start[na.omit(shared)])
+  expect_equal(later$name[!is.na(shared)], bam$reads$name[na.omit(shared)])
+})

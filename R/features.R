@@ -160,6 +160,16 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
   all_subfeatures <- as_frame(t$subfeatures)
   sections <- as_frame(t$sections)
   vcf <- vcf_columns(t$vcf, nrow(all_features), names(all_features))
+  attribute_fields <- attribute_columns(c(names(t$attributes),
+    names(t$subfeatureAttributes)), c(names(all_features),
+    names(all_subfeatures), "strand", "section", "chrom"))
+  with_attributes <- function(d, attributes, rows) {
+    for (i in seq_len(nrow(attribute_fields))) {
+      values <- attributes[[attribute_fields$key[i]]]
+      if (!is.null(values)) d[[attribute_fields$column[i]]] <- values[rows]
+    }
+    d
+  }
   join_regions(regions, lapply(seq_len(nrow(regions)), function(i) {
     # the engine numbers features and subfeatures across every region
     before <- sum(all_features$region < i - 1)
@@ -173,6 +183,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
     features <- of_region(t$features)
     features$section <- factor(features$section, levels = sections$label)
     in_region <- which(all_features$region == i - 1)
+    features <- with_attributes(features, t$attributes, in_region)
     if (!is.null(vcf)) {
       features <- cbind(features, vcf$records[in_region, , drop = FALSE])
       samples <- vcf$samples[vcf$samples$feature %in% in_region, ,
@@ -188,20 +199,25 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
         d[[column]] <- features[[column]][d$feature]
       }
       if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
+      if (!is.null(d$subfeature)) {
+        d$subfeature <- ifelse(d$subfeature >= 0,
+          d$subfeature - subs_before + 1, NA_integer_)
+      }
       d
     }
+    subfeatures <- with_attributes(on_feature(t$subfeatures),
+      t$subfeatureAttributes, which(all_subfeatures$region == i - 1))
     labels <- on_feature(t$labels)
-    labels$subfeature <- ifelse(labels$subfeature >= 0,
-      labels$subfeature - subs_before + 1, NA_integer_)
     arrows <- on_feature(t$arrows)
     names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
     residues <- snake(on_feature(t$aminoAcids))
     structure(
       list(features = features,
-        subfeatures = on_feature(t$subfeatures), rects = on_feature(t$rects),
+        subfeatures = subfeatures, rects = on_feature(t$rects),
         lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
         arrows = arrows, amino_acids = residues, labels = labels,
         sections = sections, legend = legend,
+        attribute_fields = if (nrow(attribute_fields)) attribute_fields,
         info_fields = vcf$info_fields,
         samples = if (!is.null(vcf)) samples,
         format_fields = vcf$format_fields,
@@ -212,6 +228,15 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
       primary = "features",
       class = c("jbrowse_features", "jbrowse_result"))
   }))
+}
+
+# The column each of a file's field `keys` takes: the key as the file writes
+# it, or `attr_<key>` where that names one of the table's own columns, as an
+# INFO key takes `info_<key>`
+attribute_columns <- function(keys, taken) {
+  keys <- unique(keys)
+  data.frame(key = keys,
+    column = ifelse(keys %in% taken, paste0("attr_", keys), keys))
 }
 
 # Text sized in the display's pixels, scaled to the panel when it draws:
