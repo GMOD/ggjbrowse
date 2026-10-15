@@ -19,7 +19,8 @@
 | `jbrowse_dotplot()` | the same | `alignments`, `segments` |
 | `jbrowse_multiway()` | an all-vs-all PAF | `lanes`, `segments`, `blocks`, `ribbons`, `alignments` |
 
-- Every result also has `legend` and `ramps`, the keys the display shows.
+- Every result also has `keys` and `ramps`, the color keys and color bars the
+  display shows.
   `guides_jbrowse()` draws them.
 - `file` takes a path, a URL, or a JBrowse track's adapter config, including
   a `FromConfigAdapter` that lists its features inline.

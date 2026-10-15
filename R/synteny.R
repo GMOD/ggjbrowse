@@ -179,8 +179,8 @@ comparative_axes <- function(config, first, second, assemblies, swap) {
 #'   location box writes it (`"ctgA:1-50,001"`, 1-based and inclusive), a
 #'   contig's name alone for the whole of it, several of them, drawn end to
 #'   end as a view lays them out, or a data frame of `chrom`, `start` and
-#'   `end`. Unset, every contig of that row's assembly, in the order the file
-#'   names them ([jbrowse_contigs()]), as JBrowse shows a whole genome
+#'   `end`. Unset, every contig of that row's assembly ([jbrowse_contigs()])
+#'   in natural order, `chr2` before `chr10`, as JBrowse shows a whole genome
 #' @param view the view's settings, as a `LinearSyntenyView` snapshot writes
 #'   them: a list with any of `color` (a CSS color, or the color object's
 #'   slots, such as `list(field = "strand")`, `list(field = "identity")`,

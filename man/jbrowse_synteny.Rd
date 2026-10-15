@@ -26,8 +26,8 @@ config, as a list, such as an \code{MCScanAnchorsAdapter}'s}
 location box writes it (\code{"ctgA:1-50,001"}, 1-based and inclusive), a
 contig's name alone for the whole of it, several of them, drawn end to
 end as a view lays them out, or a data frame of \code{chrom}, \code{start} and
-\code{end}. Unset, every contig of that row's assembly, in the order the file
-names them (\code{\link[=jbrowse_contigs]{jbrowse_contigs()}}), as JBrowse shows a whole genome}
+\code{end}. Unset, every contig of that row's assembly (\code{\link[=jbrowse_contigs]{jbrowse_contigs()}})
+in natural order, \code{chr2} before \code{chr10}, as JBrowse shows a whole genome}
 
 \item{view}{the view's settings, as a \code{LinearSyntenyView} snapshot writes
 them: a list with any of \code{color} (a CSS color, or the color object's
