@@ -156,8 +156,11 @@ One page per reader, each with its options and the gallery figures it draws:
 
 ## How it works
 
-- JBrowse's own display code runs in V8 and returns the tables its displays
-  draw from. R reads the files for it and draws the tables.
+- **JBrowse's JavaScript:** runs inside R, in V8. It decides each read's row,
+  each gene's glyph and every color, so the figure matches what the
+  browser draws.
+- **R:** reads the file's bytes for that JavaScript and draws what it returns
+  with ggplot2.
 - [How does this work?](docs/how-does-this-work.md) covers the engine, file
   reading and who decides what.
 - [Dataflow](docs/dataflow.md) diagrams one call from path to plot.
