@@ -100,7 +100,7 @@ geom_jbrowse_reads <- function(mapping = NULL, data = NULL, ...) {
   jbrowse_layer(ggplot2::GeomRect, data, read_blocks, mapping,
     ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
       ymax = row + 1 - inset,
-      fill = color), list(...), rows = TRUE)
+      fill = color), list(...), keyed = "complete", rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads

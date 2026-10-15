@@ -517,14 +517,19 @@ test_that("the sequence band asks for the reference it draws", {
   expect_error(autoplot(a, "sequence"), "reference =")
 })
 
-test_that("every section's coverage band keys the track's insertions and clips", {
-  a <- jbrowse_alignments(extdata("colo829_tumor_chr3.bam"),
-    "chr3:25,358,500-25,359,800", display = list(facet = list(field = "split")))
+test_that("every section keys the track's read colors, insertions and clips", {
+  a <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
+    "chr1:197,786,900-197,789,700", display = list(unit = "chain",
+      color = list(field = "pairOrientation"), facet = list(field = "split")))
   flat <- function(p) c(if (inherits(p, "patchwork"))
     unlist(lapply(p$patches$plots, flat), recursive = FALSE), list(p))
-  keys <- lapply(flat(autoplot(a)), function(p)
-    ggplot2::get_guide_data(p, "fill")$.label)
-  interbase <- Filter(function(k) "Insertion" %in% k, keys)
-  expect_length(interbase, 2)
-  for (k in interbase) expect_equal(k, a$keys$interbase$label)
+  keyed <- lapply(flat(autoplot(a)), function(p) {
+    scale <- ggplot2::ggplot_build(p)$plot$scales$get_scales("fill")
+    if (is.null(scale)) character(0) else as.character(scale$get_limits())
+  })
+  for (key in a$keys[c("reads", "interbase")]) {
+    sections <- Filter(function(k) any(k %in% key$color), keyed)
+    expect_length(sections, 2)
+    for (k in sections) expect_true(all(key$color %in% k))
+  }
 })

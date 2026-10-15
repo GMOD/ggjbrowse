@@ -275,6 +275,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
       color = overlaps$color[1]))
   }
   attr(legend, "title") <- t$legendTitle
+  attr(legend, "complete") <- TRUE
   arc_legend <- frame(t$arcLegend)
   attr(arc_legend, "title") <- t$arcLegendTitle
   base_key <- if (muted) key_frame(character(0), character(0), "Base")
