@@ -88,10 +88,6 @@ families_of <- function(x) {
   list()
 }
 
-child_tables <- function(x) {
-  unique(unlist(lapply(families_of(x), `[[`, "children")))
-}
-
 # The row of `parent` each row of `d` names: the copy in the same region
 # where both list regions, as a record read in two regions is listed in each
 parent_rows <- function(d, family, parent) {

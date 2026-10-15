@@ -30,7 +30,9 @@ test_that("a read keeps one key in every copy, and its marks name it by that key
   expect_true(all(tapply(copies$id, copies$read, function(i)
     length(unique(i))) == 1))
   expect_null(a$mismatches$row)
-  expect_null(a$mismatches$chrom)
+  expect_equal(a$mismatches$chrom, rep("ctgA", nrow(a$mismatches)))
+  expect_null(jbrowse_variants(extdata("1000g_dcst2.vcf.gz"),
+    "1:155,000,001-155,010,000")$cells$chrom)
   expect_false(anyNA(of(a$mismatches, a$reads, "read")$read))
 })
 

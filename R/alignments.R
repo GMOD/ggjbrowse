@@ -96,8 +96,7 @@ alignments_adapter <- function(file, index) {
 #'     `row`, `strand`, `mapq`, `flags`, `name`, `insert_size`,
 #'     `pair_orientation`, `color` (the fill the display paints, as
 #'     `#rrggbb`), `category` (the bucket the display files the read under:
-#'     `fwdStrand`, `mapq`, `unmappedMate`, ...), `section`, `chrom` and
-#'     `region`. Over several regions a read is listed once in each region it
+#'     `fwdStrand`, `mapq`, `unmappedMate`, ...) and `section`. Over several regions a read is listed once in each region it
 #'     reaches, its copies sharing `read` and `row`
 #'   * `mismatches`: `position`, `base`, `read`, `frequency` (how many reads
 #'     carry that base there, over the depth), `quality`, `fade`
@@ -160,8 +159,8 @@ alignments_adapter <- function(file, index) {
 #'   take its `row` and `section` from `reads` when drawn, so reassigning
 #'   `reads$row` moves them; assigning `reads` drops the marks of the reads it
 #'   leaves out. The other tables carry `section`, a factor in stacking
-#'   order, each section's rows starting at 0, and `chrom`. Every table
-#'   carries the 1-based `region` it was read in, and every mark table
+#'   order, each section's rows starting at 0. Every table carries the
+#'   1-based `region` it was read in, with its `chrom`, and every mark table
 #'   `color`, the color the display paints the mark. The coverage band's
 #'   tables, the junctions and the arcs count every read the engine read and
 #'   stay as they were when `reads` is filtered: filter with `display =

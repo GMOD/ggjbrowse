@@ -140,13 +140,12 @@ check_missing <- function(messages) {
 
 # A result the engine `t` read over every region in one call, laid out for
 # `width` px: each row of a table the engine numbers by its 0-based `region`
-# gets its contig and its 1-based `region`, `regions` lays the regions on one
-# axis, each with its missing-contig message, and `warnings` holds what the
-# engine warned of
+# gets its 1-based `region`, and its contig where the row has coordinates of
+# its own, `regions` lays the regions on one axis, each with its
+# missing-contig message, and `warnings` holds what the engine warned of
 in_one_call <- function(x, regions, t, width) {
   missing <- check_missing(lapply(seq_len(nrow(regions)), function(i)
     t$missingContigs[[i]]))
-  children <- child_tables(x)
   cls <- class(x)
   x <- unclass(x)
   for (name in names(x)) {
@@ -154,7 +153,9 @@ in_one_call <- function(x, regions, t, width) {
     if (!is.data.frame(d) || is.null(d$region)) next
     i <- as.integer(d$region) + 1L
     d$region <- NULL
-    if (!name %in% children) d$chrom <- regions$chrom[i]
+    if (!is.null(d$start) || !is.null(d$position)) {
+      d$chrom <- regions$chrom[i]
+    }
     d$region <- i
     x[[name]] <- d
   }

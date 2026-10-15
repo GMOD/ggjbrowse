@@ -108,8 +108,7 @@ mates and supplementary segments share its \code{name}), \code{start}, \code{end
 \code{row}, \code{strand}, \code{mapq}, \code{flags}, \code{name}, \code{insert_size},
 \code{pair_orientation}, \code{color} (the fill the display paints, as
 \verb{#rrggbb}), \code{category} (the bucket the display files the read under:
-\code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...), \code{section}, \code{chrom} and
-\code{region}. Over several regions a read is listed once in each region it
+\code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...) and \code{section}. Over several regions a read is listed once in each region it
 reaches, its copies sharing \code{read} and \code{row}
 \item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{frequency} (how many reads
 carry that base there, over the depth), \code{quality}, \code{fade}
@@ -172,8 +171,8 @@ A read's marks (\code{mismatches}, \code{gaps}, \code{insertions}, \code{clips},
 take its \code{row} and \code{section} from \code{reads} when drawn, so reassigning
 \code{reads$row} moves them; assigning \code{reads} drops the marks of the reads it
 leaves out. The other tables carry \code{section}, a factor in stacking
-order, each section's rows starting at 0, and \code{chrom}. Every table
-carries the 1-based \code{region} it was read in, and every mark table
+order, each section's rows starting at 0. Every table carries the
+1-based \code{region} it was read in, with its \code{chrom}, and every mark table
 \code{color}, the color the display paints the mark. The coverage band's
 tables, the junctions and the arcs count every read the engine read and
 stay as they were when \code{reads} is filtered: filter with \code{display = list(filter = ...)} to recompute them. \code{fade} is the share of the depth a mark's site holds, zeroed
