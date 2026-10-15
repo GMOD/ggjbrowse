@@ -25,8 +25,9 @@ jbrowse_alignments(
 the engine reads as one view and draws end to end on one axis as a
 JBrowse view lays them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
 with \code{start} and \code{end}. With \code{NULL}, the default, the reader reads the
-whole file, each contig it lists, and refuses with a message past 5
-million rows in any one table}
+whole file: each contig it lists but those its index shows empty, to
+the length the file or \code{assembly} states, refused with a message past 5
+million rows in any one table or past \code{span_limit}}
 
 \item{start, end}{with a contig name as \code{region}, the region's bounds,
 0-based half-open}

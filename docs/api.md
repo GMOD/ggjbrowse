@@ -27,8 +27,10 @@
 - `region` takes a locus string, a contig name with `start` and `end`, or a
   data frame of `chrom`, `start` and `end` for several regions. Left out,
   `jbrowse_features()`, `jbrowse_variants()` and `jbrowse_alignments()` read
-  the whole file, every contig it lists, and refuse past 5 million rows in
-  any one table, asking for a region.
+  the whole file in one call, every contig it lists but those its index
+  shows empty, each to the length the file or `assembly` states. They refuse
+  past 5 million rows in any one table, and `jbrowse_alignments()` past
+  `span_limit`, asking for a region.
 - `display` takes a track config's `displays` entry. `jbrowse_synteny()` and
   `jbrowse_dotplot()` take the view's snapshot as `view`.
 - `assembly` takes a `jbrowse_assembly()`, an assembly as a JBrowse config's

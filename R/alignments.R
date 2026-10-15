@@ -23,8 +23,9 @@ alignments_adapter <- function(file, index) {
 #'   the engine reads as one view and draws end to end on one axis as a
 #'   JBrowse view lays them out, a data frame of `chrom`, `start` and `end`, or a contig name
 #'   with `start` and `end`. With `NULL`, the default, the reader reads the
-#'   whole file, each contig it lists, and refuses with a message past 5
-#'   million rows in any one table
+#'   whole file: each contig it lists but those its index shows empty, to
+#'   the length the file or `assembly` states, refused with a message past 5
+#'   million rows in any one table or past `span_limit`
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param assembly the reference: a [jbrowse_assembly()], an assembly as a
@@ -190,7 +191,14 @@ jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
     stop("bisulfite calls compare each read's cytosines to the reference: ",
       "pass that FASTA or 2bit as `assembly =`", call. = FALSE)
   }
-  regions <- reader_regions(adapter, region, start, end)
+  regions <- reader_regions(adapter, region, start, end, assembly)
+  span <- sum(regions$end - regions$start)
+  if (is.null(region) && span > span_limit) {
+    stop(sprintf(paste("the whole file spans %s bp over %d contigs, past",
+      "`span_limit` (%s bp): pass a region, or raise `span_limit`"),
+      format(span, big.mark = ",", scientific = FALSE), nrow(regions),
+      format(span_limit, big.mark = ",", scientific = FALSE)), call. = FALSE)
+  }
   args <- list(adapterConfig = adapter, regions = engine_regions(regions),
     byteLimit = byte_limit, spanLimit = span_limit)
   args$assembly <- assembly

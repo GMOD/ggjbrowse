@@ -474,6 +474,23 @@ test_that("a region over the byte limit is refused with its size", {
     "over the 1000-byte limit")
 })
 
+test_that("a whole file reads the contigs its index shows reads on, to the assembly's lengths", {
+  cram <- extdata("gapdh_direct_rna.cram")
+  fa <- extdata("gapdh_hg38.fa.gz")
+  listed <- file_regions(alignments_adapter(cram, NULL), assembly_config(fa))
+  expect_equal(listed$chrom, "chr12")
+  expect_equal(listed$end, 6570000)
+  whole <- jbrowse_alignments(cram, assembly = fa)
+  expect_equal(whole$region$end, 6570000)
+  expect_equal(nrow(whole$reads), nrow(jbrowse_alignments(cram,
+    "chr12", 0, 6570000, assembly = fa)$reads))
+})
+
+test_that("a whole file spanning past span_limit is refused before any read", {
+  expect_error(jbrowse_alignments(extdata("gapdh_direct_rna.bam")),
+    "the whole file spans 3,217,346,917 bp over 3366 contigs, past `span_limit`")
+})
+
 test_that("regions spanning past span_limit in all are refused", {
   loci <- c("ctgA:1-3,000", "ctgA:10,001-13,000")
   expect_error(jbrowse_alignments(extdata("volvox-sorted.bam"), loci,

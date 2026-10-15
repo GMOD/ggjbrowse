@@ -1,12 +1,16 @@
 LOCUS <- "^(.+):([0-9,]+)(-|\\.\\.)([0-9,]+)$"
 
-# A read with no region reads the whole file: each contig the file lists, from
-# 0 to the end its index addresses, refused past WHOLE_FILE_ROWS rows in any
-# one table, which a region read has no need of
+# A read with no region reads the whole file: each contig the file lists, to
+# its length where the file or `assembly` states one, refused past
+# WHOLE_FILE_ROWS rows in any one table, which a region read has no need of.
+# A contig the index shows empty is left out; one it cannot tell about stays.
 WHOLE_FILE_ROWS <- 5e6
 
-file_regions <- function(adapter) {
-  region_frame(call_engine("fileRegions", list(adapterConfig = adapter)))
+file_regions <- function(adapter, assembly = NULL) {
+  args <- list(adapterConfig = adapter)
+  args$assembly <- assembly
+  r <- call_engine("fileRegions", args)
+  region_frame(r)[!unlist(r$hasData) %in% FALSE, , drop = FALSE]
 }
 
 # The engine's regions as `chrom`, `start` and `end`
@@ -17,8 +21,9 @@ region_frame <- function(r) {
 
 # The regions a reader reads: those `region` names, or each contig the file
 # lists where it names none
-reader_regions <- function(adapter, region, start, end) {
-  if (is.null(region)) file_regions(adapter) else regions_of(region, start, end)
+reader_regions <- function(adapter, region, start, end, assembly = NULL) {
+  if (is.null(region)) file_regions(adapter, assembly)
+  else regions_of(region, start, end)
 }
 
 # Regions as the engine's `regions` argument names them

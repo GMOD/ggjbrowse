@@ -36,8 +36,9 @@ features_adapter <- function(file, index) {
 #'   to end as a JBrowse view lays them out (a gene's exons with the introns
 #'   collapsed, say), a data frame of `chrom`, `start` and `end`, or a contig
 #'   name with `start` and `end`. With `NULL`, the default, the reader reads
-#'   the whole file, each contig it lists, and refuses with a message past 5
-#'   million rows in any one table
+#'   the whole file: each contig it lists but those its index shows empty,
+#'   to the length the file or `assembly` states, refused with a message
+#'   past 5 million rows in any one table
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
@@ -159,7 +160,8 @@ jbrowse_features <- function(file, region = NULL, start = NULL, end = NULL,
                              color_by_cds = FALSE, amino_acids = TRUE,
                              index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() features_adapter(file, index))
-  regions <- reader_regions(adapter, region, start, end)
+  assembly <- assembly_config(assembly)
+  regions <- reader_regions(adapter, region, start, end, assembly)
   args <- list(
     adapterConfig = adapter,
     regions = engine_regions(regions),
@@ -167,7 +169,7 @@ jbrowse_features <- function(file, region = NULL, start = NULL, end = NULL,
     colorByCDS = color_by_cds,
     aminoAcids = amino_acids,
     byteLimit = byte_limit)
-  args$assembly <- assembly_config(assembly)
+  args$assembly <- assembly
   display <- display %||% list()
   display$heightMode <- display$heightMode %||% "grow"
   args$display <- display_config(display)

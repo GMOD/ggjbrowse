@@ -26,7 +26,8 @@ variants_adapter <- function(file, index, samples) {
 #'   the engine reads as one view and draws end to end on one axis as a
 #'   JBrowse view lays them out, a data frame of `chrom`, `start` and `end`, or a contig name
 #'   with `start` and `end`. With `NULL`, the default, the reader reads the
-#'   whole file, each contig it lists, and refuses with a message past 5
+#'   whole file: each contig it lists but those its index shows empty, to
+#'   the length the file or `assembly` states, refused with a message past 5
 #'   million rows in any one table
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
@@ -112,10 +113,11 @@ jbrowse_variants <- function(file, region = NULL, start = NULL, end = NULL,
                              display = NULL, assembly = NULL, samples = NULL,
                              index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
-  regions <- reader_regions(adapter, region, start, end)
+  assembly <- assembly_config(assembly)
+  regions <- reader_regions(adapter, region, start, end, assembly)
   args <- list(adapterConfig = adapter, regions = engine_regions(regions),
     byteLimit = byte_limit)
-  args$assembly <- assembly_config(assembly)
+  args$assembly <- assembly
   if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("variants", args)
