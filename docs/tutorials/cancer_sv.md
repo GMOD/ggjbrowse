@@ -87,7 +87,7 @@ library(readr)
 reference <- paste0("https://ont-open-data.s3.amazonaws.com/colo829_2024.03/",
   "wf_somatic_variation/sup/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta")
 hg38 <- jbrowse_assembly(reference, aliases, "hg38")
-genome <- jbrowse_regions(hg38)
+genome <- jbrowse_contigs(hg38)
 ```
 
 ## The somatic SV calls
@@ -104,6 +104,9 @@ whole callset. A breakend record writes its partner into ALT:
 
 ``` r
 callset <- jbrowse_features(calls_vcf, genome, assembly = hg38)
+#> Warning: 172 contigs are not the file's and read empty: chr18, chrY, chrM,
+#> chr1_KI270706v1_random, chr1_KI270707v1_random, and 167 more; regions$missing
+#> says why
 partner <- "[\\[\\]](CHR[0-9XYM]+):([0-9]+)[\\[\\]]"
 
 calls <- as_tibble(callset$features) |>
@@ -376,7 +379,7 @@ fig <- jbrowse_stack(
     assembly = hg38),
   Tumor = jbrowse_alignments(tumor, locus, assembly = hg38, display = display),
   Normal = jbrowse_alignments(normal, locus, assembly = hg38,
-    display = display))
+    display = display), width = 1200)
 ```
 
 
@@ -397,7 +400,8 @@ read per sample covers them:
 clipped_reads <- function(alignments, breakends, within = 25, at_least = 100) {
   clips <- alignments$clips |>
     filter(length >= at_least) |>
-    left_join(select(alignments$reads, read, name), by = "read")
+    left_join(select(alignments$reads, read, region, name),
+      by = c("read", "region"))
   unname(Map(function(chrom, pos)
     unique(clips$name[clips$chrom == chrom &
       abs(clips$position - pos) <= within]),
@@ -453,7 +457,7 @@ fig <- jbrowse_stack(
   `Somatic SVs` = jbrowse_features(calls_vcf, loci, width = 1200,
     assembly = hg38),
   Tumor = jbrowse_alignments(tumor, loci, assembly = hg38,
-    display = chain_display))
+    display = chain_display), width = 1200)
 ```
 
 

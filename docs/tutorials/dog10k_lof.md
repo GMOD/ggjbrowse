@@ -90,7 +90,8 @@ exons <- tibble(
   filter(start < end)
 
 reference <- strsplit(toupper(
-  jbrowse_sequence(twobit, "chr30", window[["start"]], window[["end"]])), "")[[1]]
+  jbrowse_sequence(twobit, data.frame(chrom = "chr30",
+    start = window[["start"]], end = window[["end"]]))), "")[[1]]
 position <- unlist(Map(seq, exons$start, exons$end - 1))
 cds <- paste(reference[position - window[["start"]] + 1], collapse = "")
 
@@ -185,10 +186,10 @@ wolf has it.
 
 ``` r
 nearby <- jbrowse_variants(slice, "chr30:38,261,590-38,261,690")
+wolf_cells <- filter(nearby$cells, grepl("^CLUP", row))
 nearby$variants |>
-  mutate(carriers = tabulate(nearby$cells$variant, n()),
-    wolves = tabulate(nearby$cells$variant[grepl("^CLUP", nearby$cells$sample)],
-      n())) |>
+  mutate(carriers = tabulate(match(nearby$cells$variant, variant), n()),
+    wolves = tabulate(match(wolf_cells$variant, variant), n())) |>
   select(start, ref, alt, carriers, wolves)
 #>      start ref alt carriers wolves
 #> 1 38261634   C   T       23      0
@@ -215,7 +216,7 @@ write_tsv(mutate(panel, group = ifelse(category == "Breed_Dogs", "Dog breed",
 genotypes <- jbrowse_variants(slice, locus, samples = samples_file,
   display = display)
 
-bases <- strsplit(jbrowse_sequence(twobit, "chr30", 38261614, 38261655), "")[[1]]
+bases <- strsplit(jbrowse_sequence(twobit, "chr30:38,261,615-38,261,655"), "")[[1]]
 codon <- ggplot(tibble(x = 38261614 + seq_along(bases) - 0.5, base = bases),
   aes(x, 1, label = base)) +
   annotate("rect", xmin = 38261634, xmax = 38261637, ymin = 0.5, ymax = 1.5,
@@ -242,7 +243,8 @@ with no cell is homozygous reference:
 
 ``` r
 calls <- everyone$cells |>
-  filter(start == stop_site - 1) |>
+  inner_join(filter(everyone$variants, start == stop_site - 1) |>
+    select(variant), by = "variant") |>
   transmute(name = as.character(row), alt = round(dosage * 2))
 
 alleles <- tibble(name = everyone$rows$sample) |>

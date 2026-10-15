@@ -157,7 +157,8 @@ autoplot(by_haplotype)
 
 ![The same reads faceted by the HP tag: HP 1 methylated over the CpG island, HP 2 unmethylated, and the untagged reads below](figures/methylation-facet-plot-1.png)
 
-The section is a column of the calls table, so the split is also a number.
+Each call names its read, whose section `reads` gives, so the split is also a
+number.
 We'll count the methylated share per haplotype over UCSC's CpG island here.
 `!unmodified` counts 5mC and 5hmC calls alike, as modkit's `--combine-mods`
 does in the next section:
@@ -174,6 +175,8 @@ island
 
 reads_share <- by_haplotype$modifications |>
   filter(between(position, island$start, island$end)) |>
+  inner_join(select(by_haplotype$reads, read, region, section),
+    by = c("read", "region")) |>
   group_by(section) |>
   summarise(methylated = mean(!unmodified), calls = n())
 reads_share

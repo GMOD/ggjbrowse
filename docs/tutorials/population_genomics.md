@@ -236,7 +236,8 @@ arms <- tibble(chrom = c("2L", "2R", "3L", "3R", "4", "X"),
 
 read_scan <- function(bigwig, column) {
   bind_rows(lapply(seq_len(nrow(arms)), function(i) {
-    scan <- jbrowse_wiggle(bigwig, arms$chrom[i], 0, arms$length[i],
+    scan <- jbrowse_wiggle(bigwig,
+      data.frame(chrom = arms$chrom[i], start = 0, end = arms$length[i]),
       width = ceiling(arms$length[i] / 2000))
     tibble(chrom = arms$chrom[i], start = scan$bins$start, end = scan$bins$end,
       "{column}" := scan$bins$score)
@@ -277,8 +278,8 @@ shade:
 locus <- "chr2R:12,000,000-12,400,000"
 sweep <- c(12130000, 12200000)
 genes <- jbrowse_features(genes_adapter, locus, width = 1200)
-scan_at <- function(bigwig) jbrowse_wiggle(bigwig, "2R", 12000000 - 1, 12400000,
-  width = 1200)
+scan_at <- function(bigwig) jbrowse_wiggle(bigwig,
+  "2R:12,000,000-12,400,000", width = 1200)
 fig <- jbrowse_stack(`RefSeq genes` = genes,
   `Tajima's D` = scan_at(tajd_bw), π = scan_at(pi_bw),
   `called variants` = scan_at(sites_bw)) &
@@ -372,7 +373,8 @@ line:
 
 
 ``` r
-inversion <- jbrowse_variants(vcf, "2L", 0, arms$length[1],
+inversion <- jbrowse_variants(vcf,
+  data.frame(chrom = "2L", start = 0, end = arms$length[1]),
   samples = karyotypes,
   display = c(vcf_displays[[1]][c("facet", "rowColor")],
     referenceDrawingMode = "draw"))
@@ -449,7 +451,8 @@ ratio <- inner_join(pool(pi_inverted, "inverted"), pool(pi_standard,
   mutate(start = bin * 250000, log2_ratio = log2(pi_inverted / pi_standard))
 
 hosted <- bind_rows(lapply(seq_len(nrow(arms)), function(i) {
-  bins <- jbrowse_wiggle(ratio_bw, arms$chrom[i], 0, arms$length[i],
+  bins <- jbrowse_wiggle(ratio_bw,
+    data.frame(chrom = arms$chrom[i], start = 0, end = arms$length[i]),
     width = ceiling(arms$length[i] / 250000))$bins
   tibble(chrom = arms$chrom[i], start = bins$start, hosted = bins$score)
 }))
@@ -471,13 +474,14 @@ stack it over the Fst scan and the hosted ratio on 2L:
 
 
 ``` r
-extent <- jbrowse_features(inversion_adapter, "chr2L", 0, arms$length[1],
-  width = 1200)
+arm <- function(chrom) data.frame(chrom = chrom, start = 0,
+  end = arms$length[1])
+extent <- jbrowse_features(inversion_adapter, arm("chr2L"), width = 1200)
 fig <- jbrowse_stack(`In(2L)t` = extent,
-  Fst = jbrowse_wiggle(fst_bw, "2L", 0, arms$length[1],
-    display = list(extent = "none"), width = 1200),
-  `log2 π, inverted over standard` = jbrowse_wiggle(ratio_bw, "2L", 0,
-    arms$length[1], display = ratio_display, width = 1200))
+  Fst = jbrowse_wiggle(fst_bw, arm("2L"), display = list(extent = "none"),
+    width = 1200),
+  `log2 π, inverted over standard` = jbrowse_wiggle(ratio_bw, arm("2L"),
+    display = ratio_display, width = 1200))
 ```
 
 

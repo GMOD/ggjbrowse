@@ -173,19 +173,20 @@ autoplot(cg)
 ![The WGBS reads over AT1G12930 and a transposon, each methylated CpG red on its read under the coverage band](figures/bisulfite-cg-1.png)
 
 The figure is drawn from data frames you can use directly. `cg$modifications`
-holds one row per call, with the read and pileup row it sits on:
+holds one row per call, with the read it sits on, which `cg$reads` places on
+its pileup row:
 
 
 ``` r
-head(cg$modifications[, c("position", "read", "row", "name", "unmodified",
+head(cg$modifications[, c("position", "read", "name", "unmodified",
   "color")])
-#>   position read row name unmodified   color
-#> 1  4398128   28   5  5mC      FALSE #ff0000
-#> 2  4398627  102   6  5mC      FALSE #ff0000
-#> 3  4398658  113  12  5mC      FALSE #ff0000
-#> 4  4398734  119  30  5mC      FALSE #ff0000
-#> 5  4398810  137  32  5mC      FALSE #ff0000
-#> 6  4399223  171   8  5mC      FALSE #ff0000
+#>   position read name unmodified   color
+#> 1  4398128   28  5mC      FALSE #ff0000
+#> 2  4398627  102  5mC      FALSE #ff0000
+#> 3  4398658  113  5mC      FALSE #ff0000
+#> 4  4398734  119  5mC      FALSE #ff0000
+#> 5  4398810  137  5mC      FALSE #ff0000
+#> 6  4399223  171  5mC      FALSE #ff0000
 ```
 
 ## Gene body methylation and transposon silencing
@@ -267,7 +268,7 @@ calls <- bind_rows(lapply(contexts, function(context) {
   r <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
     display = list(baseColor = list(field = "bisulfite"),
       modifications = list(cytosineContext = context, unmodified = "calls")))
-  mutate(r$modifications, context = context)
+  mutate(r$modifications, context = context, region = NULL)
 }))
 
 per_read <- calls |>
@@ -316,7 +317,7 @@ methyldackel <- list(type = "MultiWiggleAdapter",
 aggregate <- jbrowse_wiggle(methyldackel, locus)
 
 per_site <- aggregate$bins |>
-  mutate(context = sub("CpG", "CG", source)) |>
+  mutate(context = sub("CpG", "CG", source), region = NULL) |>
   inner_join(regions, by = join_by(between(start, from, to))) |>
   group_by(region, context) |>
   summarise(methyldackel = mean(score) / 100, .groups = "drop")

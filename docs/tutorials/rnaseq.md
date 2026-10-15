@@ -108,7 +108,7 @@ actb_genes <- jbrowse_features(gff, actb, assembly = hg19, display = genes,
   width = 1200)
 actb_reads <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(showPileup = FALSE))
-fig <- jbrowse_stack(RefSeq = actb_genes, Reads = actb_reads)
+fig <- jbrowse_stack(RefSeq = actb_genes, Reads = actb_reads, width = 1200)
 ```
 
 
@@ -295,7 +295,8 @@ c(reads = nrow(file_order$reads), kept_by_filter = nrow(only_spliced$reads),
 
 
 ``` r
-fig <- jbrowse_stack(RefSeq = actb_genes, "Only spliced reads" = only_spliced)
+fig <- jbrowse_stack(RefSeq = actb_genes, "Only spliced reads" = only_spliced,
+  width = 1200)
 ```
 
 
@@ -370,7 +371,8 @@ by_strand <- list(showPileup = FALSE,
   facet = list(field = "firstOfPairStrand"))
 surfeit_reads <- jbrowse_alignments(bam, surfeit, assembly = hg19,
   display = by_strand)
-fig <- jbrowse_stack(RefSeq = surfeit_genes, Reads = surfeit_reads)
+fig <- jbrowse_stack(RefSeq = surfeit_genes, Reads = surfeit_reads,
+  width = 1200)
 ```
 
 
@@ -390,7 +392,7 @@ nelfe_genes <- jbrowse_features(gff, nelfe, assembly = hg19, display = genes,
   width = 1200)
 nelfe_reads <- jbrowse_alignments(bam, nelfe, assembly = hg19,
   display = by_strand)
-fig <- jbrowse_stack(RefSeq = nelfe_genes, Reads = nelfe_reads)
+fig <- jbrowse_stack(RefSeq = nelfe_genes, Reads = nelfe_reads, width = 1200)
 ```
 
 
@@ -467,7 +469,7 @@ arcs and connectors from those skips. The IsoSeq alignments are a second BAM on 
 ``` r
 iso_reads <- jbrowse_alignments(isoseq, actb, assembly = hg19,
   display = list(showPileup = FALSE))
-fig <- jbrowse_stack(RefSeq = actb_genes, IsoSeq = iso_reads)
+fig <- jbrowse_stack(RefSeq = actb_genes, IsoSeq = iso_reads, width = 1200)
 ```
 
 
@@ -651,7 +653,7 @@ their counts and flags:
 folh1 <- "chr11:49,220,500-49,231,500"
 junction_track <- jbrowse_features(junction_adapter, folh1, assembly = hg19,
   display = list(filter = list(junction_filter)), width = 1200)
-w <- junction_track$region
+w <- junction_track$regions
 kept <- junction_track$features |>
   select(name) |>
   inner_join(junctions, by = "name") |>

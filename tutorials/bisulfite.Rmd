@@ -220,7 +220,7 @@ methyldackel <- list(type = "MultiWiggleAdapter",
 aggregate <- jbrowse_wiggle(methyldackel, locus)
 
 per_site <- aggregate$bins |>
-  mutate(context = sub("CpG", "CG", source)) |>
+  mutate(context = sub("CpG", "CG", source), region = NULL) |>
   inner_join(regions, by = join_by(between(start, from, to))) |>
   group_by(region, context) |>
   summarise(methyldackel = mean(score) / 100, .groups = "drop")
