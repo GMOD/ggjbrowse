@@ -204,8 +204,10 @@ guess_adapter <- function(file, index, formats, expected = NULL) {
 }
 
 # The file beside `file` its name and `suffix` name, a URL's query kept after
-# it, as a signed URL's index carries the same query
+# it, as a signed URL's index carries the same query; a local path's `?` is
+# part of its name
 beside <- function(file, suffix) {
+  if (!grepl("^[a-z]+://", file)) return(paste0(file, suffix))
   sub("^([^?]*)", paste0("\\1", suffix), file)
 }
 
