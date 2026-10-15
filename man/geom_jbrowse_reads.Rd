@@ -105,7 +105,8 @@ geom_jbrowse_arc_ticks(mapping = NULL, data = NULL, width = NULL, ...)
 
 \item{data}{a \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result, \code{NULL} for the plot's,
 or a data frame in place of the table the geom draws from the plot's
-result, such as a filtered copy of it}
+result, such as a filtered copy of it. \code{reads} takes no data frame:
+assign the filtered reads into the result, which drops their marks too}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 

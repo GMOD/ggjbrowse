@@ -12,8 +12,8 @@
 \item{...}{unused}
 }
 \value{
-a numeric matrix, its columns named by the record's row number in
-\code{x$variants}, with \code{.1}, \code{.2}, ... per ALT of a multi-allelic record
+a numeric matrix, its columns named by the record's \code{variant}
+key, with \code{.1}, \code{.2}, ... per ALT of a multi-allelic record
 }
 \description{
 The matrix the variant display's "Cluster rows by genotype" clusters: a

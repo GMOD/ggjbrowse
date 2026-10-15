@@ -102,19 +102,18 @@ anything is fetched, since the coverage band holds every base of them}
 a \code{jbrowse_alignments} list of data frames, beside the slots
 \link{jbrowse_result} lists:
 \itemize{
-\item \code{reads}: \code{read} (the row number the other tables' \code{read} column names
-it by, kept through filtering, within this call), \code{id} (the record's
-own id, the same in every call, where its mates and supplementary
-segments share its \code{name}), \code{start}, \code{end}, \code{row}, \code{strand}, \code{mapq},
-\code{flags}, \code{name},
-\code{insert_size}, \code{pair_orientation}, \code{color} (the fill the display paints,
-as \verb{#rrggbb}) and \code{category} (the bucket the display files the read
-under: \code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...). Over several
-regions a read is listed once in each region it reaches, its copies
-sharing \code{key} and \code{row}
-\item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{row}, \code{frequency} (how many
-reads carry that base there, over the depth), \code{quality}, \code{fade}
-\item \code{gaps}: \code{start}, \code{end}, \code{type} (\code{"deletion"} or \code{"skip"}), \code{read}, \code{row},
+\item \code{reads}: \code{read} (the read's key, from 1, which the marks below name
+it by), \code{id} (the record's own id, the same in every call, where its
+mates and supplementary segments share its \code{name}), \code{start}, \code{end},
+\code{row}, \code{strand}, \code{mapq}, \code{flags}, \code{name}, \code{insert_size},
+\code{pair_orientation}, \code{color} (the fill the display paints, as
+\verb{#rrggbb}), \code{category} (the bucket the display files the read under:
+\code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...), \code{section}, \code{chrom} and
+\code{region}. Over several regions a read is listed once in each region it
+reaches, its copies sharing \code{read} and \code{row}
+\item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{frequency} (how many reads
+carry that base there, over the depth), \code{quality}, \code{fade}
+\item \code{gaps}: \code{start}, \code{end}, \code{type} (\code{"deletion"} or \code{"skip"}), \code{read},
 \code{fade}
 \item \code{chains}: under \code{unit = "chain"}, each chain of more than one read:
 \code{start}, \code{end}, \code{row}, and the \code{color} and \code{opacity} of the hairline
@@ -122,16 +121,16 @@ across it; empty otherwise
 \item \code{overlaps}: under \code{unit = "chain"}, each span where two reads of one row
 both align: \code{start}, \code{end}, \code{row} and the neutral \code{color} the display
 fills it with, which is neither read's color; empty otherwise
-\item \code{insertions}: \code{position}, \code{length}, \code{sequence}, \code{read}, \code{row}, \code{fade}
+\item \code{insertions}: \code{position}, \code{length}, \code{sequence}, \code{read}, \code{fade}
 \item \code{clips}: \code{position}, \code{length}, \code{type} (\code{"soft"} or \code{"hard"}), \code{read},
-\code{row}, \code{fade}
+\code{fade}
 \item \code{modifications}: each base modification call the layer paints:
-\code{position}, \code{read}, \code{row}, \code{type} (the code, \code{m} for 5mC), \code{name},
+\code{position}, \code{read}, \code{type} (the code, \code{m} for 5mC), \code{name},
 \code{probability} (1 for a bisulfite call), \code{unmodified} (whether the
 call is that the base is not modified), and the \code{color} and \code{opacity}
 the display paints it at; empty without \code{display$baseColor}
 \item \code{qualities}: under \code{baseColor} \code{"baseQuality"}, each aligned base:
-\code{position}, \code{read}, \code{row}, \code{score} (Phred) and the \code{color} the display
+\code{position}, \code{read}, \code{score} (Phred) and the \code{color} the display
 paints it
 \item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}, over the
 region alone, where the reads reach past it
@@ -168,10 +167,16 @@ order; ungrouped, one section labelled \code{""}
 \code{keys} holds \code{reads}, \code{bases} (empty while a modifications or bisulfite
 layer greys the bases), \code{junctions}, \code{interbase} and \code{arcs}, and
 \code{y_scale} the coverage band's depth axis, shared by every section.
-Every table carries \code{section}, a factor in stacking order,
-and each section's rows start at 0, and every mark table carries \code{color},
-the color the display paints the mark. \code{read} is a row number of
-\code{reads}. \code{fade} is the share of the depth a mark's site holds, zeroed
+A read's marks (\code{mismatches}, \code{gaps}, \code{insertions}, \code{clips},
+\code{modifications}, \code{qualities}) name it by \code{read} and their \code{region}, and
+take its \code{row} and \code{section} from \code{reads} when drawn, so reassigning
+\code{reads$row} moves them; assigning \code{reads} drops the marks of the reads it
+leaves out. The other tables carry \code{section}, a factor in stacking
+order, each section's rows starting at 0, and \code{chrom}. Every table
+carries the 1-based \code{region} it was read in, and every mark table
+\code{color}, the color the display paints the mark. The coverage band's
+tables, the junctions and the arcs count every read the engine read and
+stay as they were when \code{reads} is filtered: filter with \code{display = list(filter = ...)} to recompute them. \code{fade} is the share of the depth a mark's site holds, zeroed
 under the display's depth-dependent threshold, which the pileup fades a
 sub-pixel mark by.
 \code{read_pitch} gives the \code{featureHeight} a read draws at and the

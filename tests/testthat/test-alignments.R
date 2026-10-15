@@ -8,9 +8,10 @@ test_that("a BAM region reads as JBrowse lays it out", {
     expect_true(all(utils::tail(r$start, -1) >= utils::head(r$end, -1)))
   }
   m <- bam$mismatches
-  expect_true(all(m$position >= bam$reads$start[m$read] &
-    m$position < bam$reads$end[m$read]))
-  expect_equal(m$row, bam$reads$row[m$read])
+  read <- of(m, bam$reads, "read")
+  expect_true(all(m$position >= read$start & m$position < read$end))
+  expect_null(m$row)
+  expect_equal(on_axis(bam)$mismatches$row, read$row)
   expect_setequal(unique(m$base), c("A", "C", "G", "T"))
   expect_true(all(m$frequency >= 0 & m$frequency <= 1))
   expect_gt(max(bam$coverage$depth), 20)
@@ -23,18 +24,19 @@ test_that("a CRAM reads as the same tables as its BAM", {
     x$reads$row))
   expect_equal(key(cram), key(bam))
   mm <- function(x) sort(paste(x$mismatches$position, x$mismatches$base,
-    x$reads$name[x$mismatches$read]))
+    of(x$mismatches, x$reads, "read")$name))
   expect_equal(mm(cram), mm(bam))
 })
 
 test_that("insertions and clips sit on their reads, in the track's layers", {
   l <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000")
   expect_gt(nrow(l$insertions), 0)
-  expect_true(all(l$insertions$position >= l$reads$start[l$insertions$read] &
-    l$insertions$position <= l$reads$end[l$insertions$read]))
+  read <- of(l$insertions, l$reads, "read")
+  expect_true(all(l$insertions$position >= read$start &
+    l$insertions$position <= read$end))
   expect_equal(nchar(l$insertions$sequence), l$insertions$length)
   expect_setequal(unique(l$clips$type), c("soft", "hard"))
-  expect_equal(l$clips$row, l$reads$row[l$clips$read])
+  expect_equal(on_axis(l)$clips$row, of(l$clips, l$reads, "read")$row)
   p <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup"))
   layers <- vapply(p$data, nrow, 1L)
   expect_equal(layers[8], nrow(l$insertions))
@@ -201,7 +203,8 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
     display = list(baseColor = list(field = "modifications")))
   expect_gt(nrow(m$modifications), 100)
   expect_setequal(unique(m$modifications$name), "5mC")
-  expect_equal(m$modifications$row, m$reads$row[m$modifications$read])
+  expect_equal(on_axis(m)$modifications$row,
+    of(m$modifications, m$reads, "read")$row)
   expect_true(all(m$modifications$opacity >= 0.1 & m$modifications$opacity <= 1))
   expect_true("5mC" %in% m$keys$reads$label)
   expect_setequal(unique(m$reads$category), c("modFwd", "modRev"))
@@ -249,7 +252,8 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   expect_gt(nrow(cg$modifications), 100)
   expect_false(any(cg$modifications$unmodified))
   expect_setequal(cg$modifications$probability, 1)
-  expect_equal(cg$modifications$row, cg$reads$row[cg$modifications$read])
+  expect_equal(on_axis(cg)$modifications$row,
+    of(cg$modifications, cg$reads, "read")$row)
   expect_true("5mC methylated" %in% cg$keys$reads$label)
   expect_gt(nrow(cg$modification_coverage), 0)
   expect_setequal(as.character(cg$mismatches$color), "#888888")
@@ -277,7 +281,8 @@ test_that("base quality paints each aligned base on its read, keyed as a bar", {
   q <- jbrowse_alignments(bam, "20:10,001-10,300",
     display = list(baseColor = list(field = "baseQuality")))
   expect_gt(nrow(q$qualities), 1000)
-  expect_equal(q$qualities$row, q$reads$row[q$qualities$read])
+  expect_equal(on_axis(q)$qualities$row,
+    of(q$qualities, q$reads, "read")$row)
   colors <- tapply(as.character(q$qualities$color), q$qualities$score,
     function(x) length(unique(x)))
   expect_true(all(colors == 1))

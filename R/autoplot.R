@@ -15,7 +15,7 @@ base_colors <- local({
 read_blocks <- function(x) {
   reads <- x$reads
   skips <- x$gaps[x$gaps$type == "skip", , drop = FALSE]
-  on <- match(skips$read, reads$read)
+  on <- match(paste(skips$read, skips$region), paste(reads$read, reads$region))
   skips <- skips[!is.na(on), , drop = FALSE]
   on <- on[!is.na(on)]
   if (!length(on)) return(reads)
@@ -229,7 +229,7 @@ pileup_plot <- function(x, o) {
 # The junctions the sashimi band draws: those the engine shows, or with
 # `min_reads` or more, less the non-canonical ones the display hides
 shown_junctions <- function(x, min_reads = NULL) {
-  j <- x$junctions
+  j <- summary_table(x, "junctions")
   keep <- if (is.null(min_reads)) j$shown else j$count >= min_reads &
     !(isFALSE(x$display$showNonCanonicalJunctions) &
       j$motif == "non-canonical")
@@ -397,6 +397,8 @@ alignment_bands <- function(object, o = alignment_options(object)) {
 
 # The result with one section's rows: its reads, their marks and its coverage
 section_of <- function(object, label) {
+  cls <- class(object)
+  object <- unclass(object)
   for (name in setdiff(names(object), "sections")) {
     d <- object[[name]]
     if (!is.data.frame(d) || is.null(d$section)) next
@@ -404,5 +406,5 @@ section_of <- function(object, label) {
   }
   object$sections <- object$sections[object$sections$label == label, ,
     drop = FALSE]
-  object
+  structure(object, class = cls)
 }

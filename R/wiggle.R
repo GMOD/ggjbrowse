@@ -37,7 +37,9 @@
 #'     down to: the origin, or a whisker band's min), `band`, `color` and
 #'     `opacity`; under a min-max extent the max and min bands come back as
 #'     layers of their own, tinted as the display tints them
-#'   * `sources`: `name`, `label`, `group`, `color`
+#'   * `sources`: `name`, `label`, `group`, `color`; `bins` and `marks` name
+#'     their source by `name`, and assigning `sources` drops the bins and
+#'     marks of the sources it leaves out
 #'   * `rules`: the reference lines `scales$y$rules` draws
 #'
 #'   `y_scale` is the score axis the display autoscales to, `ramps` the

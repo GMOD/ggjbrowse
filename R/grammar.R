@@ -38,6 +38,13 @@ replacing <- function(data, table, geom) {
       "a jbrowse result: change the tables in the result and pass that",
       call. = FALSE)
   }
+  if (table %in% unlist(lapply(FAMILIES, names))) {
+    rlang::abort(sprintf(paste0("`%s` names the records other tables key ",
+      "their rows by, so a filtered copy drawn alone leaves their marks ",
+      "behind: assign it into the result, `x$%s <- subset(x$%s, ...)`, ",
+      "which drops its children's rows too, and draw that result"),
+      table, table, table), class = "ggjbrowse_parent_data")
+  }
   structure(list(frame = data, table = table), class = "jbrowse_table")
 }
 

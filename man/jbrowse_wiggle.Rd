@@ -51,7 +51,9 @@ summarizes the bin
 down to: the origin, or a whisker band's min), \code{band}, \code{color} and
 \code{opacity}; under a min-max extent the max and min bands come back as
 layers of their own, tinted as the display tints them
-\item \code{sources}: \code{name}, \code{label}, \code{group}, \code{color}
+\item \code{sources}: \code{name}, \code{label}, \code{group}, \code{color}; \code{bins} and \code{marks} name
+their source by \code{name}, and assigning \code{sources} drops the bins and
+marks of the sources it leaves out
 \item \code{rules}: the reference lines \code{scales$y$rules} draws
 }
 

@@ -17,7 +17,7 @@ test_that("as.matrix() scores each ALT as the display's clustering does", {
   at <- function(cell, column = as.character(cell$variant)) {
     unname(m[as.character(cell$row), column])
   }
-  biallelic <- v$cells[alts[v$cells$variant] == 1, ]
+  biallelic <- v$cells[alts[match(v$cells$variant, v$variants$variant)] == 1, ]
   expect_equal(at(biallelic[biallelic$genotype == "0/1", ][1, ]), 1)
   expect_equal(at(biallelic[biallelic$genotype == "1/1", ][1, ]), 2)
   second <- v$cells[v$cells$genotype == "0/2", ][1, ]

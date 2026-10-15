@@ -75,13 +75,14 @@ features_adapter <- function(file, index) {
 #'   off the index before any feature is fetched
 #' @return a `jbrowse_features` list of data frames, beside the slots
 #'   [jbrowse_result] lists:
-#'   * `features`: each top-level feature on its row: `id` (the engine's key
-#'     for it), `name`, `type`, `start`, `end`, `strand`, `top` and `bottom`
-#'     (its row's pixels, labels included), `gene` and `section`, then a
-#'     column per field the file states (see below)
-#'   * `subfeatures`: a gene's transcripts: `id`, `name`, `type`, `start`,
-#'     `end`, `top`, `bottom`, `feature`, and the file's fields as `features`
-#'     has them
+#'   * `features`: each top-level feature on its row: `feature` (its key,
+#'     from 1, which the tables below name it by), `id` (the engine's id for
+#'     it), `name`, `type`, `start`, `end`, `strand`, `top` and `bottom` (its
+#'     row's pixels, labels included), `gene` and `section`, then a column
+#'     per field the file states (see below)
+#'   * `subfeatures`: a gene's transcripts: `subfeature` (its key, from 1),
+#'     `id`, `name`, `type`, `start`, `end`, `top`, `bottom`, `feature`, and
+#'     the file's fields as `features` has them
 #'   * `rects`: the boxes the glyph draws (exons, CDS, UTRs, a plain feature):
 #'     `start`, `end`, `top`, `height`, `color`, `feature`, `subfeature`
 #'   * `lines`: the intron and connector lines: `start`, `end`, `y`, `color`,
@@ -94,7 +95,7 @@ features_adapter <- function(file, index) {
 #'   * `labels`: each name, description and transcript label the display
 #'     shows: `text`, `kind`, `position` (its left edge, in bp), `y` (its top),
 #'     `color`, `feature`, and `subfeature`, the transcript a transcript label
-#'     names (a row number of `subfeatures`, `NA` for a feature's own label)
+#'     names (`NA` for a feature's own label)
 #'   * `sections`: under `display$facet`, each section's `key`, `label`, `top`
 #'     and `height` in stacking order, the chip row the display names it in
 #'     included; ungrouped, one section labelled `""`
@@ -136,10 +137,14 @@ features_adapter <- function(file, index) {
 #'   `key`, `number`, `type`, `description` and `column`, and
 #'   `fields$annotations` each consequence key's fields.
 #'
-#'   `feature` is a row number of `features`, and `subfeature`, the
-#'   transcript a gene's mark draws, a row number of `subfeatures` (`NA` for
-#'   a feature's own mark). Every mark table carries its
-#'   feature's `section`, a factor in stacking order. `glyph` gives the pixel
+#'   Each table below `features` names its feature by `feature`, and a
+#'   gene's mark its transcript by `subfeature` (`NA` for a feature's own
+#'   mark), both keys the same in every region a record is listed in; a
+#'   mark's `region` picks the copy. A mark takes its feature's `name`,
+#'   `type`, `strand` and `section` (a factor in stacking order) when drawn,
+#'   and a chevron, arrow or label its `start` and `end` too. Assigning
+#'   `features` or `subfeatures` drops the rows that name a record it leaves
+#'   out. `glyph` gives the pixel
 #'   sizes the display draws text, arrows, chevrons and section chips
 #'   (`sectionLabelHeight`) at, and `height` the track's laid-out height in
 #'   pixels.
@@ -171,9 +176,12 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
   key <- structure(as_frame(t$legend), title = t$legendTitle,
     complete = TRUE)
   features <- as_frame(t$features)
+  features <- cbind(feature = match(features$id, unique(features$id)),
+    features)
   subfeatures <- as_frame(t$subfeatures)
+  subfeature_key <- match(subfeatures$id, unique(subfeatures$id))
   sections <- as_frame(t$sections)
-  vcf <- vcf_columns(t$vcf, nrow(features), names(features))
+  vcf <- vcf_columns(t$vcf, features$feature, names(features))
   taken <- c(names(features), names(subfeatures), "strand", "section",
     "chrom")
   attributes <- typed_columns(t$attributes, t$attributeFields,
@@ -185,22 +193,20 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
   if (!is.null(vcf)) features <- cbind(features, vcf$records)
   on_feature <- function(table) {
     d <- as_frame(table)
-    d$feature <- d$feature + 1
-    for (column in setdiff(c("name", "type", "strand", "start", "end",
-      "section"), names(d))) {
-      d[[column]] <- features[[column]][d$feature]
-    }
+    d$feature <- features$feature[d$feature + 1L]
     if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
     if (!is.null(d$subfeature)) {
-      d$subfeature <- d$subfeature + 1
-      d$subfeature[d$subfeature < 1] <- NA
+      at <- as.integer(d$subfeature) + 1L
+      at[at < 1L] <- NA
+      d$subfeature <- subfeature_key[at]
     }
     d
   }
+  subfeatures <- cbind(subfeature = subfeature_key,
+    on_feature(t$subfeatures), subfeature_attributes)
   arrows <- on_feature(t$arrows)
   names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
-  tables <- list(features = features,
-    subfeatures = cbind(on_feature(t$subfeatures), subfeature_attributes),
+  tables <- list(features = features, subfeatures = subfeatures,
     rects = on_feature(t$rects), lines = on_feature(t$lines),
     chevrons = on_feature(t$chevrons), arrows = arrows,
     amino_acids = snake(on_feature(t$aminoAcids)),
@@ -320,7 +326,7 @@ for_geom <- function(mapping, geom) {
 #' display letters over a zoomed-in CDS, in a monospace face haloed in
 #' white, red at a stop or a partial codon. `geom_jbrowse_labels()` writes
 #' the names and descriptions the display shows at this zoom. Both take the
-#' display's text size scaled to the panel. Each mark table carries its
+#' display's text size scaled to the panel. Each mark is drawn with its
 #' feature's `name`, `type` and `strand` beside the display's `color`, and a
 #' mark with no span of its own (a chevron, an arrow, a label) its feature's
 #' `start` and `end`, so `aes(fill = type)` colors the boxes by feature type

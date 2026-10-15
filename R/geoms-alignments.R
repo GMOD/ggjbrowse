@@ -72,7 +72,8 @@ with_inset <- function(d, model) {
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_alignments()] result, `NULL` for the plot's,
 #'   or a data frame in place of the table the geom draws from the plot's
-#'   result, such as a filtered copy of it
+#'   result, such as a filtered copy of it. `reads` takes no data frame:
+#'   assign the filtered reads into the result, which drops their marks too
 #' @param fade fade a mark narrower than a pixel by its site's share of the
 #'   depth, as the display does; `NULL` follows the display's
 #'   `fadeLowFrequencyMismatches`
@@ -145,7 +146,8 @@ label_fade <- function(span_px, need_px, rule) {
 #' @export
 geom_jbrowse_overlaps <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "overlaps", "geom_jbrowse_overlaps")
-  jbrowse_layer(ggplot2::GeomRect, data, function(x) x$overlaps, mapping,
+  jbrowse_layer(ggplot2::GeomRect, data,
+    function(x) summary_table(x, "overlaps"), mapping,
     ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
       ymax = row + 1 - inset, fill = color), list(...), keyed = FALSE,
     rows = TRUE)
@@ -155,7 +157,8 @@ geom_jbrowse_overlaps <- function(mapping = NULL, data = NULL, ...) {
 #' @export
 geom_jbrowse_chains <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "chains", "geom_jbrowse_chains")
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$chains, mapping,
+  jbrowse_layer(ggplot2::GeomSegment, data,
+    function(x) summary_table(x, "chains"), mapping,
     ggplot2::aes(x = start, xend = end, y = row + 0.5, yend = row + 0.5,
       colour = color, alpha = I(opacity)), list(linewidth = 0.3, ...),
     keyed = FALSE)
@@ -200,7 +203,7 @@ position_rects <- function(table, geom, data, mapping, width, params,
   defaults <- with_defaults(defaults, ggplot2::aes(xmin = position,
     xmax = xmax, ymin = row + inset, ymax = row + 1 - inset))
   jbrowse_layer(rect, data, function(x) {
-    d <- x[[table]]
+    d <- if (table %in% SUMMARIES) summary_table(x, table) else x[[table]]
     if (!is.null(prep)) d <- prep(d, x)
     d$xmax <- d$position + max(1, 1 / px_of(x, width))
     if (faded) d$alpha <- mark_alpha(px_of(x, width), d$fade, fades(x, fade))
@@ -285,7 +288,7 @@ geom_jbrowse_letters <- function(mapping = NULL, data = NULL, ...) {
 geom_jbrowse_coverage <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "coverage", "geom_jbrowse_coverage")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
-    d <- x$coverage
+    d <- summary_table(x, "coverage")
     d$base <- rep(bar_base(x), nrow(d))
     d[d$depth > d$base, , drop = FALSE]
   }, mapping, ggplot2::aes(xmin = start, xmax = end, ymin = base, ymax = depth,
@@ -345,7 +348,7 @@ GeomSwatch <- ggplot2::ggproto("GeomSwatch", ggplot2::GeomRect,
 geom_jbrowse_interbase <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "interbase_coverage", "geom_jbrowse_interbase")
   jbrowse_layer(GeomInterbase, data, function(x) {
-    d <- x$interbase_coverage
+    d <- summary_table(x, "interbase_coverage")
     full <- 2 * x$y_scale$domain[2]
     n <- nrow(d)
     d$hang <- if (full > 0) d$from / full else rep(0, n)
@@ -387,7 +390,7 @@ GeomInterbase <- ggplot2::ggproto("GeomInterbase", ggplot2::Geom,
 geom_jbrowse_indicators <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "indicators", "geom_jbrowse_indicators")
   jbrowse_layer(GeomIndicator, data, function(x) {
-    d <- x$indicators
+    d <- summary_table(x, "indicators")
     d$width <- rep(px_to_pt(x$glyph$indicatorWidth), nrow(d))
     d$height <- rep(px_to_pt(x$glyph$indicatorHeight), nrow(d))
     d
@@ -492,10 +495,13 @@ is_cloud <- function(x) identical(x$display$readConnections, "cloud")
 geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, width = NULL,
                               ...) {
   data <- replacing(data, "arcs", "geom_jbrowse_arcs")
-  domes <- function(x) connection_domes(x$arcs[x$arcs$shape == "arc", ,
-    drop = FALSE], arc_top(x, width))
+  domes <- function(x) {
+    a <- summary_table(x, "arcs")
+    connection_domes(a[a$shape == "arc", , drop = FALSE], arc_top(x, width))
+  }
   bars <- function(x) {
-    b <- x$arcs[x$arcs$shape != "arc", , drop = FALSE]
+    b <- summary_table(x, "arcs")
+    b <- b[b$shape != "arc", , drop = FALSE]
     b$y <- pmax(1, b$y)
     b
   }
@@ -526,7 +532,7 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
                                    width = NULL, ...) {
   data <- replacing(data, "arc_ticks", "geom_jbrowse_arc_ticks")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
-    t <- x$arc_ticks
+    t <- summary_table(x, "arc_ticks")
     t$bottom <- rep(if (is_cloud(x)) 1 else 0, nrow(t))
     t$top <- rep(arc_top(x, width), nrow(t))
     t

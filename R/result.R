@@ -36,3 +36,126 @@
 #' `reference`; and a [jbrowse_variants()] result the `tree` a caller sets.
 #' @name jbrowse_result
 NULL
+
+# Each class's parent tables: the column naming each record (`key`), the
+# tables naming a record by it (in `child_key`, `key` where unset), and the
+# parent's columns a child draws with, joined from the parent at draw time
+FAMILIES <- list(
+  jbrowse_alignments = list(
+    reads = list(key = "read", columns = c("row", "section"),
+      children = c("mismatches", "gaps", "insertions", "clips",
+        "modifications", "qualities"))),
+  jbrowse_features = list(
+    features = list(key = "feature",
+      columns = c("name", "type", "strand", "start", "end", "section"),
+      children = c("subfeatures", "rects", "lines", "chevrons", "arrows",
+        "amino_acids", "labels", "samples", "annotations")),
+    subfeatures = list(key = "subfeature", columns = character(0),
+      children = c("rects", "lines", "chevrons", "arrows", "amino_acids",
+        "labels"))),
+  jbrowse_variants = list(
+    variants = list(key = "variant", columns = c("start", "end"),
+      children = c("cells", "annotations")),
+    rows = list(key = "name", child_key = "row", columns = "sample",
+      children = "cells")),
+  jbrowse_wiggle = list(
+    sources = list(key = "name", child_key = "source", columns = character(0),
+      children = c("marks", "bins"))))
+
+# The tables an alignments track summarizes its reads in, which the engine
+# computed over every read and a filter in R leaves as they were
+SUMMARIES <- c("coverage", "allele_coverage", "modification_coverage",
+  "interbase_coverage", "indicators", "junctions", "chains", "overlaps",
+  "arcs", "arc_ticks")
+
+families_of <- function(x) {
+  for (cls in class(x)) if (!is.null(FAMILIES[[cls]])) return(FAMILIES[[cls]])
+  list()
+}
+
+child_tables <- function(x) {
+  unique(unlist(lapply(families_of(x), `[[`, "children")))
+}
+
+# The row of `parent` each row of `d` names: the copy in the same region
+# where both list regions, as a record read in two regions is listed in each
+parent_rows <- function(d, family, parent) {
+  key <- d[[family$child_key %||% family$key]]
+  own <- parent[[family$key]]
+  if (is.numeric(d$region) && is.numeric(parent$region)) {
+    match(paste(key, d$region), paste(own, parent$region))
+  } else {
+    match(as.character(key), as.character(own))
+  }
+}
+
+# Each child table of `x`, an unclassed result, with the columns it draws
+# with that it lacks, from its parent's row for the same record
+joined <- function(x, families) {
+  for (family_name in names(families)) {
+    family <- families[[family_name]]
+    parent <- x[[family_name]]
+    if (!is.data.frame(parent) || !length(family$columns)) next
+    for (child in intersect(family$children, names(x))) {
+      d <- x[[child]]
+      need <- intersect(setdiff(family$columns, names(d)), names(parent))
+      if (!is.data.frame(d) || !length(need)) next
+      at <- parent_rows(d, family, parent)
+      for (column in need) d[[column]] <- parent[[column]][at]
+      x[[child]] <- d
+    }
+  }
+  x
+}
+
+#' @export
+`$<-.jbrowse_result` <- function(x, name, value) {
+  x[[name]] <- value
+  x
+}
+
+# Assigning a parent table drops the rows of its children whose record it no
+# longer holds, and marks the result `filtered` where it lost records, so
+# every table, drawn or analysed, holds the same records
+#' @export
+`[[<-.jbrowse_result` <- function(x, i, value) {
+  cls <- class(x)
+  old <- if (is.character(i) && i %in% names(x)) .subset2(x, i)
+  x <- unclass(x)
+  x[[i]] <- value
+  class(x) <- cls
+  family <- if (is.character(i)) families_of(x)[[i]]
+  if (is.null(family) || !is.data.frame(value)) return(x)
+  if (is.data.frame(old) && lost(old, value, family$key)) {
+    attr(x, "filtered") <- union(attr(x, "filtered"), i)
+  }
+  for (child in intersect(family$children, names(x))) {
+    d <- .subset2(x, child)
+    if (!is.data.frame(d)) next
+    key <- d[[family$child_key %||% family$key]]
+    keep <- !is.na(parent_rows(d, family, value)) | is.na(key)
+    if (!all(keep)) x[[child]] <- d[keep, , drop = FALSE]
+  }
+  x
+}
+
+# Whether `new` lacks a record, or a record's copy in a region, `old` held
+lost <- function(old, new, key) {
+  id <- function(d) {
+    if (is.numeric(d$region)) paste(d[[key]], d$region)
+    else as.character(d[[key]])
+  }
+  !all(id(old) %in% id(new))
+}
+
+# A summary table as a geom draws it, warning once where the reads it
+# summarizes were filtered after the read
+summary_table <- function(x, name) {
+  if ("reads" %in% attr(x, "filtered") && nrow(x[[name]])) {
+    rlang::warn(paste("the coverage, junctions and other summary tables",
+      "count every read the engine read, not the reads filtered in R: read",
+      "again with `display = list(filter = ...)` to recompute them"),
+      .frequency = "once", .frequency_id = "ggjbrowse_summary_tables")
+  }
+  x[[name]]
+}

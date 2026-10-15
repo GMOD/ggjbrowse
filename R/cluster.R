@@ -12,8 +12,8 @@
 #' where the in-app run fills each with its record's mean.
 #' @param x a [jbrowse_variants()] result
 #' @param ... unused
-#' @return a numeric matrix, its columns named by the record's row number in
-#'   `x$variants`, with `.1`, `.2`, ... per ALT of a multi-allelic record
+#' @return a numeric matrix, its columns named by the record's `variant`
+#'   key, with `.1`, `.2`, ... per ALT of a multi-allelic record
 #' @export
 #' @examples
 #' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
@@ -21,19 +21,24 @@
 #' m <- as.matrix(v)
 #' v$tree <- hclust(dist(m), "average")
 as.matrix.jbrowse_variants <- function(x, ...) {
-  cells <- x$cells[as.character(x$cells$row) %in% x$rows$name, , drop = FALSE]
-  i <- match(as.character(cells$row), x$rows$name)
+  variants <- x$variants[!duplicated(x$variants$variant), , drop = FALSE]
   rows <- as.character(x$rows$name)
+  cells <- x$cells[as.character(x$cells$row) %in% rows &
+    x$cells$variant %in% variants$variant, , drop = FALSE]
+  cells <- cells[!duplicated(cells[c("variant", "row")]), , drop = FALSE]
+  i <- match(as.character(cells$row), rows)
+  v <- match(cells$variant, variants$variant)
   if (identical(x$display$unit, "haplotype")) {
-    m <- matrix(0, length(rows), nrow(x$variants),
-      dimnames = list(rows, seq_len(nrow(x$variants))))
-    m[cbind(i, cells$variant)] <- cells$dosage
+    m <- matrix(0, length(rows), nrow(variants),
+      dimnames = list(rows, variants$variant))
+    m[cbind(i, v)] <- cells$dosage
     return(m)
   }
-  alts <- lengths(strsplit(x$variants$alt, ",", fixed = TRUE))
+  alts <- lengths(strsplit(variants$alt, ",", fixed = TRUE))
   first <- cumsum(c(0, alts))[seq_along(alts)]
-  columns <- unlist(lapply(seq_along(alts), function(v)
-    if (alts[v] == 1) as.character(v) else paste0(v, ".", seq_len(alts[v]))))
+  columns <- unlist(lapply(seq_along(alts), function(k)
+    if (alts[k] == 1) as.character(variants$variant[k])
+    else paste0(variants$variant[k], ".", seq_len(alts[k]))))
   m <- matrix(0, length(rows), length(columns),
     dimnames = list(rows, columns))
   alleles <- strsplit(cells$genotype, "[/|]")
@@ -41,18 +46,18 @@ as.matrix.jbrowse_variants <- function(x, ...) {
   n <- lengths(called)
   cell <- rep(seq_along(called), n)
   allele <- unlist(called)
-  alt <- !is.na(allele) & allele >= 1 & allele <= alts[cells$variant[cell]]
+  alt <- !is.na(allele) & allele >= 1 & allele <= alts[v[cell]]
   slots <- max(alts, 0) + 1
   key <- (cell[alt] - 1) * slots + allele[alt]
   hit <- unique(key)
   count <- tabulate(match(key, hit), length(hit))
   hit_cell <- (hit - 1) %/% slots + 1
   hit_allele <- (hit - 1) %% slots + 1
-  m[cbind(i[hit_cell], first[cells$variant[hit_cell]] + hit_allele)] <-
+  m[cbind(i[hit_cell], first[v[hit_cell]] + hit_allele)] <-
     2 * count / n[hit_cell]
   none <- which(n == 0)
-  per <- alts[cells$variant[none]]
-  m[cbind(rep(i[none], per), rep(first[cells$variant[none]], per) +
+  per <- alts[v[none]]
+  m[cbind(rep(i[none], per), rep(first[v[none]], per) +
     sequence(per))] <- NA
   m
 }

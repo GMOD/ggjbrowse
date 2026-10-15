@@ -90,19 +90,18 @@ alignments_adapter <- function(file, index) {
 #'   sub-pixel fade and the read-connection band's reach read
 #' @return a `jbrowse_alignments` list of data frames, beside the slots
 #'   [jbrowse_result] lists:
-#'   * `reads`: `read` (the row number the other tables' `read` column names
-#'     it by, kept through filtering, within this call), `id` (the record's
-#'     own id, the same in every call, where its mates and supplementary
-#'     segments share its `name`), `start`, `end`, `row`, `strand`, `mapq`,
-#'     `flags`, `name`,
-#'     `insert_size`, `pair_orientation`, `color` (the fill the display paints,
-#'     as `#rrggbb`) and `category` (the bucket the display files the read
-#'     under: `fwdStrand`, `mapq`, `unmappedMate`, ...). Over several
-#'     regions a read is listed once in each region it reaches, its copies
-#'     sharing `key` and `row`
-#'   * `mismatches`: `position`, `base`, `read`, `row`, `frequency` (how many
-#'     reads carry that base there, over the depth), `quality`, `fade`
-#'   * `gaps`: `start`, `end`, `type` (`"deletion"` or `"skip"`), `read`, `row`,
+#'   * `reads`: `read` (the read's key, from 1, which the marks below name
+#'     it by), `id` (the record's own id, the same in every call, where its
+#'     mates and supplementary segments share its `name`), `start`, `end`,
+#'     `row`, `strand`, `mapq`, `flags`, `name`, `insert_size`,
+#'     `pair_orientation`, `color` (the fill the display paints, as
+#'     `#rrggbb`), `category` (the bucket the display files the read under:
+#'     `fwdStrand`, `mapq`, `unmappedMate`, ...), `section`, `chrom` and
+#'     `region`. Over several regions a read is listed once in each region it
+#'     reaches, its copies sharing `read` and `row`
+#'   * `mismatches`: `position`, `base`, `read`, `frequency` (how many reads
+#'     carry that base there, over the depth), `quality`, `fade`
+#'   * `gaps`: `start`, `end`, `type` (`"deletion"` or `"skip"`), `read`,
 #'     `fade`
 #'   * `chains`: under `unit = "chain"`, each chain of more than one read:
 #'     `start`, `end`, `row`, and the `color` and `opacity` of the hairline
@@ -110,16 +109,16 @@ alignments_adapter <- function(file, index) {
 #'   * `overlaps`: under `unit = "chain"`, each span where two reads of one row
 #'     both align: `start`, `end`, `row` and the neutral `color` the display
 #'     fills it with, which is neither read's color; empty otherwise
-#'   * `insertions`: `position`, `length`, `sequence`, `read`, `row`, `fade`
+#'   * `insertions`: `position`, `length`, `sequence`, `read`, `fade`
 #'   * `clips`: `position`, `length`, `type` (`"soft"` or `"hard"`), `read`,
-#'     `row`, `fade`
+#'     `fade`
 #'   * `modifications`: each base modification call the layer paints:
-#'     `position`, `read`, `row`, `type` (the code, `m` for 5mC), `name`,
+#'     `position`, `read`, `type` (the code, `m` for 5mC), `name`,
 #'     `probability` (1 for a bisulfite call), `unmodified` (whether the
 #'     call is that the base is not modified), and the `color` and `opacity`
 #'     the display paints it at; empty without `display$baseColor`
 #'   * `qualities`: under `baseColor` `"baseQuality"`, each aligned base:
-#'     `position`, `read`, `row`, `score` (Phred) and the `color` the display
+#'     `position`, `read`, `score` (Phred) and the `color` the display
 #'     paints it
 #'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`, over the
 #'     region alone, where the reads reach past it
@@ -156,10 +155,17 @@ alignments_adapter <- function(file, index) {
 #'   `keys` holds `reads`, `bases` (empty while a modifications or bisulfite
 #'   layer greys the bases), `junctions`, `interbase` and `arcs`, and
 #'   `y_scale` the coverage band's depth axis, shared by every section.
-#'   Every table carries `section`, a factor in stacking order,
-#'   and each section's rows start at 0, and every mark table carries `color`,
-#'   the color the display paints the mark. `read` is a row number of
-#'   `reads`. `fade` is the share of the depth a mark's site holds, zeroed
+#'   A read's marks (`mismatches`, `gaps`, `insertions`, `clips`,
+#'   `modifications`, `qualities`) name it by `read` and their `region`, and
+#'   take its `row` and `section` from `reads` when drawn, so reassigning
+#'   `reads$row` moves them; assigning `reads` drops the marks of the reads it
+#'   leaves out. The other tables carry `section`, a factor in stacking
+#'   order, each section's rows starting at 0, and `chrom`. Every table
+#'   carries the 1-based `region` it was read in, and every mark table
+#'   `color`, the color the display paints the mark. The coverage band's
+#'   tables, the junctions and the arcs count every read the engine read and
+#'   stay as they were when `reads` is filtered: filter with `display =
+#'   list(filter = ...)` to recompute them. `fade` is the share of the depth a mark's site holds, zeroed
 #'   under the display's depth-dependent threshold, which the pileup fades a
 #'   sub-pixel mark by.
 #'   `read_pitch` gives the `featureHeight` a read draws at and the
@@ -217,13 +223,13 @@ alignments_result <- function(t, assembly) {
     d
   }
   reads <- frame(t$reads)
-  reads$read <- seq_len(nrow(reads))
+  reads <- cbind(read = reads$key + 1L, reads[names(reads) != "key"])
   names(reads)[names(reads) == "insertSize"] <- "insert_size"
   names(reads)[names(reads) == "pairOrientation"] <- "pair_orientation"
   on_read <- function(table) {
-    d <- frame(table)
-    d$read <- d$read + 1
-    d$row <- reads$row[d$read]
+    d <- as_frame(table)
+    d$read <- reads$read[d$read + 1L]
+    d$section <- NULL
     d
   }
   painted <- function(d) {

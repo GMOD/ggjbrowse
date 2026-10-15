@@ -14,7 +14,8 @@ test_that("a facet splits the reads into sections, each packed on its own", {
     expect_equal(length(unique(r$strand)), 1)
     expect_equal(min(r$row), 0)
   }
-  expect_equal(s$mismatches$section, s$reads$section[s$mismatches$read])
+  expect_equal(on_axis(s)$mismatches$section,
+    of(s$mismatches, s$reads, "read")$section)
   flipped <- read(display = list(facet = list(field = "strand",
     domain = rev(s$sections$key))))
   expect_equal(flipped$sections$label, rev(s$sections$label))

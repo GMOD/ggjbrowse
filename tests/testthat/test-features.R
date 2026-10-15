@@ -10,9 +10,10 @@ test_that("a GFF3 region reads as JBrowse's feature display lays it out", {
     expect_true(all(utils::tail(r$start, -1) >= utils::head(r$end, -1)))
   }
   r <- g$rects
-  expect_true(all(r$start >= f$start[r$feature] & r$end <= f$end[r$feature]))
-  expect_true(all(r$top >= f$top[r$feature] &
-    r$top + r$height <= f$bottom[r$feature] + 1e-3))
+  parent <- of(r, f, "feature")
+  expect_true(all(r$start >= parent$start & r$end <= parent$end))
+  expect_true(all(r$top >= parent$top &
+    r$top + r$height <= parent$bottom + 1e-3))
   eden <- which(f$name == "EDEN")
   expect_equal(g$subfeatures$name[g$subfeatures$feature == eden],
     c("EDEN.1", "EDEN.2", "EDEN.3"))
@@ -133,11 +134,12 @@ test_that("a gene's exons with the introns collapsed keep each feature on one ro
   eden <- g$features[g$features$name == "EDEN", ]
   expect_identical(eden$region, 1:4)
   for (name in c("rects", "lines", "labels", "subfeatures")) {
-    d <- g[[name]]
-    expect_equal(d$region, g$features$region[d$feature])
+    expect_false(anyNA(of(g[[name]], g$features, "feature")$feature))
   }
+  expect_equal(unique(g$features$feature[g$features$name == "EDEN"]),
+    eden$feature[1])
   subs <- g$labels[!is.na(g$labels$subfeature), ]
-  expect_equal(g$subfeatures$feature[subs$subfeature], subs$feature)
+  expect_equal(of(subs, g$subfeatures, "subfeature")$feature, subs$feature)
   apart <- lapply(exons, function(l) jbrowse_features(gff, l))
   expect_gt(length(unique(vapply(apart, function(a)
     a$features$top[a$features$name == "EDEN"], 0))), 1)
@@ -182,9 +184,10 @@ test_that("the display's facet packs a section per value, each on its own rows",
     expect_true(all(f$bottom <= s$sections$top[i] + s$sections$height[i]))
     expect_length(unique(f$strand), 1)
   }
+  drawn <- on_axis(s)
   for (table in c("rects", "lines", "chevrons", "arrows", "labels")) {
     d <- s[[table]]
-    expect_equal(d$section, s$features$section[d$feature])
+    expect_equal(drawn[[table]]$section, of(d, s$features, "feature")$section)
   }
   keys <- s$sections$key
   hidden <- jbrowse_features(gff, "ctgA:1-25,000",
@@ -209,7 +212,7 @@ test_that("autoplot draws each section in its own panel over its rows", {
     c(s$sections$top[i] + chip, s$sections$top[i] + s$sections$height[i])))
   labels <- built$data[[length(built$data)]]
   expect_equal(labels$px_tall,
-    (s$sections$height - chip)[as.integer(s$labels$section)])
+    (s$sections$height - chip)[as.integer(on_axis(s)$labels$section)])
 })
 
 test_that("a zoomed-in CDS carries its residues, in frame across an intron", {

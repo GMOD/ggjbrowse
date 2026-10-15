@@ -56,7 +56,8 @@ variants_adapter <- function(file, index, samples) {
 #'   records sharing a pixel fade as the display fades them
 #' @return a `jbrowse_variants` list of data frames, beside the slots
 #'   [jbrowse_result] lists:
-#'   * `variants`: each record the display keeps: `start`, `end`, `id`,
+#'   * `variants`: each record the display keeps: `variant` (its key, from
+#'     1, which `cells` and `annotations` name it by), `start`, `end`, `id`,
 #'     `name`, `ref`, `alt`, `type`, `color`, its lane color, `filter`, the
 #'     FILTER column as the file writes it (`"PASS"`, or the failed filters
 #'     joined by `;`, `NA` for `.`), and a column per INFO key the header
@@ -67,26 +68,27 @@ variants_adapter <- function(file, index, samples) {
 #'     `R`, `G`, `.`, 2) is a list column of vectors, so `AC` at a site with
 #'     two alts is `c(33L, 1L)`. A record lacking a key has `NA`. Over
 #'     several regions a record is listed once in each region it falls in,
-#'     its copies sharing `key`
+#'     its copies sharing `variant`
 #'   * `annotations`: each record's SnpEff `ANN` or VEP `CSQ` consequences, a
-#'     row per record and consequence: `variant` (a row number of
-#'     `variants`), `key` (`"ANN"` or `"CSQ"`) and a column per field the
+#'     row per record and consequence: `variant`, `key` (`"ANN"` or `"CSQ"`) and a column per field the
 #'     key's header line names (`Consequence`, `IMPACT`, `SYMBOL`, ...), each
 #'     character, as the header types none. The raw string leaves the INFO
 #'     columns
-#'   * `cells`: each row's cell at a record: `variant` (a row number of
-#'     `variants`), `start`, `end`, `row` (a factor in `rows`' order),
-#'     `sample`, `genotype`, `dosage` (the share of the called alleles that
+#'   * `cells`: each row's cell at a record: `variant`, `row` (the row's
+#'     `name`, a factor in `rows`' order), `genotype`, `dosage` (the share of the called alleles that
 #'     are an ALT; under `unit = "haplotype"` the row's allele, 1 for an ALT;
 #'     `NA` for a no-call or a haplotype of an unphased call) and `color`, the
 #'     fill the display paints; under `referenceDrawingMode = "skip"`, the
-#'     default, a reference call has no cell. [as.matrix()] gives the
-#'     genotypes as the display's clustering reads them
+#'     default, a reference call has no cell. A cell takes its record's
+#'     `start` and `end` and its row's `sample` when drawn. [as.matrix()]
+#'     gives the genotypes as the display's clustering reads them
 #'   * `rows`: `name`, `label`, `sample`, `haplotype`, `ploidy`, `band`,
 #'     its `facet` value, and `color`, the bar the display marks the row with
 #'     under `rowColor`, `""` where none. The rows come in the display's
 #'     arrangement, and the matrix draws them in this table's order, and only
-#'     these rows: reorder or filter it to rearrange them. Set `tree` to an
+#'     these rows: reorder or filter it to rearrange them. Assigning `rows`
+#'     drops the cells of the rows it leaves out, as assigning `variants`
+#'     drops those of its records. Set `tree` to an
 #'     [hclust()] result, or anything [as.hclust()] takes, labelled by
 #'     `name`, such as `hclust(dist(as.matrix(v)), "average")`, and the rows
 #'     take its leaf order and [autoplot()] draws it beside them. A list of
@@ -122,21 +124,20 @@ jbrowse_variants <- function(file, region = NULL, display = NULL,
 
 variants_result <- function(t) {
   variants <- as_frame(t$variants)
+  variants <- cbind(variant = variants$key + 1L,
+    variants[names(variants) != "key"])
   variants$color <- jbrowse_color(variants$color)
   variants$filter <- as.character(variants$filter)
   info <- typed_columns(t$info, t$infoFields, nrow(variants), names(variants),
     "info")
   variants <- cbind(variants, info$frame)
   info_fields <- info$fields
-  annotations <- annotation_frame(t$annotations, "variant")
+  annotations <- annotation_frame(t$annotations, "variant", variants$variant)
   rows <- as_frame(t$rows)
   rows$color <- jbrowse_color(rows$color)
   bands <- as_frame(t$bands)[c("key", "label")]
   cells <- as_frame(t$cells)
-  cells$variant <- cells$variant + 1
-  cells$start <- variants$start[cells$variant]
-  cells$end <- variants$end[cells$variant]
-  cells$sample <- rows$sample[match(cells$row, rows$name)]
+  cells$variant <- variants$variant[cells$variant + 1L]
   cells$row <- factor(cells$row, levels = rows$name)
   cells$color <- jbrowse_color(cells$color)
   genotypes <- as_frame(t$legend)
@@ -173,33 +174,34 @@ typed_columns <- function(values, fields, n, taken, prefix) {
   list(frame = frame, fields = fields)
 }
 
-# A VCF read as features' own columns, aligned to `n` features: each
-# record's `ref`, `alt`, `filter` and INFO in `records`, and each sample's
-# FORMAT values in `samples`, `feature` a row number of the features; NULL
-# for a file that is not a VCF
-vcf_columns <- function(vcf, n, taken) {
+# A VCF read as features' own columns, aligned to the features `keys` name:
+# each record's `ref`, `alt`, `filter` and INFO in `records`, and each
+# sample's FORMAT values in `samples`, `feature` its record's key; NULL for a
+# file that is not a VCF
+vcf_columns <- function(vcf, keys, taken) {
   if (is.null(vcf)) return(NULL)
+  n <- length(keys)
   records <- data.frame(ref = as.character(vcf$records$ref),
     alt = as.character(vcf$records$alt),
     filter = as.character(vcf$records$filter), row.names = seq_len(n))
   info <- typed_columns(vcf$info, vcf$infoFields, n,
     c(taken, names(records), "chrom"), "info")
-  samples <- data.frame(feature = as.numeric(vcf$samples$feature) + 1,
+  samples <- data.frame(feature = keys[as.integer(vcf$samples$feature) + 1L],
     sample = as.character(vcf$samples$sample))
   format <- typed_columns(vcf$format, vcf$formatFields, nrow(samples),
     c(names(samples), "chrom"), "format")
   list(records = cbind(records, info$frame), info_fields = info$fields,
     samples = cbind(samples, format$frame), format_fields = format$fields,
-    annotations = annotation_frame(vcf$annotations, "feature"),
+    annotations = annotation_frame(vcf$annotations, "feature", keys),
     annotation_fields = annotation_fields(vcf$annotationFields))
 }
 
-# Each record's ANN or CSQ consequences, a row each: `index`, the record's row
-# number, `key`, the INFO key, and a column per field its header line names,
-# each character, as the header types none of them
-annotation_frame <- function(columns, index) {
+# Each record's ANN or CSQ consequences, a row each: `index`, the key of the
+# record, from its row's in `keys`, `key`, the INFO key, and a column per
+# field its header line names, each character, as the header types none
+annotation_frame <- function(columns, index, keys) {
   d <- as_frame(columns)
-  d[[index]] <- as.numeric(d[[index]]) + 1
+  d[[index]] <- keys[as.integer(d[[index]]) + 1L]
   for (column in setdiff(names(d), c(index, "key"))) {
     d[[column]] <- as.character(d[[column]])
   }
@@ -270,8 +272,9 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
     d <- x$cells
     d$alpha <- rep(1, nrow(d))
     if (layout == "columns") {
-      d$xmin <- d$variant - 0.5
-      d$xmax <- d$variant + 0.5
+      column <- match(d$variant, unique(x$variants$variant))
+      d$xmin <- column - 0.5
+      d$xmax <- column + 0.5
     } else {
       floor_bp <- 2 / px_of(x, width)
       mid <- (d$start + d$end) / 2
@@ -279,7 +282,9 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
       d$xmin <- mid - half
       d$xmax <- mid + half
       if (fade) {
-        d$alpha <- density_alpha(x$variants, 1 / px_of(x, width))[d$variant]
+        d$alpha <- density_alpha(x$variants, 1 / px_of(x, width))[match(
+          paste(d$variant, d$region), paste(x$variants$variant,
+            x$variants$region))]
       }
     }
     d$y <- match(as.character(d$row), x$rows$name)
@@ -334,7 +339,7 @@ autoplot.jbrowse_variants <- function(object,
   rows <- as.character(object$rows$label %||% object$rows$name)
   genomic <- layout == "genomic"
   xlim <- if (genomic) xlim_of(object)
-    else c(0.5, nrow(object$variants) + 0.5)
+    else c(0.5, length(unique(object$variants$variant)) + 0.5)
   inner <- if (any(object$rows$color != "")) 9 else 2.2
   tree <- object$tree
   strip <- if (is.null(tree)) inner else inner + TREE_PT + 3

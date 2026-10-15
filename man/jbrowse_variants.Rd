@@ -63,7 +63,8 @@ off the index before any record is fetched}
 a \code{jbrowse_variants} list of data frames, beside the slots
 \link{jbrowse_result} lists:
 \itemize{
-\item \code{variants}: each record the display keeps: \code{start}, \code{end}, \code{id},
+\item \code{variants}: each record the display keeps: \code{variant} (its key, from
+1, which \code{cells} and \code{annotations} name it by), \code{start}, \code{end}, \code{id},
 \code{name}, \code{ref}, \code{alt}, \code{type}, \code{color}, its lane color, \code{filter}, the
 FILTER column as the file writes it (\code{"PASS"}, or the failed filters
 joined by \verb{;}, \code{NA} for \code{.}), and a column per INFO key the header
@@ -74,26 +75,27 @@ numeric or character as its \code{Type} says; any other \code{Number} (\code{A},
 \code{R}, \code{G}, \code{.}, 2) is a list column of vectors, so \code{AC} at a site with
 two alts is \code{c(33L, 1L)}. A record lacking a key has \code{NA}. Over
 several regions a record is listed once in each region it falls in,
-its copies sharing \code{key}
+its copies sharing \code{variant}
 \item \code{annotations}: each record's SnpEff \code{ANN} or VEP \code{CSQ} consequences, a
-row per record and consequence: \code{variant} (a row number of
-\code{variants}), \code{key} (\code{"ANN"} or \code{"CSQ"}) and a column per field the
+row per record and consequence: \code{variant}, \code{key} (\code{"ANN"} or \code{"CSQ"}) and a column per field the
 key's header line names (\code{Consequence}, \code{IMPACT}, \code{SYMBOL}, ...), each
 character, as the header types none. The raw string leaves the INFO
 columns
-\item \code{cells}: each row's cell at a record: \code{variant} (a row number of
-\code{variants}), \code{start}, \code{end}, \code{row} (a factor in \code{rows}' order),
-\code{sample}, \code{genotype}, \code{dosage} (the share of the called alleles that
+\item \code{cells}: each row's cell at a record: \code{variant}, \code{row} (the row's
+\code{name}, a factor in \code{rows}' order), \code{genotype}, \code{dosage} (the share of the called alleles that
 are an ALT; under \code{unit = "haplotype"} the row's allele, 1 for an ALT;
 \code{NA} for a no-call or a haplotype of an unphased call) and \code{color}, the
 fill the display paints; under \code{referenceDrawingMode = "skip"}, the
-default, a reference call has no cell. \code{\link[=as.matrix]{as.matrix()}} gives the
-genotypes as the display's clustering reads them
+default, a reference call has no cell. A cell takes its record's
+\code{start} and \code{end} and its row's \code{sample} when drawn. \code{\link[=as.matrix]{as.matrix()}}
+gives the genotypes as the display's clustering reads them
 \item \code{rows}: \code{name}, \code{label}, \code{sample}, \code{haplotype}, \code{ploidy}, \code{band},
 its \code{facet} value, and \code{color}, the bar the display marks the row with
 under \code{rowColor}, \code{""} where none. The rows come in the display's
 arrangement, and the matrix draws them in this table's order, and only
-these rows: reorder or filter it to rearrange them. Set \code{tree} to an
+these rows: reorder or filter it to rearrange them. Assigning \code{rows}
+drops the cells of the rows it leaves out, as assigning \code{variants}
+drops those of its records. Set \code{tree} to an
 \code{\link[=hclust]{hclust()}} result, or anything \code{\link[=as.hclust]{as.hclust()}} takes, labelled by
 \code{name}, such as \code{hclust(dist(as.matrix(v)), "average")}, and the rows
 take its leaf order and \code{\link[=autoplot]{autoplot()}} draws it beside them. A list of

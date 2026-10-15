@@ -76,13 +76,14 @@ off the index before any feature is fetched}
 a \code{jbrowse_features} list of data frames, beside the slots
 \link{jbrowse_result} lists:
 \itemize{
-\item \code{features}: each top-level feature on its row: \code{id} (the engine's key
-for it), \code{name}, \code{type}, \code{start}, \code{end}, \code{strand}, \code{top} and \code{bottom}
-(its row's pixels, labels included), \code{gene} and \code{section}, then a
-column per field the file states (see below)
-\item \code{subfeatures}: a gene's transcripts: \code{id}, \code{name}, \code{type}, \code{start},
-\code{end}, \code{top}, \code{bottom}, \code{feature}, and the file's fields as \code{features}
-has them
+\item \code{features}: each top-level feature on its row: \code{feature} (its key,
+from 1, which the tables below name it by), \code{id} (the engine's id for
+it), \code{name}, \code{type}, \code{start}, \code{end}, \code{strand}, \code{top} and \code{bottom} (its
+row's pixels, labels included), \code{gene} and \code{section}, then a column
+per field the file states (see below)
+\item \code{subfeatures}: a gene's transcripts: \code{subfeature} (its key, from 1),
+\code{id}, \code{name}, \code{type}, \code{start}, \code{end}, \code{top}, \code{bottom}, \code{feature}, and
+the file's fields as \code{features} has them
 \item \code{rects}: the boxes the glyph draws (exons, CDS, UTRs, a plain feature):
 \code{start}, \code{end}, \code{top}, \code{height}, \code{color}, \code{feature}, \code{subfeature}
 \item \code{lines}: the intron and connector lines: \code{start}, \code{end}, \code{y}, \code{color},
@@ -95,7 +96,7 @@ on screen: \code{position}, \code{y}, \code{direction}, \code{head_half_height},
 \item \code{labels}: each name, description and transcript label the display
 shows: \code{text}, \code{kind}, \code{position} (its left edge, in bp), \code{y} (its top),
 \code{color}, \code{feature}, and \code{subfeature}, the transcript a transcript label
-names (a row number of \code{subfeatures}, \code{NA} for a feature's own label)
+names (\code{NA} for a feature's own label)
 \item \code{sections}: under \code{display$facet}, each section's \code{key}, \code{label}, \code{top}
 and \code{height} in stacking order, the chip row the display names it in
 included; ungrouped, one section labelled \code{""}
@@ -140,10 +141,14 @@ column per FORMAT key, typed as INFO is (\code{AD}, \code{DP}, ...), named
 \code{key}, \code{number}, \code{type}, \code{description} and \code{column}, and
 \code{fields$annotations} each consequence key's fields.
 
-\code{feature} is a row number of \code{features}, and \code{subfeature}, the
-transcript a gene's mark draws, a row number of \code{subfeatures} (\code{NA} for
-a feature's own mark). Every mark table carries its
-feature's \code{section}, a factor in stacking order. \code{glyph} gives the pixel
+Each table below \code{features} names its feature by \code{feature}, and a
+gene's mark its transcript by \code{subfeature} (\code{NA} for a feature's own
+mark), both keys the same in every region a record is listed in; a
+mark's \code{region} picks the copy. A mark takes its feature's \code{name},
+\code{type}, \code{strand} and \code{section} (a factor in stacking order) when drawn,
+and a chevron, arrow or label its \code{start} and \code{end} too. Assigning
+\code{features} or \code{subfeatures} drops the rows that name a record it leaves
+out. \code{glyph} gives the pixel
 sizes the display draws text, arrows, chevrons and section chips
 (\code{sectionLabelHeight}) at, and \code{height} the track's laid-out height in
 pixels.

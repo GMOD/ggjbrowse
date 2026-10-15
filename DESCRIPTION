@@ -34,8 +34,10 @@ Imports:
     scales,
     V8 (>= 3.0)
 Suggests:
+    dplyr,
     GenomicRanges,
     IRanges,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tibble
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0

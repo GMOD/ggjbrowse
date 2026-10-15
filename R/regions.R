@@ -142,12 +142,15 @@ warn_missing <- function(messages) {
 in_one_call <- function(x, regions, t, width) {
   missing <- warn_missing(lapply(seq_len(nrow(regions)), function(i)
     t$missingContigs[[i]]))
+  children <- child_tables(x)
+  cls <- class(x)
+  x <- unclass(x)
   for (name in names(x)) {
     d <- x[[name]]
     if (!is.data.frame(d) || is.null(d$region)) next
     i <- as.integer(d$region) + 1L
     d$region <- NULL
-    d$chrom <- regions$chrom[i]
+    if (!name %in% children) d$chrom <- regions$chrom[i]
     d$region <- i
     x[[name]] <- d
   }
@@ -156,7 +159,7 @@ in_one_call <- function(x, regions, t, width) {
   x$regions <- layout
   x$width <- width
   x$warnings <- unique(c(unlist(t$warnings), missing[missing != ""]))
-  x
+  structure(x, class = cls)
 }
 
 # The x range a result's regions span on its axis
@@ -172,6 +175,7 @@ on_axis <- function(x) {
   if (inherits(x, "jbrowse_variants")) x <- in_row_order(x)
   if (inherits(x, "jbrowse_wiggle")) x <- in_source_order(x)
   cls <- class(x)
+  families <- families_of(x)
   x <- unclass(x)
   r <- x$regions
   for (name in names(x)) {
@@ -179,7 +183,7 @@ on_axis <- function(x) {
     x[[name]] <- if (name %in% c("arcs", "junctions"))
       arcs_on_axis(x[[name]], r) else frame_on_axis(x[[name]], r)
   }
-  structure(x, class = cls, on_axis = TRUE)
+  structure(joined(x, families), class = cls, on_axis = TRUE)
 }
 
 is_on_axis <- function(d) isTRUE(attr(d, "on_axis"))

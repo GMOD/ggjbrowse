@@ -53,7 +53,11 @@ test_that("a data frame as a geom's data stands in for the table it draws", {
     assembly = extdata("volvox.fa"))
   blocks <- ggjbrowse:::read_blocks(s)
   forward <- s$reads[s$reads$strand == 1, ]
-  drawn <- layer_data(ggplot(s) + geom_jbrowse_reads(data = forward))
+  expect_error(geom_jbrowse_reads(data = forward),
+    class = "ggjbrowse_parent_data")
+  kept <- s
+  kept$reads <- forward
+  drawn <- layer_data(ggplot(kept) + geom_jbrowse_reads())
   expect_equal(nrow(drawn), sum(blocks$read %in% forward$read))
   skips <- layer_data(ggplot(s) + geom_jbrowse_skips(data = s$gaps))
   expect_equal(nrow(skips), sum(s$gaps$type == "skip"))
@@ -63,7 +67,8 @@ test_that("a data frame as a geom's data stands in for the table it draws", {
   expect_equal(nrow(layer_data(ggplot(s) +
     geom_jbrowse_junctions(data = s$junctions[1, ]))), 48)
   expect_error(geom_jbrowse_letters(data = s$mismatches), "several")
-  expect_error(ggplot_build(ggplot() + geom_jbrowse_reads(data = forward)),
+  expect_error(ggplot_build(ggplot() +
+    geom_jbrowse_mismatches(data = common)),
     "replaces one of the plot's result's tables")
 })
 
@@ -106,7 +111,8 @@ test_that("a feature track's boxes take any feature column", {
   built <- ggplot_build(ggplot(g) + geom_jbrowse_glyphs(aes(fill = type)))
   boxes <- built$data[[3]]
   expect_equal(nrow(boxes), nrow(g$rects))
-  expect_equal(length(unique(boxes$fill)), length(unique(g$rects$type)))
+  expect_equal(length(unique(boxes$fill)),
+    length(unique(on_axis(g)$rects$type)))
 })
 
 test_that("a multi-sample VCF reads as the display paints its genotypes", {
@@ -116,7 +122,8 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
   expect_equal(nrow(v$rows), 39)
   expect_equal(levels(v$cells$row), v$rows$name)
   expect_false("0/0" %in% v$cells$genotype)
-  expect_equal(v$cells$start, v$variants$start[v$cells$variant])
+  expect_equal(on_axis(v)$cells$start,
+    of(v$cells, v$variants, "variant")$start)
   hom <- unique(v$cells$color[v$cells$genotype == "1/1"])
   expect_equal(as.character(hom), as.character(v$variants$color[1]))
   for (layout in c("genomic", "columns")) {
@@ -180,8 +187,9 @@ test_that("the multi-layer geoms take any column of their tables", {
   expect_true(all(labelled$labels$feature >= 1))
   sub <- labelled$labels[!is.na(labelled$labels$subfeature), ]
   expect_gt(nrow(sub), 0)
-  expect_equal(labelled$subfeatures$name[sub$subfeature], sub$text)
-  expect_equal(labelled$subfeatures$feature[sub$subfeature], sub$feature)
+  parent <- of(sub, labelled$subfeatures, "subfeature")
+  expect_equal(parent$name, sub$text)
+  expect_equal(parent$feature, sub$feature)
 })
 
 test_that("the junction band keys the strands its arcs are drawn in", {

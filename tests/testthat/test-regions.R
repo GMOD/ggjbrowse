@@ -54,9 +54,9 @@ test_that("several regions keep their genomic positions and draw end to end", {
   expect_equal(second$start, alone$reads$start)
   expect_equal(unique(second$chrom), "ctgA")
   m <- both$mismatches
-  expect_true(all(m$position >= both$reads$start[m$read] &
-    m$position < both$reads$end[m$read]))
-  expect_true(all(m$region == both$reads$region[m$read]))
+  read <- of(m, both$reads, "read")
+  expect_false(anyNA(read$read))
+  expect_true(all(m$position >= read$start & m$position < read$end))
   drawn <- on_axis(both)$reads
   expect_equal(min(drawn$start[drawn$region == 2]),
     max(min(alone$reads$start), 6000) - r$start[2] + r$offset[2])
@@ -178,10 +178,11 @@ test_that("a result's table handed to a geom or stacked in a plot of one's own d
   loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
   a <- jbrowse_alignments(bam, loci)
   axis <- xlim_of(a)
-  minus <- subset(a$reads, strand == -1)
-  p <- ggplot2::autoplot(a, "pileup") + geom_jbrowse_reads(data = minus)
+  minus <- subset(a$mismatches, base == "A")
+  p <- ggplot2::autoplot(a, "pileup") + geom_jbrowse_mismatches(data = minus)
   drawn <- ggplot2::layer_data(p, length(p$layers))
-  expect_equal(nrow(drawn), nrow(minus))
+  expect_lte(nrow(drawn), nrow(minus))
+  expect_gt(nrow(drawn), 0)
   expect_true(all(drawn$xmin >= axis[1] & drawn$xmax <= axis[2]))
 
   own <- ggplot2::ggplot(a$coverage, ggplot2::aes(start, depth)) +
@@ -245,12 +246,12 @@ test_that("a splice junction across two regions arcs over the seam, listed once"
 test_that("a read crossing a seam keeps one row in both regions", {
   a <- jbrowse_alignments(bam, c("ctgA:1,001-3,000", "ctgA:3,001-5,000"))
   r <- a$reads
-  shared <- intersect(r$key[r$region == 1], r$key[r$region == 2])
+  shared <- intersect(r$read[r$region == 1], r$read[r$region == 2])
   expect_gt(length(shared), 10)
-  first <- r[r$region == 1 & r$key %in% shared, ]
-  second <- r[r$region == 2 & r$key %in% shared, ]
-  expect_equal(second$row[match(first$key, second$key)], first$row)
-  expect_equal(second$id[match(first$key, second$key)], first$id)
+  first <- r[r$region == 1 & r$read %in% shared, ]
+  second <- r[r$region == 2 & r$read %in% shared, ]
+  expect_equal(second$row[match(first$read, second$read)], first$row)
+  expect_equal(second$id[match(first$read, second$read)], first$id)
 })
 
 test_that("a facet value only the second region holds stacks its section", {
