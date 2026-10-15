@@ -7,13 +7,15 @@
 # result and writes the markdown and its figures.
 #
 #   Rscript scripts/tutorials.R [name ...]   expand and knit
-#   Rscript scripts/tutorials.R --expand     write the expanded .Rmd only
+#   Rscript scripts/tutorials.R --expand     write the expanded .Rmd to a
+#                                            temporary file and print its path
 #   Rscript scripts/tutorials.R --check      knit to a temporary directory and
 #                                            fail if the markdown differs
 #   Rscript scripts/tutorials.R --status     list website commits since the pin
 #
 # The website pages come from the checkout $JBROWSE_COMPONENTS names (default
-# ../jbrowse-components), or from GitHub when that checkout lacks the pin.
+# ~/src/jbrowse-components, as scripts/gallery.R has it), or from GitHub when
+# that checkout lacks the pin. --status needs the checkout.
 #
 # A directive is YAML inside the comment:
 #
@@ -24,6 +26,17 @@
 #   keep: [MethylDackel extract]   # keeps a block the defaults would drop
 #   replace:                       # each `from` must occur exactly once
 #     - {from: JBrowse makes, to: The engine makes}
+#   -->
+#
+# A directive with `assign` writes an R chunk instead, each variable taking a
+# value out of the track config whose trackId starts its path, so the R code
+# draws with the settings the website's track loads:
+#
+#   <!-- jbrowse
+#   chunk: track                   # the chunk's label
+#   assign:
+#     gff: dtu_muscle_vs_liver.uri
+#     display: dtu_muscle_vs_liver.displayDefaults
 #   -->
 #
 # Every `drop`, `keep` and `replace` must match, so a website edit that removes
@@ -40,7 +53,7 @@ OUT_DIR <- file.path("docs", "tutorials")
 pin <- function() trimws(readLines(file.path(SRC_DIR, "JBROWSE_COMPONENTS"), 1))
 
 checkout <- function() {
-  Sys.getenv("JBROWSE_COMPONENTS", file.path("..", "jbrowse-components"))
+  Sys.getenv("JBROWSE_COMPONENTS", path.expand("~/src/jbrowse-components"))
 }
 
 website_cache <- new.env()
@@ -310,6 +323,80 @@ resolve_anchors <- function(text) {
   text
 }
 
+# The website tutorial's JSON fences that configure a track, by trackId
+track_configs <- function(tutorial) {
+  blocks <- parse_blocks(split_frontmatter(tutorial_lines(tutorial))$body)
+  configs <- list()
+  for (b in blocks) {
+    if (b$kind != "fence" || !grepl("^json", b$info)) next
+    config <- tryCatch(jsonlite::fromJSON(paste(b$lines[-c(1,
+      length(b$lines))], collapse = "\n"), simplifyDataFrame = FALSE,
+      simplifyMatrix = FALSE), error = function(e) NULL)
+    id <- config$trackId
+    if (is.null(id)) next
+    if (!is.null(configs[[id]])) {
+      stop(sprintf("the website tutorial configures trackId %s twice", id),
+        call. = FALSE)
+    }
+    configs[[id]] <- config
+  }
+  configs
+}
+
+# An R expression that evaluates to `x`, indented to sit `indent` spaces in
+# and wrapped one entry a line when it overruns the line
+r_literal <- function(x, indent = 0) {
+  key <- function(k) if (make.names(k) == k) k else sprintf("`%s`", k)
+  scalar <- function(v) {
+    if (is.character(v)) encodeString(v, quote = "\"")
+    else if (is.logical(v)) as.character(v)
+    else format(v, digits = 15)
+  }
+  if (is.null(x)) return("NULL")
+  if (is.atomic(x) && is.null(names(x))) {
+    items <- vapply(x, scalar, "")
+    if (length(items) == 1) return(items)
+  } else {
+    if (is.atomic(x)) x <- as.list(x)
+    items <- vapply(seq_along(x), function(i) {
+      value <- r_literal(x[[i]], indent + 2)
+      if (is.null(names(x)) || !nzchar(names(x)[i])) value
+      else paste(key(names(x)[i]), "=", value)
+    }, "")
+  }
+  open <- if (is.list(x)) "list(" else "c("
+  flat <- paste0(open, paste(items, collapse = ", "), ")")
+  if (indent + nchar(flat) <= 78 && !any(grepl("\n", items))) return(flat)
+  pad <- strrep(" ", indent + 2)
+  paste0(open, "\n", pad, paste(items, collapse = paste0(",\n", pad)), "\n",
+    strrep(" ", indent), ")")
+}
+
+# A chunk assigning R variables from the website's track configs, each value
+# named by its trackId and a path into the config: `gff: dtu.uri`
+assign_chunk <- function(spec, tutorial) {
+  configs <- track_configs(tutorial)
+  lines <- vapply(names(spec[["assign"]]), function(name) {
+    path <- strsplit(spec[["assign"]][[name]], ".", fixed = TRUE)[[1]]
+    value <- configs[[path[1]]]
+    if (is.null(value)) {
+      stop(sprintf("no track config with trackId %s in the website tutorial",
+        path[1]), call. = FALSE)
+    }
+    for (step in path[-1]) {
+      value <- value[[step]]
+      if (is.null(value)) {
+        stop(sprintf("track %s has no %s", path[1], spec[["assign"]][[name]]),
+          call. = FALSE)
+      }
+    }
+    paste(name, "<-", r_literal(value, 0))
+  }, "")
+  header <- paste0("```{r", if (!is.null(spec[["chunk"]]))
+    paste0(" ", spec[["chunk"]]), "}")
+  paste(c(header, lines, "```"), collapse = "\n")
+}
+
 expand <- function(name) {
   source_file <- file.path(SRC_DIR, paste0(name, ".Rmd"))
   doc <- split_frontmatter(readLines(source_file, encoding = "UTF-8"))
@@ -324,8 +411,9 @@ expand <- function(name) {
       yaml_text <- sub("^<!-- jbrowse", "", paste(lines[i:j], collapse = "\n"))
       spec <- yaml::yaml.load(sub("-->\\s*$", "", yaml_text))
       if (is.character(spec)) spec <- list(section = spec)
-      out <- c(out, pull(spec, spec[["tutorial"]] %||% tutorial,
-        spec[["level"]] %||% 0))
+      from <- spec[["tutorial"]] %||% tutorial
+      out <- c(out, if (!is.null(spec[["assign"]])) assign_chunk(spec, from)
+        else pull(spec, from, spec[["level"]] %||% 0))
       i <- j + 1
     } else {
       out <- c(out, lines[i])
@@ -388,9 +476,9 @@ main <- function(args) {
     message(name)
     rmd <- expand(name)
     if ("--expand" %in% args) {
-      dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
-      writeLines(rmd, file.path(OUT_DIR, paste0(name, ".Rmd")),
-        useBytes = TRUE)
+      expanded <- file.path(tempdir(), paste0(name, ".Rmd"))
+      writeLines(rmd, expanded, useBytes = TRUE)
+      message("  ", expanded)
       next
     }
     if ("--check" %in% args) {

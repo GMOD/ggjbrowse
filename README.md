@@ -120,6 +120,10 @@ Whole analyses done in R, each on the data and question of a
 - [Methylation (long-read) in R](docs/tutorials/methylation.md): HG002
   nanopore 5mC split by haplotype at the _SNRPN_ imprinting center, checked
   against modkit and smoothed across the imprinted domain
+- [Differential transcript usage in R](docs/tutorials/dtu.md): satuRn on
+  ENCODE muscle and liver quantifications, written into GENCODE and drawn over
+  each tissue's coverage, checked at the exon that tells _ATP5F1C_'s isoforms
+  apart
 
 ## Alignments
 

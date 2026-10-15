@@ -1,0 +1,405 @@
+---
+title: Differential transcript usage in R
+jbrowse_tutorial: dtu
+---
+
+Differential transcript usage tests whether a gene changes which of its isoforms
+it expresses between two conditions, here skeletal muscle and liver. We'll do
+the whole analysis in R: read ENCODE's quantifications, test usage with satuRn,
+write each transcript's statistic into the GENCODE GFF3, and draw _ATP5F1C_'s
+isoforms colored by it over each tissue's RNA-seq coverage with ggjbrowse.
+
+- **In:** RSEM per-transcript quantifications, and the GENCODE GFF3 they were
+  made against.
+- **Out:** a satuRn results table, a GFF3 that colors each isoform by its usage
+  change, and ggplot figures of both.
+- **The check:** each tissue's coverage over the exon that tells the isoforms
+  apart, which satuRn never saw.
+
+The first steps read 250 MB of quantifications and fit satuRn to every
+transcript, a few minutes' work, so this page shows that code without running
+it. From [Reading the statistics back](#reading-the-statistics-back) on, every
+chunk runs, on the GFF3 the same code wrote from the same run.
+
+The same analysis in the JBrowse app is the
+[differential transcript usage tutorial](https://jbrowse.org/jb2/docs/tutorials/dtu/).
+
+## Prerequisites
+
+In R, from CRAN and Bioconductor:
+
+```r
+install.packages(c("remotes", "BiocManager", "ggplot2", "dplyr", "tidyr",
+  "readr"))
+BiocManager::install(c("satuRn", "SummarizedExperiment", "edgeR", "limma"))
+remotes::install_github("GMOD/ggjbrowse")
+```
+
+htslib's `bgzip` and `tabix` index the GFF3 the analysis writes.
+
+<!-- jbrowse
+section: Where the data comes from
+replace:
+  - from: "The [build script](#reproduce-it-end-to-end) fetches these files, so there is\nnothing to download by hand."
+    to: "The code below reads each of these files by URL."
+-->
+
+## Building the matrices
+
+We'll start by reading the eight RSEM tables into two transcript-by-sample
+matrices:
+
+- **counts** from `expected_count`, which satuRn models
+- **TPM**, which gives each transcript's isoform fraction, since a count-based
+  fraction leans toward long isoforms
+- **only `ENST` rows**: RSEM's tables carry the ERCC and phiX spike-ins too,
+  which have no gene to take a share of
+
+```{r matrices, eval = FALSE}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(SummarizedExperiment)
+
+samples <- tribble(
+  ~tissue,  ~donor,        ~file,
+  "muscle", "ENCDO271OUW", "ENCFF353NZM",
+  "muscle", "ENCDO793LXB", "ENCFF172SLW",
+  "muscle", "ENCDO845WKR", "ENCFF140GJI",
+  "muscle", "ENCDO451RUA", "ENCFF576DOG",
+  "liver",  "ENCDO575WHY", "ENCFF996LRE",
+  "liver",  "ENCDO793LXB", "ENCFF641ADT",
+  "liver",  "ENCDO575EGL", "ENCFF392VYD",
+  "liver",  "ENCDO912EIY", "ENCFF383KWZ") |>
+  mutate(sample = paste(tissue, donor, sep = "_"))
+
+encode <- function(accession) sprintf(
+  "https://www.encodeproject.org/files/%s/@@download/%s.tsv", accession,
+  accession)
+
+quant <- bind_rows(lapply(seq_len(nrow(samples)), function(i)
+  read_tsv(encode(samples$file[i]), show_col_types = FALSE,
+    col_select = c(transcript_id, gene_id, expected_count, TPM)) |>
+    filter(startsWith(transcript_id, "ENST")) |>
+    mutate(sample = samples$sample[i])))
+
+as_matrix <- function(column) {
+  wide <- quant |>
+    select(transcript_id, sample, value = all_of(column)) |>
+    pivot_wider(names_from = sample, values_from = value, values_fill = 0)
+  m <- as.matrix(wide[samples$sample])
+  rownames(m) <- wide$transcript_id
+  m
+}
+cnt <- round(as_matrix("expected_count"))
+tpm <- as_matrix("TPM")
+txinfo <- distinct(quant, isoform_id = transcript_id, gene_id) |>
+  as.data.frame()
+rownames(txinfo) <- txinfo$isoform_id
+txinfo <- txinfo[rownames(cnt), ]
+coldata <- data.frame(tissue = samples$tissue, row.names = samples$sample)
+```
+
+ENCDO793LXB gave both a muscle and a liver sample, which is why each sample
+takes its donor's name.
+
+<!-- jbrowse
+section: Building the GFF3
+title: Testing usage with satuRn
+only:
+  - "**Test usage.**"
+  - "keep <- edgeR::filterByExpr"
+  - "`res` holds, per transcript"
+replace:
+  - from: "**Test usage.** [satuRn]"
+    to: "[satuRn]"
+  - from: "The script computes each transcript's isoform fraction, its\nshare of the gene's expression, from the TPM matrix.[^tpm]"
+    to: "We'll compute each transcript's isoform fraction, its\nshare of the gene's expression, from the TPM matrix."
+-->
+
+The isoform-fraction change, `dIF`, is the mean fraction in muscle minus the
+mean in liver:
+
+```{r fractions, eval = FALSE}
+fraction <- as.data.frame(tpm[rownames(cnt), ]) |>
+  mutate(isoform_id = rownames(cnt), gene_id = txinfo$gene_id) |>
+  pivot_longer(all_of(samples$sample), names_to = "sample",
+    values_to = "tpm") |>
+  group_by(gene_id, sample) |>
+  mutate(fraction = tpm / sum(tpm)) |>
+  ungroup() |>
+  left_join(select(samples, sample, tissue), by = "sample") |>
+  group_by(isoform_id, tissue) |>
+  summarise(fraction = mean(fraction, na.rm = TRUE), .groups = "drop") |>
+  pivot_wider(names_from = tissue, values_from = fraction,
+    names_prefix = "IF_")
+
+results <- data.frame(isoform_id = rownames(res),
+  regular_FDR = res$regular_FDR) |>
+  left_join(fraction, by = "isoform_id") |>
+  mutate(dIF = IF_muscle - IF_liver)
+```
+
+satuRn's empirical FDR assumes most tests are null, which a contrast between
+two tissues breaks, so the calls below gate on its regular FDR.
+
+## Writing the statistics into GENCODE
+
+<!-- jbrowse
+section: Building the GFF3
+title: false
+only:
+  - "**Write the statistics into GENCODE.**"
+replace:
+  - from: "**Write the statistics into GENCODE.** The annotation"
+    to: "The annotation"
+-->
+
+We'll append each transcript's numbers to its row of the GENCODE v29 GFF3, and
+two summaries to the row of each gene with a called transcript:
+
+- **`dif`, `fdr` and `dtu`** on every tested transcript, `dtu` being `muscle`,
+  `liver` or `ns`
+- **`dif_called`** on the called transcripts only: an FDR under 0.05 and a
+  fraction change over 0.1
+- **`dtu_transcripts` and `dtu_top_dif`** on the gene: how many isoforms it
+  calls, and the largest change among them
+- **`na_matches = "never"`** in the joins, since every row but a transcript has
+  no `transcript_id` to match on
+
+```{r gff3, eval = FALSE}
+gff_columns <- c("seqid", "source", "type", "start", "end", "score",
+  "strand", "phase", "attributes")
+attribute <- function(attributes, key) {
+  value <- regmatches(attributes,
+    regexec(paste0("(?:^|;)", key, "=([^;]*)"), attributes, perl = TRUE))
+  vapply(value, function(m) if (length(m)) m[2] else NA_character_, "")
+}
+
+calls <- results |>
+  filter(!is.na(regular_FDR), !is.na(dIF)) |>
+  mutate(dtu = case_when(
+    regular_FDR < 0.05 & dIF > 0.1 ~ "muscle",
+    regular_FDR < 0.05 & dIF < -0.1 ~ "liver",
+    .default = "ns"))
+
+gencode <- read_tsv(paste0("https://ftp.ebi.ac.uk/pub/databases/gencode/",
+  "Gencode_human/release_29/gencode.v29.annotation.gff3.gz"),
+  comment = "#", col_names = gff_columns,
+  col_types = cols(.default = "c")) |>
+  mutate(transcript_id = if_else(type == "transcript",
+    attribute(attributes, "transcript_id"), NA)) |>
+  left_join(calls, by = c(transcript_id = "isoform_id"),
+    na_matches = "never")
+
+per_gene <- gencode |>
+  filter(type == "transcript", dtu != "ns") |>
+  group_by(gene_id = attribute(attributes, "Parent")) |>
+  summarise(dtu_transcripts = n(), dtu_top_dif = dIF[which.max(abs(dIF))])
+
+annotated <- gencode |>
+  mutate(id = attribute(attributes, "ID")) |>
+  left_join(per_gene, by = c(id = "gene_id"), na_matches = "never") |>
+  mutate(attributes = paste0(attributes,
+    if_else(is.na(dIF), "", sprintf(";dif=%.3f;fdr=%.3g;dtu=%s", dIF,
+      regular_FDR, dtu)),
+    if_else(!is.na(dtu) & dtu != "ns", sprintf(";dif_called=%.3f", dIF), ""),
+    if_else(type == "gene" & !is.na(dtu_transcripts),
+      sprintf(";dtu_transcripts=%d;dtu_top_dif=%.3f", dtu_transcripts,
+        dtu_top_dif), ""))) |>
+  arrange(seqid, as.integer(start), as.integer(end)) |>
+  select(all_of(gff_columns))
+
+write_lines("##gff-version 3", "dtu_muscle_vs_liver.gff3")
+write_tsv(annotated, "dtu_muscle_vs_liver.gff3", append = TRUE,
+  col_names = FALSE, escape = "none")
+```
+
+<!-- jbrowse
+section: Building the GFF3
+title: false
+only:
+  - "The rows come out in coordinate order"
+  - "bgzip -f dtu_muscle_vs_liver.gff3"
+-->
+
+<!-- jbrowse
+section: satuRn's statistics in the GFF3 attribute column
+level: -1
+-->
+
+## Reading the statistics back
+
+From here on every chunk runs. The website's build script published the GFF3
+this code writes, with a few more attributes and only the genes with a called
+transcript, and `readr` reads it back as a table:
+
+```{r statistics}
+library(ggjbrowse)
+library(ggplot2)
+library(dplyr)
+library(readr)
+
+gff_columns <- c("seqid", "source", "type", "start", "end", "score",
+  "strand", "phase", "attributes")
+attribute <- function(attributes, key) {
+  value <- regmatches(attributes,
+    regexec(paste0("(?:^|;)", key, "=([^;]*)"), attributes, perl = TRUE))
+  vapply(value, function(m) if (length(m)) m[2] else NA_character_, "")
+}
+
+published <- "https://jbrowse.org/demos/dtu/dtu_muscle_vs_liver.gff3.gz"
+rows <- read_tsv(published, comment = "#", col_names = gff_columns,
+  show_col_types = FALSE)
+
+transcripts <- rows |>
+  filter(type == "transcript") |>
+  transmute(gene = attribute(attributes, "gene_name"),
+    transcript = attribute(attributes, "transcript_name"),
+    dif = as.numeric(attribute(attributes, "dif")),
+    fdr = as.numeric(attribute(attributes, "fdr")),
+    muscle = as.numeric(attribute(attributes, "if_muscle")),
+    liver = as.numeric(attribute(attributes, "if_liver")),
+    dtu = attribute(attributes, "dtu"))
+count(transcripts, dtu)
+```
+
+_ATP5F1C_, an ATP synthase subunit, has one isoform called for each tissue:
+
+```{r atp5f1c}
+atp5f1c <- filter(transcripts, gene == "ATP5F1C", !is.na(dif))
+atp5f1c
+```
+
+Each isoform's fraction in the two tissues, from the same table:
+
+```{r fractions-plot, fig.height = 3.5, fig.width = 7, fig.cap = "ATP5F1C's isoform fractions in muscle and liver: ATP5F1C-201 dominates muscle, and ATP5F1C-202 takes the largest share in liver"}
+atp5f1c |>
+  tidyr::pivot_longer(c(muscle, liver), names_to = "tissue",
+    values_to = "fraction") |>
+  ggplot(aes(fraction, transcript, fill = tissue)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = c(liver = "#2370cc", muscle = "#c63335")) +
+  labs(x = "isoform fraction", y = NULL, fill = NULL)
+```
+
+<!-- jbrowse
+section: Coloring each isoform by its usage change
+title: Coloring each isoform by its usage change
+only:
+  - "In grammar-of-graphics terms, `color` is a color scale"
+  - "- The key lists every interval"
+drop_lines:
+  - "Clicking an isoform opens its numbers"
+-->
+
+The track config's `uri` and `displayDefaults` become R values as they stand,
+and `jbrowse_features()` reads the GFF3 with them:
+
+<!-- jbrowse
+chunk: track
+assign:
+  gff: dtu_muscle_vs_liver.uri
+  display: dtu_muscle_vs_liver.displayDefaults
+-->
+
+```{r genes, fig.height = 4, fig.cap = "ATP5F1C's GENCODE transcripts colored by the isoform-fraction change satuRn measured: ATP5F1C-201 in muscle's red, ATP5F1C-202 in liver's blue, and the uncalled isoforms grey"}
+locus <- "chr10:7,787,600-7,812,400"
+genes <- jbrowse_features(gff, locus, display = display, width = 1200)
+autoplot(genes)
+```
+
+<!-- jbrowse
+section: Coloring each isoform by its usage change
+title: Coverage as the check
+only:
+  - "Add the four coverage tracks below"
+replace:
+  - from: "Add the four coverage tracks below and open them with the transcript track at\n`chr10:7,787,600-7,812,400`, the whole of _ATP5F1C_, an ATP synthase subunit."
+    to: "We'll read each tissue's RNA-seq coverage over the same window,\n`chr10:7,787,600-7,812,400`, the whole of _ATP5F1C_."
+-->
+
+`jbrowse_wiggle()` reads the two plus-strand bigWigs as one track with a row
+per tissue on a shared axis, and `jbrowse_stack()` puts it under the
+transcripts:
+
+<!-- jbrowse
+chunk: coverage-files
+assign:
+  liver_plus: liver_plus.uri
+  muscle_plus: muscle_plus.uri
+-->
+
+```{r coverage}
+coverage <- list(type = "MultiWiggleAdapter", subadapters = list(
+  list(type = "BigWigAdapter", name = "liver", color = "#2370cc",
+    bigWigLocation = list(uri = liver_plus)),
+  list(type = "BigWigAdapter", name = "muscle", color = "#c63335",
+    bigWigLocation = list(uri = muscle_plus))))
+fig <- jbrowse_stack(genes,
+  jbrowse_wiggle(coverage, locus, display = list(mark = "bar"), width = 1200))
+```
+
+```{r coverage-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "ATP5F1C's transcripts colored by usage change over liver and muscle plus-strand coverage: one short exon near the 3' end has liver reads and almost no muscle reads"}
+fig
+```
+
+The exon that tells the two called isoforms apart is one ATP5F1C-202 has and
+ATP5F1C-201 skips. An anti-join on overlapping coordinates finds it among the
+GFF3's exon rows:
+
+```{r cassette}
+exons <- rows |>
+  filter(type == "exon") |>
+  mutate(transcript = attribute(attributes, "transcript_name"))
+skips <- filter(exons, transcript == "ATP5F1C-201")
+cassette <- exons |>
+  filter(transcript == "ATP5F1C-202") |>
+  anti_join(skips, by = join_by(overlaps(start, end, start, end)))
+cassette |> select(transcript, start, end)
+```
+
+We'll compare each tissue's depth over it with the exons on either side, which
+both isoforms share:
+
+```{r depth}
+flanks <- bind_rows(
+  skips |> filter(end < cassette$start) |> slice_max(end),
+  skips |> filter(start > cassette$end) |> slice_min(start))
+windows <- bind_rows(
+  mutate(select(flanks, start, end), exon = c("upstream", "downstream")),
+  mutate(select(cassette, start, end), exon = "cassette"))
+
+depth <- jbrowse_wiggle(coverage, "chr10", windows$start - 1, windows$end,
+  width = sum(windows$end - windows$start + 1))
+depth$bins |>
+  mutate(exon = windows$exon[.region]) |>
+  group_by(tissue = source, exon) |>
+  summarise(depth = weighted.mean(score, end - start), .groups = "drop") |>
+  tidyr::pivot_wider(names_from = exon, values_from = depth)
+```
+
+Liver covers the cassette exon as deeply as its neighbours, and muscle, whose
+dominant isoform skips it, barely covers it at all.
+
+## Your own data
+
+- Swap the `samples` table for your own quantifications. Any table with
+  per-transcript counts and TPM works once its columns are renamed to
+  `transcript_id`, `gene_id`, `expected_count` and `TPM`.
+- Join against the GTF or GFF3 release your quantifier used, named on each
+  ENCODE file page as its genome annotation.
+- `formula` and the contrast name your own groups; `coldata` holds them.
+- Point `jbrowse_features()` at your bgzipped, indexed GFF3. The `display`
+  list colors any numeric attribute through `field`.
+
+## See also
+
+- [Differential transcript usage](https://jbrowse.org/jb2/docs/tutorials/dtu/),
+  the same analysis in the JBrowse app
+- [Methylation (bisulfite) in R](bisulfite.md)
+- [Methylation (long-read) in R](methylation.md)
+
+<!-- jbrowse
+section: Citations
+-->
