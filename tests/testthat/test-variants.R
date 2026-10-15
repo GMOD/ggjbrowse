@@ -1,9 +1,9 @@
 extdata <- function(f) system.file("extdata", f, package = "ggjbrowse")
 people <- extdata("1000g_dcst2.vcf.gz")
 dcst2 <- "1:155,000,001-155,050,000"
-read_people <- function(display = NULL) {
+read_people <- function(display = NULL, width = 1500) {
   jbrowse_variants(people, dcst2, samples = extdata("1000g_dcst2_samples.tsv"),
-    display = display)
+    display = display, width = width)
 }
 
 layer_of <- function(p, geom) {
@@ -65,17 +65,18 @@ test_that("under bands a forest draws a clade per band, and a whole tree none", 
 })
 
 test_that("zoomed out, records sharing a pixel fade as the display fades them", {
-  v <- read_people()
-  alpha <- function(...) {
-    p <- ggplot2::ggplot(v) + geom_jbrowse_genotypes(...)
+  alpha <- function(width, ...) {
+    p <- ggplot2::ggplot(read_people(width = width)) +
+      geom_jbrowse_genotypes(...)
     ggplot2::layer_data(p)$alpha
   }
-  far <- alpha(width = 300)
+  far <- alpha(300)
   expect_lt(min(far), 1)
   expect_gt(min(far), 0)
-  expect_gt(mean(alpha(width = 1e5)), mean(far))
-  expect_true(all(alpha(width = 300, fade = FALSE) == 1))
-  expect_true(all(alpha(width = 300, layout = "columns") == 1))
+  expect_gt(mean(alpha(1e5)), mean(far))
+  expect_true(all(alpha(300, fade = FALSE) == 1))
+  expect_true(all(alpha(300, layout = "columns") == 1))
+  v <- read_people()
   v$variants <- v$variants[c(1, 1), ]
   v$variants$end[1] <- v$variants$start[1] + 30000
   expect_equal(density_alpha(v$variants, 50)[1], 1)

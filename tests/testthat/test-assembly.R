@@ -33,7 +33,8 @@ test_that("a CRAM decodes against the assembly's sequence, and the sequence band
   bam <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,534,500")
   expect_equal(cram$reads$start, bam$reads$start)
-  expect_equal(cram$reference$chrom, "chr12")
+  expect_equal(cram$sequence, jbrowse_sequence(extdata("gapdh_hg38.fa.gz"),
+    "chr12:6,534,201-6,534,500"))
   expect_equal(jbrowse_sequence(hg38, "12:6,534,301-6,534,320"),
     jbrowse_sequence(extdata("gapdh_hg38.fa.gz"), "chr12:6,534,301-6,534,320"))
   expect_s3_class(ggplot2::ggplot_build(autoplot(cram, "sequence")),

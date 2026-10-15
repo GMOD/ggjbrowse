@@ -40,7 +40,8 @@ A \code{\link[=jbrowse_features]{jbrowse_features()}} result also holds \code{gl
 \code{bp_per_px}, the layout's pixel sizes; a \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result
 \code{rendering}, \code{origin}, \code{row_layout}, \code{height} and \code{bp_per_px}; a
 \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result \code{read_pitch}, \code{glyph}, \code{arc_span_max} and
-\code{reference}; and a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result the \code{tree} a caller sets.
+\code{sequence}, each region's reference bases where \code{assembly} has a sequence,
+which the sequence band draws; and a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result the \code{tree} a caller sets.
 }
 
 \section{Errors}{

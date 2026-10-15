@@ -179,17 +179,15 @@ depth_transform <- function(scale) {
 
 # The reference under the pileup, each base a lettered cell in its color
 sequence_plot <- function(x, o) {
-  if (is.null(x$reference)) {
+  if (is.null(x$sequence)) {
     stop("the sequence band draws the reference's bases: read the alignments ",
       "with `assembly =`", call. = FALSE)
   }
   xlim <- xlim_of(x)
   r <- x$regions
-  offset <- r$offset %||% r$start
   bases <- do.call(rbind, lapply(seq_len(nrow(r)), function(i) {
-    base <- toupper(strsplit(jbrowse_sequence(x$reference$assembly,
-      r[i, c("chrom", "start", "end")]), "")[[1]])
-    data.frame(position = offset[i] + seq_along(base) - 1, base = base)
+    base <- toupper(strsplit(x$sequence[i] %|NA|% "", "")[[1]])
+    data.frame(position = r$offset[i] + seq_along(base) - 1, base = base)
   }))
   bases$cell <- max(1, 1 / px_of(x, o$width))
   bases$tint <- ggplot2::alpha(base_colors()[bases$base], 0.35)

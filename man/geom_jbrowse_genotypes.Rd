@@ -44,8 +44,8 @@ any other column of the cells table to draw it your own way.
 \details{
 Zoomed out, records too short to see share pixels, and the display fades
 each by how many share its pixels, so a row shades by the share of its
-records that are alt rather than filling wherever any is. The engine
-gives each record's fade at the figure's pixels per base.
+records that are alt rather than filling wherever any is. The reader
+gives each record that fade as its \code{opacity}, at the \code{width} it read at.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")

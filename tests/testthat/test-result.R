@@ -126,3 +126,35 @@ test_that("assigning sources drops the marks of the sources left out", {
   expect_setequal(unique(w$marks$source), "rep2")
   expect_setequal(unique(w$bins$source), "rep2")
 })
+
+test_that("a saved result redraws after its files are gone", {
+  dir <- withr::local_tempdir()
+  copy <- function(f) {
+    file.copy(extdata(f), dir)
+    file.path(dir, f)
+  }
+  bam <- copy("volvox-sorted.bam")
+  copy("volvox-sorted.bam.bai")
+  fa <- copy("volvox.fa")
+  copy("volvox.fa.fai")
+  vcf <- copy("1000g_dcst2.vcf.gz")
+  copy("1000g_dcst2.vcf.gz.tbi")
+  a <- jbrowse_alignments(bam, c("ctgA:1,001-1,100", "ctgA:2,001-2,050"),
+    assembly = fa)
+  expect_equal(nchar(a$sequence), c(100, 50))
+  expect_equal(a$sequence[1], jbrowse_sequence(fa, "ctgA:1,001-1,100"))
+  v <- jbrowse_variants(vcf, "1:155,000,001-155,050,000", width = 300)
+  expect_true(all(v$variants$opacity > 0 & v$variants$opacity <= 1))
+  expect_lt(min(v$variants$opacity), 1)
+  saved <- file.path(dir, "saved.rds")
+  saveRDS(list(a = a, v = v), saved)
+  unlink(c(bam, fa, vcf, paste0(c(bam, fa, vcf), c(".bai", ".fai", ".tbi"))))
+  jbrowse_reset()
+  back <- readRDS(saved)
+  bases <- ggplot2::layer_data(ggplot2::autoplot(back$a, "sequence"), 1)
+  expect_equal(nrow(bases), 150)
+  expect_s3_class(ggplot2::ggplotGrob(ggplot2::autoplot(back$a)), "gtable")
+  cells <- ggplot2::layer_data(ggplot2::autoplot(back$v), 2)
+  expect_setequal(unique(cells$alpha), unique(of(on_axis(v)$cells,
+    v$variants, "variant")$opacity))
+})

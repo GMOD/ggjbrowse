@@ -211,7 +211,17 @@ jbrowse_alignments <- function(file, region = NULL, display = NULL,
   x$junctions$region <- junction_region(x$junctions,
     unlist(t$readAs$refName), regions)
   x$junctions$refName <- NULL
-  in_one_call(x, regions, t, width)
+  x <- in_one_call(x, regions, t, width)
+  x$sequence <- if (has_sequence(assembly)) region_bases(assembly, regions)
+  x
+}
+
+# Each region's reference bases, NA for a region the assembly cannot read,
+# so the sequence band draws from the result alone
+region_bases <- function(assembly, regions) {
+  vapply(seq_len(nrow(regions)), function(i) tryCatch(
+    jbrowse_sequence(assembly, regions[i, c("chrom", "start", "end")]),
+    error = function(e) NA_character_), "")
 }
 
 alignments_result <- function(t, assembly) {
@@ -283,8 +293,6 @@ alignments_result <- function(t, assembly) {
         junctions = junction_key, interbase = interbase_key),
       ramps = ramp_frames(t$ramps), y_scale = y_scale(t$coverageScale),
       fields = list(),
-      reference = if (has_sequence(assembly))
-        list(assembly = assembly, chrom = t$readAs$originalRefName[[1]]),
       read_pitch = t$readPitch, glyph = t$glyph, arc_span_max = t$arcSpanMax),
     primary = "reads",
     class = c("jbrowse_alignments", "jbrowse_result"))

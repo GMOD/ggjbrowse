@@ -33,7 +33,8 @@
 #' `bp_per_px`, the layout's pixel sizes; a [jbrowse_wiggle()] result
 #' `rendering`, `origin`, `row_layout`, `height` and `bp_per_px`; a
 #' [jbrowse_alignments()] result `read_pitch`, `glyph`, `arc_span_max` and
-#' `reference`; and a [jbrowse_variants()] result the `tree` a caller sets.
+#' `sequence`, each region's reference bases where `assembly` has a sequence,
+#' which the sequence band draws; and a [jbrowse_variants()] result the `tree` a caller sets.
 #'
 #' @section Errors:
 #' A reader's errors carry a class, for [tryCatch()] to tell them apart:
@@ -68,7 +69,7 @@ FAMILIES <- list(
       children = c("rects", "lines", "chevrons", "arrows", "amino_acids",
         "labels"))),
   jbrowse_variants = list(
-    variants = list(key = "variant", columns = c("start", "end"),
+    variants = list(key = "variant", columns = c("start", "end", "opacity"),
       children = c("cells", "annotations")),
     rows = list(key = "name", child_key = "row", columns = "sample",
       children = "cells")),

@@ -75,7 +75,9 @@ numeric or character as its \code{Type} says; any other \code{Number} (\code{A},
 \code{R}, \code{G}, \code{.}, 2) is a list column of vectors, so \code{AC} at a site with
 two alts is \code{c(33L, 1L)}. A record lacking a key has \code{NA}. Over
 several regions a record is listed once in each region it falls in,
-its copies sharing \code{variant}
+its copies sharing \code{variant}. \code{opacity} is the fade the display paints
+the record's cells at, where records too short to see share a pixel at
+\code{width}
 \item \code{annotations}: each record's SnpEff \code{ANN} or VEP \code{CSQ} consequences, a
 row per record and consequence: \code{variant}, \code{key} (\code{"ANN"} or \code{"CSQ"}) and a column per field the
 key's header line names (\code{Consequence}, \code{IMPACT}, \code{SYMBOL}, ...), each

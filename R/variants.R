@@ -68,7 +68,9 @@ variants_adapter <- function(file, index, samples) {
 #'     `R`, `G`, `.`, 2) is a list column of vectors, so `AC` at a site with
 #'     two alts is `c(33L, 1L)`. A record lacking a key has `NA`. Over
 #'     several regions a record is listed once in each region it falls in,
-#'     its copies sharing `variant`
+#'     its copies sharing `variant`. `opacity` is the fade the display paints
+#'     the record's cells at, where records too short to see share a pixel at
+#'     `width`
 #'   * `annotations`: each record's SnpEff `ANN` or VEP `CSQ` consequences, a
 #'     row per record and consequence: `variant`, `key` (`"ANN"` or `"CSQ"`) and a column per field the
 #'     key's header line names (`Consequence`, `IMPACT`, `SYMBOL`, ...), each
@@ -119,7 +121,9 @@ jbrowse_variants <- function(file, region = NULL, display = NULL,
   if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("variants", args)
-  in_one_call(variants_result(t), regions, t, width)
+  x <- in_one_call(variants_result(t), regions, t, width)
+  x$variants$opacity <- density_alpha(x$variants, diff(xlim_of(x)) / width)
+  x
 }
 
 variants_result <- function(t) {
@@ -244,8 +248,8 @@ print.jbrowse_variants <- function(x, ...) {
 #'
 #' Zoomed out, records too short to see share pixels, and the display fades
 #' each by how many share its pixels, so a row shades by the share of its
-#' records that are alt rather than filling wherever any is. The engine
-#' gives each record's fade at the figure's pixels per base.
+#' records that are alt rather than filling wherever any is. The reader
+#' gives each record that fade as its `opacity`, at the `width` it read at.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_variants()] result, `NULL` for the plot's,
 #'   or a data frame in place of the table the geom draws from the plot's
@@ -281,11 +285,7 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
       half <- pmax(d$end - d$start, floor_bp) / 2
       d$xmin <- mid - half
       d$xmax <- mid + half
-      if (fade) {
-        d$alpha <- density_alpha(x$variants, 1 / px_of(x, width))[match(
-          paste(d$variant, d$region), paste(x$variants$variant,
-            x$variants$region))]
-      }
+      if (fade) d$alpha <- d$opacity %||% d$alpha
     }
     d$y <- match(as.character(d$row), x$rows$name)
     d[!is.na(d$y), , drop = FALSE]
