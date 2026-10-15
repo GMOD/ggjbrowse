@@ -60,6 +60,7 @@ regions_of <- function(region, contigs = NULL) {
       end = as.numeric(d$end)))
   }
   if (is.data.frame(region)) return(region_table(region))
+  if (is.factor(region)) region <- as.character(region)
   if (!is.character(region) || !length(region)) {
     rlang::abort(paste("a region is a locus such as \"ctgA:1,001-9,000\", a",
       "contig name, a data frame of chrom, start and end (0-based,",
@@ -90,9 +91,10 @@ regions_of <- function(region, contigs = NULL) {
 # A data frame of regions as `chrom`, `start` and `end`, refused where it
 # reads as 1-based: a GRanges' `seqnames`, or a `width` of end - start + 1
 region_table <- function(region) {
-  closed <- !is.null(region$width) && nrow(region) &&
-    isTRUE(all(region$width == region$end - region$start + 1))
-  if (!is.null(region$seqnames) || closed) {
+  width <- if ("width" %in% names(region)) region[["width"]]
+  closed <- !is.null(width) && nrow(region) &&
+    isTRUE(all(width == region[["end"]] - region[["start"]] + 1))
+  if ("seqnames" %in% names(region) || closed) {
     rlang::abort(paste0("a region frame is 0-based and half-open, chrom, ",
       "start and end, as BED writes it, but this one reads as 1-based (",
       if (closed) "its width is end - start + 1" else "it has seqnames",
@@ -105,8 +107,8 @@ region_table <- function(region) {
       "0-based and half-open; this one lacks ", paste(missing,
         collapse = ", ")), class = "ggjbrowse_bad_region")
   }
-  data.frame(chrom = as.character(region$chrom),
-    start = as.numeric(region$start), end = as.numeric(region$end))
+  data.frame(chrom = as.character(region[["chrom"]]),
+    start = as.numeric(region[["start"]]), end = as.numeric(region[["end"]]))
 }
 
 # Several regions end to end on one axis: each spans its width in bp, a gap

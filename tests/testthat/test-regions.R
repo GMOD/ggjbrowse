@@ -37,6 +37,9 @@ test_that("a GRanges reads as its 1-based ranges, a 1-based frame refused", {
     width = 3000)
   expect_error(jbrowse_features(gff, one_based), "0-based and half-open")
   expect_no_error(jbrowse_features(gff, transform(one_based, start = 1000)))
+  skip_if_not_installed("tibble")
+  expect_no_warning(jbrowse_features(gff,
+    tibble::tibble(chrom = "ctgA", start = 1000, end = 4000)))
 })
 
 test_that("loci print with commas however their starts differ in size", {
