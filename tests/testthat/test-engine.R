@@ -23,10 +23,39 @@ test_that("a nested column reads as a list column, a missing row NA", {
   wire <- jsonlite::fromJSON(paste0('{"t": {"n": [1, 2, 3], "x": {"$list": ',
     '{"lengths": [2, -1, 1], "values": [4, 5, 6]}}}}'), simplifyVector = TRUE,
     simplifyDataFrame = FALSE)
-  d <- as_frame(from_wire(wire)$t)
+  d <- as_frame(from_wire(wire, NULL)$t)
   expect_equal(nrow(d), 3)
   expect_identical(d$x, list(c(4L, 5L), NA_integer_, 6L))
   same <- from_wire(list(x = list("$list" = list(lengths = c(2L, 2L),
-    values = c("a", "b", "c", "d")))))
+    values = c("a", "b", "c", "d")))), NULL)
   expect_identical(same$x, list(c("a", "b"), c("c", "d")))
+})
+
+test_that("numbers read off the engine's bytes, NA where it wrote none", {
+  bytes <- c(
+    writeBin(c(7L, NA, -3L), raw(), size = 4, endian = "little"),
+    writeBin(c(0.5, NA), raw(), size = 8, endian = "little"),
+    writeBin(c(1L, 0L, NA), raw(), size = 4, endian = "little"),
+    writeBin(c(1L, -1L, 0L), raw(), size = 4, endian = "little"))
+  con <- rawConnection(bytes)
+  on.exit(close(con))
+  wire <- jsonlite::fromJSON(paste0('{"i": {"$i32": [0, 3]}, ',
+    '"f": {"$f64": [12, 2]}, "l": {"$lgl": [28, 3]}, ',
+    '"d": {"$dict": {"levels": ["red", "blue"], "codes": {"$i32": [40, 3]}}}}'),
+    simplifyVector = TRUE, simplifyDataFrame = FALSE)
+  x <- from_wire(wire, con)
+  expect_identical(x$i, c(7L, NA, -3L))
+  expect_identical(x$f, c(0.5, NA))
+  expect_identical(x$l, c(TRUE, FALSE, NA))
+  expect_identical(x$d, c("blue", NA, "red"))
+})
+
+test_that("a column keeps the type it had when the tables crossed as JSON", {
+  bam <- jbrowse_alignments(system.file("extdata", "volvox-sorted.bam",
+    package = "ggjbrowse"), "ctgA", 1000, 2000)
+  expect_type(bam$reads$start, "integer")
+  expect_type(bam$reads$strand, "integer")
+  expect_type(bam$mismatches$frequency, "double")
+  expect_type(bam$reads$category, "character")
+  expect_type(bam$reads$name, "character")
 })

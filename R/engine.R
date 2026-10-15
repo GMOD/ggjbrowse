@@ -106,25 +106,57 @@ as_engine_json <- function(args) {
 }
 
 call_engine <- function(table, args) {
-  json <- in_engine(function(ctx) ctx$call(sprintf("jbrowse.%s", table),
-    as_engine_json(args), await = TRUE))
-  from_wire(jsonlite::fromJSON(json, simplifyVector = TRUE,
-    simplifyDataFrame = FALSE))
+  wire <- in_engine(function(ctx) {
+    json <- ctx$call(sprintf("jbrowse.%s", table), as_engine_json(args),
+      await = TRUE)
+    bytes <- ctx$get("jbrowseBytes")
+    ctx$eval("jbrowseBytes = null")
+    list(json = json, bytes = bytes)
+  })
+  bytes <- rawConnection(wire$bytes)
+  on.exit(close(bytes))
+  from_wire(jsonlite::fromJSON(wire$json, simplifyVector = TRUE,
+    simplifyDataFrame = FALSE), bytes)
 }
 
-# The engine's tables as R values: each nested column, which the engine writes
-# as its rows' `lengths` (-1 for a missing row) and their `values` end to end,
-# as a list column, a missing row NA
-from_wire <- function(x) {
+# The engine's tables as R values. The engine writes the numbers of a column
+# as bytes, which `bytes`, a connection, holds: `$i32`, `$f64` and `$lgl`
+# name where in it a column's values start and how many there are, and NA
+# crosses as R's own NA. Repeated text comes as `$dict`, each row's code in
+# its `levels`, and a nested column as `$list`, its rows' `lengths` (-1 for a
+# missing row) and their `values` end to end, which reads as a list column, a
+# missing row NA.
+from_wire <- function(x, bytes) {
   if (!is.list(x)) return(x)
-  if (identical(names(x), "$list")) return(list_column(x[["$list"]]))
-  x[] <- lapply(x, from_wire)
+  kind <- names(x)
+  if (length(kind) == 1 && startsWith(kind, "$")) {
+    spec <- x[[1]]
+    return(switch(kind,
+      "$i32" = read_column(bytes, spec, "integer", 4L),
+      "$f64" = read_column(bytes, spec, "double", 8L),
+      "$lgl" = as.logical(read_column(bytes, spec, "integer", 4L)),
+      "$dict" = dict_column(spec$levels, from_wire(spec$codes, bytes)),
+      "$list" = list_column(from_wire(spec$lengths, bytes),
+        from_wire(spec$values, bytes)),
+      stop("the engine sent a column as ", kind, ", which this ggjbrowse ",
+        "cannot read", call. = FALSE)))
+  }
+  x[] <- lapply(x, from_wire, bytes)
   x
 }
 
-list_column <- function(wire) {
-  lengths <- as.integer(unlist(wire$lengths))
-  values <- wire$values
+read_column <- function(bytes, at, what, size) {
+  seek(bytes, at[[1]])
+  readBin(bytes, what, n = at[[2]], size = size, endian = "little")
+}
+
+dict_column <- function(levels, codes) {
+  codes[codes < 0L] <- NA_integer_
+  as.character(unlist(levels))[codes + 1L]
+}
+
+list_column <- function(lengths, values) {
+  lengths <- as.integer(unlist(lengths))
   if (is.list(values)) values <- unlist(values) %||% logical(0)
   rows <- split(values, factor(rep(seq_along(lengths), pmax(lengths, 0L)),
     levels = seq_along(lengths)))
