@@ -29,6 +29,7 @@ jobs:
             any::yaml
             any::dplyr
             any::readr
+            any::tidyr
       - run: Rscript scripts/check-readme.R
       - run: Rscript scripts/gallery.R --check
       - run: Rscript scripts/tutorials.R --check
