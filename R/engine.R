@@ -156,10 +156,21 @@ adapter_of <- function(file, guess) {
   readable <- function(x) {
     if (!is.list(x)) return(x)
     path <- x[["uri"]] %||% x[["localPath"]]
-    if (is.character(path) && length(path) == 1) location(path)
-    else lapply(x, readable)
+    single <- is.character(path) && length(path) == 1
+    if (single && is.null(x[["type"]])) return(location(path))
+    x <- lapply(x, readable)
+    if (single && !is.null(x[["uri"]])) x$uri <- shorthand_uri(path)
+    x
   }
   readable(file)
+}
+
+# An adapter's own `uri`, the shorthand the engine expands into its file and
+# index locations as JBrowse's config does: a local path as a file URI with no
+# version query, since the engine names the index by appending to it
+shorthand_uri <- function(path) {
+  if (grepl("^[a-z]+://", path)) path
+  else sub("\\?v=.*$", "", location(path)$uri)
 }
 
 # A table's columns as a data frame, an empty column read as an empty vector

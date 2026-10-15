@@ -268,3 +268,10 @@ test_that("a track's name in jbrowse_stack titles its first band", {
   expect_equal(titles(jbrowse_stack(genes, list(a = reads, b = reads))),
     c("", "a", "", "b", ""))
 })
+
+test_that("an adapter config's uri shorthand reads as JBrowse expands it", {
+  shorthand <- jbrowse_features(list(type = "Gff3TabixAdapter", uri = gff),
+    "ctgA", 0, 25000)
+  same <- setdiff(names(g$features), "id")
+  expect_equal(shorthand$features[same], g$features[same])
+})
