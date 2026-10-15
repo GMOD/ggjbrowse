@@ -118,8 +118,12 @@
 - `geom_jbrowse_genotypes()` fades records that share a pixel at the figure's
   `width`, through the engine's `variantDensityAlpha`. `fade = FALSE` turns
   it off.
-- `byte_limit` refuses a region whose compressed size, read off the index,
-  passes it. The default is 200 MB.
+- `byte_limit` refuses regions whose compressed size, read off the index,
+  passes it. The default is 200 MB. `jbrowse_alignments()`'s `span_limit`
+  refuses regions spanning more than 10 Mb in all, since the coverage band
+  holds every base.
+- A setting the engine drops without an error, such as a column sort with no
+  `pos`, raises an R warning naming it.
 - A CRAM needs an `assembly` with a sequence, because it stores reads
   against the FASTA it was encoded with.
 - The bisulfite layer needs `assembly`, because it calls each cytosine by

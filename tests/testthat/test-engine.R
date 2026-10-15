@@ -90,3 +90,23 @@ test_that("a forked worker refuses to start the engine, and inherits a started o
     read()
   }, ggjbrowse_forked = function(e) "refused")), "refused")
 })
+
+test_that("an engine error reads once, without JavaScript's prefix", {
+  vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
+  e <- tryCatch(jbrowse_variants(vcf, "1:1-1000",
+    display = list(unit = "allele")), error = conditionMessage)
+  expect_match(e, "^\\[mobx-state-tree\\]")
+})
+
+test_that("the engine's warnings warn once a call", {
+  bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
+  w <- character(0)
+  withCallingHandlers(jbrowse_alignments(bam,
+    c("ctgA:1-1,000", "ctgA:2,001-3,000"),
+    display = list(sort = list(type = "basePair"))),
+    warning = function(c) {
+      w <<- c(w, conditionMessage(c))
+      invokeRestart("muffleWarning")
+    })
+  expect_equal(w, "the sort by basePair names no pos, so it is dropped")
+})

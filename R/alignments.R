@@ -81,8 +81,11 @@ alignments_adapter <- function(file, index) {
 #'     such as `showOrdinaryPairs`, `arcColor` or `minSashimiScore`. A band
 #'     set not to show (`showCoverage`, `showPileup`, `showMismatches`,
 #'     `showInterbaseIndicators`, `showSashimiArcs`) reads as empty tables
-#' @param byte_limit the most compressed bytes the region may need, refused off
-#'   the index before any read is fetched; the whole table is held in memory
+#' @param byte_limit the most compressed bytes the regions may need, refused
+#'   off the index before any read is fetched; the whole table is held in
+#'   memory
+#' @param span_limit the most bp the regions may span in all, refused before
+#'   anything is fetched, since the coverage band holds every base of them
 #' @return a `jbrowse_alignments` list of data frames:
 #'   * `reads`: `read` (the row number the other tables' `read` column names
 #'     it by, kept through filtering, within this call), `id` (the record's
@@ -176,7 +179,7 @@ alignments_adapter <- function(file, index) {
 #' a$legend
 jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
                                display = NULL, assembly = NULL, index = NULL,
-                               byte_limit = 2e8) {
+                               byte_limit = 2e8, span_limit = 1e7) {
   adapter <- adapter_of(file, function() alignments_adapter(file, index))
   assembly <- assembly_config(assembly)
   if (adapter$type == "CramAdapter" && !has_sequence(assembly)) {
@@ -189,7 +192,7 @@ jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
   }
   regions <- reader_regions(adapter, region, start, end)
   args <- list(adapterConfig = adapter, regions = engine_regions(regions),
-    byteLimit = byte_limit)
+    byteLimit = byte_limit, spanLimit = span_limit)
   args$assembly <- assembly
   if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)

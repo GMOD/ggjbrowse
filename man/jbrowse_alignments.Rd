@@ -12,7 +12,8 @@ jbrowse_alignments(
   display = NULL,
   assembly = NULL,
   index = NULL,
-  byte_limit = 2e+08
+  byte_limit = 2e+08,
+  span_limit = 1e+07
 )
 }
 \arguments{
@@ -89,8 +90,12 @@ the contig in its tables as \code{region} does}
 
 \item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
 
-\item{byte_limit}{the most compressed bytes the region may need, refused off
-the index before any read is fetched; the whole table is held in memory}
+\item{byte_limit}{the most compressed bytes the regions may need, refused
+off the index before any read is fetched; the whole table is held in
+memory}
+
+\item{span_limit}{the most bp the regions may span in all, refused before
+anything is fetched, since the coverage band holds every base of them}
 }
 \value{
 a \code{jbrowse_alignments} list of data frames:

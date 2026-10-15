@@ -474,6 +474,14 @@ test_that("a region over the byte limit is refused with its size", {
     "over the 1000-byte limit")
 })
 
+test_that("regions spanning past span_limit in all are refused", {
+  loci <- c("ctgA:1-3,000", "ctgA:10,001-13,000")
+  expect_error(jbrowse_alignments(extdata("volvox-sorted.bam"), loci,
+    span_limit = 5000), "6000 bp of alignments in total, over the 5000-bp")
+  expect_no_error(jbrowse_alignments(extdata("volvox-sorted.bam"), loci,
+    span_limit = 6000))
+})
+
 test_that("reads draw at the display's read height, and the pileup band is as tall as its rows", {
   bam <- extdata("volvox-sorted.bam")
   read_at <- function(h) jbrowse_alignments(bam, "ctgA:1,001-9,000",

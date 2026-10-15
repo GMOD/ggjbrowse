@@ -95,7 +95,9 @@ read_range_deferring <- function(url, start, end) {
   })
 }
 
-# Runs use(<the engine's context>) and raises what the engine queued meanwhile
+# Runs use(<the engine's context>) and raises what the engine queued meanwhile.
+# V8 raises a rejected call's error with JavaScript's own "Error: " prefix,
+# which R would print after its own.
 in_engine <- function(use) {
   ctx <- engine()
   on.exit({
@@ -109,7 +111,9 @@ in_engine <- function(use) {
         call. = FALSE)
     }
   })
-  use(ctx)
+  tryCatch(use(ctx), "C++Error" = function(e) {
+    stop(sub("^Error: ", "", conditionMessage(e)), call. = FALSE)
+  })
 }
 
 as_engine_json <- function(args) {
@@ -132,8 +136,12 @@ call_engine <- function(table, args) {
   })
   bytes <- rawConnection(wire$bytes)
   on.exit(close(bytes))
-  from_wire(jsonlite::fromJSON(wire$json, simplifyVector = TRUE,
+  x <- from_wire(jsonlite::fromJSON(wire$json, simplifyVector = TRUE,
     simplifyDataFrame = FALSE), bytes)
+  for (w in unique(unlist(if (is.list(x)) x$warnings))) {
+    warning(w, call. = FALSE)
+  }
+  x
 }
 
 # The engine's tables as R values. The engine writes the numbers of a column
