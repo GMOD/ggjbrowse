@@ -48,10 +48,10 @@ json_file <- function(x, name) {
 # draws an assembly from where no sequence is needed
 chrom_sizes <- function(file, side, label, keep = NULL) {
   contigs <- jbrowse_contigs(file)
-  contigs <- contigs[contigs$side == side, ]
+  contigs <- contigs[contigs$assembly == side, ]
   if (!is.null(keep)) contigs <- contigs[contigs$chrom %in% keep, ]
   path <- config_file(paste0(label, ".chrom.sizes"))
-  write.table(contigs[c("chrom", "length")], path, quote = FALSE,
+  write.table(contigs[c("chrom", "end")], path, quote = FALSE,
     sep = "\t", row.names = FALSE, col.names = FALSE)
   path
 }

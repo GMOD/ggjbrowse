@@ -44,8 +44,16 @@ test_that("a CRAM decodes against the assembly's sequence, and the sequence band
 test_that("an assembly config as a JBrowse config writes it serves as one", {
   config <- list(name = "hg38", uri = extdata("gapdh_hg38.fa.gz"),
     refNameAliases = list(uri = aliases))
-  expect_equal(jbrowse_regions(config),
-    data.frame(chrom = "chr12", start = 0, end = 6570000))
+  expect_equal(jbrowse_contigs(config),
+    data.frame(assembly = "hg38", chrom = "chr12", start = 0, end = 6570000))
+  expect_equal(jbrowse_contigs(extdata("gapdh_hg38.fa.gz"))$chrom, "chr12")
+  bam <- jbrowse_contigs(extdata("volvox-sorted.bam"))
+  expect_equal(bam, data.frame(assembly = NA_character_, chrom = "ctgA",
+    start = 0, end = 50001, has_data = TRUE))
+  expect_equal(jbrowse_contigs(extdata("gapdh_gencode.gff3.gz"),
+    assembly = config)$end, 6570000)
+  expect_equal(nrow(jbrowse_features(extdata("volvox.sort.gff3.gz"),
+    jbrowse_contigs(extdata("volvox.sort.gff3.gz"))[2, ])$regions), 1)
   expect_equal(nrow(jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "12:6,534,201-6,538,700", assembly = config)$reads), 73)
 })

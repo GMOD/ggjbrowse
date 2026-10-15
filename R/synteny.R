@@ -77,25 +77,9 @@ axis_assemblies <- function(config, assemblies, swap) {
   rev(names[1:2])
 }
 
-#' The contigs on each side of a pairwise alignment
-#'
-#' Lists each side's contigs in the order the file first names them, with
-#' the length the file states: the regions a whole-genome [jbrowse_dotplot()]
-#' or [jbrowse_synteny()] lays end to end where it is given none. A PAF,
-#' delta, chain and MashMap file state every contig's length, and an indexed
-#' PIF states it on each contig's first row.
-#' @inheritParams jbrowse_synteny
-#' @return a data frame of `side` (`"query"` or `"target"`), `assembly`,
-#'   `chrom` and `length`, `NA` where the file does not say, as in an MCScan
-#'   anchors file
-#' @export
-#' @examples
-#' paf <- system.file("extdata", "peach_grape.paf.gz", package = "ggjbrowse")
-#' head(jbrowse_contigs(paf))
-jbrowse_contigs <- function(file, index = NULL) {
-  contigs_of(comparative_args(file, index, NULL)$adapterConfig)
-}
-
+# Each side's contigs in the order the file first names them: `side`
+# (`"query"` or `"target"`), `assembly`, `chrom` and `length`, `NA` where the
+# file does not say
 contigs_of <- function(config) {
   r <- call_engine("contigs", list(adapterConfig = config))
   side <- function(name) {

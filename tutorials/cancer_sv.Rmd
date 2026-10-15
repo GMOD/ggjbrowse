@@ -67,7 +67,7 @@ library(readr)
 reference <- paste0("https://ont-open-data.s3.amazonaws.com/colo829_2024.03/",
   "wf_somatic_variation/sup/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta")
 hg38 <- jbrowse_assembly(reference, aliases, "hg38")
-genome <- jbrowse_regions(hg38)
+genome <- jbrowse_contigs(hg38)
 ```
 
 ## The somatic SV calls

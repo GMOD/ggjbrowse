@@ -132,9 +132,10 @@ test_that("the off-screen strip draws as the band paints it and keys its contigs
 
 test_that("a file's contigs list with their lengths, and an axis with no regions shows them all", {
   contigs <- jbrowse_contigs(paf)
-  expect_equal(contigs$side, c("query", "target"))
+  expect_named(contigs, c("assembly", "chrom", "start", "end"))
+  expect_equal(contigs$assembly, c("query", "target"))
   expect_equal(contigs$chrom, c("ctgA", "ctgA"))
-  expect_equal(contigs$length, c(49186, 50001))
+  expect_equal(contigs$end, c(49186, 50001))
   whole <- jbrowse_synteny(paf)
   expect_equal(c(whole$query$end, whole$target$end), c(49186, 50001))
   expect_equal(nrow(whole$alignments), 7)
@@ -149,7 +150,7 @@ test_that("a file's contigs list with their lengths, and an axis with no regions
   labels <- built$layout$panel_params[[1]]$x$get_labels()
   expect_true(all(labels %in% d$x$chrom))
   named <- jbrowse_dotplot(grape, "Pp01", "chr1")
-  expect_equal(named$x$end, jbrowse_contigs(grape)$length[
+  expect_equal(named$x$end, jbrowse_contigs(grape)$end[
     jbrowse_contigs(grape)$chrom == "Pp01"])
   expect_equal(nrow(named$y), 1)
 })
