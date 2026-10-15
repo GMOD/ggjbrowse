@@ -104,14 +104,14 @@ with_shared_keys <- function(tracks, min_reads = NULL) {
 }
 
 # A result's keys as its bands draw them: an alignments track's junction key
-# narrowed to the strands of the junctions shown at `min_reads`, unless a
+# narrowed to the strands of the junctions it shows, unless a
 # stack made it `complete`
 drawn_keys <- function(x, min_reads = NULL) {
   keys <- x$keys
   if (inherits(x, "jbrowse_alignments") && !is.null(keys$junctions) &&
     !isTRUE(attr(keys$junctions, "complete"))) {
-    keys$junctions <- key_shown(keys$junctions, shown_junctions(x,
-      min_reads %||% alignment_options(x)$min_reads)$color)
+    keys$junctions <- key_shown(keys$junctions,
+      shown_junctions(x, min_reads)$color)
   }
   keys
 }

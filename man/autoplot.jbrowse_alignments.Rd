@@ -35,11 +35,12 @@ alone, mate-pair and split-read arcs or the read cloud on a log
 insert-size axis; \code{"sequence"}: the reference's bases alone}
 
 \item{min_allele_frequency}{hide a coverage-band allele segment whose share
-of the depth there is below this; \code{NULL} takes the display's
-\code{coverageSnpMinFrequency}}
+of the depth there is below this; \code{NULL} draws the segments the display
+shows, by its \code{coverageSnpMinFrequency}}
 
 \item{min_reads}{hide a junction arc with fewer supporting reads;
-\code{NULL} takes the display's \code{minSashimiScore}}
+\code{NULL} draws the junctions the display shows, by its \code{minSashimiScore}
+and \code{showNonCanonicalJunctions}}
 
 \item{letters}{write each mismatch's base and each insertion's length on
 the pileup; \code{NULL} does so where the region is at most 300 bp, where a

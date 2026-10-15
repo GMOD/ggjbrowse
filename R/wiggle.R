@@ -44,6 +44,8 @@
 #'   `domain` is the score axis the display autoscales to, `scale_type` its
 #'   type, and `rendering` what the display draws (`"xyplot"`, `"line"`,
 #'   `"linecenter"`, `"scatter"`, `"density"`).
+#'   `display` is the display's config as JBrowse resolves it, every slot
+#'   under JBrowse's own name and the schema's defaults filled in.
 #' @export
 #' @examples
 #' bw <- system.file("extdata", "gapdh_phylop100way.bw",
@@ -72,7 +74,8 @@ jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
       domain = unlist(t$domain), scale_type = t$scaleType,
       symlog_constant = t$symlogConstant, rendering = t$rendering,
       origin = t$origin, row_layout = t$rowLayout, height = t$height,
-      bp_per_px = args$bpPerPx, aggregate = display$aggregate %||% "mean"),
+      bp_per_px = args$bpPerPx, aggregate = t$config$aggregate,
+      display = t$config),
     primary = "marks",
     class = c("jbrowse_wiggle", "jbrowse_result")),
     regions, t$missingContigs)

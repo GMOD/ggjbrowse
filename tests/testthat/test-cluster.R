@@ -107,6 +107,6 @@ test_that("a matrix stacks at the display's rowHeight, and fits without one", {
   tall <- jbrowse_variants(vcf, locus, display = list(rowHeight = 12))
   rows <- nrow(fitted$rows)
   expect_equal(jbrowse_stack(fitted)$patches$layout$heights,
-    max(100 / 15, 100 / rows) * rows)
+    fitted$display$height)
   expect_equal(jbrowse_stack(tall)$patches$layout$heights, 12 * rows)
 })

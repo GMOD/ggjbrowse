@@ -9,13 +9,19 @@ px_of <- function(x, width) {
 
 xlim_of <- function(x) c(x$region$start, x$region$end)
 
-# The share of a pileup row left empty above and below a read: the display
-# draws a read `featureHeight` pixels tall and, above 3, a 1 px gap under it
-# (featureSpacingForHeight), so a compact read fills its row. A table drawn
-# without its result takes the display's default of 7.
+# The share of a pileup row left empty above and below a read, from the
+# engine's read pitch: a read `featureHeight` pixels tall over a row
+# `featureSpacing` pixels taller
 read_inset <- function(x) {
-  h <- x$settings$featureHeight %||% 7
-  (1 - h / (h + (h > 3))) / 2
+  p <- x$read_pitch
+  if (is.null(p)) return(0)
+  (1 - p$featureHeight / (p$featureHeight + p$featureSpacing)) / 2
+}
+
+# Whether the marks fade: as the caller says, else as the display's
+# fadeLowFrequencyMismatches does
+fades <- function(x, fade) {
+  fade %||% !isFALSE(x$display$fadeLowFrequencyMismatches)
 }
 
 with_inset <- function(d, model) {
@@ -70,14 +76,17 @@ with_inset <- function(d, model) {
 #'   or a data frame in place of the table the geom draws from the plot's
 #'   result, such as a filtered copy of it
 #' @param fade fade a mark narrower than a pixel by its site's share of the
-#'   depth, as the display does (`fadeLowFrequencyMismatches`)
+#'   depth, as the display does; `NULL` follows the display's
+#'   `fadeLowFrequencyMismatches`
 #' @param width the pixels the figure spans across its region, which decide
 #'   the fade, whether a one-base mark reaches a pixel and how high the
 #'   read-connection band reaches; `NULL` takes 1,500
 #' @param min_allele_frequency leave out an allele segment whose share of the
-#'   depth is below this, the display's `coverageSnpMinFrequency`
-#' @param min_reads leave out a junction with fewer supporting reads, the
-#'   display's `minSashimiScore`
+#'   depth is below this; `NULL` draws the segments the display shows, by its
+#'   `coverageSnpMinFrequency`
+#' @param min_reads leave out a junction with fewer supporting reads; `NULL`
+#'   draws the junctions the display shows, by its `minSashimiScore` and
+#'   `showNonCanonicalJunctions`
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a ggplot layer
 #' @name geom_jbrowse_reads
@@ -112,7 +121,7 @@ geom_jbrowse_deletion_lengths <- function(mapping = NULL, data = NULL,
     rule <- x$glyph$label
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
     d$length <- d$end - d$start
-    tall <- (x$settings$featureHeight %||% 7) >= (rule$minHeight %||% Inf)
+    tall <- (x$read_pitch$featureHeight %||% 0) >= (rule$minHeight %||% Inf)
     d$alpha <- label_fade((d$end - d$start) * px_of(x, width),
       nchar(d$length) * (rule$digitPx %||% Inf), rule)
     if (!tall) d$alpha[] <- 0
@@ -169,13 +178,13 @@ geom_jbrowse_skips <- function(mapping = NULL, data = NULL, ...) {
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
+geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = NULL,
                                    width = NULL, ...) {
   data <- replacing(data, "gaps", "geom_jbrowse_deletions")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
     d$alpha <- mark_alpha(((d$end - d$start) * px_of(x, width))^2,
-      d$fade, fade)
+      d$fade, fades(x, fade))
     d
   }, mapping, ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
     ymax = row + 1 - inset, fill = color, alpha = I(alpha)), list(...),
@@ -184,10 +193,11 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = TRUE,
 
 # A per-position table drawn as rects one base wide, a pixel at least, over
 # the read's row unless `defaults` says otherwise, painted by `rect`; `prep`
-# adjusts the table first and `fade` fades the rects by the pixels per base
+# adjusts the table first, and where `faded` the rects fade by the pixels per
+# base as `fade` or the display says
 position_rects <- function(table, geom, data, mapping, width, params,
                            defaults, rect = ggplot2::GeomRect, prep = NULL,
-                           fade = NULL, ..., rows = TRUE) {
+                           faded = FALSE, fade = NULL, ..., rows = TRUE) {
   data <- replacing(data, table, geom)
   defaults <- with_defaults(defaults, ggplot2::aes(xmin = position,
     xmax = xmax, ymin = row + inset, ymax = row + 1 - inset))
@@ -195,7 +205,7 @@ position_rects <- function(table, geom, data, mapping, width, params,
     d <- x[[table]]
     if (!is.null(prep)) d <- prep(d, x)
     d$xmax <- d$position + max(1, 1 / px_of(x, width))
-    if (!is.null(fade)) d$alpha <- mark_alpha(px_of(x, width), d$fade, fade)
+    if (faded) d$alpha <- mark_alpha(px_of(x, width), d$fade, fades(x, fade))
     d
   }, mapping, defaults, params, ..., rows = rows)
 }
@@ -218,11 +228,11 @@ geom_jbrowse_qualities <- function(mapping = NULL, data = NULL,
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = TRUE,
+geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = NULL,
                                     width = NULL, ...) {
   position_rects("mismatches", "geom_jbrowse_mismatches", data, mapping,
     width, list(...), ggplot2::aes(colour = color, alpha = I(alpha)),
-    rect = GeomSwatch, fade = fade, keyed = "complete")
+    rect = GeomSwatch, faded = TRUE, fade = fade, keyed = "complete")
 }
 
 # A per-position table drawn as vertical ticks, faded as the pixels per base
@@ -232,7 +242,7 @@ position_ticks <- function(table, geom, data, mapping, fade, width, params,
   data <- replacing(data, table, geom)
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     d <- x[[table]]
-    d$alpha <- mark_alpha(px_of(x, width)^power, d$fade, fade)
+    d$alpha <- mark_alpha(px_of(x, width)^power, d$fade, fades(x, fade))
     d
   }, mapping, ggplot2::aes(x = position, xend = position,
     y = row + inset / 2, yend = row + 1 - inset / 2, colour = color,
@@ -241,7 +251,7 @@ position_ticks <- function(table, geom, data, mapping, fade, width, params,
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_insertions <- function(mapping = NULL, data = NULL, fade = TRUE,
+geom_jbrowse_insertions <- function(mapping = NULL, data = NULL, fade = NULL,
                                     width = NULL, ...) {
   position_ticks("insertions", "geom_jbrowse_insertions", data, mapping, fade,
     width, list(linewidth = 0.4, ...), power = 2)
@@ -249,7 +259,7 @@ geom_jbrowse_insertions <- function(mapping = NULL, data = NULL, fade = TRUE,
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_clips <- function(mapping = NULL, data = NULL, fade = TRUE,
+geom_jbrowse_clips <- function(mapping = NULL, data = NULL, fade = NULL,
                                width = NULL, ...) {
   position_ticks("clips", "geom_jbrowse_clips", data, mapping, fade, width,
     list(linewidth = 0.7, ...), power = 1)
@@ -287,12 +297,13 @@ geom_jbrowse_coverage <- function(mapping = NULL, data = NULL, ...) {
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_alleles <- function(mapping = NULL, data = NULL,
-                                 min_allele_frequency = 0, width = NULL, ...) {
+                                 min_allele_frequency = NULL, width = NULL,
+                                 ...) {
   position_rects("allele_coverage", "geom_jbrowse_alleles", data, mapping,
     width, list(...), with_defaults(ggplot2::aes(colour = color), stack_rect),
     rect = GeomSwatch, rows = FALSE, keyed = "complete",
-    prep = function(a, x) on_bar(x, a[a$to - a$from >= min_allele_frequency, ,
-      drop = FALSE]))
+    prep = function(a, x) on_bar(x, a[if (is.null(min_allele_frequency))
+      a$shown else a$to - a$from >= min_allele_frequency, , drop = FALSE]))
 }
 
 stack_rect <- ggplot2::aes(ymin = low, ymax = high)
@@ -421,21 +432,23 @@ geom_jbrowse_modification_coverage <- function(mapping = NULL, data = NULL,
 
 on_bar_of <- function(d, x) on_bar(x, d)
 
-junction_paths <- function(x, min_reads) {
+# Each junction the band draws as its arc's points, its stroke the engine's
+# px as a linewidth at the figure's PX_PER_INCH
+junction_paths <- function(x, min_reads = NULL) {
   j <- shown_junctions(x, min_reads)
   arcs <- junction_arcs(j)
   arcs$color <- j$color[arcs$id]
   arcs$section <- j$section[arcs$id]
   arcs$count <- j$count[arcs$id]
   arcs$strand <- j$strand[arcs$id]
-  arcs$width <- pmin(4, pmax(0.4, log(arcs$count + 1) / 2))
+  arcs$width <- px_to_pt(j$strokeWidth[arcs$id]) / ggplot2::.pt
   arcs
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_junctions <- function(mapping = NULL, data = NULL,
-                                   min_reads = 2, ...) {
+                                   min_reads = NULL, ...) {
   data <- replacing(data, "junctions", "geom_jbrowse_junctions")
   jbrowse_layer(ggplot2::GeomPath, data,
     function(x) junction_paths(x, min_reads), mapping,
@@ -447,7 +460,7 @@ geom_jbrowse_junctions <- function(mapping = NULL, data = NULL,
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_junction_counts <- function(mapping = NULL, data = NULL,
-                                         min_reads = 2, ...) {
+                                         min_reads = NULL, ...) {
   data <- replacing(data, "junctions", "geom_jbrowse_junction_counts")
   jbrowse_layer(ggplot2::GeomLabel, data, function(x) {
     arcs <- junction_paths(x, min_reads)
@@ -530,5 +543,5 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
 # draws it
 arc_top <- function(x, width = NULL) {
   if (is_cloud(x)) max(2, x$arc_span_max)
-  else x$settings$readConnectionsHeight / px_of(x, width)
+  else x$display$readConnectionsHeight / px_of(x, width)
 }

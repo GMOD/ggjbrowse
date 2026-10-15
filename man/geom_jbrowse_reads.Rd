@@ -37,7 +37,7 @@ geom_jbrowse_skips(mapping = NULL, data = NULL, ...)
 geom_jbrowse_deletions(
   mapping = NULL,
   data = NULL,
-  fade = TRUE,
+  fade = NULL,
   width = NULL,
   ...
 )
@@ -49,7 +49,7 @@ geom_jbrowse_qualities(mapping = NULL, data = NULL, width = NULL, ...)
 geom_jbrowse_mismatches(
   mapping = NULL,
   data = NULL,
-  fade = TRUE,
+  fade = NULL,
   width = NULL,
   ...
 )
@@ -57,12 +57,12 @@ geom_jbrowse_mismatches(
 geom_jbrowse_insertions(
   mapping = NULL,
   data = NULL,
-  fade = TRUE,
+  fade = NULL,
   width = NULL,
   ...
 )
 
-geom_jbrowse_clips(mapping = NULL, data = NULL, fade = TRUE, width = NULL, ...)
+geom_jbrowse_clips(mapping = NULL, data = NULL, fade = NULL, width = NULL, ...)
 
 geom_jbrowse_letters(mapping = NULL, data = NULL, ...)
 
@@ -71,7 +71,7 @@ geom_jbrowse_coverage(mapping = NULL, data = NULL, ...)
 geom_jbrowse_alleles(
   mapping = NULL,
   data = NULL,
-  min_allele_frequency = 0,
+  min_allele_frequency = NULL,
   width = NULL,
   ...
 )
@@ -87,9 +87,14 @@ geom_jbrowse_modification_coverage(
   ...
 )
 
-geom_jbrowse_junctions(mapping = NULL, data = NULL, min_reads = 2, ...)
+geom_jbrowse_junctions(mapping = NULL, data = NULL, min_reads = NULL, ...)
 
-geom_jbrowse_junction_counts(mapping = NULL, data = NULL, min_reads = 2, ...)
+geom_jbrowse_junction_counts(
+  mapping = NULL,
+  data = NULL,
+  min_reads = NULL,
+  ...
+)
 
 geom_jbrowse_arcs(mapping = NULL, data = NULL, width = NULL, ...)
 
@@ -109,13 +114,16 @@ the fade, whether a one-base mark reaches a pixel and how high the
 read-connection band reaches; \code{NULL} takes 1,500}
 
 \item{fade}{fade a mark narrower than a pixel by its site's share of the
-depth, as the display does (\code{fadeLowFrequencyMismatches})}
+depth, as the display does; \code{NULL} follows the display's
+\code{fadeLowFrequencyMismatches}}
 
 \item{min_allele_frequency}{leave out an allele segment whose share of the
-depth is below this, the display's \code{coverageSnpMinFrequency}}
+depth is below this; \code{NULL} draws the segments the display shows, by its
+\code{coverageSnpMinFrequency}}
 
-\item{min_reads}{leave out a junction with fewer supporting reads, the
-display's \code{minSashimiScore}}
+\item{min_reads}{leave out a junction with fewer supporting reads; \code{NULL}
+draws the junctions the display shows, by its \code{minSashimiScore} and
+\code{showNonCanonicalJunctions}}
 }
 \value{
 a ggplot layer

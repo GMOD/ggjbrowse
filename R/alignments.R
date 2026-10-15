@@ -163,6 +163,9 @@ alignments_adapter <- function(file, index) {
 #'   `reads`. `fade` is the share of the depth a mark's site holds, zeroed
 #'   under the display's depth-dependent threshold, which the pileup fades a
 #'   sub-pixel mark by.
+#'   `display` is the display's config as JBrowse resolves it, every slot
+#'   under JBrowse's own name and the schema's defaults filled in. `read_pitch` gives the
+#'   `featureHeight` a read draws at and the `featureSpacing` under it.
 #' @export
 #' @examples
 #' bam <- system.file("extdata", "gapdh_direct_rna.bam",
@@ -191,14 +194,14 @@ jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
   if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("alignments", args)
-  x <- alignments_result(t, display, assembly)
+  x <- alignments_result(t, assembly)
   x$junctions$region <- junction_region(x$junctions,
     unlist(t$readAs$refName), regions)
   x$junctions$refName <- NULL
   in_one_call(x, regions, t$missingContigs)
 }
 
-alignments_result <- function(t, display, assembly) {
+alignments_result <- function(t, assembly) {
   sections <- as_frame(t$sections)
   frame <- function(table) {
     d <- as_frame(table)
@@ -264,14 +267,15 @@ alignments_result <- function(t, display, assembly) {
       junctions = junctions,
       legend = legend, arcs = arcs, arc_ticks = arc_ticks,
       arc_legend = arc_legend, arc_span_max = t$arcSpanMax,
-      read_connections = display$readConnections %||% "off",
+      read_connections = t$config$readConnections,
       sections = sections,
       keys = list(reads = legend, bases = base_key, arcs = arc_legend,
         junctions = junction_key, interbase = interbase_key),
       ramps = ramp_frames(t$ramps), coverage_scale = t$coverageScale,
       reference = if (has_sequence(assembly))
         list(assembly = assembly, chrom = t$readAs$originalRefName[[1]]),
-      settings = t$settings, glyph = t$glyph),
+      settings = t$settings, display = t$config, read_pitch = t$readPitch,
+      glyph = t$glyph),
     primary = "reads",
     class = c("jbrowse_alignments", "jbrowse_result"))
 }

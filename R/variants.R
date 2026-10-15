@@ -32,7 +32,7 @@ variants_adapter <- function(file, index, samples) {
 #'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearMultiSampleVariantDisplay`: a list with
-#'   any of `unit` (`"allele"` for a row per sample, `"haplotype"` for a row
+#'   any of `unit` (`"sample"` for a row per sample, `"haplotype"` for a row
 #'   per haplotype), `color` (a field such as `"svType"` or `"impact"`, or a
 #'   list of the color object's slots), `filter` (jexl expressions),
 #'   `minorAlleleFrequencyFilter`, `maxMissingnessFilter`,
@@ -100,6 +100,9 @@ variants_adapter <- function(file, index, samples) {
 #'     attribute
 #'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
 #'     them
+#'
+#'   `display` is the display's config as JBrowse resolves it, every slot
+#'   under JBrowse's own name and the schema's defaults filled in. `unit` and `row_height` are its `unit` and `rowHeight`.
 #' @export
 #' @examples
 #' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
@@ -116,10 +119,10 @@ jbrowse_variants <- function(file, region = NULL, start = NULL, end = NULL,
   if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("variants", args)
-  in_one_call(variants_result(t, display), regions, t$missingContigs)
+  in_one_call(variants_result(t), regions, t$missingContigs)
 }
 
-variants_result <- function(t, display) {
+variants_result <- function(t) {
   variants <- as_frame(t$variants)
   variants$color <- jbrowse_color(variants$color)
   variants$filter <- as.character(variants$filter)
@@ -151,8 +154,8 @@ variants_result <- function(t, display) {
         unlist(t$rowLegend$label) %||% character(0),
         unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
       ramps = ramp_frames(t$ramps),
-      unit = display$unit %||% "allele",
-      row_height = display$rowHeight %||% 0),
+      unit = t$config$unit, row_height = t$config$rowHeight,
+      display = t$config),
     primary = "cells",
     class = c("jbrowse_variants", "jbrowse_result"))
 }
@@ -422,9 +425,9 @@ row_bars <- function(x, xlim) {
     scale_colour_jbrowse(x, "rows"))
 }
 
-# A matrix row's height in display pixels: the display's rowHeight, or 0 for
-# the rows fitted to a 100 pixel display, at least a fifteenth of it each
+# A matrix row's height in display pixels: the display's rowHeight, or for
+# 0, the rows fitted to the display's height, as the display fits them
 row_px <- function(x) {
   if (isTRUE(x$row_height > 0)) x$row_height
-  else max(100 / 15, 100 / nrow(x$rows))
+  else x$display$height / max(1, nrow(x$rows))
 }

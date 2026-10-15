@@ -36,20 +36,17 @@ read_blocks <- function(x) {
 }
 
 # The points of each junction's arc: a half ellipse from its start to its end,
-# its height following the junction's genomic span on the display's fixed log
-# scale, so a long intron arcs higher than a short one whatever else is drawn.
+# as high as the engine's `arcHeight`, a share of the band
 junction_arcs <- function(junctions, points = 48) {
   if (!nrow(junctions)) {
     return(data.frame(id = integer(0), x = numeric(0), y = numeric(0)))
   }
   span <- junctions$end - junctions$start
-  norm <- pmin(1, pmax(0, (log(pmax(1, span)) - log(50)) / (log(1e5) - log(50))))
-  height <- 0.3 + 0.65 * norm
   t <- seq(0, pi, length.out = points)
   do.call(rbind, lapply(seq_len(nrow(junctions)), function(i) {
     data.frame(id = i,
       x = junctions$start[i] + span[i] * (1 - cos(t)) / 2,
-      y = height[i] * sin(t))
+      y = junctions$arcHeight[i] * sin(t))
   }))
 }
 
@@ -154,7 +151,7 @@ coverage_plot <- function(x, o) {
     geom_jbrowse_alleles(min_allele_frequency = o$min_allele_frequency,
       width = o$width) +
     geom_jbrowse_modification_coverage(width = o$width)
-  if (!isFALSE(x$settings$showInterbaseIndicators)) {
+  if (!isFALSE(x$display$showInterbaseIndicators)) {
     p <- p + geom_jbrowse_interbase() + geom_jbrowse_indicators() +
       scale_fill_jbrowse(x, "interbase")
   }
@@ -164,7 +161,7 @@ coverage_plot <- function(x, o) {
     ggplot2::scale_y_continuous(breaks = scale$ticks,
       transform = depth_transform(scale),
       expand = ggplot2::expansion(mult = inset /
-        (x$settings$coverageHeight - 2 * inset))) +
+        (x$display$coverageHeight - 2 * inset))) +
     ggplot2::labs(y = "depth")
 }
 
@@ -229,14 +226,13 @@ pileup_plot <- function(x, o) {
   band(p + ggplot2::scale_y_reverse(), x, rows = TRUE) + no_y
 }
 
-# The junctions the sashimi band draws: those with `min_reads` or more, less
-# the non-canonical ones where the display hides them
-shown_junctions <- function(x, min_reads) {
+# The junctions the sashimi band draws: those the engine shows, or with
+# `min_reads` or more, less the non-canonical ones the display hides
+shown_junctions <- function(x, min_reads = NULL) {
   j <- x$junctions
-  keep <- j$count >= min_reads
-  if (isFALSE(x$settings$showNonCanonicalJunctions)) {
-    keep <- keep & j$motif != "non-canonical"
-  }
+  keep <- if (is.null(min_reads)) j$shown else j$count >= min_reads &
+    !(isFALSE(x$display$showNonCanonicalJunctions) &
+      j$motif == "non-canonical")
   j[keep, , drop = FALSE]
 }
 
@@ -283,10 +279,11 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   alone, mate-pair and split-read arcs or the read cloud on a log
 #'   insert-size axis; `"sequence"`: the reference's bases alone
 #' @param min_allele_frequency hide a coverage-band allele segment whose share
-#'   of the depth there is below this; `NULL` takes the display's
-#'   `coverageSnpMinFrequency`
+#'   of the depth there is below this; `NULL` draws the segments the display
+#'   shows, by its `coverageSnpMinFrequency`
 #' @param min_reads hide a junction arc with fewer supporting reads;
-#'   `NULL` takes the display's `minSashimiScore`
+#'   `NULL` draws the junctions the display shows, by its `minSashimiScore`
+#'   and `showNonCanonicalJunctions`
 #' @param letters write each mismatch's base and each insertion's length on
 #'   the pileup; `NULL` does so where the region is at most 300 bp, where a
 #'   base is wide enough to read
@@ -343,14 +340,13 @@ autoplot.jbrowse_alignments <- function(object,
 alignment_options <- function(object, min_allele_frequency = NULL,
                               min_reads = NULL, letters = NULL,
                               fade_low_frequency = NULL, width = NULL) {
-  s <- object$settings %||% list()
+  s <- object$display
   xlim <- xlim_of(object)
   list(
-    min_allele_frequency = min_allele_frequency %||%
-      s$coverageSnpMinFrequency %||% 0,
-    min_reads = min_reads %||% s$minSashimiScore %||% 2,
+    min_allele_frequency = min_allele_frequency,
+    min_reads = min_reads,
     letters = letters %||% (xlim[2] - xlim[1] <= 300),
-    fade = fade_low_frequency %||% s$fadeLowFrequencyMismatches %||% TRUE,
+    fade = fades(object, fade_low_frequency),
     width = width,
     coverage = !isFALSE(s$showCoverage),
     pileup = !isFALSE(s$showPileup),
@@ -361,9 +357,9 @@ alignment_options <- function(object, min_allele_frequency = NULL,
 # display's pixels: the coverage, sashimi and read-connection bands at their
 # configured heights per section, the pileup its rows at the read pitch
 alignment_px <- function(object, o) {
-  s <- object$settings
+  s <- object$display
   sections <- nrow(object$sections)
-  h <- s$featureHeight
+  pitch <- object$read_pitch$featureHeight + object$read_pitch$featureSpacing
   rows <- sum(vapply(split(object$reads$row, object$reads$section),
     function(r) if (length(r)) max(r) + 1 else 0, 0))
   shown <- c(
@@ -375,7 +371,7 @@ alignment_px <- function(object, o) {
   c(junctions = s$sashimiArcsHeight * sections,
     coverage = s$coverageHeight * sections,
     arcs = s$readConnectionsHeight * sections,
-    pileup = max(30, rows * (h + (h > 3))))[shown]
+    pileup = max(30, rows * pitch))[shown]
 }
 
 # A section's bands one after another, as the display stacks each section's

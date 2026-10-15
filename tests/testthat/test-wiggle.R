@@ -213,3 +213,10 @@ test_that("a mark narrower than a pixel draws a pixel wide", {
   wide <- ggplot2::layer_data(ggplot2::ggplot(w) + geom_jbrowse_wiggle(), 2)
   expect_equal(wide$xmax - wide$xmin, w$marks$end - w$marks$start)
 })
+
+test_that("the result keeps the display's resolved config and aggregate", {
+  expect_equal(w$display$type, "LinearWiggleDisplay")
+  expect_equal(w$aggregate, "mean")
+  expect_equal(jbrowse_wiggle(bw, "ctgA", 0, 50000,
+    display = list(aggregate = "max"))$aggregate, "max")
+})

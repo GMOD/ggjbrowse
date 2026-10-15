@@ -189,3 +189,14 @@ test_that("a VCF with no region reads whole", {
     jbrowse_variants(dogs, "chr30", 0, 4e7)$variants$start)
   expect_gt(nrow(whole$cells), 1000)
 })
+
+test_that("the result keeps the display's resolved unit, row height and config", {
+  v <- jbrowse_variants(people, dcst2)
+  expect_equal(v$display$type, "LinearMultiSampleVariantDisplay")
+  expect_equal(v$unit, "sample")
+  expect_equal(v$row_height, 0)
+  phased <- jbrowse_variants(people, dcst2,
+    display = list(unit = "haplotype", rowHeight = 4))
+  expect_equal(phased$unit, "haplotype")
+  expect_equal(phased$row_height, 4)
+})

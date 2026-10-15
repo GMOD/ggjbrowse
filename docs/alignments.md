@@ -44,3 +44,17 @@ JBrowse does:
 
 Each read comes back on the row the display lays it on, with the fill the
 display paints it, and `a$legend` is the display's key.
+
+The engine decides what each band shows, and `a$display` holds the
+resolved config it decided from:
+
+- Every mark comes back with the `color` the display paints it, and
+  `a$keys` with the browser's keys and titles, such as "Splice junctions".
+- `junctions$shown` marks the arcs the sashimi band draws, by
+  `minSashimiScore` and `showNonCanonicalJunctions`. Each arc rises to its
+  `arcHeight` share of the band and strokes `strokeWidth` px, which R draws
+  at 150 px an inch.
+- `allele_coverage$shown` marks the alleles the coverage band stacks, by
+  `coverageSnpMinFrequency`.
+- `min_reads`, `min_allele_frequency` and `fade_low_frequency` override
+  these in `autoplot()` and the geoms.

@@ -62,6 +62,8 @@ layers of their own, tinted as the display tints them
 \code{domain} is the score axis the display autoscales to, \code{scale_type} its
 type, and \code{rendering} what the display draws (\code{"xyplot"}, \code{"line"},
 \code{"linecenter"}, \code{"scatter"}, \code{"density"}).
+\code{display} is the display's config as JBrowse resolves it, every slot
+under JBrowse's own name and the schema's defaults filled in.
 }
 \description{
 Runs JBrowse's own quantitative display in V8: the scores it fetches at

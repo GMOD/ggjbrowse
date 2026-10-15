@@ -174,6 +174,9 @@ the color the display paints the mark. \code{read} is a row number of
 \code{reads}. \code{fade} is the share of the depth a mark's site holds, zeroed
 under the display's depth-dependent threshold, which the pileup fades a
 sub-pixel mark by.
+\code{display} is the display's config as JBrowse resolves it, every slot
+under JBrowse's own name and the schema's defaults filled in. \code{read_pitch} gives the
+\code{featureHeight} a read draws at and the \code{featureSpacing} under it.
 }
 \description{
 Runs JBrowse's own alignments engine in V8: the reads it fetches, the

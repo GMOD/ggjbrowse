@@ -188,7 +188,7 @@ test_that("the junction band keys the strands its arcs are drawn in", {
   spliced <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300)
   key <- get_guide_data(autoplot(spliced, "junctions", min_reads = 1),
     "colour")
-  expect_equal(key$.label, "Forward")
+  expect_equal(key$.label, "Forward transcript strand")
 })
 
 test_that("rows take their samples file's colors under rowColor, keyed by the attribute", {

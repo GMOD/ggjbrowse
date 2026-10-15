@@ -147,6 +147,8 @@ features_adapter <- function(file, index) {
 #'   sizes the display draws text, arrows, chevrons and section chips
 #'   (`sectionLabelHeight`) at, and `height` the track's laid-out height in
 #'   pixels.
+#'   `display` is the display's config as JBrowse resolves it, every slot
+#'   under JBrowse's own name and the schema's defaults filled in.
 #' @export
 #' @examples
 #' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
@@ -214,7 +216,8 @@ jbrowse_features <- function(file, region = NULL, start = NULL, end = NULL,
       format_fields = vcf$format_fields, annotations = vcf$annotations,
       annotation_fields = vcf$annotation_fields,
       keys = list(features = legend), ramps = ramp_frames(t$ramps),
-      glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx),
+      glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
+      display = t$config),
     primary = "features",
     class = c("jbrowse_features", "jbrowse_result")),
     regions, t$missingContigs)

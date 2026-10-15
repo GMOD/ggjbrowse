@@ -33,7 +33,7 @@ million rows in any one table}
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearMultiSampleVariantDisplay}: a list with
-any of \code{unit} (\code{"allele"} for a row per sample, \code{"haplotype"} for a row
+any of \code{unit} (\code{"sample"} for a row per sample, \code{"haplotype"} for a row
 per haplotype), \code{color} (a field such as \code{"svType"} or \code{"impact"}, or a
 list of the color object's slots), \code{filter} (jexl expressions),
 \code{minorAlleleFrequencyFilter}, \code{maxMissingnessFilter},
@@ -109,6 +109,9 @@ attribute
 \item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
 them
 }
+
+\code{display} is the display's config as JBrowse resolves it, every slot
+under JBrowse's own name and the schema's defaults filled in. \code{unit} and \code{row_height} are its \code{unit} and \code{rowHeight}.
 }
 \description{
 Runs JBrowse's own multi-sample variant display in V8: the records its

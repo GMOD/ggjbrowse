@@ -154,6 +154,8 @@ feature's \code{section}, a factor in stacking order. \code{glyph} gives the pix
 sizes the display draws text, arrows, chevrons and section chips
 (\code{sectionLabelHeight}) at, and \code{height} the track's laid-out height in
 pixels.
+\code{display} is the display's config as JBrowse resolves it, every slot
+under JBrowse's own name and the schema's defaults filled in.
 }
 \description{
 Runs JBrowse's own feature display in V8: the features it fetches, the gene

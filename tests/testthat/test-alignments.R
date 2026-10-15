@@ -614,6 +614,51 @@ test_that("a stack draws a key two tracks share once, with every entry either ho
     "Reverse transcript strand")), 2)
 })
 
+test_that("the junction band draws the junctions the display shows, at its heights and strokes", {
+  a <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "chr12:6,534,201-6,538,700")
+  j <- a$junctions
+  expect_gt(sum(!j$shown), 0)
+  drawn <- ggplot2::layer_data(ggplot2::ggplot(a) + geom_jbrowse_junctions())
+  expect_equal(length(unique(drawn$group)), sum(j$shown))
+  shown <- j[j$shown, ]
+  expect_equal(tapply(drawn$y, drawn$group, max), shown$arcHeight,
+    tolerance = 1e-3, ignore_attr = TRUE)
+  expect_equal(tapply(drawn$linewidth, drawn$group, unique),
+    shown$strokeWidth / PX_PER_INCH * 72.27 / ggplot2::.pt,
+    ignore_attr = TRUE)
+  every <- ggplot2::layer_data(ggplot2::ggplot(a) +
+    geom_jbrowse_junctions(min_reads = 1))
+  expect_equal(length(unique(every$group)), nrow(j))
+})
+
+test_that("the coverage band stacks the alleles the display shows", {
+  a <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "chr12:6,534,201-6,538,700",
+    display = list(coverageSnpMinFrequency = 0.2))
+  expect_gt(sum(!a$allele_coverage$shown), 0)
+  drawn <- ggplot2::layer_data(ggplot2::ggplot(a) + geom_jbrowse_alleles())
+  expect_equal(nrow(drawn), sum(a$allele_coverage$shown))
+  every <- ggplot2::layer_data(ggplot2::ggplot(a) +
+    geom_jbrowse_alleles(min_allele_frequency = 0))
+  expect_equal(nrow(every), nrow(a$allele_coverage))
+})
+
+test_that("a result carries the display's resolved config and read pitch", {
+  expect_equal(bam$display$type, "LinearAlignmentsDisplay")
+  expect_equal(bam$display$minSashimiScore, 2)
+  expect_equal(bam$read_connections, "off")
+  expect_equal(bam$read_pitch, list(featureHeight = 7L, featureSpacing = 1L))
+  compact <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000,
+    2000, display = list(featureHeight = 3))
+  expect_equal(compact$read_pitch$featureSpacing, 0)
+  expect_equal(read_inset(compact), 0)
+  off <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000,
+    2000, display = list(fadeLowFrequencyMismatches = FALSE))
+  expect_false(fades(off, NULL))
+  expect_true(fades(off, TRUE))
+})
+
 test_that("the junction band hides non-canonical junctions where the display does", {
   read <- function(show) jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700", assembly = extdata("gapdh_hg38.fa.gz"),
