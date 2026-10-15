@@ -153,11 +153,16 @@ alignments_adapter <- function(file, index) {
 #'   * `arc_legend`: the band's key, its title as the `"title"` attribute
 #'   * `sections`: under `display$facet`, each section's `key` and `label` in stacking
 #'     order; ungrouped, one section labelled `""`
+#'   * `keys`: the display's keys, each titled as the browser titles it:
+#'     `reads`, `bases` (empty while a modifications or bisulfite layer greys
+#'     the bases), `junctions`, `interbase` and `arcs`
 #'
 #'   Every table but the keys carries `section`, a factor in stacking order,
-#'   and each section's rows start at 0. `read` is a row number of `reads`. `fade` is the share of the depth a
-#'   mark's site holds, zeroed under the display's depth-dependent threshold,
-#'   which the pileup fades a sub-pixel mark by.
+#'   and each section's rows start at 0, and every mark table carries `color`,
+#'   the color the display paints the mark. `read` is a row number of
+#'   `reads`. `fade` is the share of the depth a mark's site holds, zeroed
+#'   under the display's depth-dependent threshold, which the pileup fades a
+#'   sub-pixel mark by.
 #' @export
 #' @examples
 #' bam <- system.file("extdata", "gapdh_direct_rna.bam",
@@ -212,49 +217,27 @@ alignments_result <- function(t, display, assembly) {
     d$row <- reads$row[d$read]
     d
   }
-  colors <- jbrowse_colors()
-  muted <- paints_modifications(display)
-  if (muted) colors$bases[] <- MUTED_BASE
-  reads$color <- jbrowse_color(reads$color)
-  mismatches <- on_read(t$mismatches)
-  mismatches$color <- jbrowse_color(colors$bases[mismatches$base])
-  chains <- frame(t$chains)
-  chains$color <- jbrowse_color(chains$color)
-  overlaps <- frame(t$overlaps)
-  overlaps$color <- jbrowse_color(overlaps$color)
-  gaps <- on_read(t$gaps)
-  gaps$color <- jbrowse_color(ifelse(gaps$type == "skip", colors$skip,
-    colors$deletion))
-  insertions <- on_read(t$insertions)
-  insertions$color <- jbrowse_color(rep(colors$insertion, nrow(insertions)))
-  clips <- on_read(t$clips)
-  clips$color <- jbrowse_color(ifelse(clips$type == "soft", colors$softclip,
-    colors$hardclip))
-  modifications <- on_read(t$modifications)
-  modifications$color <- jbrowse_color(modifications$color)
-  qualities <- on_read(t$qualities)
-  qualities$color <- jbrowse_color(qualities$color)
-  coverage <- frame(t$coverage)
-  coverage$color <- jbrowse_color(rep(colors$coverage, nrow(coverage)))
-  alleles <- frame(t$alleleCoverage)
-  alleles$color <- jbrowse_color(colors$bases[alleles$base])
-  modification_coverage <- frame(t$modificationCoverage)
-  modification_coverage$color <- jbrowse_color(modification_coverage$color)
-  interbase_colors <- c(insertion = colors$insertion,
-    softclip = colors$softclip, hardclip = colors$hardclip)
-  interbase_coverage <- frame(t$interbaseCoverage)
-  interbase_coverage$color <- jbrowse_color(
-    unname(interbase_colors[interbase_coverage$type]))
-  indicators <- frame(t$indicators)
-  indicators$color <- jbrowse_color(unname(interbase_colors[indicators$type]))
-  junctions <- frame(t$junctions)
-  strand_colors <- c("1" = colors$forward, "-1" = colors$reverse,
-    "0" = colors$read)
-  junctions$color <- jbrowse_color(strand_colors[as.character(junctions$strand)])
-  arcs <- frame(t$arcs)
-  arcs$color <- jbrowse_color(arcs$color)
-  arc_ticks <- frame(t$arcTicks)
-  arc_ticks$color <- jbrowse_color(arc_ticks$color)
+  painted <- function(d) {
+    d$color <- jbrowse_color(d$color)
+    d
+  }
+  reads <- painted(reads)
+  mismatches <- painted(on_read(t$mismatches))
+  chains <- painted(frame(t$chains))
+  overlaps <- painted(frame(t$overlaps))
+  gaps <- painted(on_read(t$gaps))
+  insertions <- painted(on_read(t$insertions))
+  clips <- painted(on_read(t$clips))
+  modifications <- painted(on_read(t$modifications))
+  qualities <- painted(on_read(t$qualities))
+  coverage <- painted(frame(t$coverage))
+  alleles <- painted(frame(t$alleleCoverage))
+  modification_coverage <- painted(frame(t$modificationCoverage))
+  interbase_coverage <- painted(frame(t$interbaseCoverage))
+  indicators <- painted(frame(t$indicators))
+  junctions <- painted(frame(t$junctions))
+  arcs <- painted(frame(t$arcs))
+  arc_ticks <- painted(frame(t$arcTicks))
   legend <- frame(t$legend)
   if (nrow(overlaps)) {
     legend <- rbind(legend, data.frame(label = "Pair/chain reads overlap here",
@@ -262,14 +245,14 @@ alignments_result <- function(t, display, assembly) {
   }
   legend <- structure(legend, title = t$legendTitle, complete = TRUE)
   arc_legend <- structure(frame(t$arcLegend), title = t$arcLegendTitle)
-  bases <- if (muted) colors$bases[0] else colors$bases
-  base_key <- key_shown(key_frame(names(bases), bases, "Base",
-    complete = TRUE), c(mismatches$color, alleles$color))
-  interbase_key <- key_shown(key_frame(c("Insertion", "Soft clip",
-    "Hard clip"), interbase_colors, "Insertions and clips", complete = TRUE),
-    interbase_coverage$color)
-  junction_key <- key_shown(key_frame(c("Forward", "Reverse", "Unknown"),
-    strand_colors, "Junction strand"), junctions$color)
+  engine_key <- function(key, title, complete = FALSE) {
+    key_frame(unlist(key$label) %||% character(0),
+      unlist(key$color) %||% character(0), title, complete)
+  }
+  base_key <- engine_key(t$baseLegend, t$baseLegendTitle, complete = TRUE)
+  interbase_key <- engine_key(t$interbaseLegend, t$interbaseLegendTitle,
+    complete = TRUE)
+  junction_key <- engine_key(t$junctionLegend, t$junctionLegendTitle)
   structure(
     list(reads = reads, mismatches = mismatches, gaps = gaps, chains = chains,
       overlaps = overlaps,
@@ -320,15 +303,6 @@ junction_region <- function(j, contigs, regions) {
       j$end[k] > regions$start), 1L)[1] - 1L
   }
   as.integer(region)
-}
-
-# The grey JBrowse paints every mismatched base in while the per-base layer
-# paints modifications, its palette's mutedSnpBase
-MUTED_BASE <- "#888"
-
-paints_modifications <- function(display) {
-  is.list(display$baseColor) &&
-    isTRUE(display$baseColor$field %in% c("modifications", "bisulfite"))
 }
 
 paints_bisulfite <- function(display) {

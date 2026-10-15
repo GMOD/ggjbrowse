@@ -234,8 +234,8 @@ test_that("modification coloring greys the mismatched bases and drops their key"
   m <- jbrowse_alignments(bam, "20", 10000, 12000, assembly = fa,
     display = list(baseColor = list(field = "modifications")))
   expect_gt(nrow(m$mismatches), 0)
-  expect_setequal(as.character(m$mismatches$color), "#888")
-  expect_setequal(as.character(m$allele_coverage$color), "#888")
+  expect_setequal(as.character(m$mismatches$color), "#888888")
+  expect_setequal(as.character(m$allele_coverage$color), "#888888")
   expect_equal(nrow(m$keys$bases), 0)
 })
 
@@ -253,7 +253,7 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   expect_equal(cg$modifications$row, cg$reads$row[cg$modifications$read])
   expect_true("5mC methylated" %in% cg$legend$label)
   expect_gt(nrow(cg$modification_coverage), 0)
-  expect_setequal(as.character(cg$mismatches$color), "#888")
+  expect_setequal(as.character(cg$mismatches$color), "#888888")
   expect_equal(nrow(cg$keys$bases), 0)
   seq <- jbrowse_sequence(fa, "NC_003070.9", 4406000, 4408000)
   base_at <- function(p, offset) toupper(substring(seq, p - 4406000 + 1 +
@@ -358,16 +358,32 @@ test_that("a spliced read splits into its blocks at its skips", {
 })
 
 test_that("the pileup and coverage draw in the display's colors", {
-  colors <- jbrowse_colors()
-  expect_type(colors$bases, "character")
-  expect_setequal(names(colors$bases), c("A", "C", "G", "T", "N"))
-  expect_equal(unique(bam$reads$color), tolower(colors$read))
+  expect_setequal(names(base_colors()), c("A", "C", "G", "T", "N"))
   expect_equal(bam$legend$label, "Reads")
+  expect_equal(unique(as.character(bam$reads$color)), bam$legend$color)
   p <- ggplot2::ggplot_build(ggplot2::autoplot(bam))
-  expect_equal(unique(p$data[[1]]$fill), tolower(colors$read))
+  expect_equal(unique(p$data[[1]]$fill), bam$legend$color)
   expect_equal(nrow(p$data[[7]]), nrow(bam$mismatches))
   cov <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage"))
   expect_equal(nrow(cov$data[[1]]), nrow(bam$coverage))
+})
+
+test_that("every mark takes the engine's color, and every key the browser's wording", {
+  a <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "chr12:6,534,201-6,538,700")
+  for (table in c("mismatches", "gaps", "insertions", "clips", "coverage",
+    "allele_coverage", "interbase_coverage", "indicators", "junctions")) {
+    expect_s3_class(a[[table]]$color, "jbrowse_color")
+    expect_false(anyNA(a[[table]]$color))
+  }
+  expect_false(identical(unique(a$gaps$color[a$gaps$type == "skip"]),
+    unique(a$gaps$color[a$gaps$type == "deletion"])))
+  expect_equal(attr(a$keys$junctions, "title"), "Splice junctions")
+  expect_equal(a$keys$junctions$label, "Forward transcript strand")
+  expect_equal(attr(a$keys$interbase, "title"), "Insertions and clips")
+  expect_equal(attr(a$keys$bases, "title"), "Base")
+  expect_setequal(as.character(a$keys$bases$color),
+    unique(as.character(c(a$mismatches$color, a$allele_coverage$color))))
 })
 
 test_that("reads fill as the display's color object paints them, with its key", {
@@ -588,13 +604,14 @@ test_that("a stack draws a key two tracks share once, with every entry either ho
   expect_equal(unique(forward$junctions$strand), 1)
   reverse <- forward
   reverse$junctions$strand <- -1
-  reverse$junctions$color <- jbrowse_color(rep(jbrowse_colors()$reverse,
+  reverse$junctions$color <- jbrowse_color(rep("#8f8fd8",
     nrow(reverse$junctions)))
-  reverse$keys$junctions <- key_frame("Reverse", jbrowse_colors()$reverse,
-    "Junction strand")
+  reverse$keys$junctions <- key_frame("Reverse transcript strand", "#8f8fd8",
+    "Splice junctions")
   text <- collected(jbrowse_stack(forward, reverse))
-  expect_equal(sum(text == "Junction strand"), 1)
-  expect_equal(sum(text %in% c("Forward", "Reverse")), 2)
+  expect_equal(sum(text == "Splice junctions"), 1)
+  expect_equal(sum(text %in% c("Forward transcript strand",
+    "Reverse transcript strand")), 2)
 })
 
 test_that("the junction band hides non-canonical junctions where the display does", {

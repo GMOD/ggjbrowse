@@ -1,14 +1,11 @@
-# The colors JBrowse's alignments display draws in, from the engine's own
-# palette: `read`, `forward`, `reverse`, `skip`, `deletion`, `insertion`,
-# `softclip`, `hardclip`, `coverage` and `bases`, one per mismatch base
-jbrowse_colors <- local({
+# The engine's palette's color for each base, which the sequence band tints
+# the reference's bases by
+base_colors <- local({
   colors <- NULL
   function() {
     if (is.null(colors)) {
-      read <- jsonlite::fromJSON(in_engine(function(ctx)
-        ctx$eval("jbrowse.alignmentColors()")))
-      read$bases <- unlist(read$bases)
-      colors <<- read
+      colors <<- unlist(jsonlite::fromJSON(in_engine(function(ctx)
+        ctx$eval("jbrowse.alignmentColors()")))$bases)
     }
     colors
   }
@@ -198,7 +195,7 @@ sequence_plot <- function(x, o) {
     data.frame(position = offset[i] + seq_along(base) - 1, base = base)
   }))
   bases$cell <- max(1, 1 / px_of(x, o$width))
-  bases$tint <- ggplot2::alpha(jbrowse_colors()$bases[bases$base], 0.35)
+  bases$tint <- ggplot2::alpha(base_colors()[bases$base], 0.35)
   ggplot2::ggplot(bases) +
     ggplot2::geom_rect(ggplot2::aes(xmin = position, xmax = position + cell,
       ymin = 0, ymax = 1, fill = tint)) +

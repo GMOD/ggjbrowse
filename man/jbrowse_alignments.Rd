@@ -163,12 +163,17 @@ itself), \code{support} (the reads behind it) and \code{width} (the stroke in px
 \item \code{arc_legend}: the band's key, its title as the \code{"title"} attribute
 \item \code{sections}: under \code{display$facet}, each section's \code{key} and \code{label} in stacking
 order; ungrouped, one section labelled \code{""}
+\item \code{keys}: the display's keys, each titled as the browser titles it:
+\code{reads}, \code{bases} (empty while a modifications or bisulfite layer greys
+the bases), \code{junctions}, \code{interbase} and \code{arcs}
 }
 
 Every table but the keys carries \code{section}, a factor in stacking order,
-and each section's rows start at 0. \code{read} is a row number of \code{reads}. \code{fade} is the share of the depth a
-mark's site holds, zeroed under the display's depth-dependent threshold,
-which the pileup fades a sub-pixel mark by.
+and each section's rows start at 0, and every mark table carries \code{color},
+the color the display paints the mark. \code{read} is a row number of
+\code{reads}. \code{fade} is the share of the depth a mark's site holds, zeroed
+under the display's depth-dependent threshold, which the pileup fades a
+sub-pixel mark by.
 }
 \description{
 Runs JBrowse's own alignments engine in V8: the reads it fetches, the
