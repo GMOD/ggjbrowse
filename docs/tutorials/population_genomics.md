@@ -267,9 +267,9 @@ sweep <- c(12130000, 12200000)
 genes <- jbrowse_features(genes_adapter, locus, width = 1200)
 scan_at <- function(bigwig) jbrowse_wiggle(bigwig, "2R", 12000000 - 1, 12400000,
   width = 1200)
-fig <- suppressWarnings(jbrowse_stack(`RefSeq genes` = genes,
+fig <- jbrowse_stack(`RefSeq genes` = genes,
   `Tajima's D` = scan_at(tajd_bw), π = scan_at(pi_bw),
-  `called variants` = scan_at(sites_bw))) &
+  `called variants` = scan_at(sites_bw)) &
   annotate("rect", xmin = sweep[1], xmax = sweep[2], ymin = -Inf,
     ymax = Inf, fill = "#f0b429", alpha = 0.25)
 ```

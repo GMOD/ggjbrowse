@@ -33,7 +33,8 @@ variants_adapter <- function(file, index, samples) {
 #'   (the arrangement a session saves: `domain`, the rows listed first in
 #'   order, `labels`, a label by row name, and `kept`, the rows shown) and
 #'   `facet` (a samples file attribute, or `list(field, domain)`, whose values
-#'   each take a band of rows)
+#'   each take a band of rows) and `rowHeight` (pixels a row, where
+#'   [jbrowse_stack()] otherwise fits the rows into the display's height)
 #' @param index the tabix or CSI index, if not beside `file` under its usual
 #'   name
 #' @param samples a tab-separated file of the samples' attributes, a `name`
@@ -117,6 +118,7 @@ variants_region <- function(adapter, chrom, start, end, display,
         unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
       ramps = ramp_frames(t$ramps),
       unit = display$unit %||% "allele",
+      row_height = display$rowHeight %||% 0,
       region = list(chrom = chrom, start = start, end = end),
       missing_contig = t$missingContig),
     primary = "cells",
@@ -322,5 +324,9 @@ row_bars <- function(x, xlim) {
     scale_colour_jbrowse(x, "rows"))
 }
 
-# A matrix row's height in display pixels, at least 100 for the whole matrix
-row_px <- function(x) max(100 / 15, 100 / nrow(x$rows))
+# A matrix row's height in display pixels: the display's rowHeight, or 0 for
+# the rows fitted to a 100 pixel display, at least a fifteenth of it each
+row_px <- function(x) {
+  if (isTRUE(x$row_height > 0)) x$row_height
+  else max(100 / 15, 100 / nrow(x$rows))
+}

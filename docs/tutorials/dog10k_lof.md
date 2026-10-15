@@ -203,6 +203,7 @@ codon 373, and the variant sits on its first base:
 ``` r
 display <- list(
   filter = "jexl:feature.start == 38261634",
+  rowHeight = 20,
   rowColor = list(field = "group"),
   rows = list(domain = panel$name,
     labels = setNames(as.list(panel$label), panel$name)))
@@ -221,8 +222,7 @@ codon <- ggplot(tibble(x = 38261614 + seq_along(bases) - 0.5, base = bases),
   geom_text(family = "mono", size = 4) +
   theme_void() +
   ylim(0.5, 1.5)
-fig <- jbrowse_stack(codon, genotypes) +
-  patchwork::plot_layout(heights = c(1, 9))
+fig <- jbrowse_stack(codon, genotypes)
 ```
 
 

@@ -38,7 +38,8 @@ list of the color object's slots), \code{filter} (jexl expressions),
 (the arrangement a session saves: \code{domain}, the rows listed first in
 order, \code{labels}, a label by row name, and \code{kept}, the rows shown) and
 \code{facet} (a samples file attribute, or \code{list(field, domain)}, whose values
-each take a band of rows)}
+each take a band of rows) and \code{rowHeight} (pixels a row, where
+\code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the rows into the display's height)}
 
 \item{index}{the tabix or CSI index, if not beside \code{file} under its usual
 name}
