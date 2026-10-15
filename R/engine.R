@@ -95,9 +95,19 @@ in_engine <- function(use) {
   use(ctx)
 }
 
+as_engine_json <- function(args) {
+  objects <- function(x) {
+    if (!is.list(x) || inherits(x, "AsIs")) return(x)
+    if (!length(x)) return(structure(list(), names = character()))
+    x[] <- lapply(x, objects)
+    x
+  }
+  as.character(jsonlite::toJSON(objects(args), auto_unbox = TRUE))
+}
+
 call_engine <- function(table, args) {
   json <- in_engine(function(ctx) ctx$call(sprintf("jbrowse.%s", table),
-    as.character(jsonlite::toJSON(args, auto_unbox = TRUE)), await = TRUE))
+    as_engine_json(args), await = TRUE))
   jsonlite::fromJSON(json, simplifyVector = TRUE, simplifyDataFrame = FALSE)
 }
 

@@ -329,7 +329,7 @@ jbrowse_sequence <- function(reference, chrom, start, end) {
   args <- list(sequenceAdapter = sequence_adapter(reference),
     region = list(refName = chrom, start = start, end = end))
   in_engine(function(ctx) ctx$call("jbrowse.sequence",
-    as.character(jsonlite::toJSON(args, auto_unbox = TRUE)), await = TRUE))
+    as_engine_json(args), await = TRUE))
 }
 
 # The grey JBrowse paints every mismatched base in while the per-base layer

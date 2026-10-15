@@ -500,3 +500,19 @@ test_that("a stacked pileup draws at the width its stack's tracks were read at",
   expect_equal(pileup, built(autoplot(reads, "pileup", width = 2500)))
   expect_false(identical(pileup, built(autoplot(reads, "pileup"))))
 })
+
+test_that("an empty display slot reads as the display's defaults", {
+  bam <- extdata("arabidopsis_wgbs.bam")
+  fa <- extdata("arabidopsis_tair10.fa.gz")
+  locus <- "NC_003070.9:4,406,001-4,407,000"
+  read <- function(modifications) jbrowse_alignments(bam, locus,
+    reference = fa, display = list(baseColor = list(field = "bisulfite"),
+      modifications = modifications))
+  expect_equal(read(list())$modifications, read(NULL)$modifications)
+})
+
+test_that("the sequence band asks for the reference it draws", {
+  a <- jbrowse_alignments(extdata("arabidopsis_wgbs.bam"),
+    "NC_003070.9:4,406,001-4,406,300")
+  expect_error(autoplot(a, "sequence"), "reference =")
+})
