@@ -1,0 +1,428 @@
+---
+title: A loss-of-function allele across breeds (Dog10K) in R
+jbrowse_tutorial: dog10k_lof
+---
+
+Some dogs are poor metabolizers of the drugs the liver enzyme CYP1A2 clears,
+because they have a premature stop codon in _CYP1A2_. The literature names the
+variant only by its protein change. We'll do the whole analysis in R: derive
+its genome coordinate by translating the reference coding sequence, read its
+genotypes out of the 397 GB Dog10K SNV callset over HTTP, join them to the
+sample table, and plot the allele's frequency per breed with ggjbrowse and
+ggplot2, with the wild canids as the control. A copy-number figure then shows
+the gene's expansion across the same animals.
+
+- **In:** the Dog10K SNV callset and sample table, the canFam4 reference, and
+  RefSeq's _CYP1A2_ exons.
+- **Out:** the stop codon's coordinate, a genotype matrix of 39 animals, a
+  per-breed allele-frequency figure and a copy-number figure.
+- **The check:** the callset's own allele count at the stop site, which the
+  genotypes we read have to add up to, and the Boxers, who stay at two copies.
+
+The same analysis in the JBrowse app is the
+[Dog10K loss-of-function tutorial](https://jbrowse.org/jb2/docs/tutorials/dog10k_lof/).
+
+## Prerequisites
+
+In R:
+
+```r
+install.packages(c("remotes", "ggplot2", "dplyr", "tidyr", "readr",
+  "jsonlite"))
+remotes::install_github("GMOD/ggjbrowse")
+```
+
+<!-- jbrowse
+section: Where the data comes from
+drop_lines:
+  - "15 published CRAMs"
+  - "cram-share/"
+replace:
+  - from: "The [build scripts](#reproduce-it-end-to-end) take these files from their URLs,\nso there is nothing to download by hand."
+    to: "The code below reads each of these files by URL, so there is nothing to\ndownload by hand."
+-->
+
+<!-- jbrowse
+section: The CYP1A2 nonsense variant
+-->
+
+<!-- jbrowse
+section: Deriving the CYP1A2 stop codon's coordinate from the reference
+title: Deriving the stop codon's coordinate in R
+only:
+  - "The literature names this variant"
+replace:
+  - from: "The\nbuild script rebuilds _CYP1A2_'s coding sequence from the reference and the\nRefSeq exon structure, translates it, and reports codon 373:"
+    to: "We'll rebuild _CYP1A2_'s coding sequence from the reference and the\nRefSeq exon structure, then translate it to find codon 373."
+-->
+
+`jbrowse_sequence()` reads the reference bases through JBrowse's own 2bit
+reader, and UCSC's REST API serves the exon structure. Each exon is clipped to
+the coding region, and the codons come out of a standard codon table:
+
+```{r derive}
+library(ggjbrowse)
+library(dplyr)
+library(readr)
+library(ggplot2)
+
+twobit <- "https://hgdownload.soe.ucsc.edu/goldenPath/canFam4/bigZips/canFam4.2bit"
+refseq <- paste0("https://api.genome.ucsc.edu/getData/track?genome=canFam4;",
+  "track=ncbiRefSeqCurated;chrom=chr30;start=38258000;end=38265000")
+window <- c(start = 38258000, end = 38265000)
+
+tx <- jsonlite::fromJSON(refseq)$ncbiRefSeqCurated |>
+  filter(startsWith(name, "NM_"))
+exons <- tibble(
+  start = as.integer(strsplit(tx$exonStarts, ",")[[1]]),
+  end = as.integer(strsplit(tx$exonEnds, ",")[[1]])) |>
+  mutate(start = pmax(start, tx$cdsStart), end = pmin(end, tx$cdsEnd)) |>
+  filter(start < end)
+
+reference <- strsplit(toupper(
+  jbrowse_sequence(twobit, "chr30", window[["start"]], window[["end"]])), "")[[1]]
+position <- unlist(Map(seq, exons$start, exons$end - 1))
+cds <- paste(reference[position - window[["start"]] + 1], collapse = "")
+
+first <- c("T", "C", "A", "G")
+grid <- expand.grid(third = first, second = first, first = first)
+code <- setNames(
+  strsplit("FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+    "")[[1]],
+  paste0(grid$first, grid$second, grid$third))
+codons <- substring(cds, seq(1, nchar(cds) - 2, 3), seq(3, nchar(cds), 3))
+protein <- unname(code[codons])
+
+stop_site <- position[3 * 373 - 2] + 1
+cat(sprintf("%s CDS %d bp, %d codons\ncodon 373 = %s (%s) at chr30:%d\n",
+  tx$name, nchar(cds), length(codons), codons[373], protein[373], stop_site))
+```
+
+<!-- jbrowse
+section: Deriving the CYP1A2 stop codon's coordinate from the reference
+title: false
+only:
+  - "The C>T at chr30:38,261,635"
+replace:
+  - from: "Checking the callset at exactly that position finds it, passing every filter:"
+    to: "Reading the callset at exactly that position finds it:"
+-->
+
+`jbrowse_variants()` takes the 397 GB callset's URL and fetches the records
+under one locus by range request, so a single base costs a few seconds. The
+table has a row for every canid in the callset and a cell for each non-reference
+call:
+
+```{r callset}
+callset <- "https://kiddlabshare.med.umich.edu/dog10K/SNP_and_indel_calls_2021-10-17/AutoAndXPAR.SNPs.vqsr99.vcf.gz"
+everyone <- jbrowse_variants(callset, sprintf("chr30:%d-%d", stop_site, stop_site))
+everyone$variants |> select(start, ref, alt, type)
+everyone
+```
+
+<!-- jbrowse
+section: Slicing CYP1A2 out of the Dog10K SNV callset
+-->
+
+The figures below read a hosted copy of that slice, which JBrowse keeps beside its
+test data:
+
+```{r slice}
+slice <- "https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_cyp1a2_snvs.vcf.gz"
+```
+
+## Genotypes across breeds and wolves
+
+The slice's samples come from the Dog10K sample table, which gives each animal's
+breed and category. The matrix labels each row with its breed, and
+`rowColor` marks the rows by a `group` column of the `samples` file:
+
+```{r samples}
+meta <- read_tsv("https://kiddlabshare.med.umich.edu/dog10K/sample-information/dog10K-alignment-sample-table.2022-02-23-v7.txt",
+  show_col_types = FALSE) |>
+  transmute(name = sampleName, breed = Breed.Type, category = Category)
+
+locus <- "chr30:38,261,615-38,261,655"
+slice_rows <- jbrowse_variants(slice, locus)$rows$sample
+panel <- meta |>
+  filter(name %in% slice_rows) |>
+  arrange(match(name, slice_rows)) |>
+  mutate(label = paste(ifelse(category == "Wolf", "Wolf", breed),
+    ave(seq_along(name), breed, FUN = seq_along)))
+```
+
+<!-- jbrowse
+section: CYP1A2 stop-gained genotypes across breeds and wolves
+title: false
+only:
+  - "Three other variants lie within"
+replace:
+  - from: "and the\nconfig below filters them out."
+    to: "and the\nfilter below drops them."
+-->
+
+```{r neighbours}
+nearby <- jbrowse_variants(slice, "chr30:38,261,590-38,261,690")
+nearby$variants |>
+  mutate(carriers = tabulate(nearby$cells$variant, n()),
+    wolves = tabulate(nearby$cells$variant[grepl("^CLUP", nearby$cells$sample)],
+      n())) |>
+  select(start, ref, alt, carriers, wolves)
+```
+
+The reference bases above the matrix come from the same 2bit. The box marks
+codon 373, and the variant sits on its first base:
+
+```{r genotypes}
+display <- list(
+  filter = "jexl:feature.start == 38261634",
+  rowColor = list(field = "group"),
+  rows = list(domain = panel$name,
+    labels = setNames(as.list(panel$label), panel$name)))
+
+samples_file <- tempfile(fileext = ".tsv")
+write_tsv(mutate(panel, group = ifelse(category == "Breed_Dogs", "Dog breed",
+  category)), samples_file)
+genotypes <- jbrowse_variants(slice, locus, samples = samples_file,
+  display = display)
+
+bases <- strsplit(jbrowse_sequence(twobit, "chr30", 38261614, 38261655), "")[[1]]
+codon <- ggplot(tibble(x = 38261614 + seq_along(bases) - 0.5, base = bases),
+  aes(x, 1, label = base)) +
+  annotate("rect", xmin = 38261634, xmax = 38261637, ymin = 0.5, ymax = 1.5,
+    fill = NA, colour = "black") +
+  geom_text(family = "mono", size = 4) +
+  theme_void() +
+  ylim(0.5, 1.5)
+fig <- jbrowse_stack(codon, genotypes) +
+  patchwork::plot_layout(heights = c(1, 9))
+```
+
+```{r genotypes-plot, fig.height = 7.5, fig.width = 9, fig.cap = "The CYP1A2 stop-gained site over 39 animals: five breeds carry the allele, and the Labrador Retrievers, Boxers and all four wolves are homozygous reference"}
+fig
+```
+
+## Allele frequency per breed
+
+The callset read at the stop site above covers every canid, so R can join it to
+the sample table and count alleles. A homozygous call counts twice, and a canid
+with no cell is homozygous reference:
+
+```{r frequency}
+calls <- everyone$cells |>
+  filter(start == stop_site - 1) |>
+  transmute(name = as.character(row), alt = round(dosage * 2))
+
+alleles <- tibble(name = everyone$rows$sample) |>
+  left_join(calls, by = "name") |>
+  mutate(alt = coalesce(alt, 0)) |>
+  left_join(meta, by = "name") |>
+  mutate(group = ifelse(category == "Breed_Dogs", breed, category))
+
+frequency <- alleles |>
+  filter(category %in% c("Breed_Dogs", "Wolf", "Coyote")) |>
+  group_by(group, category) |>
+  summarise(animals = n(), carriers = sum(alt > 0), homozygous = sum(alt == 2),
+    frequency = sum(alt) / (2 * n()), .groups = "drop")
+
+frequency |>
+  filter(category == "Breed_Dogs", animals >= 4) |>
+  slice_max(frequency, n = 8, with_ties = FALSE)
+```
+
+We'll draw the breeds with the highest frequency among those sampled at least
+four times. The negative controls follow them: Labrador Retrievers and Boxers,
+the two breeds the matrix shows without the allele, and the wolves and coyotes,
+whose callset rows sit in the same table:
+
+```{r frequency-plot, fig.height = 6.5, fig.cap = "Frequency of the CYP1A2 stop-gained allele in the 15 breeds with the highest frequency, and in the Labrador Retriever, Boxer, wolf and coyote controls, which have no carriers; each bar is labelled with its number of carriers"}
+shown <- bind_rows(
+  frequency |> filter(category == "Breed_Dogs", animals >= 4) |>
+    slice_max(frequency, n = 15, with_ties = FALSE) |>
+    mutate(kind = "Highest-frequency breeds"),
+  frequency |> filter(group %in% c("Labrador Retriever", "Boxer", "Wolf",
+    "Coyote")) |>
+    mutate(kind = "Controls")) |>
+  mutate(kind = factor(kind, c("Highest-frequency breeds", "Controls")),
+    label = sprintf("%s (n = %d)", group, animals))
+
+ggplot(shown, aes(frequency, reorder(label, frequency))) +
+  geom_col(fill = "#4e79a7") +
+  geom_text(aes(label = sprintf("%d carriers", carriers)), hjust = -0.1,
+    size = 3) +
+  facet_grid(kind ~ ., scales = "free_y", space = "free_y") +
+  scale_x_continuous(limits = c(0, 0.95), expand = c(0, 0)) +
+  labs(x = "frequency of the stop-gained allele", y = NULL) +
+  theme_minimal()
+```
+
+Counting over the whole callset gives the allele's reach:
+
+```{r reach}
+breeds <- frequency |> filter(category == "Breed_Dogs")
+wild <- frequency |> filter(category != "Breed_Dogs")
+tibble(
+  breeds_with_allele = sprintf("%d of %d", sum(breeds$carriers > 0),
+    nrow(breeds)),
+  wild_carriers = sprintf("%d of %d", sum(wild$carriers), sum(wild$animals)),
+  german_hounds = sprintf("%d of %d carry it",
+    frequency$carriers[frequency$group == "German Hound"],
+    frequency$animals[frequency$group == "German Hound"]),
+  shetland_sheepdogs = sprintf("%d of %d carry it",
+    frequency$carriers[frequency$group == "Shetland Sheepdog"],
+    frequency$animals[frequency$group == "Shetland Sheepdog"]))
+```
+
+<!-- jbrowse
+section: Copy number at CYP1A2
+only:
+  - "The Dog10K paper reports"
+  - "bcftools view -r chr30:38205000"
+  - "The build script converts depth"
+  - "CN = 2 * depth"
+  - "The flanking sequence should"
+  - "Each window is 5 kb"
+-->
+
+The build script's output is a BED with one row per animal and run of equal
+copy number, the color in `itemRgb` and the rounded call in `copyNumber`. R
+reads it as a table:
+
+```{r copy-number}
+cohort <- read_tsv(
+  "https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_cyp1a2_cohort_cn.bed.gz",
+  col_names = c("chrom", "start", "end", "name", "score", "strand",
+    "thickStart", "thickEnd", "itemRgb", "name_sample", "copyNumber"),
+  col_types = cols(itemRgb = "c", .default = col_guess())) |>
+  rename(sample = name_sample) |>
+  left_join(rename(meta, sample = name), by = "sample")
+
+cn_palette <- c("CN 0" = "#2166ac", "CN 1" = "#92c5de", "CN 2" = "#e0e0e0",
+  "CN 3" = "#f4a582", "CN 4" = "#d6604d", "CN 5" = "#b2182b",
+  "CN 6+" = "#67001f")
+```
+
+The figure draws every Golden Retriever, Labrador Retriever and Boxer in the
+collection, with the four Greek wolves from the genotype matrix and the four
+coyotes as the wild canids. The black bar above the rows marks _CYP1A2_'s
+coding sequence, and white stripes are windows with no call:
+
+```{r copy-number-plot, fig.height = 6.5, fig.cap = "Copy number over CYP1A2 and its neighbours for Golden Retrievers, Labrador Retrievers, Boxers, wolves and coyotes: the Goldens and wolves carry the expansion, the Boxers and coyotes have two copies at the gene, and the Labradors differ in how far the expansion extends"}
+rows <- cohort |>
+  mutate(row = case_when(
+    breed %in% c("Golden Retriever", "Labrador Retriever", "Boxer") ~ breed,
+    sample %in% sprintf("CLUPGR%06d", 1:4) ~ "Wolf",
+    category == "Coyote" ~ "Coyote")) |>
+  filter(!is.na(row)) |>
+  mutate(row = factor(row, c("Golden Retriever", "Labrador Retriever", "Boxer",
+    "Wolf", "Coyote"))) |>
+  arrange(row, sample) |>
+  mutate(y = n_distinct(sample) + 1 - match(sample, unique(sample)),
+    call = factor(ifelse(copyNumber >= 6, "CN 6+", paste("CN", copyNumber)),
+      names(cn_palette)))
+
+ggplot(rows) +
+  geom_rect(aes(xmin = start, xmax = end, ymin = y - 0.45, ymax = y + 0.45,
+    fill = call)) +
+  annotate("rect", xmin = min(exons$start), xmax = max(exons$end),
+    ymin = max(rows$y) + 0.8, ymax = max(rows$y) + 1.2) +
+  annotate("text", x = min(exons$start) - 1500, y = max(rows$y) + 1,
+    label = "CYP1A2", fontface = "italic", hjust = 1, size = 3.5) +
+  scale_fill_manual(values = cn_palette, drop = FALSE) +
+  scale_y_continuous(breaks = tapply(rows$y, rows$row, mean),
+    labels = levels(rows$row), expand = c(0, 0.3)) +
+  scale_x_continuous(labels = scales::label_number(big.mark = ","),
+    expand = c(0, 0)) +
+  labs(x = "chr30", y = NULL, fill = "Copy number") +
+  theme_minimal() +
+  theme(panel.grid = element_blank())
+```
+
+A table makes the same reading at the gene's coding start, one call per animal:
+
+```{r copy-number-table}
+at_gene <- rows |>
+  filter(start <= min(exons$start), end > min(exons$start)) |>
+  group_by(row) |>
+  summarise(animals = n(), copy_numbers = paste(sort(unique(copyNumber)),
+    collapse = ", "), .groups = "drop")
+at_gene
+```
+
+<!-- jbrowse
+section: Copy number at CYP1A2
+title: false
+only:
+  - "The depth-based estimate puts"
+-->
+
+Here is how the collection splits at the gene:
+
+```{r expansion-share}
+cohort |>
+  filter(start <= min(exons$start), end > min(exons$start)) |>
+  summarise(animals = n(), three_or_more = sum(copyNumber >= 3),
+    share = mean(copyNumber >= 3))
+```
+
+## The check
+
+Two numbers test the figures' reading. The first is the callset's own record at
+the stop site, from `bcftools query` over the same URL:
+
+<!-- jbrowse
+section: Deriving the CYP1A2 stop codon's coordinate from the reference
+title: false
+only:
+  - "bcftools query -r chr30:38261635"
+-->
+
+`AC` counts the alt alleles and `AN` the alleles called. The genotypes R read
+and counted per animal have to add up to both:
+
+```{r check-counts}
+called <- 2 * nrow(everyone$rows) -
+  2 * sum(grepl(".", everyone$cells$genotype, fixed = TRUE))
+record <- c(AC = 174, AN = 3974)
+rbind(record, genotypes = c(AC = sum(alleles$alt), AN = called))
+```
+
+The second is the control of the copy-number figure. Every Boxer sits at two
+copies where the Golden Retrievers sit at four or five:
+
+```{r check-boxers}
+at_gene |> filter(row %in% c("Boxer", "Golden Retriever"))
+```
+
+<!-- jbrowse
+section: Reproduce it end to end
+title: Reproducing the files with the build scripts
+replace:
+  - from: "counts quoted above"
+    to: "counts this page computes in R"
+-->
+
+## Your own data
+
+- Point `jbrowse_variants()` at your own bgzipped, indexed VCF. A tab-separated
+  `samples` file with a `name` column and one column per attribute colors the
+  rows through `rowColor`.
+- Read a different site by changing `stop_site`. Derive it from a protein change
+  with the same steps: exon starts and ends from the gene's annotation, the CDS
+  translated, the codon's first base.
+- `frequency` is a plain table. Group `alleles` by any column of your sample
+  sheet to get the allele's frequency in that grouping.
+- Keep a control group in the sample sheet, as the wolves are here, so the
+  figure has a row that ought to come out empty.
+
+## See also
+
+- [Dog10K loss-of-function tutorial](https://jbrowse.org/jb2/docs/tutorials/dog10k_lof/),
+  the same analysis in the JBrowse app
+- [Variant matrices](../../README.md#variant-matrices)
+
+<!-- jbrowse
+section: Citations
+only:
+  - "Meadows et al."
+-->
