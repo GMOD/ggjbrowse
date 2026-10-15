@@ -207,20 +207,33 @@ jb2export --fasta inst/extdata/hg38_clip.fa \
 `NC_003070.9:4,398,001-4,412,000`
 
 <table>
-<tr><td width="50%"><img src="../gallery/bisulfite-jbrowse.webp" alt="CHH methylation from bisulfite reads in JBrowse. Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left." width="100%"></td><td width="50%"><img src="../gallery/bisulfite-r.webp" alt="CHH methylation from bisulfite reads drawn by ggjbrowse. Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left." width="100%"></td></tr>
+<tr><td width="50%"><img src="../gallery/bisulfite-jbrowse.webp" alt="CHH methylation from bisulfite reads in JBrowse. MethylDackel's three context bigWigs and each read's methylated CHH cytosines in red, under the RefSeq gene AT1G12930: CHH is dense over the silenced LTR retrotransposon on the right and rare over the gene body on the left, which carries CpG methylation only." width="100%"></td><td width="50%"><img src="../gallery/bisulfite-r.webp" alt="CHH methylation from bisulfite reads drawn by ggjbrowse. MethylDackel's three context bigWigs and each read's methylated CHH cytosines in red, under the RefSeq gene AT1G12930: CHH is dense over the silenced LTR retrotransposon on the right and rare over the gene body on the left, which carries CpG methylation only." width="100%"></td></tr>
 </table>
 
-Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left.
+MethylDackel's three context bigWigs and each read's methylated CHH cytosines in red, under the RefSeq gene AT1G12930: CHH is dense over the silenced LTR retrotransposon on the right and rare over the gene body on the left, which carries CpG methylation only.
 
 ```r
-autoplot(jbrowse_alignments(e("arabidopsis_wgbs.bam"),
-  "NC_003070.9:4,398,001-4,412,000", reference = e("arabidopsis_tair10.fa.gz"),
+locus <- "NC_003070.9:4,398,001-4,412,000"
+hub <- "https://hgdownload.soe.ucsc.edu/hubs/GCF/000/001/735/GCF_000001735.4"
+genes <- jbrowse_features(
+  file.path(hub, "bbi", "GCF_000001735.4_TAIR10.1.ncbiRefSeq.bb"), locus)
+demo <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_"
+methyldackel <- list(type = "MultiWiggleAdapter",
+  subadapters = lapply(c("CpG", "CHG", "CHH"), function(context)
+    list(type = "BigWigAdapter", name = context,
+      bigWigLocation = list(uri = paste0(demo, context, ".bw")))))
+reads <- jbrowse_alignments(e("arabidopsis_wgbs.bam"), locus,
+  reference = e("arabidopsis_tair10.fa.gz"),
   display = list(baseColor = list(field = "bisulfite"),
-    modifications = list(cytosineContext = "CHH"))))
+    modifications = list(cytosineContext = "CHH")))
+jbrowse_stack(`RefSeq genes` = genes,
+  MethylDackel = jbrowse_wiggle(methyldackel, locus), `CHH reads` = reads)
 ```
 
 ```sh
-jb2export --fasta inst/extdata/arabidopsis_tair10.fa.gz \
+jb2export --hub GCF_000001735.4 \
+  --track ncbiRefSeq \
+  --multiwig gallery/jb2export/methyldackel.json name:MethylDackel showLegend=true \
   --bam inst/extdata/arabidopsis_wgbs.bam baseColor:bisulfite modifications.cytosineContext=CHH showLegend=true heightMode:grow growMaxHeight=2000 \
   --loc NC_003070.9:4,398,001-4,412,000 \
   --width 1200 --out bisulfite.png

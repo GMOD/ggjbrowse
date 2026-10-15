@@ -8,8 +8,9 @@
 #   Rscript scripts/gallery.R --check        run each R recipe, then as --docs
 # Drawing needs jbrowse-components built, at JBROWSE_COMPONENTS (default
 # ~/src/jbrowse-components), or JB2EXPORT naming the command that runs
-# jb2export; `jb2export_version` below says which. The hg38 and hg19 hubs and
-# the primate chrom.sizes come over the network. Needs ImageMagick for the webp.
+# jb2export; `jb2export_version` below says which. The hg38, hg19 and TAIR10
+# hubs, the MethylDackel bigWigs and the primate chrom.sizes come over the
+# network. Needs ImageMagick for the webp.
 suppressPackageStartupMessages({
   library(ggjbrowse)
   library(ggplot2)
@@ -73,6 +74,14 @@ dnase_json <- function() json_file(lapply(cells, function(cell) list(
   type = "BigWigAdapter", name = toupper(cell),
   bigWigLocation = local_file(inst(sprintf("hbb_dnase_%s.bw", cell))))),
   "dnase.json")
+
+methyldackel_json <- function() {
+  demo <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_"
+  json_file(lapply(c("CpG", "CHG", "CHH"), function(context) list(
+    type = "BigWigAdapter", name = context,
+    bigWigLocation = list(uri = paste0(demo, context, ".bw")))),
+    "methyldackel.json")
+}
 
 fasta <- c("--fasta", inst("gapdh_hg38.fa.gz"))
 hg38 <- c("--hub", "hg38")
@@ -267,18 +276,31 @@ autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
     modifications = list(unmodified = "all"))))
 )-"),
   bisulfite = list(
-    caption = "Each read's methylated CHH cytosines, called from its C-to-T conversions, in red: dense over the silenced LTR retrotransposon on the right, rare over the gene on the left.",
+    caption = "MethylDackel's three context bigWigs and each read's methylated CHH cytosines in red, under the RefSeq gene AT1G12930: CHH is dense over the silenced LTR retrotransposon on the right and rare over the gene body on the left, which carries CpG methylation only.",
     title = "CHH methylation from bisulfite reads",
     locus = "NC_003070.9:4,398,001-4,412,000",
-    jbrowse = c("--fasta", inst("arabidopsis_tair10.fa.gz"), "--bam",
+    jbrowse = c("--hub", "GCF_000001735.4", "--track", "ncbiRefSeq",
+      "--multiwig", methyldackel_json(), "name:MethylDackel",
+      "showLegend=true", "--bam",
       inst("arabidopsis_wgbs.bam"), "baseColor:bisulfite",
       "modifications.cytosineContext=CHH", "showLegend=true", grow, "--loc",
       "NC_003070.9:4,398,001-4,412,000"),
     r = r"-(
-autoplot(jbrowse_alignments(e("arabidopsis_wgbs.bam"),
-  "NC_003070.9:4,398,001-4,412,000", reference = e("arabidopsis_tair10.fa.gz"),
+locus <- "NC_003070.9:4,398,001-4,412,000"
+hub <- "https://hgdownload.soe.ucsc.edu/hubs/GCF/000/001/735/GCF_000001735.4"
+genes <- jbrowse_features(
+  file.path(hub, "bbi", "GCF_000001735.4_TAIR10.1.ncbiRefSeq.bb"), locus)
+demo <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_"
+methyldackel <- list(type = "MultiWiggleAdapter",
+  subadapters = lapply(c("CpG", "CHG", "CHH"), function(context)
+    list(type = "BigWigAdapter", name = context,
+      bigWigLocation = list(uri = paste0(demo, context, ".bw")))))
+reads <- jbrowse_alignments(e("arabidopsis_wgbs.bam"), locus,
+  reference = e("arabidopsis_tair10.fa.gz"),
   display = list(baseColor = list(field = "bisulfite"),
-    modifications = list(cytosineContext = "CHH"))))
+    modifications = list(cytosineContext = "CHH")))
+jbrowse_stack(`RefSeq genes` = genes,
+  MethylDackel = jbrowse_wiggle(methyldackel, locus), `CHH reads` = reads)
 )-"),
   dnase_rows = list(
     caption = "Most lines share one peak near 5,281,000, and K562 alone shows several more to either side.",
