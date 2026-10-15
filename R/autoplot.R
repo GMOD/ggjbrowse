@@ -190,9 +190,12 @@ sequence_plot <- function(x, o) {
       "with `assembly =`", call. = FALSE)
   }
   xlim <- xlim_of(x)
-  bases <- data.frame(position = seq(xlim[1], xlim[2] - 1))
-  bases$base <- toupper(strsplit(jbrowse_sequence(x$reference$assembly,
-    x$reference$chrom, xlim[1], xlim[2]), "")[[1]])
+  r <- regions_read(x)
+  offset <- r$offset %||% r$start
+  bases <- do.call(rbind, lapply(seq_len(nrow(r)), function(i) data.frame(
+    position = offset[i] + seq_len(r$end[i] - r$start[i]) - 1,
+    base = toupper(strsplit(jbrowse_sequence(x$reference$assembly,
+      r$chrom[i], r$start[i], r$end[i]), "")[[1]]))))
   bases$cell <- max(1, 1 / px_of(x, o$width))
   bases$tint <- ggplot2::alpha(jbrowse_colors()$bases[bases$base], 0.35)
   ggplot2::ggplot(bases) +

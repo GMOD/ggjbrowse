@@ -321,6 +321,18 @@ test_that("the reference reads as its bases, drawn as a band only when asked", {
   expect_equal(length(track$patches$plots) + 1, 2)
 })
 
+test_that("the sequence band reads each region's own bases at its offset", {
+  fa <- extdata("volvox.fa")
+  two <- jbrowse_alignments(extdata("volvox-sorted.bam"),
+    c("ctgA:1,001-1,040", "ctgA:3,001-3,040"), assembly = fa)
+  band <- ggplot2::ggplot_build(ggplot2::autoplot(two, "sequence"))$data[[2]]
+  second <- band[band$x > two$regions$offset[2], ]
+  second <- second[order(second$x), ]
+  expect_equal(paste(second$label, collapse = ""),
+    toupper(jbrowse_sequence(fa, "ctgA", 3000, 3040)))
+  expect_equal(min(second$x), two$regions$offset[2] + 0.5)
+})
+
 test_that("a spliced read splits into its blocks at its skips", {
   s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300)
   skips <- s$gaps[s$gaps$type == "skip", ]
