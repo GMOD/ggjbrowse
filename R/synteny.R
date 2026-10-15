@@ -243,8 +243,8 @@ on_axis_of <- function(regions, axis) {
 #'   `fadeThinAlignmentsMode` (`"auto"`, `"on"`, `"off"`) and `height`, the
 #'   band's pixels
 #' @param width the width in pixels both rows draw their regions across,
-#'   which decides which CIGAR ops are wide enough to draw and which ribbons
-#'   are thin enough to fade
+#'   1,500 as for the linear readers, which decides which CIGAR ops are wide
+#'   enough to draw and which ribbons are thin enough to fade
 #' @param assemblies for an adapter config naming its assemblies, which of
 #'   them each row is on, `c(query, target)`; unset, the adapter's own order.
 #'   A pairwise file answers from either side, so `c("volvox", "volvox_del")`
@@ -303,8 +303,9 @@ on_axis_of <- function(regions, axis) {
 #'   "chr8_MATERNAL:5,250,001-14,250,000")
 #' head(s$alignments)
 jbrowse_synteny <- function(file, query = NULL, target = NULL,
-                            display = NULL, width = 800, assemblies = NULL,
-                            swap = FALSE, labels = NULL, index = NULL) {
+                            display = NULL, width = DEFAULT_WIDTH,
+                            assemblies = NULL, swap = FALSE, labels = NULL,
+                            index = NULL) {
   args <- comparative_args(file, index, display)
   axes <- comparative_axes(args$adapterConfig, query, target, assemblies, swap)
   q <- axes$first
@@ -766,8 +767,9 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #' @param display the view's settings, as a `DotplotView` snapshot writes
 #'   them: a list with any of `color`, `opacity`, `minAlignmentLength`,
 #'   `minIdentity`, `drawCigar` and `lineWidth`
-#' @param width,height the plot's pixels, which decide which blocks are wide
-#'   enough for their CIGAR to show
+#' @param width,height the plot's pixels across and up, which decide which
+#'   blocks are wide enough for their CIGAR to show: 1,500 across as for the
+#'   linear readers, and up as many as across
 #' @param assemblies which assembly each axis is on, `c(x, y)`
 #' @param swap put the file's target side on the horizontal axis and its
 #'   query on the vertical, as [jbrowse_synteny()]'s `swap` does the rows
@@ -798,8 +800,9 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   "chr8_MATERNAL:5,250,001-14,250,000")
 #' head(d$segments)
 jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
-                            width = 600, height = 600, assemblies = NULL,
-                            swap = FALSE, labels = NULL, index = NULL) {
+                            width = DEFAULT_WIDTH, height = width,
+                            assemblies = NULL, swap = FALSE, labels = NULL,
+                            index = NULL) {
   args <- comparative_args(file, index, display)
   axes <- comparative_axes(args$adapterConfig, x, y, assemblies, swap)
   xr <- axes$first

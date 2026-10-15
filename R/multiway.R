@@ -71,8 +71,8 @@ lane_pin <- function(locus) {
 #'   the color object's slots, such as `list(field = "strand")`,
 #'   `list(field = "identity")` or a declared column), `hideUnlabelled`,
 #'   `drawCurves`, `bridgeSkippedLanes` and `rows`, which `lanes` writes
-#' @param width the view's pixels, which set each lane's zoom and which
-#'   ribbons are wide enough to draw
+#' @param width the view's pixels, 1,500 as for the linear readers, which set
+#'   each lane's zoom and which ribbons are wide enough to draw
 #' @param index the tabix or CSI index of a `.pif.gz`, if not beside it
 #' @return a `jbrowse_multiway` list, beside the slots [jbrowse_result] lists:
 #'   * `lanes`: one row per lane, top to bottom: `lane`, `assembly`,
@@ -123,7 +123,8 @@ lane_pin <- function(locus) {
 #' m$lanes
 #' head(m$ribbons)
 jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
-                             display = NULL, width = 800, index = NULL) {
+                             display = NULL, width = DEFAULT_WIDTH,
+                             index = NULL) {
   if (is.null(anchor) && !is.list(file)) {
     stop("name the anchor lane's assembly, the PanSN sample its sequences ",
       "are named after", call. = FALSE)

@@ -9,7 +9,7 @@ jbrowse_synteny(
   query = NULL,
   target = NULL,
   display = NULL,
-  width = 800,
+  width = DEFAULT_WIDTH,
   assemblies = NULL,
   swap = FALSE,
   labels = NULL,
@@ -40,8 +40,8 @@ indels left clear, \code{"off"} for the block alone), \code{drawLocationMarkers}
 band's pixels}
 
 \item{width}{the width in pixels both rows draw their regions across,
-which decides which CIGAR ops are wide enough to draw and which ribbons
-are thin enough to fade}
+1,500 as for the linear readers, which decides which CIGAR ops are wide
+enough to draw and which ribbons are thin enough to fade}
 
 \item{assemblies}{for an adapter config naming its assemblies, which of
 them each row is on, \code{c(query, target)}; unset, the adapter's own order.

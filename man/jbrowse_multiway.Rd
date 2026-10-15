@@ -11,7 +11,7 @@ jbrowse_multiway(
   anchor = NULL,
   lanes = NULL,
   display = NULL,
-  width = 800,
+  width = DEFAULT_WIDTH,
   index = NULL
 )
 }
@@ -42,8 +42,8 @@ the color object's slots, such as \code{list(field = "strand")},
 \code{list(field = "identity")} or a declared column), \code{hideUnlabelled},
 \code{drawCurves}, \code{bridgeSkippedLanes} and \code{rows}, which \code{lanes} writes}
 
-\item{width}{the view's pixels, which set each lane's zoom and which
-ribbons are wide enough to draw}
+\item{width}{the view's pixels, 1,500 as for the linear readers, which set
+each lane's zoom and which ribbons are wide enough to draw}
 
 \item{index}{the tabix or CSI index of a \code{.pif.gz}, if not beside it}
 }

@@ -16,7 +16,8 @@ test_that("a PAF reads as the synteny band lays out and colors it", {
   expect_equal(match$query_start > match$query_end, reversed)
   expect_true(all(match$target_start < match$target_end))
   expect_equal(unique(as.character(match$color)), "#ff0000")
-  expect_equal(s$keys$ribbons$label, c("match", "insertion"))
+  expect_equal(s$keys$ribbons$label, c("match", "insertion", "deletion"))
+  expect_true("deletion" %in% s$ribbons$kind)
   expect_s3_class(s$ribbons$color, "jbrowse_color")
   expect_equal(nrow(s$offscreen), 0)
 })
@@ -137,6 +138,8 @@ test_that("the display slot holds the settings each view drew with", {
     display = list(opacity = list(field = "identity")))
   expect_equal(faded$display$opacity, list(field = "identity"))
   d <- jbrowse_dotplot(paf, query, target, display = list(color = "grey"))
+  expect_equal(d$height, 1500)
+  expect_equal(jbrowse_dotplot(paf, query, target, width = 900)$height, 900)
   expect_equal(d$display, list(minAlignmentLength = 0, minIdentity = 0,
     drawCigar = TRUE, color = "grey", opacity = 1, lineWidth = 2.5))
   expect_null(d$line_width)
@@ -151,6 +154,7 @@ test_that("a comparative result holds the slots every result holds", {
   for (x in results) {
     expect_true(all(c("regions", "width", "display", "keys", "ramps",
       "y_scale", "fields", "warnings") %in% names(x)))
+    expect_equal(x$width, 1500)
     expect_null(x$y_scale)
     expect_equal(x$fields, list())
     expect_equal(x$warnings, character(0))

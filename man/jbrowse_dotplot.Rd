@@ -9,8 +9,8 @@ jbrowse_dotplot(
   x = NULL,
   y = NULL,
   display = NULL,
-  width = 600,
-  height = 600,
+  width = DEFAULT_WIDTH,
+  height = width,
   assemblies = NULL,
   swap = FALSE,
   labels = NULL,
@@ -33,8 +33,9 @@ otherwise. Unset, every contig of that axis's assembly, so
 them: a list with any of \code{color}, \code{opacity}, \code{minAlignmentLength},
 \code{minIdentity}, \code{drawCigar} and \code{lineWidth}}
 
-\item{width, height}{the plot's pixels, which decide which blocks are wide
-enough for their CIGAR to show}
+\item{width, height}{the plot's pixels across and up, which decide which
+blocks are wide enough for their CIGAR to show: 1,500 across as for the
+linear readers, and up as many as across}
 
 \item{assemblies}{which assembly each axis is on, \code{c(x, y)}}
 
