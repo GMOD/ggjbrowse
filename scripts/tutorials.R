@@ -13,6 +13,9 @@
 #                                            fail if the markdown differs
 #   Rscript scripts/tutorials.R --status     list website commits since the pin
 #
+# TUTORIALS_REF=HEAD reads the website pages at the checkout's own commit in
+# place of the pin, as scripts/check-against-jbrowse.sh does.
+#
 # The website pages come from the checkout $JBROWSE_COMPONENTS names (default
 # ~/src/jbrowse-components, as scripts/gallery.R has it), or from GitHub when
 # that checkout lacks the pin. --status needs the checkout.
@@ -51,7 +54,15 @@ REPO <- "GMOD/jbrowse-components"
 SRC_DIR <- "tutorials"
 OUT_DIR <- file.path("docs", "tutorials")
 
-pin <- function() trimws(readLines(file.path(SRC_DIR, "JBROWSE_COMPONENTS"), 1))
+# The jbrowse-components commit the website pages are read at: the pin, or the
+# checkout's own $TUTORIALS_REF, which jbrowse-components' canary sets to HEAD
+pin <- function() {
+  ref <- Sys.getenv("TUTORIALS_REF")
+  if (!nzchar(ref)) {
+    return(trimws(readLines(file.path(SRC_DIR, "JBROWSE_COMPONENTS"), 1)))
+  }
+  system2("git", c("-C", checkout(), "rev-parse", ref), stdout = TRUE)
+}
 
 checkout <- function() {
   Sys.getenv("JBROWSE_COMPONENTS", path.expand("~/src/jbrowse-components"))
