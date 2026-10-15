@@ -422,7 +422,7 @@ geom_jbrowse_modification_coverage <- function(mapping = NULL, data = NULL,
 on_bar_of <- function(d, x) on_bar(x, d)
 
 junction_paths <- function(x, min_reads) {
-  j <- x$junctions[x$junctions$count >= min_reads, , drop = FALSE]
+  j <- shown_junctions(x, min_reads)
   arcs <- junction_arcs(j)
   arcs$color <- j$color[arcs$id]
   arcs$section <- j$section[arcs$id]

@@ -295,7 +295,7 @@ stack_bands <- function(bands, axis_at = NULL) {
   heights <- unlist(lapply(bands, `[[`, "heights"))
   bare <- seq_along(plots) != (axis_at %||% length(plots))
   plots <- lapply(plots, function(p)
-    p + ggplot2::theme(plot.margin = ggplot2::margin(1, 14, 1, 5.5)))
+    p + ggplot2::theme(plot.margin = ggplot2::margin(1, 26, 1, 5.5)))
   plots[bare] <- lapply(plots[bare], function(p) p + no_x)
   patchwork::wrap_plots(plots, ncol = 1, heights = heights,
     guides = "collect")

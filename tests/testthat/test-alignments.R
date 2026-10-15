@@ -533,3 +533,15 @@ test_that("every section keys the track's read colors, insertions and clips", {
     for (k in sections) expect_true(all(key$color %in% k))
   }
 })
+
+test_that("the junction band hides non-canonical junctions where the display does", {
+  read <- function(show) jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "chr12:6,534,201-6,538,700", reference = extdata("gapdh_hg38.fa.gz"),
+    display = list(showNonCanonicalJunctions = show))
+  arcs <- function(x) length(unique(ggplot2::layer_data(
+    ggplot2::ggplot(x) + geom_jbrowse_junctions(min_reads = 1), 1)$group))
+  shown <- read(TRUE)
+  expect_gt(sum(shown$junctions$motif == "non-canonical"), 0)
+  expect_equal(arcs(read(FALSE)),
+    arcs(shown) - sum(shown$junctions$motif == "non-canonical"))
+})

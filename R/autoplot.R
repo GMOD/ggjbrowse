@@ -225,8 +225,19 @@ pileup_plot <- function(x, o) {
   band(p + ggplot2::scale_y_reverse(), x, rows = TRUE) + no_y
 }
 
+# The junctions the sashimi band draws: those with `min_reads` or more, less
+# the non-canonical ones where the display hides them
+shown_junctions <- function(x, min_reads) {
+  j <- x$junctions
+  keep <- j$count >= min_reads
+  if (isFALSE(x$settings$showNonCanonicalJunctions)) {
+    keep <- keep & j$motif != "non-canonical"
+  }
+  j[keep, , drop = FALSE]
+}
+
 junctions_plot <- function(x, o) {
-  shown <- x$junctions$color[x$junctions$count >= o$min_reads]
+  shown <- shown_junctions(x, o$min_reads)$color
   key <- x$keys$junctions
   band(ggplot2::ggplot(x) +
     geom_jbrowse_junctions(min_reads = o$min_reads) +
@@ -351,7 +362,7 @@ alignment_px <- function(object, o) {
     function(r) if (length(r)) max(r) + 1 else 0, 0))
   shown <- c(
     junctions = o$coverage && o$junctions &&
-      any(object$junctions$count >= o$min_reads),
+      nrow(shown_junctions(object, o$min_reads)) > 0,
     coverage = o$coverage,
     arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
     pileup = o$pileup)
