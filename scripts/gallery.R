@@ -567,8 +567,8 @@ draw_r <- function(name, example) {
     dpi = 120)
 }
 
-to_webp <- function(name) {
-  for (side in c("jbrowse", "r")) {
+to_webp <- function(name, sides = c("jbrowse", "r")) {
+  for (side in sides) {
     system2("magick", c(png_of(name, side), "-quality", 85,
       webp_of(name, side)))
     file.remove(png_of(name, side))
@@ -647,12 +647,14 @@ if (identical(wanted, "--check")) {
     check_r(name, examples[[name]])
   }
 } else if (!identical(wanted, "--docs")) {
+  r_only <- "--r" %in% wanted
+  wanted <- setdiff(wanted, "--r")
   todo <- if (length(wanted)) examples[wanted] else examples
   for (name in names(todo)) {
     message(name)
-    draw_jbrowse(name, todo[[name]])
+    if (!r_only) draw_jbrowse(name, todo[[name]])
     draw_r(name, todo[[name]])
-    to_webp(name)
+    to_webp(name, if (r_only) "r" else c("jbrowse", "r"))
   }
 }
 update_readme(examples)

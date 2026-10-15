@@ -16,6 +16,8 @@
     at the version [docs/gallery.md](docs/gallery.md) names, the installed
     package and ImageMagick.
   - `--docs` rewrites the table and `docs/gallery.md` without drawing.
+  - `--r` draws only the R half, which needs no jbrowse-components checkout:
+    `Rscript scripts/gallery.R --r inversion`.
   - `--check` runs each R recipe, then rewrites as `--docs` does. CI runs it
     and `scripts/check-readme.R`, which runs the README's R blocks, and fails
     if either leaves the docs changed.
