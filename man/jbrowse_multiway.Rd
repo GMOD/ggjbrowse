@@ -8,7 +8,7 @@ it}
 jbrowse_multiway(
   file,
   region,
-  assembly = NULL,
+  anchor = NULL,
   lanes = NULL,
   display = NULL,
   width = 800,
@@ -27,8 +27,8 @@ config, as a list, such as a \code{MultiGenomePAFAdapter} declaring its
 writes it (\code{"ctgA:1-50,001"}, 1-based and inclusive), several of them,
 drawn end to end, or a data frame of \code{chrom}, \code{start} and \code{end}}
 
-\item{assembly}{the anchor's assembly, the PanSN sample name for a PAF;
-for an adapter config naming its assemblies, unset takes its first}
+\item{anchor}{the anchor lane's assembly name, the PanSN sample name for a
+PAF; for an adapter config naming its assemblies, unset takes its first}
 
 \item{lanes}{the other lanes: unset, every genome the alignments place,
 densest first; a character vector of assemblies, drawn in that order;

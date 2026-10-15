@@ -59,8 +59,8 @@ lane_pin <- function(locus) {
 #' @param region the anchor lane's regions: a locus as JBrowse's location box
 #'   writes it (`"ctgA:1-50,001"`, 1-based and inclusive), several of them,
 #'   drawn end to end, or a data frame of `chrom`, `start` and `end`
-#' @param assembly the anchor's assembly, the PanSN sample name for a PAF;
-#'   for an adapter config naming its assemblies, unset takes its first
+#' @param anchor the anchor lane's assembly name, the PanSN sample name for a
+#'   PAF; for an adapter config naming its assemblies, unset takes its first
 #' @param lanes the other lanes: unset, every genome the alignments place,
 #'   densest first; a character vector of assemblies, drawn in that order;
 #'   or a named vector of assemblies whose values pin a lane, as the lane
@@ -116,9 +116,9 @@ lane_pin <- function(locus) {
 #'   lanes = c("panTro6", "gorGor6", "ponAbe3"))
 #' m$lanes
 #' head(m$ribbons)
-jbrowse_multiway <- function(file, region, assembly = NULL, lanes = NULL,
+jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
                              display = NULL, width = 800, index = NULL) {
-  if (is.null(assembly) && !is.list(file)) {
+  if (is.null(anchor) && !is.list(file)) {
     stop("name the anchor lane's assembly, the PanSN sample its sequences ",
       "are named after", call. = FALSE)
   }
@@ -129,7 +129,7 @@ jbrowse_multiway <- function(file, region, assembly = NULL, lanes = NULL,
   display$ribbonColor <- config_color(display$ribbonColor)
   args <- list(adapterConfig = adapter_of(file, function()
     multiway_adapter(file, index)),
-    anchor = axis_args(regions, assembly, width), display = display)
+    anchor = axis_args(regions, anchor, width), display = display)
   if (length(choice$pins)) args$pins <- choice$pins
   r <- call_engine("multiway", args)
   one_based <- function(d, columns) {
