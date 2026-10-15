@@ -11,6 +11,11 @@ test_that("a locus reads as JBrowse's location box writes it, 1-based", {
   expect_error(jbrowse_features(gff, "ctgA"), "ctgA:1,001-9,000")
 })
 
+test_that("loci print with commas however their starts differ in size", {
+  expect_equal(loci_of_layout(data.frame(chrom = "1", start = c(0, 155e6),
+    end = c(1000, 155050000))), c("1:1-1,000", "1:155,000,001-155,050,000"))
+})
+
 test_that("several regions keep their genomic positions and draw end to end", {
   loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
   both <- jbrowse_alignments(bam, loci)
