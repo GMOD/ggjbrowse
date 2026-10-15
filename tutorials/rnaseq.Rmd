@@ -1,0 +1,562 @@
+---
+title: RNA-seq splicing and strand in R
+jbrowse_tutorial: rnaseq
+---
+
+A spliced RNA-seq read records the introns it jumps in its CIGAR string, and a
+stranded library records the transcript's strand in the read pair's flags. We'll
+read stranded paired-end alignments over _ACTB_, the surfeit locus and _FOLH1_
+with ggjbrowse, count junctions and strand in R, and compare a pipeline's
+junction table to the reads it came from.
+
+- **In:** a stranded paired-end RNA-seq BAM, an IsoSeq BAM, the RefSeq gene
+  models and a regtools junction table, all read by URL.
+- **Out:** tables of junctions, spliced reads and per-gene strand counts, and
+  ggplot figures of each.
+- **The check:** the antisense reads at genes on the opposite strand, and the
+  junction table's read counts against the counts the engine takes from the BAM.
+
+The same analysis in the JBrowse app is the
+[RNA-seq tutorial](https://jbrowse.org/jb2/docs/tutorials/rnaseq/).
+
+## Prerequisites
+
+In R:
+
+```r
+install.packages(c("remotes", "ggplot2", "dplyr", "tidyr", "readr"))
+remotes::install_github("GMOD/ggjbrowse")
+```
+
+The code below reads every file by URL, so it needs nothing else. To build a
+junction table from your own BAM, see
+[the junction table recipes](#junction-tables-from-star-regtools-and-portcullis).
+
+<!-- jbrowse
+section: Where the data comes from
+replace:
+  - from: "Nothing to download: the track configs below read these files by URL."
+    to: "Nothing to download: the code below reads these files by URL."
+-->
+
+## Reading the alignments and genes
+
+The website's track configs name the BAMs and the gene file, and `assign` turns
+them into R variables as they stand:
+
+<!-- jbrowse
+chunk: files
+assign:
+  bam: rnaseq_paired_stranded.uri
+  gff: ncbi_refseq_hg19.uri
+  isoseq: alzheimers_isoseq.uri
+-->
+
+The website loads hg19 with an alias file, because the BAM, the FASTA and the
+RefSeq file each spell chromosomes their own way. We'll read the same alias file
+and name each contig as the file being read spells it:
+
+- **the BAM:** UCSC names, `chr7`
+- **the FASTA:** bare numbers, `7`, which the engine reads splice motifs from
+- **the RefSeq GFF:** accessions, `NC_000007.13`
+
+```{r helpers}
+library(ggjbrowse)
+library(ggplot2)
+library(dplyr)
+library(readr)
+
+fasta <- "https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz"
+aliases <- read_tsv(
+  "https://s3.amazonaws.com/jbrowse.org/genomes/hg19/hg19_aliases.txt",
+  col_names = c("fasta", "ucsc", "refseq"), col_types = "ccc")
+contig <- function(chrom, as) aliases[[as]][match(chrom, aliases$ucsc)]
+
+window <- function(locus) {
+  m <- regmatches(locus, regexec("^(.+):([0-9,]+)-([0-9,]+)$", locus))[[1]]
+  list(chrom = m[2], start = as.numeric(gsub(",", "", m[3])) - 1,
+    end = as.numeric(gsub(",", "", m[4])))
+}
+
+reads_at <- function(locus, file = bam, spelling = "ucsc", display = NULL) {
+  w <- window(locus)
+  chrom <- if (spelling == "ucsc") w$chrom else contig(w$chrom, spelling)
+  jbrowse_alignments(file, chrom, w$start, w$end, reference = fasta,
+    reference_chrom = contig(w$chrom, "fasta"), display = display)
+}
+
+genes_at <- function(locus, display = list(showOnlyGenes = TRUE)) {
+  w <- window(locus)
+  genes <- jbrowse_features(gff, contig(w$chrom, "refseq"), w$start, w$end,
+    display = display, width = 1200)
+  genes$region$chrom <- w$chrom
+  for (table in names(genes)) {
+    if (is.data.frame(genes[[table]]) && "chrom" %in% names(genes[[table]])) {
+      genes[[table]]$chrom <- rep(w$chrom, nrow(genes[[table]]))
+    }
+  }
+  genes
+}
+```
+
+`jbrowse_stack()` draws tracks over one contig, so `genes_at()` renames the
+RefSeq accession to the BAM's `chr7` once the engine has read it.
+
+<!-- jbrowse
+section: What RNA-seq looks like in the genome browser
+title: Spliced reads over ACTB
+only:
+  - "The thin teal lines"
+replace:
+  - from: "The thin teal lines jumping across a gap are spliced alignments"
+    to: "We'll read `chr7:5,567,000-5,570,000`, _ACTB_, a compact gene with deep read coverage.\n\nEach arc below marks spliced alignments"
+-->
+
+`showPileup = FALSE` leaves the coverage histogram and the splice arcs, which
+the engine computes from the reads' skips:
+
+```{r actb}
+actb <- "chr7:5,567,000-5,570,000"
+actb_genes <- genes_at(actb)
+actb_reads <- reads_at(actb, display = list(showPileup = FALSE))
+fig <- jbrowse_stack(RefSeq = actb_genes, Reads = actb_reads)
+```
+
+```{r actb-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "RNA-seq reads over ACTB under the RefSeq gene model: the coverage histogram with strand-colored splice arcs, each labelled with its read count"}
+fig
+```
+
+The engine's junction table lists each arc once. We'll keep the arcs with two
+or more reads, and ask whether each is an intron RefSeq draws for _ACTB_, from
+the gene's intron lines:
+
+```{r actb-junctions}
+refseq_introns <- actb_genes$lines |> distinct(start, end)
+actb_junctions <- actb_reads$junctions |>
+  mutate(refseq = paste(start, end) %in% paste(refseq_introns$start,
+    refseq_introns$end)) |>
+  filter(count >= 2) |>
+  select(start, end, count, strand, motif, refseq)
+actb_junctions
+```
+
+## Coverage in exons and introns
+
+The coverage band's bins give the depth at each position. We'll label each bin
+an intron where it falls inside one of RefSeq's intron lines, and compare the
+mean depth:
+
+```{r coverage-depth}
+actb_depth <- actb_reads$coverage |>
+  mutate(region = ifelse(vapply(start, function(s) any(
+    refseq_introns$start <= s & s < refseq_introns$end), TRUE),
+    "intron", "exon or flank"))
+actb_depth |>
+  group_by(region) |>
+  summarise(bases = sum(end - start), mean_depth = weighted.mean(depth,
+    end - start))
+```
+
+<!-- jbrowse
+section: Spliced reads, CIGAR strings, and splice arcs
+title: Spliced reads, CIGAR strings and splice arcs
+replace:
+  - from: "JBrowse computes the arcs on the fly"
+    to: "The engine computes the arcs on the fly"
+  - from: "so JBrowse combines it"
+    to: "so the engine combines it"
+  - from: "so JBrowse reads the first"
+    to: "so the engine reads the first"
+  - from: "Hovering an arc shows the motif beside the\n  read count."
+    to: "The junction table's `motif` column holds the motif beside the read count."
+-->
+
+The skips in the engine's `gaps` table are the `N` operations. A read whose only
+gap is one skip rebuilds its CIGAR from the read's start and end:
+
+```{r cigar}
+one_skip <- actb_reads$gaps |>
+  group_by(read) |>
+  filter(n() == 1, type == "skip") |>
+  ungroup()
+cigars <- one_skip |>
+  inner_join(transmute(actb_reads$reads, read, read_start = start,
+    read_end = end), by = "read") |>
+  transmute(cigar = sprintf("%dM%dN%dM", start - read_start, end - start,
+    read_end - end))
+cigars |> count(cigar, sort = TRUE) |> head(5)
+```
+
+The most common CIGAR is the example above. Read starts differ, so CIGARs do,
+but the skips fall on few introns:
+
+```{r skips}
+skips <- one_skip |>
+  mutate(refseq = paste(start, end) %in% paste(refseq_introns$start,
+    refseq_introns$end)) |>
+  count(start, end, refseq, name = "reads") |>
+  arrange(desc(reads))
+skips
+```
+
+## Picking out spliced reads
+
+In a deep pileup, reads with a skip sit among many more that have none. Two of
+the display's settings pull the splicing evidence out, and we'll read each:
+
+- `sort = list(type = "spliced")` gives every read with a skip the lowest rows
+- `filter = list(spliced = "only")` drops every read without a skip, and the
+  coverage follows
+
+```{r spliced}
+is_spliced <- function(r) r$reads$read %in% r$gaps$read[r$gaps$type == "skip"]
+file_order <- reads_at(actb)
+spliced_first <- reads_at(actb, display = list(sort = list(type = "spliced")))
+only_spliced <- reads_at(actb, display = list(featureHeight = 1,
+  filter = list(spliced = "only")))
+
+spliced_rows <- function(r) {
+  rows <- r$reads$row[is_spliced(r)]
+  tibble(spliced_reads = length(rows), last_row = max(rows),
+    pileup_rows = max(r$reads$row) + 1)
+}
+bind_rows("file order" = spliced_rows(file_order),
+  "spliced first" = spliced_rows(spliced_first),
+  .id = "sort")
+```
+
+The filter keeps the reads whose CIGAR has a skip. The one read it keeps beyond
+the count of reads with a skip in view has its skip left of the window:
+
+```{r spliced-filter}
+c(reads = nrow(file_order$reads), kept_by_filter = nrow(only_spliced$reads),
+  with_a_skip_in_view = sum(is_spliced(file_order)))
+```
+
+```{r spliced-plot}
+fig <- jbrowse_stack(RefSeq = actb_genes, "Only spliced reads" = only_spliced)
+```
+
+```{r spliced-figure, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "ACTB's spliced reads alone: the pileup keeps the reads whose CIGAR has a skip, and the coverage histogram above it follows"}
+fig
+```
+
+The motif is the other filter. `showNonCanonicalJunctions = FALSE` drops every
+arc whose intron does not begin and end with GT-AG, GC-AG or AT-AC on either
+strand:
+
+The engine's R path draws every arc it reads, so we'll apply the motif filter
+to the junction table, keeping each junction whose motif is canonical or
+unreadable, as the setting does:
+
+```{r canonical}
+all_junctions <- reads_at(actb, display = list(showPileup = FALSE))
+canonical <- all_junctions
+canonical$junctions <- filter(all_junctions$junctions,
+  motif != "non-canonical")
+fig <- jbrowse_stack("All junctions" = all_junctions,
+  "Canonical only" = canonical)
+```
+
+```{r canonical-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "ACTB's junctions with every read count above, and only the canonical motifs below: the motif filter drops the two-read salmon arcs around the leftmost intron and keeps the purple ones the gene model draws"}
+fig
+```
+
+The two sets in numbers:
+
+```{r canonical-counts}
+bind_rows(all = all_junctions$junctions, canonical = canonical$junctions,
+  .id = "set") |>
+  filter(count >= 2) |>
+  group_by(set) |>
+  summarise(junctions = n(), supporting_reads = sum(count),
+    refseq_introns = sum(paste(start, end) %in% paste(refseq_introns$start,
+      refseq_introns$end)))
+```
+
+<!-- jbrowse
+section: Strand-specific RNA-seq
+only:
+  - "Splice-arc colors give the strand"
+  - "The surfeit locus is a tight cluster"
+  - "Grouping the reads by first-of-pair strand"
+  - "**Group by... → First-of-pair strand** applies"
+replace:
+  - from: "Type `chr9:136,214,000-136,229,000` into the\nlocation box, then pick this path from the track menu:"
+    to: "We'll read `chr9:136,214,000-136,229,000`."
+  - from: "**Group by... → First-of-pair strand** applies a `facet`, one section per group,\neach with a coverage histogram from only that group's reads, forward and reverse\non one autoscaled axis. Turning off **Show... → Show pileup** leaves the two\nhistograms alone."
+    to: "`facet = list(field = \"firstOfPairStrand\")` makes one section per group, each with a coverage histogram from only that group's reads, forward and reverse on one autoscaled axis. `showPileup = FALSE` leaves the two histograms alone."
+-->
+
+```{r surfeit}
+surfeit <- "chr9:136,214,000-136,229,000"
+surfeit_genes <- genes_at(surfeit)
+by_strand <- list(showPileup = FALSE,
+  facet = list(field = "firstOfPairStrand"))
+surfeit_reads <- reads_at(surfeit, display = by_strand)
+fig <- jbrowse_stack(RefSeq = surfeit_genes, Reads = surfeit_reads)
+```
+
+```{r surfeit-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "The surfeit locus grouped by first-of-pair strand: the forward band holds RPL7A and SURF2, and the reverse band holds SURF1"}
+fig
+```
+
+On chr6, _NELFE_ and _SKIV2L_ sit back to back on opposite strands, in
+`chr6:31,920,500-31,933,000`:
+
+```{r nelfe}
+nelfe <- "chr6:31,920,500-31,933,000"
+nelfe_genes <- genes_at(nelfe)
+nelfe_reads <- reads_at(nelfe, display = by_strand)
+fig <- jbrowse_stack(RefSeq = nelfe_genes, Reads = nelfe_reads)
+```
+
+```{r nelfe-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "NELFE and SKIV2L, adjacent and on opposite strands, grouped by first-of-pair strand: each band shows signal over exactly one of the two genes"}
+fig
+```
+
+The library's strand is a number once each gene's reads are counted by the
+section they fall in. A read counts as sense when its first-of-pair strand is its
+gene's strand. The antisense reads are the control: a gene on the opposite
+strand from its neighbor takes few of its neighbor's:
+
+```{r sense}
+strand_of <- c("First-of-pair forward" = 1, "First-of-pair reverse" = -1)
+genes_of_interest <- c("RPL7A", "SURF1", "SURF2", "NELFE", "SKIV2L", "ACTB")
+
+sense_counts <- function(genes, reads) {
+  genes$features |>
+    filter(name %in% genes_of_interest) |>
+    select(gene = name, gene_start = start, gene_end = end, gene_strand = strand) |>
+    cross_join(transmute(reads$reads, midpoint = (start + end) / 2,
+      read_strand = strand_of[as.character(section)])) |>
+    filter(midpoint >= gene_start, midpoint < gene_end) |>
+    group_by(gene, gene_strand) |>
+    summarise(reads = n(), sense = mean(read_strand == gene_strand),
+      .groups = "drop")
+}
+
+actb_by_strand <- reads_at(actb, display = by_strand)
+sense <- bind_rows(sense_counts(surfeit_genes, surfeit_reads),
+  sense_counts(nelfe_genes, nelfe_reads),
+  sense_counts(actb_genes, actb_by_strand)) |>
+  arrange(desc(sense))
+sense
+```
+
+```{r sense-plot, fig.height = 3, fig.width = 6, fig.cap = "The share of each gene's reads whose first-of-pair strand is the gene's own: plus and minus genes alike sit near 1, and SURF1 is the lowest"}
+sense |>
+  mutate(gene = reorder(gene, sense),
+    strand = ifelse(gene_strand == 1, "+ gene", "- gene")) |>
+  ggplot(aes(sense, gene, fill = strand)) +
+  geom_col() +
+  scale_fill_manual(values = c("+ gene" = "#ec8b8b", "- gene" = "#8f8fd8")) +
+  coord_cartesian(xlim = c(0, 1)) +
+  labs(x = "reads on the gene's own strand", y = NULL, fill = NULL) +
+  theme_minimal()
+```
+
+<!-- jbrowse
+section: "Long-read splicing: IsoSeq over ACTB"
+title: Long-read splicing, IsoSeq over ACTB
+only:
+  - "A long read (PacBio IsoSeq"
+replace:
+  - from: "The IsoSeq alignments are a second BAM on\nthe same assembly:"
+    to: "The IsoSeq alignments are a second BAM on the same assembly, and its contigs are bare numbers."
+-->
+
+```{r isoseq}
+iso_reads <- reads_at(actb, file = isoseq, spelling = "fasta",
+  display = list(showPileup = FALSE))
+fig <- jbrowse_stack(RefSeq = actb_genes, IsoSeq = iso_reads)
+```
+
+```{r isoseq-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "IsoSeq high-quality isoforms over ACTB: most reads span every exon, so each of the five RefSeq introns has about 2,000 reads and the coverage is flat across the exons"}
+fig
+```
+
+A long read's skips are its whole intron chain. We'll compare each read's chain
+to RefSeq's five introns:
+
+```{r isoseq-chains}
+chain <- function(start, end) paste(sort(paste(start, end)), collapse = ";")
+refseq_chain <- chain(refseq_introns$start, refseq_introns$end)
+iso_chains <- iso_reads$gaps |>
+  filter(type == "skip") |>
+  group_by(read) |>
+  summarise(introns = n(), chain = chain(start, end))
+c(reads = nrow(iso_reads$reads), with_skips = nrow(iso_chains),
+  all_five_introns = sum(iso_chains$introns == 5),
+  refseq_chain = sum(iso_chains$chain == refseq_chain))
+```
+
+A read with all five introns but another chain has an intron a few bases off
+RefSeq's, which the junction table counts as non-canonical:
+
+```{r isoseq-offsets}
+iso_reads$junctions |>
+  filter(count >= 10) |>
+  mutate(refseq = paste(start, end) %in% paste(refseq_introns$start,
+    refseq_introns$end)) |>
+  select(start, end, count, motif, refseq)
+```
+
+<!-- jbrowse
+section: Loading STAR, regtools and portcullis junction tables
+title: Junction tables from STAR, regtools and portcullis
+drop_lines:
+  - "**Advanced"
+  - "To load the other tables"
+replace:
+  - from: "and the BED draws as arcs on a feature track."
+    to: "and the BED holds one junction per row."
+  - from: " The color's\n`domain` lists the `known_junction` values as strings because the adapter reads\nextra columns as text."
+    to: ""
+-->
+
+## Reading the junction table
+
+The website's junction track config gives the table's adapter, the filter and
+the encodings it draws with:
+
+<!-- jbrowse
+chunk: junction-files
+assign:
+  junction_adapter: rnaseq_junctions_hg19.adapter
+  junction_filter: rnaseq_junctions_hg19.displays.1.transform.1.expr
+  junction_color: rnaseq_junctions_hg19.displays.1.marks.1.encoding.color
+  junction_size: rnaseq_junctions_hg19.displays.1.marks.1.encoding.size
+-->
+
+The file is a bgzipped BED that `readr` reads whole, 207,000 junctions in
+2 MB:
+
+```{r junction-table}
+junctions <- read_tsv(junction_adapter$uri,
+  col_names = junction_adapter$columnNames, show_col_types = FALSE)
+junctions |>
+  mutate(known = ifelse(known_junction == 1, "annotated", "novel")) |>
+  group_by(known) |>
+  summarise(junctions = n(), reads = sum(score), median_reads = median(score))
+```
+
+The track's `filter` is a jexl expression the engine evaluates, so
+`jbrowse_features()` applies it and returns the junctions that pass. We'll read
+_FOLH1_'s 5' end with it, and join the engine's rows to the table by name for
+their counts and flags:
+
+```{r junction-filter}
+folh1 <- "chr11:49,220,500-49,231,500"
+w <- window(folh1)
+kept <- jbrowse_features(junction_adapter, w$chrom, w$start, w$end,
+  display = list(filter = list(junction_filter)), width = 1200)$features |>
+  select(name) |>
+  inner_join(junctions, by = "name") |>
+  mutate(known = ifelse(known_junction == 1, "annotated", "novel"))
+kept |> select(chromStart, chromEnd, score, strand, splice_site, known)
+```
+
+The filter also drops junctions with three or more reads. We'll list them:
+
+```{r junction-dropped}
+in_window <- filter(junctions, chrom == w$chrom, chromStart >= w$start,
+  chromEnd <= w$end)
+dropped <- anti_join(in_window, kept, by = "name") |> filter(score >= 3)
+dropped |> select(chromStart, chromEnd, score, strand, splice_site)
+```
+
+Three of the five are the opposite-strand rows of an annotated intron, whose
+motif reads CT-AC. The other two have an `N` in hg19 at the acceptor.
+
+`jbrowse_features()` has no link mark, so ggplot2 draws the arcs. We'll use the
+track's own color and size encodings, one half-ellipse per junction, over
+RefSeq's _FOLH1_:
+
+```{r junction-arcs}
+arcs <- kept |>
+  rowwise() |>
+  reframe(name, score, known,
+    x = chromStart + (chromEnd - chromStart) * seq(0, 1, length.out = 40),
+    y = sqrt(chromEnd - chromStart) * sin(seq(0, pi, length.out = 40))) |>
+  mutate(chrom = w$chrom)
+labels <- kept |>
+  transmute(x = (chromStart + chromEnd) / 2, score,
+    y = sqrt(chromEnd - chromStart), known)
+
+arc_plot <- ggplot(arcs, aes(x, y, group = name, colour = known,
+    linewidth = score)) +
+  geom_path(lineend = "round") +
+  geom_text(data = arrange(labels, desc(score)), aes(x, y, label = score),
+    colour = "black", size = 3, vjust = -0.4, check_overlap = TRUE,
+    inherit.aes = FALSE) +
+  scale_colour_manual(name = junction_color$title,
+    values = setNames(junction_color$range, junction_color$labels)) +
+  scale_linewidth(name = "reads", transform = "log10",
+    range = junction_size$range / 3) +
+  scale_y_continuous(NULL, breaks = NULL, expand = expansion(c(0.02, 0.3))) +
+  labs(x = NULL) +
+  theme_minimal() +
+  theme(panel.grid = element_blank())
+fig <- jbrowse_stack(RefSeq = genes_at(folh1),
+  Junctions = arc_plot)
+```
+
+```{r junction-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "The 5' end of FOLH1 on hg19: RefSeq transcripts above, the library's junctions below, blue where an annotated transcript joins the two ends and red where none does"}
+fig
+```
+
+## Checking the table against the reads
+
+The table's counts come from regtools reading the BAM, and the engine counts the
+same skips when it reads the BAM over this window. Each junction both found
+should have the same count, summed over strands, since the engine merges them:
+
+```{r check}
+from_table <- in_window |>
+  group_by(start = chromStart, end = chromEnd) |>
+  summarise(table = sum(score), .groups = "drop")
+from_reads <- reads_at(folh1, display = list(showPileup = FALSE))$junctions |>
+  select(start, end, reads = count)
+both <- inner_join(from_table, from_reads, by = c("start", "end"))
+c(in_table = nrow(from_table), in_reads = nrow(from_reads),
+  in_both = nrow(both), same_count = sum(both$table == both$reads))
+```
+
+```{r check-plot, fig.height = 4, fig.width = 4.5, fig.cap = "Each junction's read count in the regtools table against the count the engine takes from the BAM, on log axes: every junction both found falls on the diagonal"}
+ggplot(both, aes(table, reads)) +
+  geom_abline(colour = "grey70") +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "regtools table", y = "ggjbrowse from the BAM")
+```
+
+The large red arc joins a donor and an acceptor RefSeq uses, skipping the exons
+between them. Its count exceeds the annotated arc that shares its donor:
+
+```{r large-arc}
+kept |>
+  arrange(desc(score)) |>
+  select(chromStart, chromEnd, score, known)
+```
+
+## Your own data
+
+- Swap `bam` for your own sorted, indexed BAM or CRAM, a path or a URL.
+  `jbrowse_alignments()` finds the `.bai` or `.crai` beside it, and a CRAM takes
+  `reference =`.
+- Pass `reference =` the FASTA the reads aligned to, so the engine can read
+  splice motifs. Give `reference_chrom` the FASTA's spelling of each contig when
+  it differs from the BAM's.
+- A library whose first read runs against the transcript, as dUTP libraries do,
+  has its sense and antisense counts swapped: read `strand_of` the other way.
+- Point `read_tsv()` at the table your pipeline wrote, one of the BED recipes
+  above, and `jbrowse_features()` at the same file with the `filter` you want.
+
+## See also
+
+- [RNA-seq visualization](https://jbrowse.org/jb2/docs/tutorials/rnaseq/), the
+  same analysis in the JBrowse app
+- [Differential transcript usage in R](dtu.md)
+- [Methylation (long-read) in R](methylation.md)
