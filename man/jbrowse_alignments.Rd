@@ -9,11 +9,11 @@ jbrowse_alignments(
   region = NULL,
   start = NULL,
   end = NULL,
+  display = NULL,
   reference = NULL,
   reference_chrom = NULL,
   assembly = NULL,
   index = NULL,
-  display = NULL,
   byte_limit = 2e+08
 )
 }
@@ -31,22 +31,6 @@ million rows in any one table}
 
 \item{start, end}{with a contig name as \code{region}, the region's bounds,
 0-based half-open}
-
-\item{reference}{the reference: an indexed FASTA, plain or bgzipped, or a
-2bit, path or URL; a CRAM and the bisulfite layer need it, and a BAM
-read without an MD tag is compared against it. \code{NULL} takes
-\code{assembly}'s sequence}
-
-\item{reference_chrom}{the contig's name in \code{reference}, where the file
-spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA): one name
-for every region, or one per region. An \code{assembly} with aliases finds it}
-
-\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
-config's \code{assemblies} entry writes it: \code{region} may name a contig by any
-alias it lists, the engine reads the file under the file's own, and the
-reader names the contig in its tables as \code{region} does}
-
-\item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
 
 \item{display}{the display's config, as a track's \code{displays} entry
 writes it for a \code{LinearAlignmentsDisplay}, which is what JBrowse's
@@ -96,6 +80,22 @@ such as \code{showOrdinaryPairs}, \code{arcColor} or \code{minSashimiScore}. A b
 set not to show (\code{showCoverage}, \code{showPileup}, \code{showMismatches},
 \code{showInterbaseIndicators}, \code{showSashimiArcs}) reads as empty tables
 }}
+
+\item{reference}{the reference: an indexed FASTA, plain or bgzipped, or a
+2bit, path or URL; a CRAM and the bisulfite layer need it, and a BAM
+read without an MD tag is compared against it. \code{NULL} takes
+\code{assembly}'s sequence}
+
+\item{reference_chrom}{the contig's name in \code{reference}, where the file
+spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA): one name
+for every region, or one per region. An \code{assembly} with aliases finds it}
+
+\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
+config's \code{assemblies} entry writes it: \code{region} may name a contig by any
+alias it lists, the engine reads the file under the file's own, and the
+reader names the contig in its tables as \code{region} does}
+
+\item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
 
 \item{byte_limit}{the most compressed bytes the region may need, refused off
 the index before any read is fetched; the whole table is held in memory}

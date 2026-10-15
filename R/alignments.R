@@ -183,9 +183,9 @@ sequence_adapter <- function(reference) {
 #' head(a$reads)
 #' a$legend
 jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
-                               reference = NULL, reference_chrom = NULL,
-                               assembly = NULL, index = NULL, display = NULL,
-                               byte_limit = 2e8) {
+                               display = NULL, reference = NULL,
+                               reference_chrom = NULL, assembly = NULL,
+                               index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() alignments_adapter(file, index))
   sequenced <- !is.null(reference) || has_sequence(assembly)
   if (adapter$type == "CramAdapter" && !sequenced) {

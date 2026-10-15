@@ -10,9 +10,9 @@ jbrowse_variants(
   start = NULL,
   end = NULL,
   display = NULL,
-  index = NULL,
-  samples = NULL,
   assembly = NULL,
+  samples = NULL,
+  index = NULL,
   byte_limit = 2e+08
 )
 }
@@ -44,17 +44,17 @@ order, \code{labels}, a label by row name, and \code{kept}, the rows shown) and
 each take a band of rows) and \code{rowHeight} (pixels a row, where
 \code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the rows into the display's height)}
 
-\item{index}{the tabix or CSI index, if not beside \code{file} under its usual
-name}
+\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
+config's \code{assemblies} entry writes it: \code{region} may name a contig by any
+alias it lists, the engine reads the file under the file's own, and the
+reader names the contig in its tables as \code{region} does}
 
 \item{samples}{a tab-separated file of the samples' attributes, a \code{name}
 column and one column per attribute, which \code{display$rowColor} colors
 the rows by, e.g. \code{list(rowColor = list(field = "group"))}}
 
-\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
-config's \code{assemblies} entry writes it: \code{region} may name a contig by any
-alias it lists, the engine reads the file under the file's own, and the
-reader names the contig in its tables as \code{region} does}
+\item{index}{the tabix or CSI index, if not beside \code{file} under its usual
+name}
 
 \item{byte_limit}{the most compressed bytes the region may need, refused
 off the index before any record is fetched}

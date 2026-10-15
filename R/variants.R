@@ -101,8 +101,8 @@ variants_adapter <- function(file, index, samples) {
 #' v <- jbrowse_variants(vcf, "1", 155000000, 155050000)
 #' head(v$cells)
 jbrowse_variants <- function(file, region = NULL, start = NULL, end = NULL,
-                             display = NULL, index = NULL, samples = NULL,
-                             assembly = NULL, byte_limit = 2e8) {
+                             display = NULL, assembly = NULL, samples = NULL,
+                             index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
   read_regions(reader_regions(adapter, region, start, end),
     function(chrom, start, end, i) variants_region(adapter, chrom, start, end,
