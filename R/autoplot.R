@@ -182,6 +182,10 @@ depth_transform <- function(scale) {
 
 # The reference under the pileup, each base a lettered cell in its color
 sequence_plot <- function(x, o) {
+  if (is.null(x$reference)) {
+    stop("the sequence band draws the reference's bases: read the alignments ",
+      "with `reference =`", call. = FALSE)
+  }
   xlim <- xlim_of(x)
   bases <- data.frame(position = seq(xlim[1], xlim[2] - 1))
   bases$base <- toupper(strsplit(jbrowse_sequence(x$reference$file,
