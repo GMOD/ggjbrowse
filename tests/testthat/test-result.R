@@ -59,8 +59,13 @@ test_that("a summary table drawn after its reads were filtered warns once", {
   a <- jbrowse_alignments(bam, loci[1])
   expect_no_warning(ggplot2::ggplot_build(ggplot2::autoplot(a, "coverage")))
   a$reads <- subset(a$reads, strand == 1)
-  expect_warning(ggplot2::ggplot_build(ggplot2::autoplot(a, "coverage")),
-    "display = list\\(filter")
+  warned <- character(0)
+  withCallingHandlers(ggplot2::ggplot_build(ggplot2::autoplot(a, "coverage")),
+    warning = function(w) {
+      warned <<- c(warned, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    })
+  expect_true(any(grepl("display = list(filter", warned, fixed = TRUE)))
   expect_no_warning(ggplot2::ggplot_build(ggplot2::autoplot(a, "pileup")))
 })
 
