@@ -135,6 +135,13 @@ Whole analyses done in R, each on the data and question of a
 - [A loss-of-function allele across breeds (Dog10K) in R](docs/tutorials/dog10k_lof.md):
   the _CYP1A2_ stop codon derived from the reference, its frequency per breed
   with wolves and coyotes as controls, and the gene's copy number
+- [RNA-seq splicing and strand in R](docs/tutorials/rnaseq.md): _ACTB_'s splice junctions from
+  the reads, strand-specific coverage, IsoSeq isoforms, and a regtools junction
+  table checked against the engine's own counts
+- [Complex rearrangements and derivative alleles (COLO829) in R](docs/tutorials/cancer_sv.md):
+  the chr3, chr10 and chr12 rearrangement chain walked from the calls, split
+  reads counted in tumor and normal, and the der(3) allele against the truth
+  set
 
 ## Guides
 
