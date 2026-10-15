@@ -347,6 +347,32 @@ jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --width 1200 --out two_regions.png
 ```
 
+<a id="amino_acids"></a>
+
+## Amino acids over GAPDH's first coding exons, read in frame across the intron
+
+`chr12:6,534,811-6,534,880 chr12:6,536,476-6,536,545`
+
+<table>
+<tr><td width="50%"><img src="../gallery/amino_acids-jbrowse.webp" alt="Amino acids over GAPDH's first coding exons, read in frame across the intron in JBrowse. GAPDH's coding transcripts open MGKVKVGVNG, the last codon split by the intron and lettered red on each side, the frame running on in the next exon." width="100%"></td><td width="50%"><img src="../gallery/amino_acids-r.webp" alt="Amino acids over GAPDH's first coding exons, read in frame across the intron drawn by ggjbrowse. GAPDH's coding transcripts open MGKVKVGVNG, the last codon split by the intron and lettered red on each side, the frame running on in the next exon." width="100%"></td></tr>
+</table>
+
+GAPDH's coding transcripts open MGKVKVGVNG, the last codon split by the intron and lettered red on each side, the frame running on in the next exon.
+
+```r
+loci <- c("chr12:6,534,811-6,534,880", "chr12:6,536,476-6,536,545")
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci,
+  reference = e("gapdh_hg38.fa.gz"), width = 1200)
+jbrowse_stack(genes)
+```
+
+```sh
+jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
+  --gffgz inst/extdata/gapdh_gencode.gff3.gz heightMode:grow growMaxHeight=2000 \
+  --loc 'chr12:6,534,811-6,534,880 chr12:6,536,476-6,536,545' \
+  --width 1200 --out amino_acids.png
+```
+
 <a id="variants_by_population"></a>
 
 ## 100 people's genotypes across DCST2 (GRCh37), colored by superpopulation

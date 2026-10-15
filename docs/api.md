@@ -12,7 +12,7 @@
 | Function | Reads | Returns a `jbrowse_*` list of |
 |---|---|---|
 | `jbrowse_alignments()` | BAM, CRAM | `reads`, `mismatches`, `gaps`, `insertions`, `clips`, `coverage`, `allele_coverage`, `junctions`, `arcs`, ... |
-| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `labels`, `sections` |
+| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels`, `sections` |
 | `jbrowse_wiggle()` | BigWig | `bins`, `marks`, `sources`, `rules` |
 | `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands` |
 | `jbrowse_synteny()` | PAF, PIF, delta, chain, MashMap | `alignments`, `ribbons`, `offscreen*` |
@@ -43,8 +43,8 @@
   `jbrowse_height()` and `jbrowse_width()` measure the figure.
 - One geom per table, all named `geom_jbrowse_*()`: `reads`, `mismatches`,
   `deletions`, `insertions`, `clips`, `coverage`, `alleles`, `junctions`,
-  `glyphs`, `labels`, `wiggle`, `genotypes`, `ribbons`, `dotplot`, `lanes` and
-  the rest.
+  `glyphs`, `amino_acids`, `labels`, `wiggle`, `genotypes`, `ribbons`,
+  `dotplot`, `lanes` and the rest.
 - `jbrowse_color()` marks a column as the colors the display paints, so
   `aes(fill = color)` needs no scale. `scale_fill_jbrowse()`,
   `scale_color_jbrowse()` and `scale_x_jbrowse()` add the display's keys and
@@ -71,3 +71,7 @@
   encoded with.
 - The bisulfite layer needs `reference`, because it calls each cytosine by
   comparing the read's base to the reference's.
+- `jbrowse_features()` with `reference` translates each CDS once `width`
+  gives a base a pixel or more, striping `rects` by codon and listing each
+  residue in `amino_acids`. A residue's `text` is the letter the display
+  writes at 8 pixels a base or more, numbered once the codon fits the number.

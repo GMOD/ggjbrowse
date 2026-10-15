@@ -211,3 +211,46 @@ test_that("autoplot draws each section in its own panel over its rows", {
   expect_equal(labels$px_tall,
     (s$sections$height - chip)[as.integer(s$labels$section)])
 })
+
+test_that("a zoomed-in CDS carries its residues, in frame across an intron", {
+  gapdh <- extdata("gapdh_gencode.gff3.gz")
+  loci <- c("chr12:6,534,811-6,534,880", "chr12:6,536,476-6,536,545")
+  reference <- extdata("gapdh_hg38.fa.gz")
+  near <- jbrowse_features(gapdh, loci, reference = reference, width = 1200)
+  aa <- near$amino_acids
+  first <- aa[aa$.region == 1 & aa$top == aa$top[1], ]
+  expect_equal(paste(first$amino_acid, collapse = ""), "MGKVKVGVNG")
+  expect_equal(first$protein_index, 0:9)
+  expect_equal(first$text, first$amino_acid)
+  expect_equal(first$color == "#ff0000", first$stop_or_non_triplet)
+  expect_equal(first$end[10] - first$start[10], 2)
+  expect_true(all(aa$y > aa$top & aa$y < aa$top + aa$height))
+  expect_true(any(near$rects$color != near$rects$color[1]))
+
+  unlettered <- jbrowse_features(gapdh, loci, reference = reference,
+    width = 400)
+  expect_equal(nrow(unlettered$amino_acids), nrow(aa))
+  expect_true(all(unlettered$amino_acids$text == ""))
+  expect_equal(nrow(jbrowse_features(gapdh, loci, width = 1200)$amino_acids),
+    0)
+  expect_equal(nrow(jbrowse_features(gapdh, loci, reference = reference,
+    width = 1200, amino_acids = FALSE)$amino_acids), 0)
+})
+
+test_that("the residues draw as haloed monospace letters", {
+  near <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"),
+    "chr12:6,534,811-6,534,880", reference = extdata("gapdh_hg38.fa.gz"),
+    width = 1200)
+  p <- ggplot2::ggplot(near) + geom_jbrowse_amino_acids()
+  d <- ggplot2::layer_data(p)
+  expect_equal(nrow(d), sum(nzchar(near$amino_acids$text)))
+  expect_equal(unique(d$family), "mono")
+  text <- ggplot2::layer_grob(p)[[1]]
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off())
+  drawn <- grid::makeContent(text)$children
+  expect_length(drawn, 9)
+  expect_equal(unique(drawn[[1]]$gp$col), near$glyph$aminoAcidHalo)
+  expect_setequal(tolower(drawn[[9]]$gp$col),
+    unique(near$amino_acids$color))
+})

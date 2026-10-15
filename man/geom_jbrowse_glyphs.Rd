@@ -2,10 +2,13 @@
 % Please edit documentation in R/features.R
 \name{geom_jbrowse_glyphs}
 \alias{geom_jbrowse_glyphs}
+\alias{geom_jbrowse_amino_acids}
 \alias{geom_jbrowse_labels}
 \title{A feature track's marks as ggplot layers}
 \usage{
 geom_jbrowse_glyphs(mapping = NULL, data = NULL, ...)
+
+geom_jbrowse_amino_acids(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_labels(mapping = NULL, data = NULL, ...)
 }
@@ -24,13 +27,15 @@ a list of ggplot layers
 \description{
 \code{geom_jbrowse_glyphs()} draws each feature's glyph as the display does:
 the intron and connector lines with their strand chevrons, the boxes, and
-the strand arrows. \code{geom_jbrowse_labels()} writes the names and
-descriptions the display shows at this zoom, at its text size scaled to the
-panel. Each mark table carries its feature's \code{name}, \code{type} and \code{strand}
-beside the display's \code{color}, and a mark with no span of its own (a
-chevron, an arrow, a label) its feature's \code{start} and \code{end}, so
-\code{aes(fill = type)} colors the boxes by feature type through ggplot's own
-scales. A \code{fill} mapping reaches the boxes and arrowheads, and a \code{colour}
+the strand arrows. \code{geom_jbrowse_amino_acids()} writes the residues the
+display letters over a zoomed-in CDS, in a monospace face haloed in
+white, red at a stop or a partial codon. \code{geom_jbrowse_labels()} writes
+the names and descriptions the display shows at this zoom. Both take the
+display's text size scaled to the panel. Each mark table carries its
+feature's \code{name}, \code{type} and \code{strand} beside the display's \code{color}, and a
+mark with no span of its own (a chevron, an arrow, a label) its feature's
+\code{start} and \code{end}, so \code{aes(fill = type)} colors the boxes by feature type
+through ggplot's own scales. A \code{fill} mapping reaches the boxes and arrowheads, and a \code{colour}
 mapping every part that has a stroke, the boxes' outlines included.
 }
 \examples{

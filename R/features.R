@@ -63,6 +63,9 @@ features_adapter <- function(file, index) {
 #'   spells it another way: one name for every region, or one per region
 #' @param color_by_cds paint each CDS by its reading frame, as the view's
 #'   "Color by CDS" does
+#' @param amino_acids with `reference`, translate each CDS once the layout
+#'   reaches a base a pixel, as the view's "Show amino acids" does: codon
+#'   stripes in `rects`, and each residue in `amino_acids`
 #' @param index the tabix or CSI index, if not beside `file` under its usual
 #'   name
 #' @param byte_limit the most compressed bytes the region may need, refused
@@ -89,6 +92,12 @@ features_adapter <- function(file, index) {
 #'   * `sections`: under `display$facet`, each section's `key`, `label`, `top`
 #'     and `height` in stacking order, the chip row the display names it in
 #'     included; ungrouped, one section labelled `""`
+#'   * `amino_acids`: each codon over a CDS box in the region, a codon split
+#'     by an intron in a piece on each side: `start`, `end`, `amino_acid`,
+#'     `protein_index` (0-based), `top`, `height`, `stop_or_non_triplet`,
+#'     `transl_except`, `feature`, and the letter the display writes over it,
+#'     `text` (empty under 8 pixels a base or in a box too short), `font_size`
+#'     and `y` (its baseline) in pixels, and `color`
 #'   * `legend`: `label` and `color`, the key the display shows for a color
 #'     field, its title as the frame's `"title"` attribute
 #'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
@@ -107,7 +116,8 @@ features_adapter <- function(file, index) {
 jbrowse_features <- function(file, region, start = NULL, end = NULL,
                              display = NULL, width = 800, reference = NULL,
                              reference_chrom = NULL, color_by_cds = FALSE,
-                             index = NULL, byte_limit = 2e8) {
+                             amino_acids = TRUE, index = NULL,
+                             byte_limit = 2e8) {
   regions <- regions_of(region, start, end)
   args <- list(
     adapterConfig = adapter_of(file, function()
@@ -117,6 +127,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
       start = regions$start, end = regions$end),
     bpPerPx = sum(regions$end - regions$start) / width,
     colorByCDS = color_by_cds,
+    aminoAcids = amino_acids,
     byteLimit = byte_limit)
   if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
   display <- display %||% list()
@@ -161,11 +172,13 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
       labels$subfeature - subs_before + 1, NA_integer_)
     arrows <- on_feature(t$arrows)
     names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
+    residues <- snake(on_feature(t$aminoAcids))
     structure(
       list(features = features,
         subfeatures = on_feature(t$subfeatures), rects = on_feature(t$rects),
         lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
-        arrows = arrows, labels = labels, sections = sections, legend = legend,
+        arrows = arrows, amino_acids = residues, labels = labels,
+        sections = sections, legend = legend,
         keys = list(features = legend), ramps = ramp_frames(t$ramps),
         glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
         region = as.list(regions[i, ]),
@@ -176,15 +189,17 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
 }
 
 # Text sized in the display's pixels, scaled to the panel when it draws:
-# `px_wide` and `px_tall` are the display's extent in pixels
+# `px_wide` and `px_tall` are the display's extent in pixels, and a `halo`
+# color strokes each letter a display pixel wide, as canvas `strokeText` does
 GeomDisplayText <- ggplot2::ggproto("GeomDisplayText", ggplot2::GeomText,
   default_aes = ggplot2::aes(!!!ggplot2::GeomText$default_aes,
-    px_wide = NA, px_tall = NA),
-  draw_panel = function(self, data, panel_params, coord) {
+    px_wide = NA, px_tall = NA, halo = NA),
+  draw_panel = function(self, data, panel_params, coord, ...) {
     text <- ggplot2::ggproto_parent(ggplot2::GeomText, self)$draw_panel(data,
-      panel_params, coord)
+      panel_params, coord, ...)
     grid::gTree(children = grid::gList(text), px_wide = data$px_wide[1],
-      px_tall = data$px_tall[1], cl = "ggjbrowse_display_text")
+      px_tall = data$px_tall[1], halo = data$halo[1],
+      cl = "ggjbrowse_display_text")
   })
 
 #' @exportS3Method grid::makeContent
@@ -194,8 +209,17 @@ makeContent.ggjbrowse_display_text <- function(x) {
       x$px_wide,
     grid::convertHeight(grid::unit(1, "npc"), "mm", valueOnly = TRUE) /
       x$px_tall)
-  x$children[[1]]$gp$fontsize <- x$children[[1]]$gp$fontsize * mm_per_px
-  x
+  text <- x$children[[1]]
+  text$gp$fontsize <- text$gp$fontsize * mm_per_px
+  if (is.na(x$halo)) return(grid::setChildren(x, grid::gList(text)))
+  angle <- seq(0, 2 * pi, length.out = 9)[-9]
+  r <- grid::unit(mm_per_px / 2, "mm")
+  halos <- lapply(seq_along(angle), function(i) {
+    grid::editGrob(text, x = text$x + r * cos(angle[i]),
+      y = text$y + r * sin(angle[i]), gp = grid::gpar(col = x$halo),
+      name = paste0(text$name, ".halo", i))
+  })
+  grid::setChildren(x, do.call(grid::gList, c(halos, list(text))))
 }
 
 #' @export
@@ -259,13 +283,15 @@ for_geom <- function(mapping, geom) {
 #'
 #' `geom_jbrowse_glyphs()` draws each feature's glyph as the display does:
 #' the intron and connector lines with their strand chevrons, the boxes, and
-#' the strand arrows. `geom_jbrowse_labels()` writes the names and
-#' descriptions the display shows at this zoom, at its text size scaled to the
-#' panel. Each mark table carries its feature's `name`, `type` and `strand`
-#' beside the display's `color`, and a mark with no span of its own (a
-#' chevron, an arrow, a label) its feature's `start` and `end`, so
-#' `aes(fill = type)` colors the boxes by feature type through ggplot's own
-#' scales. A `fill` mapping reaches the boxes and arrowheads, and a `colour`
+#' the strand arrows. `geom_jbrowse_amino_acids()` writes the residues the
+#' display letters over a zoomed-in CDS, in a monospace face haloed in
+#' white, red at a stop or a partial codon. `geom_jbrowse_labels()` writes
+#' the names and descriptions the display shows at this zoom. Both take the
+#' display's text size scaled to the panel. Each mark table carries its
+#' feature's `name`, `type` and `strand` beside the display's `color`, and a
+#' mark with no span of its own (a chevron, an arrow, a label) its feature's
+#' `start` and `end`, so `aes(fill = type)` colors the boxes by feature type
+#' through ggplot's own scales. A `fill` mapping reaches the boxes and arrowheads, and a `colour`
 #' mapping every part that has a stroke, the boxes' outlines included.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_features()] result, `NULL` for the plot's,
@@ -306,6 +332,27 @@ geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
 
 #' @rdname geom_jbrowse_glyphs
 #' @export
+geom_jbrowse_amino_acids <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "amino_acids", "geom_jbrowse_amino_acids")
+  lettered <- function(x) {
+    d <- x$amino_acids[nzchar(x$amino_acids$text), , drop = FALSE]
+    n <- nrow(d)
+    d$position <- (d$start + d$end) / 2
+    d$px_wide <- rep((x$region$end - x$region$start) / x$bp_per_px, n)
+    d$px_tall <- if (is.null(d$section)) rep(x$height, n)
+      else section_px(x)[as.integer(d$section)]
+    d$halo <- rep(x$glyph$aminoAcidHalo, n)
+    d
+  }
+  jbrowse_layer(GeomDisplayText, data, lettered, mapping,
+    ggplot2::aes(x = position, y = y, label = text, colour = color,
+      size = I(font_size), px_wide = I(px_wide), px_tall = I(px_tall),
+      halo = I(halo)),
+    list(hjust = 0.5, vjust = 0, family = "mono", ...), keyed = FALSE)
+}
+
+#' @rdname geom_jbrowse_glyphs
+#' @export
 geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "labels", "geom_jbrowse_labels")
   labels <- function(x) {
@@ -325,7 +372,8 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 
 #' Draw features as JBrowse's feature track
 #'
-#' Each feature's glyph on its row ([geom_jbrowse_glyphs()]) and the labels
+#' Each feature's glyph on its row ([geom_jbrowse_glyphs()]), the residues
+#' over a zoomed-in CDS ([geom_jbrowse_amino_acids()]) and the labels
 #' the display shows ([geom_jbrowse_labels()]), keyed by the display's
 #' `color` object. The y axis is the display's pixels. Labels scale with the
 #' panel: at draw time they take the display's pixel size across the panel's
@@ -350,6 +398,7 @@ autoplot.jbrowse_features <- function(object, ...) {
   if (faceted) p <- p + section_extents(object)
   p +
     geom_jbrowse_glyphs() +
+    geom_jbrowse_amino_acids() +
     scale_fill_jbrowse(object) +
     guides_jbrowse(object) +
     geom_jbrowse_labels() +

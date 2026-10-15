@@ -16,7 +16,8 @@ a ggplot, to extend or to stack over an alignments track with
 patchwork
 }
 \description{
-Each feature's glyph on its row (\code{\link[=geom_jbrowse_glyphs]{geom_jbrowse_glyphs()}}) and the labels
+Each feature's glyph on its row (\code{\link[=geom_jbrowse_glyphs]{geom_jbrowse_glyphs()}}), the residues
+over a zoomed-in CDS (\code{\link[=geom_jbrowse_amino_acids]{geom_jbrowse_amino_acids()}}) and the labels
 the display shows (\code{\link[=geom_jbrowse_labels]{geom_jbrowse_labels()}}), keyed by the display's
 \code{color} object. The y axis is the display's pixels. Labels scale with the
 panel: at draw time they take the display's pixel size across the panel's

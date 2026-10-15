@@ -79,6 +79,7 @@ hg38 <- c("--hub", "hg38")
 grow <- c("heightMode:grow", "growMaxHeight=2000")
 gapdh <- "chr12:6,534,201-6,538,700"
 two_loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
+aa_loci <- c("chr12:6,534,811-6,534,880", "chr12:6,536,476-6,536,545")
 rna <- inst("gapdh_direct_rna.bam")
 gencode <- inst("gapdh_gencode.gff3.gz")
 phylop <- inst("gapdh_phylop100way.bw")
@@ -342,6 +343,18 @@ signal <- jbrowse_wiggle(e("gapdh_phylop100way.bw"), loci)
 reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
   display = list(color = list(field = "strand")))
 jbrowse_stack(genes, signal, reads)
+)-"),
+  amino_acids = list(
+    caption = "GAPDH's coding transcripts open MGKVKVGVNG, the last codon split by the intron and lettered red on each side, the frame running on in the next exon.",
+    title = "Amino acids over GAPDH's first coding exons, read in frame across the intron",
+    locus = paste(aa_loci, collapse = " "),
+    jbrowse = c(fasta, "--gffgz", gencode, grow,
+      "--loc", paste(aa_loci, collapse = " ")),
+    r = r"-(
+loci <- c("chr12:6,534,811-6,534,880", "chr12:6,536,476-6,536,545")
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci,
+  reference = e("gapdh_hg38.fa.gz"), width = 1200)
+jbrowse_stack(genes)
 )-"),
   variants_by_population = list(
     caption = "20 people from each superpopulation genotyped at 249 variants, a column per record, the East Asians homozygous for the alt allele at many of the first 40.",

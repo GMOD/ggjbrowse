@@ -14,6 +14,7 @@ jbrowse_features(
   reference = NULL,
   reference_chrom = NULL,
   color_by_cds = FALSE,
+  amino_acids = TRUE,
   index = NULL,
   byte_limit = 2e+08
 )
@@ -63,6 +64,10 @@ spells it another way: one name for every region, or one per region}
 \item{color_by_cds}{paint each CDS by its reading frame, as the view's
 "Color by CDS" does}
 
+\item{amino_acids}{with \code{reference}, translate each CDS once the layout
+reaches a base a pixel, as the view's "Show amino acids" does: codon
+stripes in \code{rects}, and each residue in \code{amino_acids}}
+
 \item{index}{the tabix or CSI index, if not beside \code{file} under its usual
 name}
 
@@ -93,6 +98,12 @@ names (a row number of \code{subfeatures}, \code{NA} for a feature's own label)
 \item \code{sections}: under \code{display$facet}, each section's \code{key}, \code{label}, \code{top}
 and \code{height} in stacking order, the chip row the display names it in
 included; ungrouped, one section labelled \code{""}
+\item \code{amino_acids}: each codon over a CDS box in the region, a codon split
+by an intron in a piece on each side: \code{start}, \code{end}, \code{amino_acid},
+\code{protein_index} (0-based), \code{top}, \code{height}, \code{stop_or_non_triplet},
+\code{transl_except}, \code{feature}, and the letter the display writes over it,
+\code{text} (empty under 8 pixels a base or in a box too short), \code{font_size}
+and \code{y} (its baseline) in pixels, and \code{color}
 \item \code{legend}: \code{label} and \code{color}, the key the display shows for a color
 field, its title as the frame's \code{"title"} attribute
 \item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
