@@ -179,7 +179,9 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
       half <- pmax(d$end - d$start, floor_bp) / 2
       d$xmin <- mid - half
       d$xmax <- mid + half
-      if (fade) d$alpha <- density_alpha(x$variants, 1 / px_of(x, width))[d$variant]
+      if (fade) {
+        d$alpha <- density_alpha(x$variants, 1 / px_of(x, width))[d$variant]
+      }
     }
     d$y <- match(as.character(d$row), x$rows$name)
     d[!is.na(d$y), , drop = FALSE]
