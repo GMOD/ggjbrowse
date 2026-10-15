@@ -32,13 +32,24 @@
   - a GRanges, which GenomicRanges counts from 1
 - A frame with `seqnames`, or with a `width` of `end - start + 1`, reads as
   1-based and is refused.
+- `jbrowse_synteny()` takes a `region` per row, `query` and `target`, and
+  `jbrowse_dotplot()` one per axis, `x` and `y`, each in any of these forms.
+  `NULL` gives an axis every contig of its assembly. A frame with an
+  `assembly` column, as `jbrowse_contigs()` and a result's `regions` write
+  it, gives each axis the rows on its assembly.
+- `jbrowse_multiway()`'s `region` takes loci, a frame or a GRanges for its
+  anchor lane. A multi-genome file states no contig's length, so a bare
+  contig or `NULL` is refused.
 - A whole file or contig is refused past 5 million rows in any one table,
   and `jbrowse_alignments()` past `span_limit`, asking for a region.
-- `display` takes a track config's `displays` entry. `jbrowse_synteny()` and
-  `jbrowse_dotplot()` take the view's snapshot as `view`.
+- `display` takes a track config's `displays` entry, or for
+  `jbrowse_synteny()` and `jbrowse_dotplot()` the view's settings as its
+  snapshot writes them.
 - `width` is the pixels the reader lays the regions out across, 1,500 unless
-  given: the labels and zoom of a feature or quantitative track, and the
-  fade of a variant matrix, follow from it.
+  given: the labels and zoom of a feature or quantitative track, the fade of
+  a variant matrix, and the CIGAR steps a synteny band or dotplot draws
+  follow from it. `jbrowse_dotplot()`'s `height` is its plot's pixels up,
+  its `width` unless given.
 - `assembly` takes a `jbrowse_assembly()`, an assembly as a JBrowse config's
   `assemblies` entry writes it, or a FASTA or 2bit path alone. Its sequence
   is the reference every reader reads against. A region may name a contig by
@@ -48,14 +59,13 @@
 
 ## The result
 
-`jbrowse_alignments()`, `jbrowse_features()`, `jbrowse_variants()` and
-`jbrowse_wiggle()` share these slots, which `?jbrowse_result` documents:
+Every reader's result holds these slots, which `?jbrowse_result` documents:
 
 | Slot | Holds |
 |---|---|
 | `regions` | a data frame, a row per region: `chrom`, `start`, `end` (0-based, half-open), the axis layout `offset`, `cum_start` and `cum_end`, and `missing`, why the region's contig reads empty, `""` where the file has it |
 | `width` | the pixels the regions were laid out across |
-| `display` | the display's resolved config, under JBrowse's own camelCase names |
+| `display` | the display's or view's resolved config, under JBrowse's own camelCase names |
 | `keys` | the display's color keys, each a frame of `label` and `color` titled by its `"title"` attribute |
 | `ramps` | the display's color bars |
 | `y_scale` | the score axis (wiggle) or depth axis (alignments): `domain`, `type`, `symlog_constant`, `ticks`; `NULL` for the others |
@@ -70,12 +80,31 @@ state:
 - alignments: `read_pitch`, `glyph`, `arc_span_max`, and `sequence`, each
   region's reference bases where `assembly` has a sequence
 - variants: `tree`, where a caller sets it
+- synteny: `offscreen_strip`, `fade_thin`, `has_cigar`, `assemblies`
+- dotplot: `height`, `assemblies`, `skipped`
+- multiway: `tick_interval`, `rows_vs_anchor`
+
+A comparative result lays out several axes in its one `regions` frame:
+
+- `axis` names the axis a row lays out on: `"query"` (the top row) or
+  `"target"` for synteny, `"x"` or `"y"` for a dotplot, and the lane's
+  assembly for multiway. `assembly` names the assembly the region is on.
+- `display` holds the settings given, the view's defaults for the rest,
+  and what the engine resolved: `color$field` the field painted (multiway's
+  `ribbonColor$field`), `opacity` the level every alignment draws at.
+- The engine returns no resolved config for these views, so R fills the
+  defaults JBrowse states.
 
 ## Records and their keys
 
 Every table has a `region` column, the 1-based row of `regions` each row was
 read in, and a table with coordinates of its own has `chrom`. A record read
 in two regions is listed in each, its copies sharing its key.
+
+A comparative table names a region per axis: a ribbon's `query_region` and
+`target_region`, a segment's `x_region` and `y_region`, a multi-way
+ribbon's `upper_region` and `lower_region`, each a row of `regions`.
+`alignments` names no region, since a block can cross several.
 
 | Parent | Key | Children |
 |---|---|---|
@@ -85,6 +114,8 @@ in two regions is listed in each, its copies sharing its key.
 | `variants` | `variant` | `cells`, `annotations` |
 | `rows` | `name` | `cells`, by `row` |
 | `sources` | `name` | `bins` and `marks`, by `source` |
+| `alignments` (synteny, multiway) | `alignment` | `ribbons` |
+| `alignments` (dotplot) | `alignment` | `segments` |
 
 - A child row holds its parent's key, and its `region` identifies the
   parent's copy in that region.
@@ -110,7 +141,7 @@ in two regions is listed in each, its copies sharing its key.
 |---|---|
 | `ggjbrowse_too_large` | the regions pass `span_limit` or `byte_limit`, or a whole file or contig passes 5 million rows in a table |
 | `ggjbrowse_missing_contig` | no region's contig is one the file lists; a region on a missing contig beside others warns and reads empty |
-| `ggjbrowse_bad_display` | a `display` slot holds a value the config schema refuses, which the error names |
+| `ggjbrowse_bad_display` | a `display` slot holds a value the config schema refuses, or a synteny view's `cigarMode` or `fadeThinAlignmentsMode` one it does not take, which the error names |
 | `ggjbrowse_bad_region` | a region is neither a locus nor a contig of the file, or a frame reads as 1-based |
 | `ggjbrowse_parent_data` | a geom is handed a parent table as `data` |
 | `ggjbrowse_forked` | the engine was started in a forked worker |
@@ -131,7 +162,9 @@ in two regions is listed in each, its copies sharing its key.
 - `autoplot(result)` composes the geoms into the browser's track.
   `autoplot(a, "pileup")` draws one band of an alignments track.
 - `jbrowse_stack(...)` stacks results, and your own ggplots, on one x axis,
-  each named one titled. A key several tracks share is drawn once, listing
+  each named one titled. A comparative result, which lays out several axes,
+  stops the stack; `autoplot(s, above = genes)` stacks tracks over a
+  synteny or multi-way result's rows. A key several tracks share is drawn once, listing
   every entry any of them holds.
   `jbrowse_height()` and `jbrowse_width()` measure the figure.
 - `autoplot()` and `jbrowse_stack()` take `width` to draw at another size.

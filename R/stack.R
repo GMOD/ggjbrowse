@@ -19,9 +19,9 @@
 #'   genomic positions over one region, and over several the axis that
 #'   `ggplot(<result>)` draws on. A track's name, as an argument's or a list
 #'   element's, titles its first band, as the view labels a track:
-#'   `jbrowse_stack(genes, CHH = reads)`. A comparative result lays out
-#'   several axes and stops: `autoplot(<synteny result>, above =, below =)`
-#'   stacks tracks over its rows
+#'   `jbrowse_stack(genes, CHH = reads)`. A comparative result, which lays
+#'   out several axes, stops the stack: `autoplot(<synteny result>, above =,
+#'   below =)` stacks tracks over its rows
 #' @param width the pixels the stack draws its regions across, which
 #'   [jbrowse_width()] sizes the figure by; `NULL` takes the widest `width`
 #'   its tracks were read at

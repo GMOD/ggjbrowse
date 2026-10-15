@@ -15,6 +15,30 @@ JBrowse's synteny displays.
 - `guides_jbrowse()` keys a continuous field such as
   `list(field = "identity")` as the display's `0%` to `100%` bar. A threshold
   field such as `mapq` keys its bins as chips.
+- `display` takes the view's or display's settings as JBrowse writes them,
+  and the result's `display` holds those it drew with, the defaults filled
+  in: `s$display$color$field` names the field painted.
+- Each reader lays its regions out 1,500 px wide unless given `width`, as
+  the linear readers do.
+
+## Regions on each axis
+
+A result holds every axis's regions in one `regions` frame, its `axis`
+naming the row, axis or lane a region lays out on and `assembly` the
+assembly it is on.
+
+- Each row of a synteny view (`query`, `target`) and each axis of a dotplot
+  (`x`, `y`) takes the forms a linear reader's `region` takes: loci, bare
+  contigs, a frame of `chrom`, `start` and `end`, a GRanges, or `NULL` for
+  every contig of its assembly.
+- A frame with an `assembly` column gives each axis its own rows, so
+  `jbrowse_synteny(paf, jbrowse_contigs(paf), jbrowse_contigs(paf))` reads
+  both whole genomes, as does `jbrowse_synteny(paf)`.
+- A table names a region per axis, `query_region` and `target_region` or
+  `x_region` and `y_region`, each a row of `regions`.
+- A region on a contig the file lacks reads empty, warns and names why in
+  `regions$missing`. Rows with none of the file's contigs between them stop
+  with `ggjbrowse_missing_contig`.
 
 ## Two rows
 
@@ -24,13 +48,15 @@ opacity, with each CIGAR insertion, deletion and skip wider than a pixel
 ([HG002's chr8 inversion](gallery.md#inversion_synteny),
 [a CIGAR zoom](gallery.md#amylase_zoom)).
 
-- `view` takes the `LinearSyntenyView`'s settings (`color`, `opacity`,
+- `display` takes the `LinearSyntenyView`'s settings (`color`, `opacity`,
   `cigarMode`, `minAlignmentLength`, `drawLocationMarkers`, ...).
 - `autoplot(s, above = genes, below = genes2)` stacks tracks over either row
   ([genes on both rows](gallery.md#synteny_genes)).
 - `geom_jbrowse_ribbons()` draws `s$ribbons`, each foot's span on its row,
   with `thin` set where the band draws a one-pixel line. `s$alignments` holds
-  the blocks.
+  the blocks, each keyed by `alignment`, and
+  `s$alignments <- subset(s$alignments, identity > 0.99)` drops the ribbons
+  of the blocks it leaves out.
 - `geom_jbrowse_offscreen_mates()` draws `s$offscreen_strip`, the marks and
   contig names the band hangs off a row's edge for blocks whose mate the other
   row does not show (`s$offscreen`). `autoplot()` keys each contig from
@@ -40,12 +66,14 @@ opacity, with each CIGAR insertion, deletion and skip wider than a pixel
 
 `jbrowse_dotplot()` reads the same files through JBrowse's dotplot display,
 which draws a line per block, or per CIGAR step where a block is wide enough
-on the plot, and `view` takes the `DotplotView`'s settings
+on the plot, and `display` takes the `DotplotView`'s settings
 ([HG002's chr8](gallery.md#inversion_dotplot)). With no regions given,
 each axis shows every contig of its assembly in natural order, so a
 whole-genome dotplot is one call
 ([peach against grape](gallery.md#whole_genome)).
-`geom_jbrowse_dotplot()` draws its lines.
+`geom_jbrowse_dotplot()` draws its lines, and assigning `d$alignments` drops
+the segments of the blocks it leaves out. `height` sets the plot's pixels
+up, as many as `width` unless given.
 
 ## Several genomes
 
@@ -59,3 +87,9 @@ alignments' own coordinates, and the ribbons between adjacent lanes
 - `display` takes the display's settings (`ribbonColor`, `drawCurves`,
   `bridgeSkippedLanes`, ...).
 - `autoplot(m, above = genes)` stacks tracks over the anchor lane.
+- `region` takes the anchor's loci, a frame or a GRanges, but not a bare
+  contig: a multi-genome file states no contig's length. `regions` holds the
+  anchor's regions and each other lane's window, its `axis` the lane's
+  assembly.
+- `jbrowse_stack()` refuses a comparative result, since it lays out several
+  axes: `autoplot()` with `above` and `below` stacks tracks on its rows.
