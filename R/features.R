@@ -35,9 +35,9 @@ features_adapter <- function(file, index) {
 #'   share one layout, a feature on the same row in each, and are drawn end
 #'   to end as a JBrowse view lays them out (a gene's exons with the introns
 #'   collapsed, say), a data frame of `chrom`, `start` and `end`, or a contig
-#'   name with `start` and `end`. Omitted, the reader reads the whole file,
-#'   each contig it lists, and refuses with a message past 5 million rows in
-#'   any one table
+#'   name with `start` and `end`. With `NULL`, the default, the reader reads
+#'   the whole file, each contig it lists, and refuses with a message past 5
+#'   million rows in any one table
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
@@ -151,15 +151,13 @@ features_adapter <- function(file, index) {
 #' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
 #' g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
 #' head(g$features)
-jbrowse_features <- function(file, region, start = NULL, end = NULL,
+jbrowse_features <- function(file, region = NULL, start = NULL, end = NULL,
                              display = NULL, width = 800, reference = NULL,
                              reference_chrom = NULL, assembly = NULL,
                              color_by_cds = FALSE, amino_acids = TRUE,
                              index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() features_adapter(file, index))
-  whole <- missing(region)
-  regions <- if (whole) file_regions(adapter)
-    else regions_of(region, start, end)
+  regions <- reader_regions(adapter, region, start, end)
   read <- data.frame(refName = regions$chrom, start = regions$start,
     end = regions$end)
   read$originalRefName <- reference_chroms(reference_chrom, regions)
@@ -172,37 +170,22 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
     byteLimit = byte_limit), reference_args(reference, assembly))
   display <- display %||% list()
   display$heightMode <- display$heightMode %||% "grow"
-  display$color <- config_color(display$color)
-  if (!is.null(display$filter)) display$filter <- I(display$filter)
-  if (is.list(display$facet)) {
-    display$facet <- in_json(display$facet, c("domain", "hidden"))
-  }
-  args$display <- display
-  if (whole) args$rowLimit <- WHOLE_FILE_ROWS
+  args$display <- display_config(display)
+  if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
   t <- call_engine("features", args)
-  legend <- as_frame(t$legend)
-  attr(legend, "title") <- t$legendTitle
-  attr(legend, "complete") <- TRUE
+  legend <- structure(as_frame(t$legend), title = t$legendTitle,
+    complete = TRUE)
   all_features <- as_frame(t$features)
   all_subfeatures <- as_frame(t$subfeatures)
   sections <- as_frame(t$sections)
   vcf <- vcf_columns(t$vcf, nrow(all_features), names(all_features))
-  attribute_fields <- attribute_columns(as_frame(t$attributeFields),
-    c(names(all_features), names(all_subfeatures), "strand", "section",
-      "chrom"))
-  typed <- function(attributes, n) {
-    lapply(stats::setNames(seq_len(nrow(attribute_fields)),
-      attribute_fields$column), function(i) {
-        values <- attributes[[attribute_fields$key[i]]] %||% rep(NA, n)
-        info_column(values, attribute_fields$number[i], attribute_fields$type[i])
-      })
-  }
-  attributes <- typed(t$attributes, nrow(all_features))
-  subfeature_attributes <- typed(t$subfeatureAttributes, nrow(all_subfeatures))
-  with_attributes <- function(d, columns, rows) {
-    for (column in names(columns)) d[[column]] <- columns[[column]][rows]
-    d
-  }
+  taken <- c(names(all_features), names(all_subfeatures), "strand", "section",
+    "chrom")
+  attributes <- typed_columns(t$attributes, t$attributeFields,
+    nrow(all_features), taken, "attr")
+  subfeature_attributes <- typed_columns(t$subfeatureAttributes,
+    t$attributeFields, nrow(all_subfeatures), taken, "attr")$frame
+  attribute_fields <- attributes$fields
   join_regions(regions, lapply(seq_len(nrow(regions)), function(i) {
     # the engine numbers features and subfeatures across every region
     before <- sum(all_features$region < i - 1)
@@ -216,7 +199,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
     features <- of_region(t$features)
     features$section <- factor(features$section, levels = sections$label)
     in_region <- which(all_features$region == i - 1)
-    features <- with_attributes(features, attributes, in_region)
+    features <- cbind(features, attributes$frame[in_region, , drop = FALSE])
     if (!is.null(vcf)) {
       features <- cbind(features, vcf$records[in_region, , drop = FALSE])
       samples <- vcf$samples[vcf$samples$feature %in% in_region, ,
@@ -242,8 +225,8 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
       }
       d
     }
-    subfeatures <- with_attributes(on_feature(t$subfeatures),
-      subfeature_attributes, which(all_subfeatures$region == i - 1))
+    subfeatures <- cbind(on_feature(t$subfeatures), subfeature_attributes[
+      all_subfeatures$region == i - 1, , drop = FALSE])
     labels <- on_feature(t$labels)
     arrows <- on_feature(t$arrows)
     names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
@@ -267,15 +250,6 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
       primary = "features",
       class = c("jbrowse_features", "jbrowse_result"))
   }))
-}
-
-# Each of a file's fields with the column it takes: its key as the file writes
-# it, or `attr_<key>` where that names one of the table's own columns, as an
-# INFO key takes `info_<key>`
-attribute_columns <- function(fields, taken) {
-  fields$column <- ifelse(fields$key %in% taken, paste0("attr_", fields$key),
-    fields$key)
-  fields
 }
 
 # Text sized in the display's pixels, scaled to the panel when it draws:

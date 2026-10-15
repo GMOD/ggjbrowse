@@ -37,9 +37,9 @@ sequence_adapter <- function(reference) {
 #'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
 #'   are read in turn and drawn end to end on one axis as a JBrowse view lays
 #'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
-#'   with `start` and `end`. Omitted, the reader reads the whole file, each
-#'   contig it lists, and refuses with a message past 5 million rows in any
-#'   one table
+#'   with `start` and `end`. With `NULL`, the default, the reader reads the
+#'   whole file, each contig it lists, and refuses with a message past 5
+#'   million rows in any one table
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param reference the reference: an indexed FASTA, plain or bgzipped, or a
@@ -182,7 +182,7 @@ sequence_adapter <- function(reference) {
 #'   display = list(color = list(field = "strand")))
 #' head(a$reads)
 #' a$legend
-jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
+jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
                                reference = NULL, reference_chrom = NULL,
                                assembly = NULL, index = NULL, display = NULL,
                                byte_limit = 2e8) {
@@ -196,32 +196,22 @@ jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
     stop("bisulfite calls compare each read's cytosines to the reference: ",
       "pass that FASTA or 2bit as `reference =`", call. = FALSE)
   }
-  whole <- missing(region)
-  regions <- if (whole) file_regions(adapter)
-    else regions_of(region, start, end)
+  regions <- reader_regions(adapter, region, start, end)
   spelt <- reference_chroms(reference_chrom, regions)
-  read_regions(regions, NULL, NULL, function(chrom, start, end, share, i)
+  read_regions(regions, function(chrom, start, end, i)
     alignments_region(adapter, chrom, start, end, reference, spelt[i],
-      assembly, display, byte_limit, whole))
+      assembly, display, byte_limit, whole = is.null(region)))
 }
 
 alignments_region <- function(adapter, chrom, start, end, reference,
                               reference_chrom, assembly, display,
                               byte_limit, whole = FALSE) {
-  display <- display %||% list()
-  display$color <- config_color(display$color)
-  if (!is.null(display$facet)) display$facet <- in_json(display$facet,
-    c("domain", "hidden"))
-  if (!is.null(display$modifications)) {
-    display$modifications <- in_json(display$modifications,
-      "shownModifications")
-  }
   region <- list(refName = chrom, start = start, end = end)
   region$originalRefName <- reference_chrom
   args <- c(list(adapterConfig = adapter, region = region,
     byteLimit = byte_limit), reference_args(reference, assembly))
   if (whole) args$rowLimit <- WHOLE_FILE_ROWS
-  if (length(display)) args$display <- display
+  args$display <- display_config(display)
   t <- call_engine("alignments", args)
   sections <- as_frame(t$sections)
   frame <- function(table) {
@@ -289,27 +279,16 @@ alignments_region <- function(adapter, chrom, start, end, reference,
     legend <- rbind(legend, data.frame(label = "Pair/chain reads overlap here",
       color = overlaps$color[1]))
   }
-  attr(legend, "title") <- t$legendTitle
-  attr(legend, "complete") <- TRUE
-  arc_legend <- frame(t$arcLegend)
-  attr(arc_legend, "title") <- t$arcLegendTitle
-  base_key <- if (muted) key_frame(character(0), character(0), "Base")
-    else key_frame(names(colors$bases), colors$bases, "Base")
-  base_key <- base_key[base_key$color %in% c(mismatches$color,
-    alleles$color), , drop = FALSE]
-  attr(base_key, "title") <- "Base"
-  attr(base_key, "complete") <- TRUE
-  interbase_key <- key_frame(c("Insertion", "Soft clip", "Hard clip"),
-    interbase_colors, "Insertions and clips")
-  interbase_key <- interbase_key[interbase_colors %in%
-    interbase_coverage$color, , drop = FALSE]
-  attr(interbase_key, "title") <- "Insertions and clips"
-  attr(interbase_key, "complete") <- TRUE
-  junction_key <- key_frame(c("Forward", "Reverse", "Unknown"), strand_colors,
-    "Junction strand")
-  junction_key <- junction_key[junction_key$color %in% junctions$color, ,
-    drop = FALSE]
-  attr(junction_key, "title") <- "Junction strand"
+  legend <- structure(legend, title = t$legendTitle, complete = TRUE)
+  arc_legend <- structure(frame(t$arcLegend), title = t$arcLegendTitle)
+  bases <- if (muted) colors$bases[0] else colors$bases
+  base_key <- key_shown(key_frame(names(bases), bases, "Base",
+    complete = TRUE), c(mismatches$color, alleles$color))
+  interbase_key <- key_shown(key_frame(c("Insertion", "Soft clip",
+    "Hard clip"), interbase_colors, "Insertions and clips", complete = TRUE),
+    interbase_coverage$color)
+  junction_key <- key_shown(key_frame(c("Forward", "Reverse", "Unknown"),
+    strand_colors, "Junction strand"), junctions$color)
   structure(
     list(reads = reads, mismatches = mismatches, gaps = gaps, chains = chains,
       overlaps = overlaps,
@@ -380,6 +359,18 @@ in_json <- function(object, slots) {
 # A config's color as it writes it, a bare string its constant, and a list
 # slot staying a list in JSON however many values it holds
 config_color <- function(color) in_json(color, c("domain", "range", "labels"))
+
+# A display config as the engine reads it, each slot that lists values a JSON
+# array however many it holds; NULL for an empty one
+display_config <- function(display) {
+  if (!length(display)) return(NULL)
+  display$color <- config_color(display$color)
+  if (is.character(display$filter)) display$filter <- I(display$filter)
+  display$facet <- in_json(display$facet, c("domain", "hidden"))
+  display$modifications <- in_json(display$modifications,
+    "shownModifications")
+  display
+}
 
 #' @export
 print.jbrowse_alignments <- function(x, ...) {

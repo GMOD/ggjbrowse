@@ -6,7 +6,7 @@
 \usage{
 jbrowse_alignments(
   file,
-  region,
+  region = NULL,
   start = NULL,
   end = NULL,
   reference = NULL,
@@ -25,9 +25,9 @@ jbrowse_alignments(
 (\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
 are read in turn and drawn end to end on one axis as a JBrowse view lays
 them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
-with \code{start} and \code{end}. Omitted, the reader reads the whole file, each
-contig it lists, and refuses with a message past 5 million rows in any
-one table}
+with \code{start} and \code{end}. With \code{NULL}, the default, the reader reads the
+whole file, each contig it lists, and refuses with a message past 5
+million rows in any one table}
 
 \item{start, end}{with a contig name as \code{region}, the region's bounds,
 0-based half-open}

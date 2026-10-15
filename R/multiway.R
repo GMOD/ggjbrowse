@@ -143,9 +143,8 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     c("alignment", "gutter", "upper_lane", "lower_lane"))
   ribbons$color <- jbrowse_color(ribbons$color)
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle)
+    r$legendTitle, complete = TRUE)
   attr(key, "override") <- list(alpha = 0.6)
-  attr(key, "complete") <- TRUE
   structure(
     list(lanes = lane_frame, segments = segments,
       blocks = one_based(snake(as_frame(r$blocks)), "lane"),

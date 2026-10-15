@@ -182,9 +182,20 @@ scale_colour_jbrowse <- function(object, key = NULL, ...) {
 scale_color_jbrowse <- scale_colour_jbrowse
 
 # A key frame from labels and colors, under a title
-key_frame <- function(label, color, title) {
-  structure(data.frame(label = label, color = jbrowse_color(color)),
+key_frame <- function(label, color, title, complete = FALSE) {
+  key <- structure(data.frame(label = label, color = jbrowse_color(color)),
     title = title)
+  if (complete) attr(key, "complete") <- TRUE
+  key
+}
+
+# The entries of a key whose color is among `shown`, its title kept
+key_shown <- function(key, shown) {
+  kept <- key[key$color %in% shown, , drop = FALSE]
+  for (a in setdiff(names(attributes(key)), names(attributes(kept)))) {
+    attr(kept, a) <- attr(key, a)
+  }
+  kept
 }
 
 # Whether a layer joins the legends: a layer drawn through a `complete` key

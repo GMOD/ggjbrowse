@@ -269,9 +269,8 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
   offscreen <- colored_frame(r$offscreen)
   offscreen$region <- offscreen$region + 1
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle)
+    r$legendTitle, complete = TRUE)
   attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
-  attr(key, "complete") <- TRUE
   structure(
     list(alignments = alignments, ribbons = ribbons, offscreen = offscreen,
       offscreen_contigs = colored_frame(r$offscreenContigs),
@@ -757,9 +756,8 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
   segments$y_region <- segments$y_region + 1
   segments$color <- jbrowse_color(segments$color)
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle)
+    r$legendTitle, complete = TRUE)
   attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
-  attr(key, "complete") <- TRUE
   structure(
     list(alignments = alignments, segments = segments, legend = key,
       keys = list(segments = key), ramps = ramp_frames(r$ramps),

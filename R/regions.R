@@ -1,20 +1,30 @@
 LOCUS <- "^(.+):([0-9,]+)(-|\\.\\.)([0-9,]+)$"
 
-# The regions a reader was asked for, 0-based half-open: a contig with
-# `start` and `end`, locus strings as JBrowse's location box writes them
-# ("ctgA:1,001-9,000", 1-based and inclusive), or a data frame of chrom,
-# start and end
 # A read with no region reads the whole file: each contig the file lists, from
 # 0 to the end its index addresses, refused past WHOLE_FILE_ROWS rows in any
 # one table, which a region read has no need of
 WHOLE_FILE_ROWS <- 5e6
 
 file_regions <- function(adapter) {
-  r <- call_engine("fileRegions", list(adapterConfig = adapter))
-  data.frame(chrom = as.character(unlist(r$refName)),
-    start = as.numeric(unlist(r$start)), end = as.numeric(unlist(r$end)))
+  region_frame(call_engine("fileRegions", list(adapterConfig = adapter)))
 }
 
+# The engine's regions as `chrom`, `start` and `end`
+region_frame <- function(r) {
+  data.frame(chrom = as.character(r$refName), start = as.numeric(r$start),
+    end = as.numeric(r$end))
+}
+
+# The regions a reader reads: those `region` names, or each contig the file
+# lists where it names none
+reader_regions <- function(adapter, region, start, end) {
+  if (is.null(region)) file_regions(adapter) else regions_of(region, start, end)
+}
+
+# The regions a reader was asked for, 0-based half-open: a contig with
+# `start` and `end`, locus strings as JBrowse's location box writes them
+# ("ctgA:1,001-9,000", 1-based and inclusive), or a data frame of chrom,
+# start and end
 regions_of <- function(region, start, end) {
   if (is.data.frame(region)) {
     return(data.frame(chrom = as.character(region$chrom),
@@ -68,13 +78,11 @@ region_layout <- function(regions, gap_frac = 0.012) {
   regions
 }
 
-# Read each region with read(chrom, start, end, share, i), `share` being the
-# region's fraction of the regions' bp, and answer one result (join_regions())
-read_regions <- function(region, start, end, read) {
-  regions <- regions_of(region, start, end)
-  w <- regions$end - regions$start
+# Read each region with read(chrom, start, end, i), and answer one result
+# (join_regions())
+read_regions <- function(regions, read) {
   join_regions(regions, lapply(seq_len(nrow(regions)), function(i)
-    read(regions$chrom[i], regions$start[i], regions$end[i], w[i] / sum(w), i)))
+    read(regions$chrom[i], regions$start[i], regions$end[i], i)))
 }
 
 # One result from each region's: the region's own where there is one, else
@@ -90,11 +98,13 @@ join_regions <- function(regions, parts) {
     parts)
 }
 
-# The tables that list a result's keys, sections and rows rather than marks
-# on the reference. bind_regions() binds the first six, each row once.
-LISTING <- c("legend", "arc_legend", "info_fields", "format_fields",
-  "attribute_fields", "annotation_fields", "sections", "sources", "rows",
-  "rules", "bands")
+# The tables that list a result's keys and fields rather than marks on the
+# reference, which bind_regions() binds, each row once, and those every
+# region shares, which it takes from the first
+KEY_TABLES <- c("legend", "arc_legend", "info_fields", "format_fields",
+  "attribute_fields", "annotation_fields")
+SHARED_TABLES <- c("sections", "sources", "rows", "rules", "bands")
+LISTING <- c(KEY_TABLES, SHARED_TABLES)
 
 placed <- function(x, chrom, i) {
   for (name in setdiff(names(x), LISTING)) {
@@ -154,9 +164,9 @@ bind_regions <- function(regions, parts) {
   }
   out <- parts[[1]]
   for (name in names(out)) {
-    if (is.data.frame(out[[name]]) && !name %in% LISTING[-(1:6)]) {
+    if (is.data.frame(out[[name]]) && !name %in% SHARED_TABLES) {
       out[[name]] <- bound(function(x) x[[name]])
-      if (name %in% LISTING) out[[name]] <- unique(out[[name]])
+      if (name %in% KEY_TABLES) out[[name]] <- unique(out[[name]])
     }
   }
   for (key in names(out$keys)) {

@@ -87,8 +87,7 @@ with_shared_keys <- function(tracks, min_reads = NULL) {
       data.frame(label = as.character(k$label),
         color = as.character(k$color))))
     entries <- entries[!duplicated(entries), , drop = FALSE]
-    key <- key_frame(entries$label, entries$color, title)
-    attr(key, "complete") <- TRUE
+    key <- key_frame(entries$label, entries$color, title, complete = TRUE)
     override <- Filter(Negate(is.null), lapply(flat[titles == title], attr,
       "override"))
     if (length(override)) attr(key, "override") <- override[[1]]
@@ -111,11 +110,8 @@ drawn_keys <- function(x, min_reads = NULL) {
   keys <- x$keys
   if (inherits(x, "jbrowse_alignments") && !is.null(keys$junctions) &&
     !isTRUE(attr(keys$junctions, "complete"))) {
-    shown <- shown_junctions(x,
-      min_reads %||% alignment_options(x)$min_reads)$color
-    key <- keys$junctions
-    keys$junctions <- key[key$color %in% shown, , drop = FALSE]
-    attr(keys$junctions, "title") <- attr(key, "title")
+    keys$junctions <- key_shown(keys$junctions, shown_junctions(x,
+      min_reads %||% alignment_options(x)$min_reads)$color)
   }
   keys
 }

@@ -58,9 +58,8 @@ print.jbrowse_assembly <- function(x, ...) {
 #' fa <- system.file("extdata", "gapdh_hg38.fa.gz", package = "ggjbrowse")
 #' jbrowse_regions(jbrowse_assembly(fa))
 jbrowse_regions <- function(assembly) {
-  r <- call_engine("regions", list(assembly = assembly_config(assembly)))
-  data.frame(chrom = as.character(unlist(r$refName)),
-    start = as.numeric(unlist(r$start)), end = as.numeric(unlist(r$end)))
+  region_frame(call_engine("regions",
+    list(assembly = assembly_config(assembly))))
 }
 
 # An assembly config as the engine reads it: each `uri` in it a path or URL

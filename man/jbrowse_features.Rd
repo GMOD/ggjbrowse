@@ -6,7 +6,7 @@
 \usage{
 jbrowse_features(
   file,
-  region,
+  region = NULL,
   start = NULL,
   end = NULL,
   display = NULL,
@@ -31,9 +31,9 @@ or CSI index beside it) or a BigBed, a path or a URL; or a JBrowse track's
 share one layout, a feature on the same row in each, and are drawn end
 to end as a JBrowse view lays them out (a gene's exons with the introns
 collapsed, say), a data frame of \code{chrom}, \code{start} and \code{end}, or a contig
-name with \code{start} and \code{end}. Omitted, the reader reads the whole file,
-each contig it lists, and refuses with a message past 5 million rows in
-any one table}
+name with \code{start} and \code{end}. With \code{NULL}, the default, the reader reads
+the whole file, each contig it lists, and refuses with a message past 5
+million rows in any one table}
 
 \item{start, end}{with a contig name as \code{region}, the region's bounds,
 0-based half-open}

@@ -50,17 +50,14 @@
 jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
                            display = NULL, width = 800, assembly = NULL) {
   regions <- regions_of(region, start, end)
-  args <- list(
+  args <- c(list(
     adapterConfig = adapter_of(file, function()
       list(type = "BigWigAdapter", bigWigLocation = location(file))),
     regions = data.frame(refName = regions$chrom, start = regions$start,
       end = regions$end),
-    bpPerPx = sum(regions$end - regions$start) / width)
-  if (!is.null(assembly)) args$assembly <- assembly_config(assembly)
-  if (!is.null(display)) {
-    display$color <- config_color(display$color)
-    args$display <- display
-  }
+    bpPerPx = sum(regions$end - regions$start) / width),
+    reference_args(NULL, assembly))
+  args$display <- display_config(display)
   t <- call_engine("wiggle", args)
   marks <- as_frame(t$marks)
   marks$color <- jbrowse_color(marks$color)
