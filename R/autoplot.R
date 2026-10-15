@@ -16,23 +16,26 @@ jbrowse_colors <- local({
 
 # Each read as its aligned blocks: the read split at its splice skips
 read_blocks <- function(x) {
-  skips <- x$gaps[x$gaps$type == "skip", , drop = FALSE]
   reads <- x$reads
-  if (!nrow(skips)) return(reads)
-  by_read <- split(skips, skips$read)
-  spliced <- reads$read %in% names(by_read)
-  blocks <- lapply(which(spliced), function(i) {
-    s <- by_read[[as.character(reads$read[i])]]
-    s <- s[order(s$start), ]
-    starts <- c(reads$start[i], s$end)
-    ends <- c(s$start, reads$end[i])
-    keep <- ends > starts
-    r <- reads[rep(i, sum(keep)), , drop = FALSE]
-    r$start <- starts[keep]
-    r$end <- ends[keep]
-    r
-  })
-  do.call(rbind, c(list(reads[!spliced, , drop = FALSE]), blocks))
+  skips <- x$gaps[x$gaps$type == "skip", , drop = FALSE]
+  on <- match(skips$read, reads$read)
+  skips <- skips[!is.na(on), , drop = FALSE]
+  on <- on[!is.na(on)]
+  if (!length(on)) return(reads)
+  skips <- skips[order(on, skips$start), , drop = FALSE]
+  n <- tabulate(on, nrow(reads))
+  spliced <- which(n > 0)
+  rows <- rep(spliced, n[spliced] + 1)
+  first <- cumsum(c(1, utils::head(n[spliced] + 1, -1)))
+  last <- first + n[spliced]
+  starts <- reads$start[rows]
+  starts[-first] <- skips$end
+  ends <- reads$end[rows]
+  ends[-last] <- skips$start
+  blocks <- reads[rows, , drop = FALSE]
+  blocks$start <- starts
+  blocks$end <- ends
+  rbind(reads[n == 0, , drop = FALSE], blocks[ends > starts, , drop = FALSE])
 }
 
 # The points of each junction's arc: a half ellipse from its start to its end,
