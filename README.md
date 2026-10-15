@@ -383,9 +383,9 @@ Other R tools
 
 ## Academic use
 
-Written with [NHGRI](http://genome.gov) funding as part of
-[JBrowse](http://jbrowse.org). If you use this in a publication, please cite the
-most recent JBrowse paper at [jbrowse.org](http://jbrowse.org).
+Written with [NHGRI](https://www.genome.gov) funding as part of
+[JBrowse](https://jbrowse.org). If you use this in a publication, please cite the
+most recent JBrowse paper at [jbrowse.org](https://jbrowse.org).
 
 ## License
 

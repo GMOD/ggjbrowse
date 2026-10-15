@@ -75,6 +75,8 @@ step, each in the color the view's settings paint it. Coordinates are
 }
 \examples{
 chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
-d <- jbrowse_dotplot(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
+d <- jbrowse_dotplot(chain,
+  "chr8_PATERNAL:5,250,001-14,250,000",
+  "chr8_MATERNAL:5,250,001-14,250,000")
 head(d$segments)
 }

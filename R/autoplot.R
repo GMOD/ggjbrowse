@@ -291,7 +291,6 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #' a <- jbrowse_alignments(e("gapdh_direct_rna.bam"),
 #'   "chr12:6,534,201-6,538,700",
 #'   display = list(color = list(field = "strand")))
-#' autoplot(a)
 #' autoplot(a, "pileup") + ggplot2::theme_classic()
 #' genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"),
 #'   "chr12:6,534,201-6,538,700")

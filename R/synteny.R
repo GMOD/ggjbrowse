@@ -245,7 +245,9 @@ comparative_axes <- function(config, first, second, assemblies, swap) {
 #' @export
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
-#' s <- jbrowse_synteny(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
+#' s <- jbrowse_synteny(chain,
+#'   "chr8_PATERNAL:5,250,001-14,250,000",
+#'   "chr8_MATERNAL:5,250,001-14,250,000")
 #' head(s$alignments)
 jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
                             width = 800, assemblies = NULL, swap = FALSE,
@@ -402,7 +404,9 @@ ribbon_lines <- function(r, curves, feet = band_feet(r)) {
 #' @export
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
-#' s <- jbrowse_synteny(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
+#' s <- jbrowse_synteny(chain,
+#'   "chr8_PATERNAL:5,250,001-14,250,000",
+#'   "chr8_MATERNAL:5,250,001-14,250,000")
 #' library(ggplot2)
 #' ggplot(s) + geom_jbrowse_ribbons(curves = TRUE) + scale_fill_jbrowse(s)
 geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
@@ -731,7 +735,9 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #' @export
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
-#' d <- jbrowse_dotplot(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
+#' d <- jbrowse_dotplot(chain,
+#'   "chr8_PATERNAL:5,250,001-14,250,000",
+#'   "chr8_MATERNAL:5,250,001-14,250,000")
 #' head(d$segments)
 jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
                             width = 600, height = 600, assemblies = NULL,

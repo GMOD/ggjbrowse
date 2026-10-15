@@ -109,6 +109,8 @@ assembly.
 }
 \examples{
 chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
-s <- jbrowse_synteny(chain, "chr8_PATERNAL:5,250,001-14,250,000", "chr8_MATERNAL:5,250,001-14,250,000")
+s <- jbrowse_synteny(chain,
+  "chr8_PATERNAL:5,250,001-14,250,000",
+  "chr8_MATERNAL:5,250,001-14,250,000")
 head(s$alignments)
 }

@@ -24,5 +24,11 @@ Authors:
   \item Colin Diesh \email{colindiesh@berkeley.edu}
 }
 
+Other contributors:
+\itemize{
+  \item JBrowse authors (@jbrowse/tables, bundled in inst/js/jbrowse-tables.js) [copyright holder]
+  \item Authors of the bundled JavaScript packages (listed in inst/COPYRIGHTS) [contributor, copyright holder]
+}
+
 }
 \keyword{internal}
