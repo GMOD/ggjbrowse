@@ -8,9 +8,8 @@
 #   Rscript scripts/gallery.R --check        run each R recipe, then as --docs
 # Drawing needs jbrowse-components built, at JBROWSE_COMPONENTS (default
 # ~/src/jbrowse-components), or JB2EXPORT naming the command that runs
-# jb2export; `jb2export_version` below says which. The hg38, hg19 and TAIR10
-# hubs, the MethylDackel bigWigs and the primate chrom.sizes come over the
-# network. Needs ImageMagick for the webp.
+# jb2export; `jb2export_version` below says which. The hg38 and hg19 hubs and
+# the primate chrom.sizes come over the network. Needs ImageMagick for the webp.
 suppressPackageStartupMessages({
   library(ggjbrowse)
   library(ggplot2)
@@ -75,13 +74,11 @@ dnase_json <- function() json_file(lapply(cells, function(cell) list(
   bigWigLocation = local_file(inst(sprintf("hbb_dnase_%s.bw", cell))))),
   "dnase.json")
 
-methyldackel_json <- function() {
-  demo <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_"
-  json_file(lapply(c("CpG", "CHG", "CHH"), function(context) list(
-    type = "BigWigAdapter", name = context,
-    bigWigLocation = list(uri = paste0(demo, context, ".bw")))),
-    "methyldackel.json")
-}
+methyldackel_json <- function() json_file(
+  lapply(c("CpG", "CHG", "CHH"), function(context) list(
+    type = "BigWigAdapter", name = context, bigWigLocation = local_file(
+      inst(sprintf("arabidopsis_methyldackel_%s.bw", context))))),
+  "methyldackel.json")
 
 fasta <- c("--fasta", inst("gapdh_hg38.fa.gz"))
 hg38 <- c("--hub", "hg38")
@@ -276,30 +273,29 @@ autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
     modifications = list(unmodified = "all"))))
 )-"),
   bisulfite = list(
-    caption = "MethylDackel's three context bigWigs and each read's methylated CHH cytosines in red, under the RefSeq gene AT1G12930: CHH is dense over the silenced LTR retrotransposon on the right and rare over the gene body on the left, which carries CpG methylation only.",
+    caption = "RefSeq genes and RepeatMasker over MethylDackel's three context bigWigs and each read's methylated CHH cytosines in red: CHH is dense over the LTR/Copia element on the right and rare over the gene on the left, which carries CpG methylation only.",
     title = "CHH methylation from bisulfite reads",
     locus = "NC_003070.9:4,398,001-4,412,000",
-    jbrowse = c("--hub", "GCF_000001735.4", "--track", "ncbiRefSeq",
-      "--multiwig", methyldackel_json(), "name:MethylDackel",
-      "showLegend=true", "--bam",
+    jbrowse = c("--fasta", inst("arabidopsis_tair10.fa.gz"), "--bigbed",
+      inst("arabidopsis_refseq.bb"), "name:RefSeq genes", "--bigbed",
+      inst("arabidopsis_rmsk.bb"), "name:RepeatMasker", "--multiwig",
+      methyldackel_json(), "name:MethylDackel", "showLegend=true", "--bam",
       inst("arabidopsis_wgbs.bam"), "baseColor:bisulfite",
       "modifications.cytosineContext=CHH", "showLegend=true", grow, "--loc",
       "NC_003070.9:4,398,001-4,412,000"),
     r = r"-(
 locus <- "NC_003070.9:4,398,001-4,412,000"
-hub <- "https://hgdownload.soe.ucsc.edu/hubs/GCF/000/001/735/GCF_000001735.4"
-genes <- jbrowse_features(
-  file.path(hub, "bbi", "GCF_000001735.4_TAIR10.1.ncbiRefSeq.bb"), locus)
-demo <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_"
+genes <- jbrowse_features(e("arabidopsis_refseq.bb"), locus)
+repeats <- jbrowse_features(e("arabidopsis_rmsk.bb"), locus)
 methyldackel <- list(type = "MultiWiggleAdapter",
   subadapters = lapply(c("CpG", "CHG", "CHH"), function(context)
-    list(type = "BigWigAdapter", name = context,
-      bigWigLocation = list(uri = paste0(demo, context, ".bw")))))
+    list(type = "BigWigAdapter", name = context, bigWigLocation = list(
+      uri = e(sprintf("arabidopsis_methyldackel_%s.bw", context))))))
 reads <- jbrowse_alignments(e("arabidopsis_wgbs.bam"), locus,
   reference = e("arabidopsis_tair10.fa.gz"),
   display = list(baseColor = list(field = "bisulfite"),
     modifications = list(cytosineContext = "CHH")))
-jbrowse_stack(`RefSeq genes` = genes,
+jbrowse_stack(`RefSeq genes` = genes, RepeatMasker = repeats,
   MethylDackel = jbrowse_wiggle(methyldackel, locus), `CHH reads` = reads)
 )-"),
   dnase_rows = list(

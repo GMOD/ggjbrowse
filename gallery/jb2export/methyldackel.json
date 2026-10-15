@@ -3,21 +3,24 @@
     "type": "BigWigAdapter",
     "name": "CpG",
     "bigWigLocation": {
-      "uri": "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_CpG.bw"
+      "localPath": "../../inst/extdata/arabidopsis_methyldackel_CpG.bw",
+      "locationType": "LocalPathLocation"
     }
   },
   {
     "type": "BigWigAdapter",
     "name": "CHG",
     "bigWigLocation": {
-      "uri": "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_CHG.bw"
+      "localPath": "../../inst/extdata/arabidopsis_methyldackel_CHG.bw",
+      "locationType": "LocalPathLocation"
     }
   },
   {
     "type": "BigWigAdapter",
     "name": "CHH",
     "bigWigLocation": {
-      "uri": "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_CHH.bw"
+      "localPath": "../../inst/extdata/arabidopsis_methyldackel_CHH.bw",
+      "locationType": "LocalPathLocation"
     }
   }
 ]
