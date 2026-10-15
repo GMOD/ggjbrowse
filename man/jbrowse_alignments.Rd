@@ -25,7 +25,9 @@ jbrowse_alignments(
 (\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
 are read in turn and drawn end to end on one axis as a JBrowse view lays
 them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
-with \code{start} and \code{end}}
+with \code{start} and \code{end}. Omitted, the reader reads the whole file, each
+contig it lists, and refuses with a message past 5 million rows in any
+one table}
 
 \item{start, end}{with a contig name as \code{region}, the region's bounds,
 0-based half-open}
@@ -90,7 +92,9 @@ the strand colors framed against the chain's own
 pair's and split read's arc or \code{"cloud"} for the read cloud; unset
 reads none
 \item \code{showCoverage}, \code{showPileup}, \code{showSashimiArcs}, and any other slot
-such as \code{showOrdinaryPairs}, \code{arcColor} or \code{minSashimiScore}
+such as \code{showOrdinaryPairs}, \code{arcColor} or \code{minSashimiScore}. A band
+set not to show (\code{showCoverage}, \code{showPileup}, \code{showMismatches},
+\code{showInterbaseIndicators}, \code{showSashimiArcs}) reads as empty tables
 }}
 
 \item{byte_limit}{the most compressed bytes the region may need, refused off
@@ -99,8 +103,10 @@ the index before any read is fetched; the whole table is held in memory}
 \value{
 a \code{jbrowse_alignments} list of data frames:
 \itemize{
-\item \code{reads}: \code{read} (the id the other tables' \code{read} column names it by,
-kept through filtering), \code{start}, \code{end}, \code{row}, \code{strand}, \code{mapq},
+\item \code{reads}: \code{read} (the row number the other tables' \code{read} column names
+it by, kept through filtering, within this call), \code{id} (the record's
+own id, the same in every call, where its mates and supplementary
+segments share its \code{name}), \code{start}, \code{end}, \code{row}, \code{strand}, \code{mapq},
 \code{flags}, \code{name},
 \code{insert_size}, \code{pair_orientation}, \code{color} (the fill the display paints,
 as \verb{#rrggbb}) and \code{category} (the bucket the display files the read
@@ -126,7 +132,8 @@ the display paints it at; empty without \code{display$baseColor}
 \item \code{qualities}: under \code{baseColor} \code{"baseQuality"}, each aligned base:
 \code{position}, \code{read}, \code{row}, \code{score} (Phred) and the \code{color} the display
 paints it
-\item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}
+\item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}, over the
+region alone, where the reads reach past it
 \item \code{allele_coverage}: the coverage band's stack at each mismatch position,
 as the display stacks it: \code{position}, \code{base}, \code{from} and \code{to} (the
 allele's share of the bar, from the bottom) and the \code{depth} there

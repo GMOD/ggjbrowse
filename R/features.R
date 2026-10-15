@@ -35,7 +35,9 @@ features_adapter <- function(file, index) {
 #'   share one layout, a feature on the same row in each, and are drawn end
 #'   to end as a JBrowse view lays them out (a gene's exons with the introns
 #'   collapsed, say), a data frame of `chrom`, `start` and `end`, or a contig
-#'   name with `start` and `end`
+#'   name with `start` and `end`. Omitted, the reader reads the whole file,
+#'   each contig it lists, and refuses with a message past 5 million rows in
+#'   any one table
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
@@ -73,20 +75,22 @@ features_adapter <- function(file, index) {
 #' @param byte_limit the most compressed bytes the region may need, refused
 #'   off the index before any feature is fetched
 #' @return a `jbrowse_features` list of data frames:
-#'   * `features`: each top-level feature on its row: `id`, `name`, `type`,
-#'     `start`, `end`, `strand`, `top` and `bottom` (its row's pixels, labels
-#'     included), `gene` and `section`
+#'   * `features`: each top-level feature on its row: `id` (the engine's key
+#'     for it), `name`, `type`, `start`, `end`, `strand`, `top` and `bottom`
+#'     (its row's pixels, labels included), `gene` and `section`, then a
+#'     column per field the file states (see below)
 #'   * `subfeatures`: a gene's transcripts: `id`, `name`, `type`, `start`,
-#'     `end`, `top`, `bottom`, `feature`
+#'     `end`, `top`, `bottom`, `feature`, and the file's fields as `features`
+#'     has them
 #'   * `rects`: the boxes the glyph draws (exons, CDS, UTRs, a plain feature):
-#'     `start`, `end`, `top`, `height`, `color`, `feature`
+#'     `start`, `end`, `top`, `height`, `color`, `feature`, `subfeature`
 #'   * `lines`: the intron and connector lines: `start`, `end`, `y`, `color`,
-#'     `feature`
+#'     `feature`, `subfeature`
 #'   * `chevrons`: the strand chevrons on those lines where the display draws
-#'     them: `position`, `y`, `direction`, `color`, `feature`
+#'     them: `position`, `y`, `direction`, `color`, `feature`, `subfeature`
 #'   * `arrows`: the strand arrow off a feature's end where it is wide enough
 #'     on screen: `position`, `y`, `direction`, `head_half_height`, `color`,
-#'     `feature`
+#'     `feature`, `subfeature`
 #'   * `labels`: each name, description and transcript label the display
 #'     shows: `text`, `kind`, `position` (its left edge, in bp), `y` (its top),
 #'     `color`, `feature`, and `subfeature`, the transcript a transcript label
@@ -104,6 +108,22 @@ features_adapter <- function(file, index) {
 #'     field, its title as the frame's `"title"` attribute
 #'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
 #'     them
+#'   * `attribute_fields`: each field the file states for its features:
+#'     `key`, `type`, `number` (`"1"`, or `"."` for a list column),
+#'     `description` and the `column` it takes
+#'
+#'   **The file's fields.** `features` and `subfeatures` carry a column per
+#'   field the file states, keyed as the file writes it. A GFF3 gives its
+#'   column-9 attributes (`ID`, `Name`, `Parent`, `gene_name`, ...) as
+#'   character, beside `source`, `score` and `phase`. `id` and `name` are the
+#'   engine's own; a GFF3's `ID` and `Name` sit beside them. A key naming one
+#'   of the table's own columns takes `attr_<key>`, as an INFO key takes
+#'   `info_<key>`. A key the GFF3 spec lets list several values (`Parent`,
+#'   `Alias`, `Note`, `Dbxref`, `Ontology_term`), or that a record lists
+#'   several of, is a list column. A BED or BigBed field takes the type its
+#'   autoSql declares. A GFF3 has no header, so its columns are the keys the
+#'   region's records use, and a region lacking one reads `NA` there when
+#'   regions bind.
 #'
 #'   A VCF reads as JBrowse's plain variant track draws it, every record
 #'   whether or not it calls a genotype, so a calls VCF with no GT reads
@@ -116,8 +136,12 @@ features_adapter <- function(file, index) {
 #'     column per FORMAT key, typed as INFO is (`AD`, `DP`, ...), named
 #'     `format_<key>` where the key names a column above
 #'   * `format_fields`: each FORMAT column's declaration, as `info_fields`
+#'   * `annotations` and `annotation_fields`: its SnpEff `ANN` or VEP `CSQ`
+#'     consequences, as [jbrowse_variants()] gives them, keyed by `feature`
 #'
-#'   `feature` is a row number of `features`, and every mark table carries its
+#'   `feature` is a row number of `features`, and `subfeature`, the
+#'   transcript a gene's mark draws, a row number of `subfeatures` (`NA` for
+#'   a feature's own mark). Every mark table carries its
 #'   feature's `section`, a factor in stacking order. `glyph` gives the pixel
 #'   sizes the display draws text, arrows, chevrons and section chips
 #'   (`sectionLabelHeight`) at, and `height` the track's laid-out height in

@@ -31,7 +31,9 @@ or CSI index beside it) or a BigBed, a path or a URL; or a JBrowse track's
 share one layout, a feature on the same row in each, and are drawn end
 to end as a JBrowse view lays them out (a gene's exons with the introns
 collapsed, say), a data frame of \code{chrom}, \code{start} and \code{end}, or a contig
-name with \code{start} and \code{end}}
+name with \code{start} and \code{end}. Omitted, the reader reads the whole file,
+each contig it lists, and refuses with a message past 5 million rows in
+any one table}
 
 \item{start, end}{with a contig name as \code{region}, the region's bounds,
 0-based half-open}
@@ -84,20 +86,22 @@ off the index before any feature is fetched}
 \value{
 a \code{jbrowse_features} list of data frames:
 \itemize{
-\item \code{features}: each top-level feature on its row: \code{id}, \code{name}, \code{type},
-\code{start}, \code{end}, \code{strand}, \code{top} and \code{bottom} (its row's pixels, labels
-included), \code{gene} and \code{section}
+\item \code{features}: each top-level feature on its row: \code{id} (the engine's key
+for it), \code{name}, \code{type}, \code{start}, \code{end}, \code{strand}, \code{top} and \code{bottom}
+(its row's pixels, labels included), \code{gene} and \code{section}, then a
+column per field the file states (see below)
 \item \code{subfeatures}: a gene's transcripts: \code{id}, \code{name}, \code{type}, \code{start},
-\code{end}, \code{top}, \code{bottom}, \code{feature}
+\code{end}, \code{top}, \code{bottom}, \code{feature}, and the file's fields as \code{features}
+has them
 \item \code{rects}: the boxes the glyph draws (exons, CDS, UTRs, a plain feature):
-\code{start}, \code{end}, \code{top}, \code{height}, \code{color}, \code{feature}
+\code{start}, \code{end}, \code{top}, \code{height}, \code{color}, \code{feature}, \code{subfeature}
 \item \code{lines}: the intron and connector lines: \code{start}, \code{end}, \code{y}, \code{color},
-\code{feature}
+\code{feature}, \code{subfeature}
 \item \code{chevrons}: the strand chevrons on those lines where the display draws
-them: \code{position}, \code{y}, \code{direction}, \code{color}, \code{feature}
+them: \code{position}, \code{y}, \code{direction}, \code{color}, \code{feature}, \code{subfeature}
 \item \code{arrows}: the strand arrow off a feature's end where it is wide enough
 on screen: \code{position}, \code{y}, \code{direction}, \code{head_half_height}, \code{color},
-\code{feature}
+\code{feature}, \code{subfeature}
 \item \code{labels}: each name, description and transcript label the display
 shows: \code{text}, \code{kind}, \code{position} (its left edge, in bp), \code{y} (its top),
 \code{color}, \code{feature}, and \code{subfeature}, the transcript a transcript label
@@ -115,7 +119,23 @@ and \code{y} (its baseline) in pixels, and \code{color}
 field, its title as the frame's \code{"title"} attribute
 \item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
 them
+\item \code{attribute_fields}: each field the file states for its features:
+\code{key}, \code{type}, \code{number} (\code{"1"}, or \code{"."} for a list column),
+\code{description} and the \code{column} it takes
 }
+
+\strong{The file's fields.} \code{features} and \code{subfeatures} carry a column per
+field the file states, keyed as the file writes it. A GFF3 gives its
+column-9 attributes (\code{ID}, \code{Name}, \code{Parent}, \code{gene_name}, ...) as
+character, beside \code{source}, \code{score} and \code{phase}. \code{id} and \code{name} are the
+engine's own; a GFF3's \code{ID} and \code{Name} sit beside them. A key naming one
+of the table's own columns takes \verb{attr_<key>}, as an INFO key takes
+\verb{info_<key>}. A key the GFF3 spec lets list several values (\code{Parent},
+\code{Alias}, \code{Note}, \code{Dbxref}, \code{Ontology_term}), or that a record lists
+several of, is a list column. A BED or BigBed field takes the type its
+autoSql declares. A GFF3 has no header, so its columns are the keys the
+region's records use, and a region lacking one reads \code{NA} there when
+regions bind.
 
 A VCF reads as JBrowse's plain variant track draws it, every record
 whether or not it calls a genotype, so a calls VCF with no GT reads
@@ -129,9 +149,13 @@ each record's \code{ref}, \code{alt}, \code{filter} and a column per INFO key, t
 column per FORMAT key, typed as INFO is (\code{AD}, \code{DP}, ...), named
 \verb{format_<key>} where the key names a column above
 \item \code{format_fields}: each FORMAT column's declaration, as \code{info_fields}
+\item \code{annotations} and \code{annotation_fields}: its SnpEff \code{ANN} or VEP \code{CSQ}
+consequences, as \code{\link[=jbrowse_variants]{jbrowse_variants()}} gives them, keyed by \code{feature}
 }
 
-\code{feature} is a row number of \code{features}, and every mark table carries its
+\code{feature} is a row number of \code{features}, and \code{subfeature}, the
+transcript a gene's mark draws, a row number of \code{subfeatures} (\code{NA} for
+a feature's own mark). Every mark table carries its
 feature's \code{section}, a factor in stacking order. \code{glyph} gives the pixel
 sizes the display draws text, arrows, chevrons and section chips
 (\code{sectionLabelHeight}) at, and \code{height} the track's laid-out height in

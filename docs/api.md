@@ -12,9 +12,9 @@
 | Function | Reads | Returns a `jbrowse_*` list of |
 |---|---|---|
 | `jbrowse_alignments()` | BAM, CRAM | `reads`, `mismatches`, `gaps`, `insertions`, `clips`, `coverage`, `allele_coverage`, `junctions`, `arcs`, ... |
-| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels`, `sections`; for a VCF, `samples`, `info_fields`, `format_fields` |
+| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels`, `sections`, `attribute_fields`; for a VCF, `samples`, `info_fields`, `format_fields`, `annotations`, `annotation_fields` |
 | `jbrowse_wiggle()` | BigWig | `bins`, `marks`, `sources`, `rules` |
-| `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands`, `info_fields` |
+| `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands`, `info_fields`, `annotations`, `annotation_fields` |
 | `jbrowse_synteny()` | PAF, PIF, delta, chain, MashMap | `alignments`, `ribbons`, `offscreen*` |
 | `jbrowse_dotplot()` | the same | `alignments`, `segments` |
 | `jbrowse_multiway()` | an all-vs-all PAF | `lanes`, `segments`, `blocks`, `ribbons`, `alignments` |
@@ -24,7 +24,10 @@
 - `file` takes a path, a URL, or a JBrowse track's adapter config, including
   a `FromConfigAdapter` that lists its features inline.
 - `region` takes a locus string, a contig name with `start` and `end`, or a
-  data frame of `chrom`, `start` and `end` for several regions.
+  data frame of `chrom`, `start` and `end` for several regions. Left out,
+  `jbrowse_features()`, `jbrowse_variants()` and `jbrowse_alignments()` read
+  the whole file, every contig it lists, and refuse past 5 million rows in
+  any one table, asking for a region.
 - `display` takes a track config's `displays` entry. `jbrowse_synteny()` and
   `jbrowse_dotplot()` take the view's snapshot as `view`.
 - `assembly` takes a `jbrowse_assembly()`, or an assembly as a JBrowse
@@ -65,8 +68,13 @@
 
 ## Notes
 
-- `reads$read` is the id every other alignments table names a read by.
-  Filtering `reads` keeps the id.
+- `reads$read` is the row number every other alignments table names a read
+  by, within one call. Filtering `reads` keeps it. `reads$id` is the record's
+  own id, the same in every call, where mates and supplementary segments
+  share a `name`.
+- `coverage` and the band's other tables stop at the region's ends, though
+  the reads reach past them. A band the `display` hides (`showCoverage =
+  FALSE`, ...) reads as empty tables.
 - Under `display$facet`, an alignments or feature result lists its
   `sections` in stacking order, and each table's `section` column names the
   one a row sits in.
@@ -86,6 +94,20 @@
   them: `features` gains `ref`, `alt`, `filter` and the INFO columns, and
   `samples` holds a row per record and sample with a column per FORMAT key,
   typed as INFO is.
+- A VCF's SnpEff `ANN` or VEP `CSQ` reads as `annotations`, a row per record
+  and consequence, with a column per field the key's header line names, all
+  character. `variant` (or `feature`) names the record, and the raw string
+  leaves the INFO columns.
+- `jbrowse_features()` gives each feature and transcript a column per field
+  the file states, keyed as the file writes it: a GFF3's `ID`, `Name`,
+  `Parent` and the rest beside the table's own `id` and `name`, and a BigBed's
+  autoSql columns, typed as it declares them. A key naming a table column
+  takes `attr_<key>`. A GFF3 has no header, so its columns are the keys the
+  region's records use, and binding regions fills a missing one with `NA`.
+  `attribute_fields` lists each key's type and column.
+- The marks of a gene (`rects`, `lines`, `chevrons`, `arrows`,
+  `amino_acids`) name the transcript they draw in `subfeature`, a row number
+  of `subfeatures`.
 - `geom_jbrowse_genotypes()` fades records that share a pixel at the figure's
   `width`, through the engine's `variantDensityAlpha`. `fade = FALSE` turns
   it off.

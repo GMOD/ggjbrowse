@@ -161,8 +161,8 @@ actb_depth |>
 #> # A tibble: 2 × 3
 #>   region        bases mean_depth
 #>   <chr>         <int>      <dbl>
-#> 1 exon or flank  1553     315.  
-#> 2 intron         1642       2.07
+#> 1 exon or flank  1513     323.  
+#> 2 intron         1488       2.28
 ```
 
 ## Spliced reads, CIGAR strings and splice arcs
@@ -194,17 +194,20 @@ It finds the strand two ways:
   junction whose reads disagree, or whose motif is none of GT-AG, GC-AG and
   AT-AC, draws in the neutral color. The junction table's `motif` column holds the motif beside the read count.
 
-The skips in the engine's `gaps` table are the `N` operations. A read whose only
-gap is one skip rebuilds its CIGAR from the read's start and end:
+The skips in the engine's `gaps` table are the `N` operations. `showPileup =
+FALSE` leaves the pileup's tables empty as well as undrawn, so the reads come
+from a read of the same region that shows them. A read whose only gap is one
+skip rebuilds its CIGAR from the read's start and end:
 
 
 ``` r
-one_skip <- actb_reads$gaps |>
+actb_records <- jbrowse_alignments(bam, actb, assembly = hg19)
+one_skip <- actb_records$gaps |>
   group_by(read) |>
   filter(n() == 1, type == "skip") |>
   ungroup()
 cigars <- one_skip |>
-  inner_join(transmute(actb_reads$reads, read, read_start = start,
+  inner_join(transmute(actb_records$reads, read, read_start = start,
     read_end = end), by = "read") |>
   transmute(cigar = sprintf("%dM%dN%dM", start - read_start, end - start,
     read_end - end))
@@ -419,11 +422,13 @@ sense_counts <- function(genes, reads) {
       .groups = "drop")
 }
 
-actb_by_strand <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = by_strand)
-sense <- bind_rows(sense_counts(surfeit_genes, surfeit_reads),
-  sense_counts(nelfe_genes, nelfe_reads),
-  sense_counts(actb_genes, actb_by_strand)) |>
+reads_by_strand <- function(locus) {
+  jbrowse_alignments(bam, locus, assembly = hg19,
+    display = list(facet = list(field = "firstOfPairStrand")))
+}
+sense <- bind_rows(sense_counts(surfeit_genes, reads_by_strand(surfeit)),
+  sense_counts(nelfe_genes, reads_by_strand(nelfe)),
+  sense_counts(actb_genes, reads_by_strand(actb))) |>
   arrange(desc(sense))
 sense
 #> # A tibble: 6 × 4
@@ -473,17 +478,18 @@ fig
 ![IsoSeq high-quality isoforms over ACTB: most reads span every exon, so each of the five RefSeq introns has about 2,000 reads and the coverage is flat across the exons](figures/rnaseq-isoseq-plot-1.png)
 
 A long read's skips are its whole intron chain. We'll compare each read's chain
-to RefSeq's five introns:
+to RefSeq's five introns, from a read of the region that shows the pileup:
 
 
 ``` r
 chain <- function(start, end) paste(sort(paste(start, end)), collapse = ";")
 refseq_chain <- chain(refseq_introns$start, refseq_introns$end)
-iso_chains <- iso_reads$gaps |>
+iso_records <- jbrowse_alignments(isoseq, actb, assembly = hg19)
+iso_chains <- iso_records$gaps |>
   filter(type == "skip") |>
   group_by(read) |>
   summarise(introns = n(), chain = chain(start, end))
-c(reads = nrow(iso_reads$reads), with_skips = nrow(iso_chains),
+c(reads = nrow(iso_records$reads), with_skips = nrow(iso_chains),
   all_five_introns = sum(iso_chains$introns == 5),
   refseq_chain = sum(iso_chains$chain == refseq_chain))
 #>            reads       with_skips all_five_introns     refseq_chain 

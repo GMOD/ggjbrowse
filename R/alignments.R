@@ -37,7 +37,9 @@ sequence_adapter <- function(reference) {
 #'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
 #'   are read in turn and drawn end to end on one axis as a JBrowse view lays
 #'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
-#'   with `start` and `end`
+#'   with `start` and `end`. Omitted, the reader reads the whole file, each
+#'   contig it lists, and refuses with a message past 5 million rows in any
+#'   one table
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param reference the reference: an indexed FASTA, plain or bgzipped, or a
@@ -95,12 +97,16 @@ sequence_adapter <- function(reference) {
 #'     pair's and split read's arc or `"cloud"` for the read cloud; unset
 #'     reads none
 #'   * `showCoverage`, `showPileup`, `showSashimiArcs`, and any other slot
-#'     such as `showOrdinaryPairs`, `arcColor` or `minSashimiScore`
+#'     such as `showOrdinaryPairs`, `arcColor` or `minSashimiScore`. A band
+#'     set not to show (`showCoverage`, `showPileup`, `showMismatches`,
+#'     `showInterbaseIndicators`, `showSashimiArcs`) reads as empty tables
 #' @param byte_limit the most compressed bytes the region may need, refused off
 #'   the index before any read is fetched; the whole table is held in memory
 #' @return a `jbrowse_alignments` list of data frames:
-#'   * `reads`: `read` (the id the other tables' `read` column names it by,
-#'     kept through filtering), `start`, `end`, `row`, `strand`, `mapq`,
+#'   * `reads`: `read` (the row number the other tables' `read` column names
+#'     it by, kept through filtering, within this call), `id` (the record's
+#'     own id, the same in every call, where its mates and supplementary
+#'     segments share its `name`), `start`, `end`, `row`, `strand`, `mapq`,
 #'     `flags`, `name`,
 #'     `insert_size`, `pair_orientation`, `color` (the fill the display paints,
 #'     as `#rrggbb`) and `category` (the bucket the display files the read
@@ -126,7 +132,8 @@ sequence_adapter <- function(reference) {
 #'   * `qualities`: under `baseColor` `"baseQuality"`, each aligned base:
 #'     `position`, `read`, `row`, `score` (Phred) and the `color` the display
 #'     paints it
-#'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`
+#'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`, over the
+#'     region alone, where the reads reach past it
 #'   * `allele_coverage`: the coverage band's stack at each mismatch position,
 #'     as the display stacks it: `position`, `base`, `from` and `to` (the
 #'     allele's share of the bar, from the bottom) and the `depth` there

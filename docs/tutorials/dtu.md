@@ -305,36 +305,32 @@ test could not separate has no value to color and stays grey.
 
 From here on every chunk runs. The website's build script published the GFF3
 this code writes, with a few more attributes and only the genes with a called
-transcript, and `readr` reads it back as a table:
+transcript. `jbrowse_features()` reads it back:
+
+- **Given no region**, it reads the whole file, every contig the file lists.
+- **`geneGlyphMode = "all"`** keeps every isoform of a gene, where the display
+  would show fewer at this zoom.
+- **Each transcript's attributes** are columns of `subfeatures`, keyed as the
+  file writes them. A GFF3 declares no types, so `dif` and the rest arrive as
+  text.
 
 
 ``` r
 library(ggjbrowse)
 library(ggplot2)
 library(dplyr)
-library(readr)
-
-gff_columns <- c("seqid", "source", "type", "start", "end", "score",
-  "strand", "phase", "attributes")
-attribute <- function(attributes, key) {
-  value <- regmatches(attributes,
-    regexec(paste0("(?:^|;)", key, "=([^;]*)"), attributes, perl = TRUE))
-  vapply(value, function(m) if (length(m)) m[2] else NA_character_, "")
-}
 
 published <- "https://jbrowse.org/demos/dtu/dtu_muscle_vs_liver.gff3.gz"
-rows <- read_tsv(published, comment = "#", col_names = gff_columns,
-  show_col_types = FALSE)
+annotation <- jbrowse_features(published,
+  display = list(geneGlyphMode = "all"))
 
-transcripts <- rows |>
+transcripts <- annotation$subfeatures |>
   filter(type == "transcript") |>
-  transmute(gene = attribute(attributes, "gene_name"),
-    transcript = attribute(attributes, "transcript_name"),
-    dif = as.numeric(attribute(attributes, "dif")),
-    fdr = as.numeric(attribute(attributes, "fdr")),
-    muscle = as.numeric(attribute(attributes, "if_muscle")),
-    liver = as.numeric(attribute(attributes, "if_liver")),
-    dtu = attribute(attributes, "dtu"))
+  arrange(chrom, start, end) |>
+  as_tibble() |>
+  transmute(gene = gene_name, transcript = transcript_name,
+    dif = as.numeric(dif), fdr = as.numeric(fdr),
+    muscle = as.numeric(if_muscle), liver = as.numeric(if_liver), dtu)
 count(transcripts, dtu)
 #> # A tibble: 4 × 2
 #>   dtu        n
@@ -464,14 +460,20 @@ fig
 ![ATP5F1C's transcripts colored by usage change over liver and muscle plus-strand coverage: one short exon near the 3' end has liver reads and almost no muscle reads](figures/dtu-coverage-plot-1.png)
 
 The exon that tells the two called isoforms apart is one ATP5F1C-202 has and
-ATP5F1C-201 skips. An anti-join on overlapping coordinates finds it among the
-GFF3's exon rows:
+ATP5F1C-201 skips. Each box in `genes$rects` names its transcript by
+`subfeature`, and a UTR box touching a CDS box is one exon, which we write in
+GFF3's 1-based start. An anti-join on overlapping coordinates finds it:
 
 
 ``` r
-exons <- rows |>
-  filter(type == "exon") |>
-  mutate(transcript = attribute(attributes, "transcript_name"))
+exons <- genes$rects |>
+  mutate(transcript = genes$subfeatures$transcript_name[subfeature]) |>
+  filter(!is.na(transcript)) |>
+  arrange(transcript, start) |>
+  group_by(transcript) |>
+  mutate(exon = cumsum(start > lag(cummax(end), default = -1L))) |>
+  group_by(transcript, exon) |>
+  summarise(start = min(start) + 1, end = max(end), .groups = "drop")
 skips <- filter(exons, transcript == "ATP5F1C-201")
 cassette <- exons |>
   filter(transcript == "ATP5F1C-202") |>
@@ -479,7 +481,7 @@ cassette <- exons |>
 cassette |> select(transcript, start, end)
 #> # A tibble: 1 × 3
 #>   transcript    start     end
-#>   <chr>         <dbl>   <dbl>
+#>   <chr>         <dbl>   <int>
 #> 1 ATP5F1C-202 7806974 7807010
 ```
 

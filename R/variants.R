@@ -25,7 +25,9 @@ variants_adapter <- function(file, index, samples) {
 #'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
 #'   are read in turn and drawn end to end on one axis as a JBrowse view lays
 #'   them out, a data frame of `chrom`, `start` and `end`, or a contig name
-#'   with `start` and `end`
+#'   with `start` and `end`. Omitted, the reader reads the whole file, each
+#'   contig it lists, and refuses with a message past 5 million rows in any
+#'   one table
 #' @param start,end with a contig name as `region`, the region's bounds,
 #'   0-based half-open
 #' @param display the display's settings, as a track config's `displays`
@@ -61,6 +63,14 @@ variants_adapter <- function(file, index, samples) {
 #'     two alts is `c(33L, 1L)`. A record lacking a key has `NA`
 #'   * `info_fields`: each INFO column's `key`, `number`, `type` and
 #'     `description` off the header, and the `column` it takes in `variants`
+#'   * `annotations`: each record's SnpEff `ANN` or VEP `CSQ` consequences, a
+#'     row per record and consequence: `variant` (a row number of
+#'     `variants`), `key` (`"ANN"` or `"CSQ"`) and a column per field the
+#'     key's header line names (`Consequence`, `IMPACT`, `SYMBOL`, ...), each
+#'     character, as the header types none. The raw string leaves the INFO
+#'     columns
+#'   * `annotation_fields`: each consequence key's `key` and `field`, in the
+#'     header's order
 #'   * `cells`: each row's cell at a record: `variant` (a row number of
 #'     `variants`), `start`, `end`, `row` (a factor in `rows`' order),
 #'     `sample`, `genotype`, `dosage` (the share of the called alleles that

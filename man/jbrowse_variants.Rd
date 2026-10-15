@@ -24,7 +24,9 @@ a path or a URL; or a JBrowse track's \code{adapter} config, as a list}
 (\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
 are read in turn and drawn end to end on one axis as a JBrowse view lays
 them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
-with \code{start} and \code{end}}
+with \code{start} and \code{end}. Omitted, the reader reads the whole file, each
+contig it lists, and refuses with a message past 5 million rows in any
+one table}
 
 \item{start, end}{with a contig name as \code{region}, the region's bounds,
 0-based half-open}
@@ -72,6 +74,14 @@ numeric or character as its \code{Type} says; any other \code{Number} (\code{A},
 two alts is \code{c(33L, 1L)}. A record lacking a key has \code{NA}
 \item \code{info_fields}: each INFO column's \code{key}, \code{number}, \code{type} and
 \code{description} off the header, and the \code{column} it takes in \code{variants}
+\item \code{annotations}: each record's SnpEff \code{ANN} or VEP \code{CSQ} consequences, a
+row per record and consequence: \code{variant} (a row number of
+\code{variants}), \code{key} (\code{"ANN"} or \code{"CSQ"}) and a column per field the
+key's header line names (\code{Consequence}, \code{IMPACT}, \code{SYMBOL}, ...), each
+character, as the header types none. The raw string leaves the INFO
+columns
+\item \code{annotation_fields}: each consequence key's \code{key} and \code{field}, in the
+header's order
 \item \code{cells}: each row's cell at a record: \code{variant} (a row number of
 \code{variants}), \code{start}, \code{end}, \code{row} (a factor in \code{rows}' order),
 \code{sample}, \code{genotype}, \code{dosage} (the share of the called alleles that
