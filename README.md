@@ -23,7 +23,7 @@ remotes::install_github("GMOD/ggjbrowse")
 
 ## Gallery
 
-- Every figure is drawn twice from data installed with the package: by
+- Every figure is drawn twice from data installed with the package, by
   JBrowse's own renderer (`jb2export` from `@jbrowse/img`) on the left and by
   ggjbrowse on the right.
 - A title links to the figure's R and `jb2export` recipes in
