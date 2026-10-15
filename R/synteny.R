@@ -137,15 +137,32 @@ axis_regions <- function(given, contigs, assembly, side) {
     else regions_of(given[i])))
 }
 
-# Both axes of a comparative view: the assembly each is on and its regions,
-# laid end to end as JBrowse's synteny and dotplot workers lay them, with no
-# gap
+# Both axes of a comparative view: the assembly each is on and its regions
 comparative_axes <- function(config, first, second, assemblies, swap) {
   names <- axis_assemblies(config, assemblies, swap)
   contigs <- memo(function() contigs_of(config))
   list(names = names,
     first = axis_regions(first, contigs, names[1], "query"),
     second = axis_regions(second, contigs, names[2], "target"))
+}
+
+# An axis's rows of a result's `regions`: each region named by the `axis` it
+# lays out on and the `assembly` it is on, laid end to end from the axis's
+# first region as JBrowse's synteny and dotplot workers lay them, with no gap
+# unless `gap_frac` gives one
+axis_rows <- function(regions, axis, assembly, gap_frac = 0) {
+  l <- region_layout(regions[c("chrom", "start", "end")], gap_frac)
+  n <- nrow(l)
+  data.frame(axis = rep(axis, n),
+    assembly = rep(if (length(assembly)) assembly else NA_character_, n), l,
+    missing = rep("", n))
+}
+
+# The rows of `regions` on `axis`
+on_axis_of <- function(regions, axis) {
+  r <- regions[regions$axis == axis, , drop = FALSE]
+  rownames(r) <- NULL
+  r
 }
 
 #' Read a pairwise alignment as JBrowse's linear synteny view draws it
@@ -205,12 +222,14 @@ comparative_axes <- function(config, first, second, assemblies, swap) {
 #'     number of `alignments`), `kind` (`"match"`, `"insertion"`,
 #'     `"deletion"`, `"skip"`, or `"marker"` for a location tick),
 #'     `query_region`, `query_chrom`, `query_start`, `query_end`,
-#'     `target_region`, `target_chrom`, `target_start`, `target_end`, where
+#'     `target_region`, `target_chrom`, `target_start`, `target_end`, each
+#'     `*_region` the row of `regions` its foot lies in, where
 #'     the ribbon joins `query_start` to `target_start` and `query_end` to
 #'     `target_end`, so a reverse-strand block crosses; `color`, `alpha`, and
 #'     `thin`, whether the band draws it as a one-pixel line
 #'   * `offscreen`: the blocks on one `axis` whose mate lies on a contig the
-#'     other row is not showing, with their span and their mate's, the
+#'     other row is not showing, the `region` they lie in, their span and
+#'     their mate's, the
 #'     `color` and `alpha` the strip along that row's edge paints them, and
 #'     `drawn`, whether they clear the strip's length and contig floors
 #'   * `offscreen_contigs`: each contig those mates lie on, by `axis`:
@@ -225,7 +244,8 @@ comparative_axes <- function(config, first, second, assemblies, swap) {
 #'   * `ramps`: a continuous field's color bar, as [guides_jbrowse()] draws
 #'     it
 #'
-#'   `query` and `target` are the rows' regions as laid out, `height` the
+#'   `regions` lays out both rows, its `axis` `"query"` for the top row and
+#'   `"target"` for the bottom, `height` the
 #'   band's pixels, `alpha` the opacity every ribbon draws at and `field` the
 #'   color field painted.
 #' @export
@@ -245,15 +265,18 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
   args <- c(args, list(query = axis_args(q, axes$names[1], width),
     target = axis_args(t, axes$names[2], width)))
   r <- call_engine("synteny", args)
+  regions <- rbind(axis_rows(q, "query", axes$names[1]),
+    axis_rows(t, "target", axes$names[2]))
   alignments <- snake(as_frame(r$alignments))
   alignments$color <- jbrowse_color(alignments$color)
   ribbons <- snake(as_frame(r$ribbons))
   ribbons$alignment <- ribbons$alignment + 1
   ribbons$query_region <- ribbons$query_region + 1
-  ribbons$target_region <- ribbons$target_region + 1
+  ribbons$target_region <- ribbons$target_region + 1 + nrow(q)
   ribbons$color <- jbrowse_color(ribbons$color)
   offscreen <- colored_frame(r$offscreen)
-  offscreen$region <- offscreen$region + 1
+  offscreen$region <- offscreen$region + 1 +
+    ifelse(offscreen$axis == "target", nrow(q), 0)
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle, complete = TRUE)
   attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
@@ -267,8 +290,7 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
       field = r$field, alpha = r$alpha, height = r$height,
       fade_thin = r$fadeThin, has_cigar = r$hasCigar,
       assemblies = display_names(unlist(r$assemblyNames), labels,
-        args$adapterConfig), width = width,
-      query = region_layout(q, 0), target = region_layout(t, 0)),
+        args$adapterConfig), regions = regions, width = width),
     primary = "ribbons",
     class = c("jbrowse_synteny", "jbrowse_result"))
 }
@@ -277,39 +299,38 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL, view = NULL,
 print.jbrowse_synteny <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_synteny> %s over %s, %d alignments, %d ribbons, %d off screen\n",
-    paste(loci_of_layout(x$query), collapse = ", "),
-    paste(loci_of_layout(x$target), collapse = ", "),
+    paste(loci_of_layout(on_axis_of(x$regions, "query")), collapse = ", "),
+    paste(loci_of_layout(on_axis_of(x$regions, "target")), collapse = ", "),
     nrow(x$alignments), nrow(x$ribbons), nrow(x$offscreen)))
   invisible(x)
 }
 
-# A position on a row as a pixel of the band: its place on the row's regions
-# laid end to end, as a share of the row's span, across the view's width
-band_px <- function(layout, region, coord, width) {
-  shift <- layout$offset[region] - layout$start[region]
-  lo <- min(layout$cum_start)
-  (coord + shift - lo) / (max(layout$cum_end) - lo) * width
+# A position in a row of `regions` as a pixel of the band: its place on its
+# axis's regions laid end to end, as a share of the axis's span, across the
+# view's width
+band_px <- function(regions, axis, region, coord, width) {
+  lo <- tapply(regions$cum_start, regions$axis, min)[axis]
+  hi <- tapply(regions$cum_end, regions$axis, max)[axis]
+  shift <- regions$offset[region] - regions$start[region]
+  unname((coord + shift - lo) / (hi - lo) * width)
 }
 
 # The ribbons and off-screen marks with each foot at its pixel on its row
 synteny_on_axis <- function(x) {
   r <- x$ribbons
-  if (!is.null(r$.on_axis)) return(x)
-  r$query_px_start <- band_px(x$query, r$query_region, r$query_start, x$width)
-  r$query_px_end <- band_px(x$query, r$query_region, r$query_end, x$width)
-  r$target_px_start <- band_px(x$target, r$target_region, r$target_start,
+  if (is_on_axis(r)) return(x)
+  px <- function(axis, region, coord) band_px(x$regions, axis, region, coord,
     x$width)
-  r$target_px_end <- band_px(x$target, r$target_region, r$target_end, x$width)
-  r$.on_axis <- rep(TRUE, nrow(r))
-  x$ribbons <- r
+  r$query_px_start <- px("query", r$query_region, r$query_start)
+  r$query_px_end <- px("query", r$query_region, r$query_end)
+  r$target_px_start <- px("target", r$target_region, r$target_start)
+  r$target_px_end <- px("target", r$target_region, r$target_end)
+  x$ribbons <- structure(r, on_axis = TRUE)
   o <- x$offscreen
-  layout <- list(query = x$query, target = x$target)
-  o$px_start <- vapply(seq_len(nrow(o)), function(i)
-    band_px(layout[[o$axis[i]]], o$region[i], o$start[i], x$width), 0)
-  o$px_end <- vapply(seq_len(nrow(o)), function(i)
-    band_px(layout[[o$axis[i]]], o$region[i], o$end[i], x$width), 0)
+  o$px_start <- px(o$axis, o$region, o$start)
+  o$px_end <- px(o$axis, o$region, o$end)
   o$y <- ifelse(o$axis == "query", 1, 0)
-  x$offscreen <- o
+  x$offscreen <- structure(o, on_axis = TRUE)
   x
 }
 
@@ -576,14 +597,14 @@ layout_label <- function(layout, assembly = "") {
 # The band's two rulers: the target row's positions under the panel and the
 # query row's above it, each at its pixel
 synteny_x <- function(x) {
-  on_row <- function(layout) layout_breaks(layout, function(r, i, at)
-    band_px(r, i, at, x$width), x$width)
-  q <- on_row(x$query)
-  t <- on_row(x$target)
+  on_row <- function(axis) layout_breaks(on_axis_of(x$regions, axis),
+    function(r, i, at) band_px(r, axis, i, at, x$width), x$width)
+  q <- on_row("query")
+  t <- on_row("target")
   ggplot2::scale_x_continuous(breaks = t$breaks, labels = t$labels,
-    name = layout_label(x$target, x$assemblies[2]),
+    name = layout_label(on_axis_of(x$regions, "target"), x$assemblies[2]),
     sec.axis = ggplot2::sec_axis(~., breaks = q$breaks, labels = q$labels,
-      name = layout_label(x$query, x$assemblies[1])))
+      name = layout_label(on_axis_of(x$regions, "query"), x$assemblies[1])))
 }
 
 synteny_band <- function(x, curves) {
@@ -601,8 +622,8 @@ synteny_band <- function(x, curves) {
     ggplot2::theme_minimal() +
     no_y +
     ggplot2::theme(panel.grid = ggplot2::element_blank()) +
-    upright_names(x$target, "x.bottom") +
-    upright_names(x$query, "x.top")
+    upright_names(on_axis_of(x$regions, "target"), "x.bottom") +
+    upright_names(on_axis_of(x$regions, "query"), "x.top")
 }
 
 # An axis's contig names turned to run along the axis's normal, as the
@@ -665,8 +686,8 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
                                      curves = FALSE, ...) {
   rlang::check_dots_empty()
   band <- synteny_band(object, curves)
-  above <- row_tracks(above, object$query, "top")
-  below <- row_tracks(below, object$target, "bottom")
+  above <- row_tracks(above, on_axis_of(object$regions, "query"), "top")
+  below <- row_tracks(below, on_axis_of(object$regions, "target"), "bottom")
   if (!length(above) && !length(below)) return(band)
   bands <- c(lapply(above, track_bands),
     list(list(plots = list(band), heights = object$height)),
@@ -707,12 +728,14 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'     row number of `alignments`), `op` (`"match"`, `"insertion"`,
 #'     `"deletion"` or `"skip"`), `x_region`, `x_chrom`, `x_start`, `x_end`,
 #'     `y_region`, `y_chrom`, `y_start`, `y_end`, from (`x_start`, `y_start`)
-#'     to (`x_end`, `y_end`), `color` and `alpha`
+#'     to (`x_end`, `y_end`), each `*_region` a row of `regions`, `color` and
+#'     `alpha`
 #'   * `legend`: `label` and `color`, the key the view shows
 #'   * `ramps`: a continuous field's color bar, as [guides_jbrowse()] draws
 #'     it
 #'
-#'   `x` and `y` are the axes' regions as laid out, `line_width` the pixels
+#'   `regions` lays out both axes, its `axis` `"x"` or `"y"`, `line_width`
+#'   the pixels
 #'   each line is drawn at, `alpha` the opacity, and `skipped` counts the
 #'   blocks neither axis places.
 #' @export
@@ -737,7 +760,7 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
   segments <- snake(as_frame(r$segments))
   segments$alignment <- segments$alignment + 1
   segments$x_region <- segments$x_region + 1
-  segments$y_region <- segments$y_region + 1
+  segments$y_region <- segments$y_region + 1 + nrow(xr)
   segments$color <- jbrowse_color(segments$color)
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle, complete = TRUE)
@@ -749,8 +772,9 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
       alpha = r$alpha, line_width = r$lineWidth,
       assemblies = display_names(unlist(r$assemblyNames), labels,
         args$adapterConfig), skipped = r$skipped,
-      width = width, height = height,
-      x = region_layout(xr, 0), y = region_layout(yr, 0)),
+      regions = rbind(axis_rows(xr, "x", axes$names[1]),
+        axis_rows(yr, "y", axes$names[2])),
+      width = width, height = height),
     primary = "segments",
     class = c("jbrowse_dotplot", "jbrowse_result"))
 }
@@ -759,8 +783,8 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, view = NULL,
 print.jbrowse_dotplot <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_dotplot> %s against %s, %d alignments, %d segments\n",
-    paste(loci_of_layout(x$x), collapse = ", "),
-    paste(loci_of_layout(x$y), collapse = ", "),
+    paste(loci_of_layout(on_axis_of(x$regions, "x")), collapse = ", "),
+    paste(loci_of_layout(on_axis_of(x$regions, "y")), collapse = ", "),
     nrow(x$alignments), nrow(x$segments)))
   invisible(x)
 }
@@ -768,14 +792,14 @@ print.jbrowse_dotplot <- function(x, ...) {
 # Each segment's ends on the axes that lay each side's regions end to end
 dotplot_on_axis <- function(x) {
   s <- x$segments
-  if (!is.null(s$.on_axis)) return(x)
-  shift <- function(layout, region) layout$offset[region] - layout$start[region]
-  s$x_start <- s$x_start + shift(x$x, s$x_region)
-  s$x_end <- s$x_end + shift(x$x, s$x_region)
-  s$y_start <- s$y_start + shift(x$y, s$y_region)
-  s$y_end <- s$y_end + shift(x$y, s$y_region)
-  s$.on_axis <- rep(TRUE, nrow(s))
-  x$segments <- s
+  if (is_on_axis(s)) return(x)
+  r <- x$regions
+  shift <- function(region) r$offset[region] - r$start[region]
+  s$x_start <- s$x_start + shift(s$x_region)
+  s$x_end <- s$x_end + shift(s$x_region)
+  s$y_start <- s$y_start + shift(s$y_region)
+  s$y_end <- s$y_end + shift(s$y_region)
+  x$segments <- structure(s, on_axis = TRUE)
   x
 }
 
@@ -839,8 +863,10 @@ layout_seams <- function(layout) {
 autoplot.jbrowse_dotplot <- function(object, ...) {
   rlang::check_dots_empty()
   x <- on_axis(object)
-  seams <- data.frame(x = layout_seams(x$x))
-  rows <- data.frame(y = layout_seams(x$y))
+  h <- on_axis_of(x$regions, "x")
+  v <- on_axis_of(x$regions, "y")
+  seams <- data.frame(x = layout_seams(h))
+  rows <- data.frame(y = layout_seams(v))
   ggplot2::ggplot(x) +
     ggplot2::geom_vline(data = seams, ggplot2::aes(xintercept = x),
       colour = "grey70") +
@@ -849,17 +875,16 @@ autoplot.jbrowse_dotplot <- function(object, ...) {
     geom_jbrowse_dotplot(linewidth = px_to_mm(x$line_width)) +
     scale_colour_jbrowse(x) +
     guides_jbrowse(x) +
-    layout_scale(ggplot2::scale_x_continuous, x$x, x$width) +
-    layout_scale(ggplot2::scale_y_continuous, x$y, x$height) +
-    ggplot2::coord_cartesian(
-      xlim = c(min(x$x$cum_start), max(x$x$cum_end)),
-      ylim = c(min(x$y$cum_start), max(x$y$cum_end)), expand = FALSE) +
-    ggplot2::labs(x = layout_label(x$x, x$assemblies[1]),
-      y = layout_label(x$y, x$assemblies[2])) +
+    layout_scale(ggplot2::scale_x_continuous, h, x$width) +
+    layout_scale(ggplot2::scale_y_continuous, v, x$height) +
+    ggplot2::coord_cartesian(xlim = c(min(h$cum_start), max(h$cum_end)),
+      ylim = c(min(v$cum_start), max(v$cum_end)), expand = FALSE) +
+    ggplot2::labs(x = layout_label(h, x$assemblies[1]),
+      y = layout_label(v, x$assemblies[2])) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
       panel.border = ggplot2::element_rect(fill = NA, colour = "grey70")) +
-    upright_names(x$x, "x.bottom")
+    upright_names(h, "x.bottom")
 }
 
 # Names in the order a reader expects them: chr2 before chr10, each run of

@@ -81,14 +81,16 @@ lane_pin <- function(locus) {
 #'     and `locus`, the lane's window, to read its tracks over
 #'   * `segments`: the stretches of each lane's sequence across the view,
 #'     cut where it opens a hole: `lane`, `chrom`, `start`, `end`, and `x1`,
-#'     `x2`, the pixels `start` and `end` sit at
+#'     `x2`, the pixels `start` and `end` sit at, and `region`, the row of
+#'     `regions` it lies in
 #'   * `blocks`: each alignment or gene's placement on each lane: `lane`,
 #'     `group`, `name`, `chrom`, `start`, `end`, `strand` against the anchor,
-#'     `x1`, `x2`
+#'     `x1`, `x2`, `region`
 #'   * `ribbons`: what each gutter draws, in paint order: `alignment` (a row
 #'     of `alignments`), `group`, `kind` (`"match"`, or `"mismatch"` for a
 #'     base tile), `gutter` (the lane it hangs under), `upper_lane`,
-#'     `lower_lane`, each foot's `*_chrom`, `*_start` and `*_end`, and its
+#'     `lower_lane`, each foot's `*_region`, `*_chrom`, `*_start` and
+#'     `*_end`, and its
 #'     pixels `upper_x1`, `upper_x2`, `lower_x1`, `lower_x2`, where the ribbon
 #'     joins `upper_x1` to `lower_x1`, so a reversed pair crosses; `color`,
 #'     `alpha`, `thin` and `bridge`, a ribbon that skips a lane placing
@@ -99,7 +101,10 @@ lane_pin <- function(locus) {
 #'     columns the file carries
 #'   * `legend`: `label` and `color`, the ribbons' key
 #'
-#'   `width` is the view's pixels, `tick_interval` the bp between each lane's
+#'   `regions` lays out each lane, its `axis` the lane's assembly: the
+#'   anchor's regions, spaced as a linear track over them spaces them, and
+#'   the window each other lane shows; `width` is the view's pixels,
+#'   `tick_interval` the bp between each lane's
 #'   ticks, and `rows_vs_anchor` whether each lane is stated against the
 #'   anchor alone, as a star of pairwise files states it.
 #' @export
@@ -138,41 +143,74 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   }
   lane_frame <- one_based(snake(as_frame(r$lanes)), "lane")
   segments <- one_based(snake(as_frame(r$segments)), "lane")
-  lane_frame$locus <- lane_loci(lane_frame, segments)
+  layout <- lane_regions(lane_frame, segments, regions)
+  lane_frame$locus <- lane_loci(lane_frame, layout)
+  axis <- function(lane) lane_frame$assembly[lane]
+  mid <- function(d, prefix = "") (d[[paste0(prefix, "start")]] +
+    d[[paste0(prefix, "end")]]) / 2
+  segments$region <- region_at(layout, axis(segments$lane), segments$chrom,
+    mid(segments))
+  blocks <- one_based(snake(as_frame(r$blocks)), "lane")
+  blocks$region <- region_at(layout, axis(blocks$lane), blocks$chrom,
+    mid(blocks))
   ribbons <- one_based(snake(as_frame(r$ribbons)),
     c("alignment", "gutter", "upper_lane", "lower_lane"))
+  ribbons$upper_region <- region_at(layout, axis(ribbons$upper_lane),
+    ribbons$upper_chrom, mid(ribbons, "upper_"))
+  ribbons$lower_region <- region_at(layout, axis(ribbons$lower_lane),
+    ribbons$lower_chrom, mid(ribbons, "lower_"))
   ribbons$color <- jbrowse_color(ribbons$color)
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
     r$legendTitle, complete = TRUE)
   attr(key, "override") <- list(alpha = 0.6)
   structure(
-    list(lanes = lane_frame, segments = segments,
-      blocks = one_based(snake(as_frame(r$blocks)), "lane"),
+    list(lanes = lane_frame, segments = segments, blocks = blocks,
       ribbons = ribbons, alignments = snake(as_frame(r$alignments)),
       legend = key, keys = list(ribbons = key), ramps = ramp_frames(r$ramps),
       field = r$field, tick_interval = r$tickInterval,
       rows_vs_anchor = r$rowsVsAnchor, curves = r$curves, width = width,
-      assemblies = unlist(r$assemblyNames), anchor = region_layout(regions)),
+      assemblies = unlist(r$assemblyNames), regions = layout),
     primary = "ribbons",
     class = c("jbrowse_multiway", "jbrowse_result"))
 }
 
-# Each lane's window as a locus: the anchor's regions, or the stretch of its
-# contig a mate lane shows across the view
-lane_loci <- function(lanes, segments) {
-  vapply(lanes$lane, function(i) {
+# Each lane's regions, its `axis` its assembly: the anchor's regions, laid
+# out as a linear track over them lays them, and for each other lane the
+# stretch of its contig it shows across the view. A lane placing nothing has
+# none.
+lane_regions <- function(lanes, segments, anchor) {
+  do.call(rbind, lapply(lanes$lane, function(i) {
+    name <- lanes$assembly[i]
+    if (lanes$anchor[i]) return(axis_rows(anchor, name, name, 0.012))
     s <- segments[segments$lane == i, , drop = FALSE]
-    if (!nrow(s)) return(NA_character_)
-    if (lanes$anchor[i]) return(paste(loci_of_layout(s), collapse = " "))
-    loci_of_layout(data.frame(chrom = s$chrom[1], start = min(s$start),
-      end = max(s$end)))
-  }, "")
+    if (!nrow(s)) return(NULL)
+    axis_rows(data.frame(chrom = s$chrom[1], start = min(s$start),
+      end = max(s$end)), name, name)
+  }))
+}
+
+# The row of `regions` on each `axis` and contig holding `at`, or its first
+# on that contig where none holds it
+region_at <- function(regions, axis, chrom, at) {
+  vapply(seq_along(axis), function(i) {
+    on <- which(regions$axis == axis[i] & regions$chrom == chrom[i])
+    inside <- on[at[i] >= regions$start[on] & at[i] <= regions$end[on]]
+    c(inside, on, NA_integer_)[1]
+  }, 1L)
+}
+
+# Each lane's regions as loci, NA for a lane placing nothing
+lane_loci <- function(lanes, regions) {
+  vapply(lanes$assembly, function(name) {
+    r <- on_axis_of(regions, name)
+    if (!nrow(r)) NA_character_ else paste(loci_of_layout(r), collapse = " ")
+  }, "", USE.NAMES = FALSE)
 }
 
 #' @export
 print.jbrowse_multiway <- function(x, ...) {
   cat(sprintf("<jbrowse_multiway> %d lanes under %s, %d ribbons\n",
-    nrow(x$lanes), paste(loci_of_layout(x$anchor), collapse = ", "),
+    nrow(x$lanes), x$lanes$locus[1],
     nrow(x$ribbons)))
   for (i in seq_len(nrow(x$lanes))) {
     cat(sprintf("  %d %s %s%s\n", i, x$lanes$assembly[i],
@@ -194,14 +232,13 @@ LANE_BOX_PX <- 5
 # the bottom lane's: each ribbon from under its upper lane to over its lower
 # lane's ruler, each lane's ticks at the shared interval
 multiway_on_axis <- function(x) {
-  if (!is.null(x$ribbons$.on_axis)) return(x)
+  if (is_on_axis(x$ribbons)) return(x)
   n <- nrow(x$lanes)
   lane_y <- (n - seq_len(n)) * MULTIWAY_GUTTER_PX
   r <- x$ribbons
   r$y_top <- lane_y[r$gutter] - LANE_BOX_PX
   r$y_bottom <- lane_y[r$lower_lane] + LANE_RULER_PX
-  r$.on_axis <- rep(TRUE, nrow(r))
-  x$ribbons <- r
+  x$ribbons <- structure(r, on_axis = TRUE)
   x$segments$y <- lane_y[x$segments$lane]
   x$blocks$y <- lane_y[x$blocks$lane]
   x$ticks <- lane_ticks(x$segments, x$tick_interval)
@@ -347,10 +384,8 @@ lane_band <- function(track, x, lane, where) {
   }
   bp <- c(rbind(s$start, s$end))
   px <- c(rbind(s$x1, s$x2))
-  if (lane == 1 && nrow(x$anchor) > 1) {
-    a <- x$anchor
-    bp <- c(rbind(a$cum_start, a$cum_end))
-  }
+  a <- on_axis_of(x$regions, x$lanes$assembly[lane])
+  if (lane == 1 && nrow(a) > 1) bp <- c(rbind(a$cum_start, a$cum_end))
   if (is.unsorted(bp)) {
     stop("a track ", where, " the stack draws over one region only",
       call. = FALSE)

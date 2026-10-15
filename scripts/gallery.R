@@ -58,7 +58,8 @@ chrom_sizes <- function(file, side, label, keep = NULL) {
 
 # A chrom.sizes file of one axis of a dotplot, its contigs in the order the
 # plot lays them
-axis_sizes <- function(layout, label) {
+axis_sizes <- function(result, axis, label) {
+  layout <- result$regions[result$regions$axis == axis, ]
   path <- config_file(paste0(label, ".chrom.sizes"))
   write.table(data.frame(layout$chrom, layout$end - layout$start), path,
     quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
@@ -455,8 +456,8 @@ autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
     caption = "One forward diagonal runs the length of chr8, broken only by the inversion's short reverse segment near 10 Mb.",
     title = "HG002's maternal chr8 against its paternal copy as a dotplot",
     locus = "chr8_MATERNAL chr8_PATERNAL", height = 6,
-    jbrowse = c("dotplot", "--chromSizes", axis_sizes(hg002_dot$x, "maternal"),
-      "--chain", chain, "--chromSizes", axis_sizes(hg002_dot$y, "paternal"),
+    jbrowse = c("dotplot", "--chromSizes", axis_sizes(hg002_dot, "x", "maternal"),
+      "--chain", chain, "--chromSizes", axis_sizes(hg002_dot, "y", "paternal"),
       "--colorBy", "strand"),
     r = r"-(
 autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
@@ -467,9 +468,9 @@ autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
     caption = "Short diagonal runs scatter over most pairs of peach and grape chromosomes.",
     title = "Peach against grape, every chromosome", locus = "whole genome",
     height = 5.5,
-    jbrowse = c("dotplot", "--chromSizes", axis_sizes(peach_grape$x, "peach"),
+    jbrowse = c("dotplot", "--chromSizes", axis_sizes(peach_grape, "x", "peach"),
       "--paf", inst("peach_grape.paf.gz"), "--chromSizes",
-      axis_sizes(peach_grape$y, "grape")),
+      axis_sizes(peach_grape, "y", "grape")),
     r = r"-(
 autoplot(jbrowse_dotplot(e("peach_grape.paf.gz"),
   labels = c(query = "peach", target = "grape")))

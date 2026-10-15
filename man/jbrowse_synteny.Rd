@@ -74,12 +74,14 @@ a span on the query row to a span on the target row: \code{alignment} (a row
 number of \code{alignments}), \code{kind} (\code{"match"}, \code{"insertion"},
 \code{"deletion"}, \code{"skip"}, or \code{"marker"} for a location tick),
 \code{query_region}, \code{query_chrom}, \code{query_start}, \code{query_end},
-\code{target_region}, \code{target_chrom}, \code{target_start}, \code{target_end}, where
+\code{target_region}, \code{target_chrom}, \code{target_start}, \code{target_end}, each
+\verb{*_region} the row of \code{regions} its foot lies in, where
 the ribbon joins \code{query_start} to \code{target_start} and \code{query_end} to
 \code{target_end}, so a reverse-strand block crosses; \code{color}, \code{alpha}, and
 \code{thin}, whether the band draws it as a one-pixel line
 \item \code{offscreen}: the blocks on one \code{axis} whose mate lies on a contig the
-other row is not showing, with their span and their mate's, the
+other row is not showing, the \code{region} they lie in, their span and
+their mate's, the
 \code{color} and \code{alpha} the strip along that row's edge paints them, and
 \code{drawn}, whether they clear the strip's length and contig floors
 \item \code{offscreen_contigs}: each contig those mates lie on, by \code{axis}:
@@ -95,7 +97,8 @@ the frame's \code{"title"} attribute
 it
 }
 
-\code{query} and \code{target} are the rows' regions as laid out, \code{height} the
+\code{regions} lays out both rows, its \code{axis} \code{"query"} for the top row and
+\code{"target"} for the bottom, \code{height} the
 band's pixels, \code{alpha} the opacity every ribbon draws at and \code{field} the
 color field painted.
 }

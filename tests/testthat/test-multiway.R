@@ -14,7 +14,30 @@ test_that("an all-vs-all PAF reads as the multi-way display stacks it", {
   expect_true(all(m$segments$x2 >= m$segments$x1))
   expect_true(all(m$segments$x1 >= 0 & m$segments$x2 <= m$width))
   expect_match(m$lanes$locus[1], "^ctgA:1-50,001$")
+  expect_equal(m$regions$axis, m$lanes$assembly)
+  expect_equal(m$regions$assembly, m$lanes$assembly)
+  expect_null(m$anchor)
+  expect_equal(m$regions$axis[m$segments$region],
+    m$lanes$assembly[m$segments$lane])
+  expect_equal(m$regions$axis[m$ribbons$upper_region],
+    m$lanes$assembly[m$ribbons$upper_lane])
+  expect_equal(m$regions$axis[m$ribbons$lower_region],
+    m$lanes$assembly[m$ribbons$lower_lane])
+  expect_false(anyNA(m$blocks$region))
   expect_error(jbrowse_multiway(paf, "ctgA:1-50,001"), "anchor lane's assembly")
+})
+
+test_that("an anchor of two regions lays them out as a track over them does", {
+  two <- jbrowse_multiway(paf, c("ctgA:1-20,000", "ctgA:25,001-50,001"),
+    "volvox")
+  anchor <- on_axis_of(two$regions, "volvox")
+  expect_equal(nrow(anchor), 2)
+  genes <- jbrowse_features(gff, c("ctgA:1-20,000", "ctgA:25,001-50,001"))
+  expect_equal(anchor$offset, genes$regions$offset)
+  expect_equal(two$segments$region[two$segments$lane == 1], 1:2)
+  expect_equal(two$lanes$locus[1], "ctgA:1-20,000 ctgA:25,001-50,001")
+  fig <- autoplot(two, above = genes)
+  expect_equal(length(fig$patches$plots) + 1, 2)
 })
 
 test_that("lanes draw in the order given, and a named lane pins its contig", {

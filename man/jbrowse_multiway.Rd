@@ -56,14 +56,16 @@ a \code{jbrowse_multiway} list:
 and \code{locus}, the lane's window, to read its tracks over
 \item \code{segments}: the stretches of each lane's sequence across the view,
 cut where it opens a hole: \code{lane}, \code{chrom}, \code{start}, \code{end}, and \code{x1},
-\code{x2}, the pixels \code{start} and \code{end} sit at
+\code{x2}, the pixels \code{start} and \code{end} sit at, and \code{region}, the row of
+\code{regions} it lies in
 \item \code{blocks}: each alignment or gene's placement on each lane: \code{lane},
 \code{group}, \code{name}, \code{chrom}, \code{start}, \code{end}, \code{strand} against the anchor,
-\code{x1}, \code{x2}
+\code{x1}, \code{x2}, \code{region}
 \item \code{ribbons}: what each gutter draws, in paint order: \code{alignment} (a row
 of \code{alignments}), \code{group}, \code{kind} (\code{"match"}, or \code{"mismatch"} for a
 base tile), \code{gutter} (the lane it hangs under), \code{upper_lane},
-\code{lower_lane}, each foot's \verb{*_chrom}, \verb{*_start} and \verb{*_end}, and its
+\code{lower_lane}, each foot's \verb{*_region}, \verb{*_chrom}, \verb{*_start} and
+\verb{*_end}, and its
 pixels \code{upper_x1}, \code{upper_x2}, \code{lower_x1}, \code{lower_x2}, where the ribbon
 joins \code{upper_x1} to \code{lower_x1}, so a reversed pair crosses; \code{color},
 \code{alpha}, \code{thin} and \code{bridge}, a ribbon that skips a lane placing
@@ -75,7 +77,10 @@ columns the file carries
 \item \code{legend}: \code{label} and \code{color}, the ribbons' key
 }
 
-\code{width} is the view's pixels, \code{tick_interval} the bp between each lane's
+\code{regions} lays out each lane, its \code{axis} the lane's assembly: the
+anchor's regions, spaced as a linear track over them spaces them, and
+the window each other lane shows; \code{width} is the view's pixels,
+\code{tick_interval} the bp between each lane's
 ticks, and \code{rows_vs_anchor} whether each lane is stated against the
 anchor alone, as a star of pairwise files states it.
 }

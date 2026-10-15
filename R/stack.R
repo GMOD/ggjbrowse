@@ -208,6 +208,9 @@ drawn_at <- function(x, width) {
   x
 }
 
+# The readers whose regions lie on several axes, each drawing its own
+COMPARATIVE <- c("jbrowse_synteny", "jbrowse_dotplot", "jbrowse_multiway")
+
 # The display pixels a figure gives an inch: a 1,500 pixel view across 10
 # inches
 PX_PER_INCH <- 150
@@ -295,7 +298,7 @@ own_band <- function(p, axis) {
 # them end to end, the plot's own and each layer's, and that axis's scale
 # where the plot sets none
 onto_axis <- function(p, axis) {
-  if (NROW(axis$regions) < 2) return(p)
+  if (NROW(axis$regions) < 2 || inherits(axis, COMPARATIVE)) return(p)
   if (is.data.frame(p$data)) p$data <- frame_on_axis(p$data, axis$regions)
   p$layers <- lapply(p$layers, function(layer) {
     if (!is.data.frame(layer$data)) return(layer)

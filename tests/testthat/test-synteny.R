@@ -75,14 +75,48 @@ test_that("a PAF reads as the dotplot lays out and colors it", {
 test_that("two regions on an axis lay end to end, each ribbon on its own", {
   halves <- c("ctgA:1-25,000", "ctgA:25,001-50,001")
   two <- jbrowse_synteny(paf, query, halves)
-  expect_setequal(unique(two$ribbons$target_region), 1:2)
+  expect_setequal(unique(two$ribbons$target_region), 2:3)
   axis <- on_axis(two)$ribbons
   expect_true(all(axis$target_px_start >= 0 & axis$target_px_start <= two$width))
   d <- jbrowse_dotplot(paf, query, halves)
   moved <- on_axis(d)$segments
-  second <- moved$y_region == 2
-  expect_true(all(moved$y_start[second] > d$y$offset[2] - d$y$start[2]))
-  expect_equal(length(layout_seams(d$y)), 1)
+  second <- moved$y_region == 3
+  expect_true(any(second))
+  expect_true(all(moved$y_start[second] >= d$regions$offset[3]))
+  expect_equal(length(layout_seams(on_axis_of(d$regions, "y"))), 1)
+})
+
+test_that("one regions frame lays out every axis, and the tables index its rows", {
+  halves <- c("ctgA:1-25,000", "ctgA:25,001-50,001")
+  two <- jbrowse_synteny(paf, query, halves)
+  expect_named(two$regions, c("axis", "assembly", "chrom", "start", "end",
+    "offset", "cum_start", "cum_end", "missing"))
+  expect_equal(two$regions$axis, c("query", "target", "target"))
+  expect_equal(two$regions$assembly, c("query", "target", "target"))
+  expect_true(all(two$regions$axis[two$ribbons$query_region] == "query"))
+  expect_true(all(two$regions$axis[two$ribbons$target_region] == "target"))
+  inside <- function(region, start, end) {
+    r <- two$regions[region, ]
+    pmin(start, end) >= r$start & pmax(start, end) <= r$end
+  }
+  expect_true(all(inside(two$ribbons$target_region, two$ribbons$target_start,
+    two$ribbons$target_end)))
+  expect_false(any(c("query", "target") %in% names(two)))
+  d <- jbrowse_dotplot(paf, query, halves)
+  expect_equal(d$regions$axis, c("x", "y", "y"))
+  expect_false(any(c("x", "y") %in% names(d)))
+  expect_true(all(d$regions$axis[d$segments$y_region] == "y"))
+})
+
+test_that("drawing places tables on the axis once, marked by an attribute", {
+  placed <- on_axis(s)
+  expect_true(isTRUE(attr(placed$ribbons, "on_axis")))
+  expect_null(placed$ribbons$.on_axis)
+  expect_identical(on_axis(placed)$ribbons, placed$ribbons)
+  d <- jbrowse_dotplot(paf, query, c("ctgA:1-25,000", "ctgA:25,001-50,001"))
+  once <- on_axis(d)
+  expect_null(once$segments$.on_axis)
+  expect_equal(on_axis(once)$segments, once$segments)
 })
 
 test_that("an unknown extension and a missing contig say so", {
@@ -137,22 +171,24 @@ test_that("a file's contigs list with their lengths, and an axis with no regions
   expect_equal(contigs$chrom, c("ctgA", "ctgA"))
   expect_equal(contigs$end, c(49186, 50001))
   whole <- jbrowse_synteny(paf)
-  expect_equal(c(whole$query$end, whole$target$end), c(49186, 50001))
+  expect_equal(whole$regions$end, c(49186, 50001))
   expect_equal(nrow(whole$alignments), 7)
   grape <- system.file("extdata", "peach_grape.paf.gz", package = "ggjbrowse")
   d <- jbrowse_dotplot(grape)
-  expect_equal(nrow(d$x), 13)
-  expect_equal(d$x$chrom[1:3], c("Pp01", "Pp02", "Pp03"))
-  expect_equal(d$y$chrom[c(1, 2, 10)], c("chr1", "chr2", "chr10"))
-  expect_equal(nrow(d$y), 24)
+  h <- on_axis_of(d$regions, "x")
+  v <- on_axis_of(d$regions, "y")
+  expect_equal(nrow(h), 13)
+  expect_equal(h$chrom[1:3], c("Pp01", "Pp02", "Pp03"))
+  expect_equal(v$chrom[c(1, 2, 10)], c("chr1", "chr2", "chr10"))
+  expect_equal(nrow(v), 24)
   expect_gt(nrow(d$segments), 100)
   built <- ggplot2::ggplot_build(autoplot(d))
   labels <- built$layout$panel_params[[1]]$x$get_labels()
-  expect_true(all(labels %in% d$x$chrom))
+  expect_true(all(labels %in% h$chrom))
   named <- jbrowse_dotplot(grape, "Pp01", "chr1")
-  expect_equal(named$x$end, jbrowse_contigs(grape)$end[
+  expect_equal(named$regions$end[1], jbrowse_contigs(grape)$end[
     jbrowse_contigs(grape)$chrom == "Pp01"])
-  expect_equal(nrow(named$y), 1)
+  expect_equal(named$regions$axis, c("x", "y"))
 })
 
 test_that("labels name each axis's assembly in its title", {
@@ -175,19 +211,20 @@ test_that("labels name each axis's assembly in its title", {
 test_that("swap puts the file's target on the top row and the x axis", {
   swapped <- jbrowse_synteny(paf, swap = TRUE)
   expect_equal(swapped$assemblies, c("target", "query"))
-  expect_equal(swapped$query$end, 50001)
+  expect_equal(on_axis_of(swapped$regions, "query")$end, 50001)
+  expect_equal(on_axis_of(swapped$regions, "query")$assembly, "target")
   expect_equal(nrow(swapped$alignments), 7)
   expect_error(jbrowse_synteny(list(type = "PAFAdapter",
     pafLocation = list(uri = paf), assemblyNames = "one"), swap = TRUE),
     "two assembly names")
   d <- jbrowse_dotplot(paf, swap = TRUE)
-  expect_equal(d$x$end, 50001)
+  expect_equal(on_axis_of(d$regions, "x")$end, 50001)
 })
 
 test_that("comparative axes lay their regions end to end with no gap, as the browser does", {
   halves <- c("ctgA:1-25,000", "ctgA:25,001-50,001")
   two <- jbrowse_synteny(paf, query, halves)
-  expect_equal(two$target$cum_start[2], two$target$cum_end[1])
+  expect_equal(two$regions$cum_start[3], two$regions$cum_end[2])
   genes <- jbrowse_features(gff, halves)
   fig <- autoplot(two, below = genes)
   expect_equal(length(fig$patches$plots) + 1, 2)
