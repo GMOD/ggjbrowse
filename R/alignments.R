@@ -284,6 +284,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   interbase_key <- interbase_key[interbase_colors %in%
     interbase_coverage$color, , drop = FALSE]
   attr(interbase_key, "title") <- "Insertions and clips"
+  attr(interbase_key, "complete") <- TRUE
   junction_key <- key_frame(c("Forward", "Reverse", "Unknown"), strand_colors,
     "Junction strand")
   junction_key <- junction_key[junction_key$color %in% junctions$color, ,

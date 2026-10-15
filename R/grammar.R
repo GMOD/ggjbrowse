@@ -189,14 +189,18 @@ key_frame <- function(label, color, title) {
 
 # Whether a layer joins the legends: a layer drawn through a `complete` key
 # draws a chip for every entry of it, present in the data or not, as the
-# view lists its fixed key; a keyed layer or one the caller maps joins as
+# view lists its fixed key, and joins no other color legend; a keyed layer or one the caller maps joins as
 # ggplot decides, and one with neither stays out
 legend_of <- function(mapping, keyed, own) {
   if (identical(keyed, "complete")) {
     keys <- names(mapping)[vapply(mapping, function(m)
       rlang::is_quosure(m) && identical(rlang::quo_get_expr(m), quote(color)),
       TRUE)]
-    if (length(keys)) return(stats::setNames(rep(TRUE, length(keys)), keys))
+    if (length(keys)) {
+      other <- setdiff(c("colour", "fill"), keys)
+      return(stats::setNames(rep(c(TRUE, FALSE), c(length(keys), length(other))),
+        c(keys, other)))
+    }
   }
   if (isTRUE(keyed) || identical(keyed, "complete") || !is.null(own)) NA
   else FALSE

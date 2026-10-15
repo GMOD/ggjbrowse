@@ -347,7 +347,7 @@ geom_jbrowse_interbase <- function(mapping = NULL, data = NULL, ...) {
     d
   }, mapping, ggplot2::aes(x = position, hang = hang, hang_end = hang_end,
     top = I(top), inset = I(inset), width = I(width), fill = color),
-    list(...))
+    list(...), keyed = "complete")
 }
 
 # Each position's stack as the display hangs it from the band's top, below

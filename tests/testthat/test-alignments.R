@@ -516,3 +516,15 @@ test_that("the sequence band asks for the reference it draws", {
     "NC_003070.9:4,406,001-4,406,300")
   expect_error(autoplot(a, "sequence"), "reference =")
 })
+
+test_that("every section's coverage band keys the track's insertions and clips", {
+  a <- jbrowse_alignments(extdata("colo829_tumor_chr3.bam"),
+    "chr3:25,358,500-25,359,800", display = list(facet = list(field = "split")))
+  flat <- function(p) c(if (inherits(p, "patchwork"))
+    unlist(lapply(p$patches$plots, flat), recursive = FALSE), list(p))
+  keys <- lapply(flat(autoplot(a)), function(p)
+    ggplot2::get_guide_data(p, "fill")$.label)
+  interbase <- Filter(function(k) "Insertion" %in% k, keys)
+  expect_length(interbase, 2)
+  for (k in interbase) expect_equal(k, a$keys$interbase$label)
+})
