@@ -57,27 +57,44 @@ as.matrix.jbrowse_variants <- function(x, ...) {
   m
 }
 
+# The trees `tree` holds, each as an hclust: none, the one, or a forest, a
+# plain list of them
+trees_of <- function(tree) {
+  if (is.null(tree)) return(list())
+  if (is.list(tree) && !is.object(tree)) lapply(tree, stats::as.hclust)
+  else list(stats::as.hclust(tree))
+}
+
 # `rows` in a tree's leaf order where `tree` holds one (anything
 # stats::as.hclust() takes), its labels the rows' names; else as they are.
+# A forest orders the rows its trees hold, tree by tree, and the rest follow.
 # `where` names the rows' table for an error.
 by_tree <- function(rows, tree, where) {
-  if (is.null(tree)) return(rows)
-  tree <- stats::as.hclust(tree)
-  leaves <- tree$labels[tree$order]
-  if (length(leaves) != nrow(rows) || !setequal(leaves, rows$name)) {
+  trees <- trees_of(tree)
+  if (!length(trees)) return(rows)
+  leaves <- unlist(lapply(trees, function(t) t$labels[t$order]))
+  forest <- is.list(tree) && !is.object(tree)
+  if (anyDuplicated(leaves) || !all(leaves %in% rows$name) ||
+    (!forest && length(leaves) != nrow(rows))) {
     stop("the tree's leaves are not the rows: label it by ", where,
       "$name, one leaf per row (", nrow(rows), " rows, such as ",
       paste(utils::head(rows$name, 2), collapse = ", "), ")", call. = FALSE)
   }
-  rows <- rows[match(leaves, rows$name), , drop = FALSE]
+  at <- match(leaves, rows$name)
+  rows <- rows[c(at, setdiff(seq_len(nrow(rows)), at)), , drop = FALSE]
   rownames(rows) <- NULL
   rows
 }
 
 # A variant matrix's rows in the order it draws them: `rows`' own order, or
-# its tree's leaf order; the cells' `row` factor follows
+# its tree's leaf order, stacked in `bands`' order where the rows are banded;
+# the cells' `row` factor follows
 in_row_order <- function(x) {
   x$rows <- by_tree(x$rows, x$tree, "x$rows")
+  if (any(x$rows$band != "")) {
+    x$rows <- x$rows[order(match(x$rows$band, x$bands$key)), , drop = FALSE]
+    rownames(x$rows) <- NULL
+  }
   x$cells$row <- factor(as.character(x$cells$row),
     levels = as.character(x$rows$name))
   x
@@ -109,17 +126,48 @@ tree_rows <- function(x) {
   list(name = as.character(x$rows$name), at = identity)
 }
 
+# Each band's run of rows, top to bottom: its `key`, its `label` from
+# `bands`, and its first and last row; NULL while no row is banded
+row_bands <- function(rows, bands) {
+  band <- rows$band
+  if (!length(band) || all(band == "")) return(NULL)
+  runs <- rle(band)
+  last <- cumsum(runs$lengths)
+  label <- bands$label[match(runs$values, bands$key)]
+  data.frame(key = runs$values,
+    label = ifelse(is.na(label), runs$values, label),
+    first = last - runs$lengths + 1, last = last)
+}
+
+# The merges of `tree` a banded matrix draws: those inside a clade whose
+# leaves are exactly one band's rows, as the display draws a clade per band
+band_merges <- function(tree, rows, bands) {
+  n <- length(tree$order)
+  members <- vector("list", n - 1)
+  of <- function(child) if (child < 0) tree$labels[-child] else members[[child]]
+  for (k in seq_len(n - 1)) {
+    members[[k]] <- c(of(tree$merge[k, 1]), of(tree$merge[k, 2]))
+  }
+  clades <- lapply(seq_len(nrow(bands)), function(b) {
+    names <- rows[bands$first[b]:bands$last[b]]
+    Find(function(k) setequal(members[[k]], names), seq_len(n - 1))
+  })
+  clades <- unlist(clades)
+  vapply(members, function(m)
+    any(vapply(clades, function(k) all(m %in% members[[k]]), NA)), NA)
+}
+
 # A tree's branches as segments, each leaf at its label's row in `rows`:
 # `y` and `yend` in rows, `h` and `hend` the merge heights over the tallest,
 # 0 at the leaves
-tree_segments <- function(tree, rows) {
+tree_segments <- function(tree, rows, top = max(tree$height)) {
   n <- length(tree$order)
   if (n < 2) {
     return(data.frame(y = numeric(0), yend = numeric(0), h = numeric(0),
       hend = numeric(0)))
   }
   leaf <- match(tree$labels, rows)
-  height <- tree$height / max(tree$height, .Machine$double.eps)
+  height <- tree$height / max(top, .Machine$double.eps)
   merge <- tree$merge
   y <- numeric(n - 1)
   y_of <- function(child) {
@@ -178,9 +226,16 @@ geom_jbrowse_tree <- function(mapping = NULL, data = NULL, gap = 2,
                               span = 40, ...) {
   data <- replacing(data, NULL, "geom_jbrowse_tree")
   segments <- function(x) {
-    tree <- if (!is.null(x$tree)) stats::as.hclust(x$tree)
+    trees <- trees_of(x$tree)
     rows <- tree_rows(x)
-    s <- tree_segments(tree, rows$name)
+    top <- max(0, unlist(lapply(trees, `[[`, "height")))
+    bands <- if (inherits(x, "jbrowse_variants")) row_bands(x$rows, x$bands)
+    s <- do.call(rbind, c(list(tree_segments(NULL, rows$name)),
+      lapply(trees, function(tree) {
+        s <- tree_segments(tree, rows$name, top)
+        if (is.null(bands) || !nrow(s)) return(s)
+        s[rep(band_merges(tree, rows$name, bands), each = 3), , drop = FALSE]
+      })))
     s$y <- rows$at(s$y)
     s$yend <- rows$at(s$yend)
     s

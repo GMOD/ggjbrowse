@@ -81,7 +81,8 @@ join_regions <- function(regions, parts) {
 
 # The tables that list a result's keys, sections and rows rather than marks
 # on the reference
-LISTING <- c("legend", "arc_legend", "sections", "sources", "rows", "rules")
+LISTING <- c("legend", "arc_legend", "sections", "sources", "rows", "rules",
+  "bands")
 
 placed <- function(x, chrom, i) {
   for (name in setdiff(names(x), LISTING)) {
