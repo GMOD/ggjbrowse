@@ -9,6 +9,7 @@ geom_jbrowse_genotypes(
   data = NULL,
   layout = c("genomic", "columns"),
   width = NULL,
+  fade = TRUE,
   ...
 )
 }
@@ -24,6 +25,9 @@ result, such as a filtered copy of it}
 \item{width}{the pixels the figure spans across its region at genomic
 positions; \code{NULL} takes 1,500}
 
+\item{fade}{\code{FALSE} draws every cell opaque at genomic positions, where by
+default records sharing a pixel fade as the display fades them}
+
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 }
 \value{
@@ -36,6 +40,12 @@ figure \code{width} pixels across, as the display widens a record narrower than
 a cell; in \code{"columns"} each record is a column of the genotype matrix, x
 being its row number in \code{variants}. Map \code{genotype}, \code{dosage}, \code{sample} or
 any other column of the cells table to draw it your own way.
+}
+\details{
+Zoomed out, records too short to see share pixels, and the display fades
+each by how many share its pixels, so a row shades by the share of its
+records that are alt rather than filling wherever any is. The engine
+gives each record's fade at the figure's pixels per base.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")

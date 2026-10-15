@@ -28,9 +28,12 @@ drawn left of the panel beside the rows, each leaf at its row, as the
 display draws its clustering tree in its sidebar. \code{tree} takes an
 \code{\link[stats:hclust]{stats::hclust()}} result, or anything \code{\link[stats:as.hclust]{stats::as.hclust()}} takes, labelled
 by the rows' \code{name} (a quantitative track's \code{sources}' \code{name}); setting it
-also puts the rows in its leaf order. A quantitative track's rows are its
-sources under a row layout. A plot of one's own draws outside the panel
-only under \code{coord_cartesian(clip = "off")}.
+also puts the rows in its leaf order. A list of trees is a forest, which
+orders the rows tree by tree. Under a variant display's \code{facet}, only a
+clade whose leaves are exactly one band's rows draws, as in the display.
+A quantitative track's rows are its sources under a row layout. A plot of
+one's own draws outside the panel only under
+\code{coord_cartesian(clip = "off")}.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")

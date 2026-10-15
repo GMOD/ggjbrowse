@@ -34,7 +34,11 @@ any of \code{unit} (\code{"allele"} for a row per sample, \code{"haplotype"} for
 per haplotype), \code{color} (a field such as \code{"svType"} or \code{"impact"}, or a
 list of the color object's slots), \code{filter} (jexl expressions),
 \code{minorAlleleFrequencyFilter}, \code{maxMissingnessFilter},
-\code{referenceDrawingMode} (\code{"skip"} or \code{"draw"}) and \code{shadeByDosage}}
+\code{referenceDrawingMode} (\code{"skip"} or \code{"draw"}), \code{shadeByDosage}, \code{rows}
+(the arrangement a session saves: \code{domain}, the rows listed first in
+order, \code{labels}, a label by row name, and \code{kept}, the rows shown) and
+\code{facet} (a samples file attribute, or \code{list(field, domain)}, whose values
+each take a band of rows)}
 
 \item{index}{the tabix or CSI index, if not beside \code{file} under its usual
 name}
@@ -59,13 +63,18 @@ are an ALT; under \code{unit = "haplotype"} the row's allele, 1 for an ALT;
 fill the display paints; under \code{referenceDrawingMode = "skip"}, the
 default, a reference call has no cell. \code{\link[=as.matrix]{as.matrix()}} gives the
 genotypes as the display's clustering reads them
-\item \code{rows}: \code{name}, \code{sample}, \code{haplotype}, \code{ploidy} and \code{color}, the bar
-the display marks the row with under \code{rowColor}, \code{""} where none. The
-matrix draws its rows in this table's order, and only these rows:
-reorder or filter it to rearrange them. Set \code{tree} to an \code{\link[=hclust]{hclust()}}
-result, or anything \code{\link[=as.hclust]{as.hclust()}} takes, labelled by \code{name}, such as
-\code{hclust(dist(as.matrix(v)), "average")}, and the rows take its leaf
-order and \code{\link[=autoplot]{autoplot()}} draws it beside them
+\item \code{rows}: \code{name}, \code{label}, \code{sample}, \code{haplotype}, \code{ploidy}, \code{band},
+its \code{facet} value, and \code{color}, the bar the display marks the row with
+under \code{rowColor}, \code{""} where none. The rows come in the display's
+arrangement, and the matrix draws them in this table's order, and only
+these rows: reorder or filter it to rearrange them. Set \code{tree} to an
+\code{\link[=hclust]{hclust()}} result, or anything \code{\link[=as.hclust]{as.hclust()}} takes, labelled by
+\code{name}, such as \code{hclust(dist(as.matrix(v)), "average")}, and the rows
+take its leaf order and \code{\link[=autoplot]{autoplot()}} draws it beside them. A list of
+trees is a forest, one per band, as the display clusters each band
+apart
+\item \code{bands}: each band's \code{key} and \code{label}, in the order they stack. Banded
+rows stay in their band whatever order \code{rows} or \code{tree} gives them
 \item \code{legend}: the display's key, its title as the frame's \code{"title"}
 attribute
 \item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws

@@ -368,6 +368,23 @@ v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
 v$tree <- hclust(dist(as.matrix(v)), "average")
 autoplot(v, layout = "columns")
 )-"),
+  variants_banded = list(
+    caption = "Each superpopulation clusters apart in its own band, and the records crowding a pixel fade by how many share it.",
+    title = "100 people's genotypes across DCST2 in a band per superpopulation, each band clustered",
+    locus = "1:155,000,001-155,050,000", height = 7,
+    jbrowse = c("--hub", "hg19", "--tracks", population_tracks(), "--track",
+      "people", "variantLayout=genomic", "facet=superpopulation",
+      "runClustering=true", "--loc", "1:155,000,001-155,050,000"),
+    r = r"-(
+v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
+  samples = e("1000g_dcst2_samples.tsv"),
+  display = list(rowColor = list(field = "superpopulation"),
+    facet = "superpopulation"))
+m <- as.matrix(v)
+v$tree <- lapply(split(rownames(m), v$rows$band), function(rows)
+  hclust(dist(m[rows, ]), "average"))
+autoplot(v)
+)-"),
   collapsed_introns = list(
     caption = "Each junction's read count sits over the arc joining its two exons, and the direct RNA reads run across.",
     title = "GAPDH's nine exons side by side, with the junctions between them as arcs",

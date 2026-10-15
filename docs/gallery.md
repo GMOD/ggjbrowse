@@ -402,6 +402,37 @@ jb2export --hub hg19 \
   --width 1200 --out variants_clustered.png
 ```
 
+<a id="variants_banded"></a>
+
+## 100 people's genotypes across DCST2 in a band per superpopulation, each band clustered
+
+`1:155,000,001-155,050,000`
+
+<table>
+<tr><td width="50%"><img src="../gallery/variants_banded-jbrowse.webp" alt="100 people's genotypes across DCST2 in a band per superpopulation, each band clustered in JBrowse. Each superpopulation clusters apart in its own band, and the records crowding a pixel fade by how many share it." width="100%"></td><td width="50%"><img src="../gallery/variants_banded-r.webp" alt="100 people's genotypes across DCST2 in a band per superpopulation, each band clustered drawn by ggjbrowse. Each superpopulation clusters apart in its own band, and the records crowding a pixel fade by how many share it." width="100%"></td></tr>
+</table>
+
+Each superpopulation clusters apart in its own band, and the records crowding a pixel fade by how many share it.
+
+```r
+v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
+  samples = e("1000g_dcst2_samples.tsv"),
+  display = list(rowColor = list(field = "superpopulation"),
+    facet = "superpopulation"))
+m <- as.matrix(v)
+v$tree <- lapply(split(rownames(m), v$rows$band), function(rows)
+  hclust(dist(m[rows, ]), "average"))
+autoplot(v)
+```
+
+```sh
+jb2export --hub hg19 \
+  --tracks gallery/jb2export/people.tracks.json \
+  --track people variantLayout=genomic facet=superpopulation runClustering=true \
+  --loc 1:155,000,001-155,050,000 \
+  --width 1200 --out variants_banded.png
+```
+
 <a id="collapsed_introns"></a>
 
 ## GAPDH's nine exons side by side, with the junctions between them as arcs

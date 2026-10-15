@@ -203,9 +203,12 @@ GeomTree <- ggplot2::ggproto("GeomTree", ggplot2::Geom,
 #' display draws its clustering tree in its sidebar. `tree` takes an
 #' [stats::hclust()] result, or anything [stats::as.hclust()] takes, labelled
 #' by the rows' `name` (a quantitative track's `sources`' `name`); setting it
-#' also puts the rows in its leaf order. A quantitative track's rows are its
-#' sources under a row layout. A plot of one's own draws outside the panel
-#' only under `coord_cartesian(clip = "off")`.
+#' also puts the rows in its leaf order. A list of trees is a forest, which
+#' orders the rows tree by tree. Under a variant display's `facet`, only a
+#' clade whose leaves are exactly one band's rows draws, as in the display.
+#' A quantitative track's rows are its sources under a row layout. A plot of
+#' one's own draws outside the panel only under
+#' `coord_cartesian(clip = "off")`.
 #' @param mapping aesthetics that override the defaults, `colour` and
 #'   `linewidth`
 #' @param data a [jbrowse_variants()] or [jbrowse_wiggle()] result, or

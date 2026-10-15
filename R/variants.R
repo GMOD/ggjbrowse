@@ -29,7 +29,11 @@ variants_adapter <- function(file, index, samples) {
 #'   per haplotype), `color` (a field such as `"svType"` or `"impact"`, or a
 #'   list of the color object's slots), `filter` (jexl expressions),
 #'   `minorAlleleFrequencyFilter`, `maxMissingnessFilter`,
-#'   `referenceDrawingMode` (`"skip"` or `"draw"`) and `shadeByDosage`
+#'   `referenceDrawingMode` (`"skip"` or `"draw"`), `shadeByDosage`, `rows`
+#'   (the arrangement a session saves: `domain`, the rows listed first in
+#'   order, `labels`, a label by row name, and `kept`, the rows shown) and
+#'   `facet` (a samples file attribute, or `list(field, domain)`, whose values
+#'   each take a band of rows)
 #' @param index the tabix or CSI index, if not beside `file` under its usual
 #'   name
 #' @param samples a tab-separated file of the samples' attributes, a `name`
@@ -48,13 +52,18 @@ variants_adapter <- function(file, index, samples) {
 #'     fill the display paints; under `referenceDrawingMode = "skip"`, the
 #'     default, a reference call has no cell. [as.matrix()] gives the
 #'     genotypes as the display's clustering reads them
-#'   * `rows`: `name`, `sample`, `haplotype`, `ploidy` and `color`, the bar
-#'     the display marks the row with under `rowColor`, `""` where none. The
-#'     matrix draws its rows in this table's order, and only these rows:
-#'     reorder or filter it to rearrange them. Set `tree` to an [hclust()]
-#'     result, or anything [as.hclust()] takes, labelled by `name`, such as
-#'     `hclust(dist(as.matrix(v)), "average")`, and the rows take its leaf
-#'     order and [autoplot()] draws it beside them
+#'   * `rows`: `name`, `label`, `sample`, `haplotype`, `ploidy`, `band`,
+#'     its `facet` value, and `color`, the bar the display marks the row with
+#'     under `rowColor`, `""` where none. The rows come in the display's
+#'     arrangement, and the matrix draws them in this table's order, and only
+#'     these rows: reorder or filter it to rearrange them. Set `tree` to an
+#'     [hclust()] result, or anything [as.hclust()] takes, labelled by
+#'     `name`, such as `hclust(dist(as.matrix(v)), "average")`, and the rows
+#'     take its leaf order and [autoplot()] draws it beside them. A list of
+#'     trees is a forest, one per band, as the display clusters each band
+#'     apart
+#'   * `bands`: each band's `key` and `label`, in the order they stack. Banded
+#'     rows stay in their band whatever order `rows` or `tree` gives them
 #'   * `legend`: the display's key, its title as the frame's `"title"`
 #'     attribute
 #'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws

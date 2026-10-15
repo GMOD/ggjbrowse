@@ -60,6 +60,8 @@ remotes::install_github("GMOD/ggjbrowse")
 <tr><td width="50%"><img src="gallery/variants_by_population-jbrowse.webp" alt="100 people's genotypes across DCST2 (GRCh37), colored by superpopulation in JBrowse. 20 people from each superpopulation genotyped at 249 variants, a column per record, the East Asians homozygous for the alt allele at many of the first 40." width="100%"></td><td width="50%"><img src="gallery/variants_by_population-r.webp" alt="100 people's genotypes across DCST2 (GRCh37), colored by superpopulation drawn by ggjbrowse. 20 people from each superpopulation genotyped at 249 variants, a column per record, the East Asians homozygous for the alt allele at many of the first 40." width="100%"></td></tr>
 <tr><td colspan="2"><b><a href="docs/gallery.md#variants_clustered">100 people's genotypes across DCST2 clustered, the tree beside the rows</a></b> <code>1:155,000,001-155,050,000</code></td></tr>
 <tr><td width="50%"><img src="gallery/variants_clustered-jbrowse.webp" alt="100 people's genotypes across DCST2 clustered, the tree beside the rows in JBrowse. Most East Asians gather near the top, the Africans and Europeans further down." width="100%"></td><td width="50%"><img src="gallery/variants_clustered-r.webp" alt="100 people's genotypes across DCST2 clustered, the tree beside the rows drawn by ggjbrowse. Most East Asians gather near the top, the Africans and Europeans further down." width="100%"></td></tr>
+<tr><td colspan="2"><b><a href="docs/gallery.md#variants_banded">100 people's genotypes across DCST2 in a band per superpopulation, each band clustered</a></b> <code>1:155,000,001-155,050,000</code></td></tr>
+<tr><td width="50%"><img src="gallery/variants_banded-jbrowse.webp" alt="100 people's genotypes across DCST2 in a band per superpopulation, each band clustered in JBrowse. Each superpopulation clusters apart in its own band, and the records crowding a pixel fade by how many share it." width="100%"></td><td width="50%"><img src="gallery/variants_banded-r.webp" alt="100 people's genotypes across DCST2 in a band per superpopulation, each band clustered drawn by ggjbrowse. Each superpopulation clusters apart in its own band, and the records crowding a pixel fade by how many share it." width="100%"></td></tr>
 <tr><td colspan="2"><b><a href="docs/gallery.md#collapsed_introns">GAPDH's nine exons side by side, with the junctions between them as arcs</a></b> <code>ENST00000229239.10's exons, each padded by 20 bp</code></td></tr>
 <tr><td width="50%"><img src="gallery/collapsed_introns-jbrowse.webp" alt="GAPDH's nine exons side by side, with the junctions between them as arcs in JBrowse. Each junction's read count sits over the arc joining its two exons, and the direct RNA reads run across." width="100%"></td><td width="50%"><img src="gallery/collapsed_introns-r.webp" alt="GAPDH's nine exons side by side, with the junctions between them as arcs drawn by ggjbrowse. Each junction's read count sits over the arc joining its two exons, and the direct RNA reads run across." width="100%"></td></tr>
 <tr><td colspan="2"><b><a href="docs/gallery.md#inversion_synteny">HG002's maternal chr8 over its paternal copy at 8p23.1</a></b> <code>chr8_MATERNAL:5,250,001-14,250,000 chr8_PATERNAL:5,250,001-14,250,000</code></td></tr>
@@ -223,7 +225,12 @@ the fill the display paints it, its hue shaded by the alt dosage
   haplotype, `color`, `filter`, `minorAlleleFrequencyFilter`, ...
 - `samples` is a table of the samples' attributes, which `rowColor` marks the
   rows by.
-- Reordering or filtering `v$rows` rearranges the matrix's rows.
+- `rows` arranges the rows as a saved session does. `domain` lists the rows
+  that lead, `labels` renames rows, and `kept` names the rows shown.
+- `facet = "superpopulation"` stacks the rows in a band per value, named
+  beside them ([by band](docs/gallery.md#variants_banded)).
+- Reordering or filtering `v$rows` rearranges the matrix's rows, each
+  staying in its band.
 - `as.matrix(v)` is the genotype matrix the display's "Cluster rows by
   genotype" clusters, a column per ALT allele with `NA` for a no-call.
 - A tree in `v$tree` puts the rows in its leaf order, and `autoplot()` draws
@@ -231,6 +238,10 @@ the fill the display paints it, its hue shaded by the alt dosage
   `v$tree <- hclust(dist(as.matrix(v)), "average")`, and any `hclust`, or
   anything `as.hclust()` takes, labelled by row name, will do
   ([clustered](docs/gallery.md#variants_clustered)).
+- Under bands, a list of trees, one per band, clusters each band apart, as
+  the display does.
+- Zoomed out, records sharing a pixel fade by how many share it, as the
+  display fades them, so a row shades by its share of alt records.
 
 ## A view of several tracks
 
@@ -352,8 +363,6 @@ yet in a release. It writes one ggjbrowse reader per open track, then
 
 ## Not yet
 
-- The variant display's row arrangements other than clustering (bands, a
-  saved order) and its zoomed-out density fade
 - Facets on a feature track
 - The amino-acid overlay on a zoomed-in CDS
 - A CRAN submission: `R CMD check --as-cran` leaves the new-submission NOTE,

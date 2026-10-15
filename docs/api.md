@@ -14,7 +14,7 @@
 | `jbrowse_alignments()` | BAM, CRAM | `reads`, `mismatches`, `gaps`, `insertions`, `clips`, `coverage`, `allele_coverage`, `junctions`, `arcs`, ... |
 | `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `labels` |
 | `jbrowse_wiggle()` | BigWig | `bins`, `marks`, `sources`, `rules` |
-| `jbrowse_variants()` | VCF | `variants`, `cells`, `rows` |
+| `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands` |
 | `jbrowse_synteny()` | PAF, PIF, delta, chain, MashMap | `alignments`, `ribbons`, `offscreen*` |
 | `jbrowse_dotplot()` | the same | `alignments`, `segments` |
 | `jbrowse_multiway()` | an all-vs-all PAF | `lanes`, `segments`, `blocks`, `ribbons`, `alignments` |
@@ -56,6 +56,12 @@
   Filtering `reads` keeps the id.
 - `fade` is the share of the depth a mark's site holds, zero under the
   display's threshold. R applies it at the figure's pixels per base.
+- `jbrowse_variants()` returns its `rows` in the display's arrangement, by
+  the `rows` config (`domain`, `labels`, `kept`) and the `facet` bands.
+  `tree` takes an `hclust`, or a list of them, one per band.
+- `geom_jbrowse_genotypes()` fades records that share a pixel at the figure's
+  `width`, through the engine's `variantDensityAlpha`. `fade = FALSE` turns
+  it off.
 - `byte_limit` refuses a region whose compressed size, read off the index,
   passes it. The default is 200 MB.
 - A CRAM needs `reference`, because it stores reads against the FASTA it was
