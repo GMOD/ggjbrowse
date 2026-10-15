@@ -33,8 +33,14 @@ scripts/build-js.sh
 ```
 
 - `build-js.sh` reads `$JBROWSE_COMPONENTS`, default `../jbrowse-components`.
+  It then runs `scripts/credit-bundle.mjs`, which reads the bundle's esbuild
+  metafile and writes each bundled package's version, license and copyright
+  to `inst/COPYRIGHTS`, which DESCRIPTION's `Copyright` field names.
 - `scripts/take-release.sh [version]` takes a published release from npm
-  instead, the latest by default.
+  instead, the latest by default. The npm release names no commit to credit
+  from, so `inst/COPYRIGHTS` keeps the last `build-js.sh` list. Before a CRAN
+  submission, rebuild with `build-js.sh` so one commit gives the bundle and
+  its credits.
 - `scripts/check-against-jbrowse.sh` rebuilds, installs and runs the tests in
   one step. jbrowse-components' downstream canary runs it against its main
   nightly.

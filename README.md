@@ -345,6 +345,8 @@ yet in a release. It writes one ggjbrowse reader per open track, then
   JavaScript toolchain.
 - JBrowse's own tests hold the bundle, run with no web globals, to the
   browser's engine.
+- [`inst/COPYRIGHTS`](inst/COPYRIGHTS) names the bundle's source and the
+  license and copyright of each package bundled in it.
 - [CONTRIBUTING.md](CONTRIBUTING.md#updating-the-engine) covers rebuilding it
   and the CI that takes each new release.
 
@@ -354,8 +356,9 @@ yet in a release. It writes one ggjbrowse reader per open track, then
   saved order) and its zoomed-out density fade
 - Facets on a feature track
 - The amino-acid overlay on a zoomed-in CDS
-- A CRAN release, which needs the bundle's own dependencies credited (`cph`
-  and a LICENSE.note) and its source named
+- A CRAN submission: `R CMD check --as-cran` leaves the new-submission NOTE,
+  and the 7.9 MB installed size, 4.3 MB of it `inst/extdata`, may need
+  trimming or a word to CRAN
 
 ## Docs
 
