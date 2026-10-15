@@ -59,9 +59,10 @@ features_adapter <- function(file, index) {
 #'   pixels to the panel, so a smaller `width` gives larger labels in a figure
 #'   of the same size
 #' @param reference the reference FASTA (indexed) or 2bit, path or URL, for
-#'   `color_by_cds`
+#'   `color_by_cds`; `NULL` takes `assembly`'s sequence
 #' @param reference_chrom the contig's name in `reference`, where the file
 #'   spells it another way: one name for every region, or one per region
+#' @inheritParams jbrowse_alignments
 #' @param color_by_cds paint each CDS by its reading frame, as the view's
 #'   "Color by CDS" does
 #' @param amino_acids with `reference`, translate each CDS once the layout
@@ -104,6 +105,18 @@ features_adapter <- function(file, index) {
 #'   * `ramps`: the color bars the display keys, as [guides_jbrowse()] draws
 #'     them
 #'
+#'   A VCF reads as JBrowse's plain variant track draws it, every record
+#'   whether or not it calls a genotype, so a calls VCF with no GT reads
+#'   here where [jbrowse_variants()] keeps none. `features` then also holds
+#'   each record's `ref`, `alt`, `filter` and a column per INFO key, typed as
+#'   [jbrowse_variants()] types them, and the result adds:
+#'   * `info_fields`: each INFO column's `key`, `number`, `type`,
+#'     `description` and `column`
+#'   * `samples`: a row per record and sample, `feature`, `sample` and a
+#'     column per FORMAT key, typed as INFO is (`AD`, `DP`, ...), named
+#'     `format_<key>` where the key names a column above
+#'   * `format_fields`: each FORMAT column's declaration, as `info_fields`
+#'
 #'   `feature` is a row number of `features`, and every mark table carries its
 #'   feature's `section`, a factor in stacking order. `glyph` gives the pixel
 #'   sizes the display draws text, arrows, chevrons and section chips
@@ -116,21 +129,21 @@ features_adapter <- function(file, index) {
 #' head(g$features)
 jbrowse_features <- function(file, region, start = NULL, end = NULL,
                              display = NULL, width = 800, reference = NULL,
-                             reference_chrom = NULL, color_by_cds = FALSE,
-                             amino_acids = TRUE, index = NULL,
-                             byte_limit = 2e8) {
+                             reference_chrom = NULL, assembly = NULL,
+                             color_by_cds = FALSE, amino_acids = TRUE,
+                             index = NULL, byte_limit = 2e8) {
   regions <- regions_of(region, start, end)
-  args <- list(
+  read <- data.frame(refName = regions$chrom, start = regions$start,
+    end = regions$end)
+  read$originalRefName <- reference_chroms(reference_chrom, regions)
+  args <- c(list(
     adapterConfig = adapter_of(file, function()
       features_adapter(file, index)),
-    regions = data.frame(refName = regions$chrom,
-      originalRefName = reference_chroms(reference_chrom, regions),
-      start = regions$start, end = regions$end),
+    regions = read,
     bpPerPx = sum(regions$end - regions$start) / width,
     colorByCDS = color_by_cds,
     aminoAcids = amino_acids,
-    byteLimit = byte_limit)
-  if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
+    byteLimit = byte_limit), reference_args(reference, assembly))
   display <- display %||% list()
   display$heightMode <- display$heightMode %||% "grow"
   display$color <- config_color(display$color)
@@ -146,6 +159,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
   all_features <- as_frame(t$features)
   all_subfeatures <- as_frame(t$subfeatures)
   sections <- as_frame(t$sections)
+  vcf <- vcf_columns(t$vcf, nrow(all_features), names(all_features))
   join_regions(regions, lapply(seq_len(nrow(regions)), function(i) {
     # the engine numbers features and subfeatures across every region
     before <- sum(all_features$region < i - 1)
@@ -158,6 +172,14 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
     }
     features <- of_region(t$features)
     features$section <- factor(features$section, levels = sections$label)
+    in_region <- which(all_features$region == i - 1)
+    if (!is.null(vcf)) {
+      features <- cbind(features, vcf$records[in_region, , drop = FALSE])
+      samples <- vcf$samples[vcf$samples$feature %in% in_region, ,
+        drop = FALSE]
+      samples$feature <- match(samples$feature, in_region)
+      rownames(samples) <- NULL
+    }
     on_feature <- function(table) {
       d <- of_region(table)
       d$feature <- d$feature - before + 1
@@ -180,6 +202,9 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
         lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
         arrows = arrows, amino_acids = residues, labels = labels,
         sections = sections, legend = legend,
+        info_fields = vcf$info_fields,
+        samples = if (!is.null(vcf)) samples,
+        format_fields = vcf$format_fields,
         keys = list(features = legend), ramps = ramp_frames(t$ramps),
         glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
         region = as.list(regions[i, ]),

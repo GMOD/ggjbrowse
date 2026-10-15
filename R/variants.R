@@ -14,6 +14,11 @@ variants_adapter <- function(file, index, samples) {
 #' paints each cell, its hue shaded by the alt dosage. Coordinates are 0-based,
 #' half-open, on the reference.
 #'
+#' The display keeps a record only where some sample calls an allele, so a
+#' calls VCF whose FORMAT has no GT, such as a somatic SV caller's, keeps
+#' none. [jbrowse_features()] reads its records as JBrowse's plain variant
+#' track draws them, with their FILTER, INFO and FORMAT columns.
+#'
 #' @param file a VCF, bgzipped with a tabix or CSI index beside it, or plain;
 #'   a path or a URL; or a JBrowse track's `adapter` config, as a list
 #' @param region the region: a locus as JBrowse's location box writes it
@@ -42,6 +47,7 @@ variants_adapter <- function(file, index, samples) {
 #'   the rows by, e.g. `list(rowColor = list(field = "group"))`
 #' @param byte_limit the most compressed bytes the region may need, refused
 #'   off the index before any record is fetched
+#' @inheritParams jbrowse_alignments
 #' @return a `jbrowse_variants` list of data frames:
 #'   * `variants`: each record the display keeps: `start`, `end`, `id`,
 #'     `name`, `ref`, `alt`, `type`, `color`, its lane color, `filter`, the
@@ -86,18 +92,19 @@ variants_adapter <- function(file, index, samples) {
 #' head(v$cells)
 jbrowse_variants <- function(file, region, start = NULL, end = NULL,
                              display = NULL, index = NULL, samples = NULL,
-                             byte_limit = 2e8) {
+                             assembly = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
   read_regions(region, start, end, function(chrom, start, end, share, i)
-    variants_region(adapter, chrom, start, end, display, byte_limit))
+    variants_region(adapter, chrom, start, end, display, assembly, byte_limit))
 }
 
-variants_region <- function(adapter, chrom, start, end, display,
+variants_region <- function(adapter, chrom, start, end, display, assembly,
                             byte_limit) {
   args <- list(
     adapterConfig = adapter,
     region = list(refName = chrom, start = start, end = end),
     byteLimit = byte_limit)
+  if (!is.null(assembly)) args$assembly <- assembly_config(assembly)
   if (!is.null(display)) {
     display$color <- config_color(display$color)
     if (!is.null(display$filter)) display$filter <- I(display$filter)
@@ -107,14 +114,10 @@ variants_region <- function(adapter, chrom, start, end, display,
   variants <- as_frame(t$variants)
   variants$color <- jbrowse_color(variants$color)
   variants$filter <- as.character(variants$filter)
-  info_fields <- as_frame(t$infoFields)
-  info_fields$column <- ifelse(info_fields$key %in% names(variants),
-    paste0("info_", info_fields$key), info_fields$key)
-  for (i in seq_len(nrow(info_fields))) {
-    variants[[info_fields$column[i]]] <- info_column(
-      t$info[[info_fields$key[i]]], info_fields$number[i],
-      info_fields$type[i])
-  }
+  info <- typed_columns(t$info, t$infoFields, nrow(variants), names(variants),
+    "info")
+  variants <- cbind(variants, info$frame)
+  info_fields <- info$fields
   rows <- as_frame(t$rows)
   rows$color <- jbrowse_color(rows$color)
   bands <- as_frame(t$bands)[c("key", "label")]
@@ -142,6 +145,42 @@ variants_region <- function(adapter, chrom, start, end, display,
       missing_contig = t$missingContig),
     primary = "cells",
     class = c("jbrowse_variants", "jbrowse_result"))
+}
+
+# A VCF's INFO or FORMAT values as a data frame of `n` rows, a column per
+# key typed by `info_column()`, each named as its key, or `<prefix>_<key>`
+# where the key names one of `taken`; and the keys' `fields` with the
+# `column` each took
+typed_columns <- function(values, fields, n, taken, prefix) {
+  fields <- as_frame(fields)
+  fields$column <- ifelse(fields$key %in% taken,
+    paste0(prefix, "_", fields$key), fields$key)
+  frame <- data.frame(row.names = seq_len(n))
+  for (i in seq_len(nrow(fields))) {
+    frame[[fields$column[i]]] <- info_column(values[[fields$key[i]]],
+      fields$number[i], fields$type[i])
+  }
+  list(frame = frame, fields = fields)
+}
+
+# A VCF read as features' own columns, aligned to `n` features: each
+# record's `ref`, `alt`, `filter` and INFO in `records`, and each sample's
+# FORMAT values in `samples`, `feature` a row number of the features; NULL
+# for a file that is not a VCF
+vcf_columns <- function(vcf, n, taken) {
+  if (is.null(vcf)) return(NULL)
+  records <- data.frame(ref = as.character(unlist(vcf$records$ref)),
+    alt = as.character(unlist(vcf$records$alt)),
+    filter = as.character(unlist(lapply(vcf$records$filter,
+      function(f) f %||% NA_character_))), row.names = seq_len(n))
+  info <- typed_columns(vcf$info, vcf$infoFields, n,
+    c(taken, names(records), "chrom"), "info")
+  samples <- data.frame(feature = as.numeric(unlist(vcf$samples$feature)) + 1,
+    sample = as.character(unlist(vcf$samples$sample)))
+  format <- typed_columns(vcf$format, vcf$formatFields, nrow(samples),
+    c(names(samples), "chrom"), "format")
+  list(records = cbind(records, info$frame), info_fields = info$fields,
+    samples = cbind(samples, format$frame), format_fields = format$fields)
 }
 
 # An INFO key's values as a column, typed by its header line: a flag as

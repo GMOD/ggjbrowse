@@ -11,6 +11,7 @@ jbrowse_alignments(
   end = NULL,
   reference = NULL,
   reference_chrom = NULL,
+  assembly = NULL,
   index = NULL,
   display = NULL,
   byte_limit = 2e+08
@@ -31,11 +32,17 @@ with \code{start} and \code{end}}
 
 \item{reference}{the reference: an indexed FASTA, plain or bgzipped, or a
 2bit, path or URL; a CRAM and the bisulfite layer need it, and a BAM
-read without an MD tag is compared against it}
+read without an MD tag is compared against it. \code{NULL} takes
+\code{assembly}'s sequence}
 
 \item{reference_chrom}{the contig's name in \code{reference}, where the file
 spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA): one name
-for every region, or one per region}
+for every region, or one per region. An \code{assembly} with aliases finds it}
+
+\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
+config's \code{assemblies} entry writes it: \code{region} may name a contig by any
+alias it lists, the file is read under its own, and the tables name the
+contig as \code{region} does}
 
 \item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
 

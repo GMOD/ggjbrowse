@@ -23,7 +23,9 @@ Each track's plot, or an alignments track's bands, one above the other in
 the order given, on one x axis written under the last, with the keys
 collected beside them: the figure a JBrowse view of these tracks shows.
 Each piece is an ordinary ggplot, so \code{autoplot(reads, "pileup")} or a plot
-of your own built from the same tables restyles one band.
+of your own built from the same tables restyles one band. A key two tracks
+share, such as two alignments tracks' "Insertions and clips", is drawn
+once, listing every entry either track holds.
 }
 \examples{
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")

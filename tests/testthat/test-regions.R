@@ -39,7 +39,7 @@ test_that("a contig the file lacks warns only where no region is on one it has",
 
 test_that("reference_chrom names every region's contig, or each its own", {
   r <- regions_of(c("1:1-100", "2:1-100"), NULL, NULL)
-  expect_equal(reference_chroms(NULL, r), c("1", "2"))
+  expect_null(reference_chroms(NULL, r))
   expect_equal(reference_chroms("chr1", r), c("chr1", "chr1"))
   expect_equal(reference_chroms(c("chr1", "chr2"), r), c("chr1", "chr2"))
   expect_error(jbrowse_alignments(extdata("volvox-sorted.bam"),

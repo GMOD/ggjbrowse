@@ -30,9 +30,9 @@ regions_of <- function(region, start, end) {
 }
 
 # Each region's contig as `reference` spells it: `reference_chrom` for every
-# region, or one per region, else the region's own
+# region, or one per region, else NULL, which the engine resolves
 reference_chroms <- function(reference_chrom, regions) {
-  if (is.null(reference_chrom)) return(regions$chrom)
+  if (is.null(reference_chrom)) return(NULL)
   if (!length(reference_chrom) %in% c(1, nrow(regions))) {
     stop("give reference_chrom once, or once per region (", nrow(regions),
       ")", call. = FALSE)
@@ -80,9 +80,9 @@ join_regions <- function(regions, parts) {
 }
 
 # The tables that list a result's keys, sections and rows rather than marks
-# on the reference. bind_regions() binds the first three, each row once.
-LISTING <- c("legend", "arc_legend", "info_fields", "sections", "sources",
-  "rows", "rules", "bands")
+# on the reference. bind_regions() binds the first four, each row once.
+LISTING <- c("legend", "arc_legend", "info_fields", "format_fields",
+  "sections", "sources", "rows", "rules", "bands")
 
 placed <- function(x, chrom, i) {
   for (name in setdiff(names(x), LISTING)) {
@@ -139,7 +139,7 @@ bind_regions <- function(regions, parts) {
   }
   out <- parts[[1]]
   for (name in names(out)) {
-    if (is.data.frame(out[[name]]) && !name %in% LISTING[-(1:3)]) {
+    if (is.data.frame(out[[name]]) && !name %in% LISTING[-(1:4)]) {
       out[[name]] <- bound(function(x) x[[name]])
       if (name %in% LISTING) out[[name]] <- unique(out[[name]])
     }

@@ -8,7 +8,7 @@ jbrowse_sequence(reference, chrom, start, end)
 }
 \arguments{
 \item{reference}{an indexed FASTA, plain or bgzipped, or a 2bit, path or
-URL}
+URL; or a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, whose aliases then name \code{chrom}}
 
 \item{chrom, start, end}{the region, 0-based half-open}
 }

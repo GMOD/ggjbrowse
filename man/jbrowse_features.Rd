@@ -13,6 +13,7 @@ jbrowse_features(
   width = 800,
   reference = NULL,
   reference_chrom = NULL,
+  assembly = NULL,
   color_by_cds = FALSE,
   amino_acids = TRUE,
   index = NULL,
@@ -57,10 +58,15 @@ pixels to the panel, so a smaller \code{width} gives larger labels in a figure
 of the same size}
 
 \item{reference}{the reference FASTA (indexed) or 2bit, path or URL, for
-\code{color_by_cds}}
+\code{color_by_cds}; \code{NULL} takes \code{assembly}'s sequence}
 
 \item{reference_chrom}{the contig's name in \code{reference}, where the file
 spells it another way: one name for every region, or one per region}
+
+\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
+config's \code{assemblies} entry writes it: \code{region} may name a contig by any
+alias it lists, the file is read under its own, and the tables name the
+contig as \code{region} does}
 
 \item{color_by_cds}{paint each CDS by its reading frame, as the view's
 "Color by CDS" does}
@@ -109,6 +115,20 @@ and \code{y} (its baseline) in pixels, and \code{color}
 field, its title as the frame's \code{"title"} attribute
 \item \code{ramps}: the color bars the display keys, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws
 them
+}
+
+A VCF reads as JBrowse's plain variant track draws it, every record
+whether or not it calls a genotype, so a calls VCF with no GT reads
+here where \code{\link[=jbrowse_variants]{jbrowse_variants()}} keeps none. \code{features} then also holds
+each record's \code{ref}, \code{alt}, \code{filter} and a column per INFO key, typed as
+\code{\link[=jbrowse_variants]{jbrowse_variants()}} types them, and the result adds:
+\itemize{
+\item \code{info_fields}: each INFO column's \code{key}, \code{number}, \code{type},
+\code{description} and \code{column}
+\item \code{samples}: a row per record and sample, \code{feature}, \code{sample} and a
+column per FORMAT key, typed as INFO is (\code{AD}, \code{DP}, ...), named
+\verb{format_<key>} where the key names a column above
+\item \code{format_fields}: each FORMAT column's declaration, as \code{info_fields}
 }
 
 \code{feature} is a row number of \code{features}, and every mark table carries its

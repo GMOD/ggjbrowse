@@ -534,6 +534,35 @@ test_that("every section keys the track's read colors, insertions and clips", {
   }
 })
 
+test_that("a stack draws a key two tracks share once, with every entry either holds", {
+  locus <- "chr1:197,786,900-197,789,700"
+  tumor <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"), locus)
+  normal <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"), locus,
+    display = list(filter = list(flagExclude = 3588)))
+  expect_true("Hard clip" %in% tumor$keys$interbase$label)
+  expect_false("Hard clip" %in% normal$keys$interbase$label)
+  collected <- function(fig) {
+    grob <- patchwork::patchworkGrob(fig)
+    text <- character(0)
+    walk <- function(g) {
+      if (inherits(g, "text") || inherits(g, "titleGrob")) {
+        text <<- c(text, g$label)
+      }
+      for (child in c(g$children, g$grobs)) walk(child)
+    }
+    for (box in grob$grobs[startsWith(grob$layout$name, "guide-box")]) {
+      walk(box)
+    }
+    text
+  }
+  for (fig in list(jbrowse_stack(tumor, normal), jbrowse_stack(normal, tumor),
+    autoplot(normal, above = tumor))) {
+    text <- collected(fig)
+    expect_equal(sum(text == "Insertions and clips"), 1)
+    expect_equal(sum(text == "Hard clip"), 1)
+  }
+})
+
 test_that("the junction band hides non-canonical junctions where the display does", {
   read <- function(show) jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700", reference = extdata("gapdh_hg38.fa.gz"),

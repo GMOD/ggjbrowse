@@ -4,7 +4,9 @@
 #' the order given, on one x axis written under the last, with the keys
 #' collected beside them: the figure a JBrowse view of these tracks shows.
 #' Each piece is an ordinary ggplot, so `autoplot(reads, "pileup")` or a plot
-#' of your own built from the same tables restyles one band.
+#' of your own built from the same tables restyles one band. A key two tracks
+#' share, such as two alignments tracks' "Insertions and clips", is drawn
+#' once, listing every entry either track holds.
 #'
 #' @param ... [jbrowse_features()], [jbrowse_wiggle()], [jbrowse_variants()]
 #'   and [jbrowse_alignments()] results over the same regions, top to bottom,
@@ -33,6 +35,7 @@ jbrowse_stack <- function(...) {
       call. = FALSE)
   }
   same_regions(results)
+  tracks <- with_shared_keys(tracks)
   px <- stack_px(results)
   stack_bands(unname(Map(function(track, name)
     titled(band_of(track, results[[1]], px), name), tracks,
@@ -62,6 +65,59 @@ listed_tracks <- function(tracks) {
   if (inherits(tracks, "jbrowse_result") || ggplot2::is_ggplot(tracks)) {
     list(tracks)
   } else as.list(tracks)
+}
+
+# The tracks with each key title that several results key under one key,
+# listing every entry any of them holds, in the order they first list them,
+# and `complete`, so each track draws all of it: patchwork collects equal
+# guides into one, and two tracks holding different subsets of one key would
+# otherwise show it twice. A junction key lists the strands of the junctions
+# the band shows at `min_reads`.
+with_shared_keys <- function(tracks, min_reads = NULL) {
+  is_result <- vapply(tracks, inherits, NA, "jbrowse_result")
+  keys <- lapply(tracks[is_result], drawn_keys, min_reads)
+  title_of <- function(k) attr(k, "title") %||% ""
+  owner <- rep(seq_along(keys), lengths(keys))
+  flat <- unlist(lapply(keys, unname), recursive = FALSE)
+  titles <- vapply(flat, title_of, "")
+  owners <- tapply(owner, titles, function(o) length(unique(o)))
+  shared <- setdiff(names(owners)[owners > 1], "")
+  merged <- lapply(stats::setNames(shared, shared), function(title) {
+    entries <- do.call(rbind, lapply(flat[titles == title], function(k)
+      data.frame(label = as.character(k$label),
+        color = as.character(k$color))))
+    entries <- entries[!duplicated(entries), , drop = FALSE]
+    key <- key_frame(entries$label, entries$color, title)
+    attr(key, "complete") <- TRUE
+    override <- Filter(Negate(is.null), lapply(flat[titles == title], attr,
+      "override"))
+    if (length(override)) attr(key, "override") <- override[[1]]
+    key
+  })
+  tracks[is_result] <- Map(function(track, own) {
+    for (name in names(own)) {
+      title <- title_of(own[[name]])
+      track$keys[[name]] <- merged[[title]] %||% own[[name]]
+    }
+    track
+  }, tracks[is_result], keys)
+  tracks
+}
+
+# A result's keys as its bands draw them: an alignments track's junction key
+# narrowed to the strands of the junctions shown at `min_reads`, unless a
+# stack made it `complete`
+drawn_keys <- function(x, min_reads = NULL) {
+  keys <- x$keys
+  if (inherits(x, "jbrowse_alignments") && !is.null(keys$junctions) &&
+    !isTRUE(attr(keys$junctions, "complete"))) {
+    shown <- shown_junctions(x,
+      min_reads %||% alignment_options(x)$min_reads)$color
+    key <- keys$junctions
+    keys$junctions <- key[key$color %in% shown, , drop = FALSE]
+    attr(keys$junctions, "title") <- attr(key, "title")
+  }
+  keys
 }
 
 # A track's bands on the axis of `axis`, a result: a ggplot of one's own as

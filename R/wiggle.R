@@ -23,6 +23,7 @@
 #'   domainMin =, domainMax =, domainQuantile =, zero =, rules =))`)
 #' @param width the width in pixels the display draws the region across,
 #'   which picks the BigWig zoom level that answers and so each bin's width
+#' @inheritParams jbrowse_alignments
 #' @return a `jbrowse_wiggle` list:
 #'   * `bins`: each bin's scores as the file serves them at this zoom:
 #'     `source`, `start`, `end`, `score`, and `min` and `max` where the file
@@ -47,7 +48,7 @@
 #' w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700)
 #' head(w$marks)
 jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
-                           display = NULL, width = 800) {
+                           display = NULL, width = 800, assembly = NULL) {
   regions <- regions_of(region, start, end)
   args <- list(
     adapterConfig = adapter_of(file, function()
@@ -55,6 +56,7 @@ jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
     regions = data.frame(refName = regions$chrom, start = regions$start,
       end = regions$end),
     bpPerPx = sum(regions$end - regions$start) / width)
+  if (!is.null(assembly)) args$assembly <- assembly_config(assembly)
   if (!is.null(display)) {
     display$color <- config_color(display$color)
     args$display <- display

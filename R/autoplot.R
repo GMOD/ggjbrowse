@@ -237,12 +237,10 @@ shown_junctions <- function(x, min_reads) {
 }
 
 junctions_plot <- function(x, o) {
-  shown <- shown_junctions(x, o$min_reads)$color
-  key <- x$keys$junctions
+  key <- drawn_keys(x, o$min_reads)$junctions
   band(ggplot2::ggplot(x) +
     geom_jbrowse_junctions(min_reads = o$min_reads) +
-    key_scale(ggplot2::scale_colour_identity,
-      key[key$color %in% shown, , drop = FALSE], attr(key, "title")) +
+    key_scale(ggplot2::scale_colour_identity, key, attr(key, "title")) +
     geom_jbrowse_junction_counts(min_reads = o$min_reads), x,
     ylim = c(0, 1.08)) +
     no_y
@@ -328,6 +326,10 @@ autoplot.jbrowse_alignments <- function(object,
   results <- Filter(function(t) inherits(t, "jbrowse_result"),
     c(above, list(object), below))
   same_regions(results)
+  shared <- with_shared_keys(c(above, list(object), below), o$min_reads)
+  above <- shared[seq_along(above)]
+  object <- shared[[length(above) + 1]]
+  below <- shared[-seq_len(length(above) + 1)]
   o$width <- o$width %||% stack_px(results)
   stack_bands(c(lapply(above, band_of, object, o$width),
     list(alignment_bands(object, o)), lapply(below, band_of, object, o$width)))

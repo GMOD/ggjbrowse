@@ -42,10 +42,15 @@ sequence_adapter <- function(reference) {
 #'   0-based half-open
 #' @param reference the reference: an indexed FASTA, plain or bgzipped, or a
 #'   2bit, path or URL; a CRAM and the bisulfite layer need it, and a BAM
-#'   read without an MD tag is compared against it
+#'   read without an MD tag is compared against it. `NULL` takes
+#'   `assembly`'s sequence
 #' @param reference_chrom the contig's name in `reference`, where the file
 #'   spells it another way (`1` in the BAM, `chr1` in the FASTA): one name
-#'   for every region, or one per region
+#'   for every region, or one per region. An `assembly` with aliases finds it
+#' @param assembly a [jbrowse_assembly()], or an assembly as a JBrowse
+#'   config's `assemblies` entry writes it: `region` may name a contig by any
+#'   alias it lists, the file is read under its own, and the tables name the
+#'   contig as `region` does
 #' @param index the BAI, CSI or CRAI, if not beside `file` under its usual name
 #' @param display the display's config, as a track's `displays` entry
 #'   writes it for a `LinearAlignmentsDisplay`, which is what JBrowse's
@@ -172,14 +177,15 @@ sequence_adapter <- function(reference) {
 #' a$legend
 jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
                                reference = NULL, reference_chrom = NULL,
-                               index = NULL, display = NULL,
+                               assembly = NULL, index = NULL, display = NULL,
                                byte_limit = 2e8) {
   adapter <- adapter_of(file, function() alignments_adapter(file, index))
-  if (adapter$type == "CramAdapter" && is.null(reference)) {
+  sequenced <- !is.null(reference) || has_sequence(assembly)
+  if (adapter$type == "CramAdapter" && !sequenced) {
     stop("a CRAM stores its reads against the reference it was encoded with: ",
       "pass that FASTA or 2bit as `reference =`", call. = FALSE)
   }
-  if (paints_bisulfite(display) && is.null(reference)) {
+  if (paints_bisulfite(display) && !sequenced) {
     stop("bisulfite calls compare each read's cytosines to the reference: ",
       "pass that FASTA or 2bit as `reference =`", call. = FALSE)
   }
@@ -187,11 +193,12 @@ jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
   spelt <- reference_chroms(reference_chrom, regions)
   read_regions(regions, NULL, NULL, function(chrom, start, end, share, i)
     alignments_region(adapter, chrom, start, end, reference, spelt[i],
-      display, byte_limit))
+      assembly, display, byte_limit))
 }
 
 alignments_region <- function(adapter, chrom, start, end, reference,
-                              reference_chrom, display, byte_limit) {
+                              reference_chrom, assembly, display,
+                              byte_limit) {
   display <- display %||% list()
   display$color <- config_color(display$color)
   if (!is.null(display$facet)) display$facet <- in_json(display$facet,
@@ -200,13 +207,11 @@ alignments_region <- function(adapter, chrom, start, end, reference,
     display$modifications <- in_json(display$modifications,
       "shownModifications")
   }
-  args <- list(
-    adapterConfig = adapter,
-    region = list(refName = chrom, originalRefName = reference_chrom,
-      start = start, end = end),
-    byteLimit = byte_limit)
+  region <- list(refName = chrom, start = start, end = end)
+  region$originalRefName <- reference_chrom
+  args <- c(list(adapterConfig = adapter, region = region,
+    byteLimit = byte_limit), reference_args(reference, assembly))
   if (length(display)) args$display <- display
-  if (!is.null(reference)) args$sequenceAdapter <- sequence_adapter(reference)
   t <- call_engine("alignments", args)
   sections <- as_frame(t$sections)
   frame <- function(table) {
@@ -308,8 +313,9 @@ alignments_region <- function(adapter, chrom, start, end, reference,
         junctions = junction_key, interbase = interbase_key),
       ramps = ramp_frames(t$ramps), coverage_scale = t$coverageScale,
       region = list(chrom = chrom, start = start, end = end),
-      reference = if (is.null(reference)) NULL else
-        list(file = reference, chrom = reference_chrom),
+      reference = if (!is.null(reference) || has_sequence(assembly))
+        list(file = reference %||% assembly,
+          chrom = t$readAs$originalRefName[[1]]),
       settings = t$settings, glyph = t$glyph,
       missing_contig = t$missingContig),
     primary = "reads",
@@ -320,7 +326,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
 #'
 #' The bases of a region, read through JBrowse's own FASTA or 2bit reader.
 #' @param reference an indexed FASTA, plain or bgzipped, or a 2bit, path or
-#'   URL
+#'   URL; or a [jbrowse_assembly()], whose aliases then name `chrom`
 #' @param chrom,start,end the region, 0-based half-open
 #' @return one string of `end - start` bases
 #' @export
@@ -328,8 +334,9 @@ alignments_region <- function(adapter, chrom, start, end, reference,
 #' fa <- system.file("extdata", "gapdh_hg38.fa.gz", package = "ggjbrowse")
 #' jbrowse_sequence(fa, "chr12", 6534500, 6534520)
 jbrowse_sequence <- function(reference, chrom, start, end) {
-  args <- list(sequenceAdapter = sequence_adapter(reference),
-    region = list(refName = chrom, start = start, end = end))
+  args <- c(list(region = list(refName = chrom, start = start, end = end)),
+    if (is.list(reference)) reference_args(NULL, reference)
+    else reference_args(reference, NULL))
   in_engine(function(ctx) ctx$call("jbrowse.sequence",
     as_engine_json(args), await = TRUE))
 }

@@ -10,7 +10,8 @@ jbrowse_wiggle(
   start = NULL,
   end = NULL,
   display = NULL,
-  width = 800
+  width = 800,
+  assembly = NULL
 )
 }
 \arguments{
@@ -35,6 +36,11 @@ list of the color object's slots) and \code{scales} (\code{list(y = list(type =,
 
 \item{width}{the width in pixels the display draws the region across,
 which picks the BigWig zoom level that answers and so each bin's width}
+
+\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
+config's \code{assemblies} entry writes it: \code{region} may name a contig by any
+alias it lists, the file is read under its own, and the tables name the
+contig as \code{region} does}
 }
 \value{
 a \code{jbrowse_wiggle} list:

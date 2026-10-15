@@ -12,6 +12,7 @@ jbrowse_variants(
   display = NULL,
   index = NULL,
   samples = NULL,
+  assembly = NULL,
   byte_limit = 2e+08
 )
 }
@@ -47,6 +48,11 @@ name}
 \item{samples}{a tab-separated file of the samples' attributes, a \code{name}
 column and one column per attribute, which \code{display$rowColor} colors
 the rows by, e.g. \code{list(rowColor = list(field = "group"))}}
+
+\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
+config's \code{assemblies} entry writes it: \code{region} may name a contig by any
+alias it lists, the file is read under its own, and the tables name the
+contig as \code{region} does}
 
 \item{byte_limit}{the most compressed bytes the region may need, refused
 off the index before any record is fetched}
@@ -97,6 +103,12 @@ Runs JBrowse's own multi-sample variant display in V8: the records its
 filters keep, each sample's genotype at each, and the fill the display
 paints each cell, its hue shaded by the alt dosage. Coordinates are 0-based,
 half-open, on the reference.
+}
+\details{
+The display keeps a record only where some sample calls an allele, so a
+calls VCF whose FORMAT has no GT, such as a somatic SV caller's, keeps
+none. \code{\link[=jbrowse_features]{jbrowse_features()}} reads its records as JBrowse's plain variant
+track draws them, with their FILTER, INFO and FORMAT columns.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
