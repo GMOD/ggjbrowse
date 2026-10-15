@@ -104,7 +104,7 @@ in_one_call <- function(x, regions, missing_contigs) {
   for (name in setdiff(names(x), LISTING)) {
     d <- x[[name]]
     if (!is.data.frame(d) || is.null(d$region)) next
-    i <- d$region + 1
+    i <- as.integer(d$region) + 1L
     d$region <- NULL
     d$chrom <- regions$chrom[i]
     d$.region <- i

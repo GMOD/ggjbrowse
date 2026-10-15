@@ -131,7 +131,7 @@ test_that("a gene's exons with the introns collapsed keep each feature on one ro
   tops <- tapply(g$features$top, g$features$id, function(t) length(unique(t)))
   expect_true(all(tops == 1))
   eden <- g$features[g$features$name == "EDEN", ]
-  expect_equal(eden$.region, 1:4)
+  expect_identical(eden$.region, 1:4)
   for (name in c("rects", "lines", "labels", "subfeatures")) {
     d <- g[[name]]
     expect_equal(d$.region, g$features$.region[d$feature])
