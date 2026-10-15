@@ -112,7 +112,8 @@ warn_plot_mapping <- function(mapping) {
 
 #' @exportS3Method ggplot2::fortify
 fortify.jbrowse_result <- function(model, data, ...) {
-  structure(on_axis(model)[[attr(model, "primary")]], jbrowse = model)
+  placed <- on_axis(model)
+  structure(placed[[attr(model, "primary")]], jbrowse = placed)
 }
 
 # A key frame as an identity scale's breaks and labels, its line swatches
