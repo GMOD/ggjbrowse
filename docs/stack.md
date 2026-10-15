@@ -13,6 +13,9 @@ with the keys collected.
   with the introns collapsed, as JBrowse's **Collapse introns** does, and each
   splice junction arcs from one exon straight to the next
   ([GAPDH's exons](gallery.md#collapsed_introns)).
+- Every track draws at one width: `jbrowse_stack(..., width = 1200)`, or the
+  widest `width` any track was read at. A feature or quantitative track drawn
+  narrower than it was laid out for warns.
 - Each band is an ordinary ggplot, so patchwork's `&` restyles them all, as
   in `jbrowse_stack(genes, signal, reads) & theme_classic()`. A ggplot of
   your own stacks as a band on the same axis.

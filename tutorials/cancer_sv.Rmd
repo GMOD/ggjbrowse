@@ -291,7 +291,7 @@ fig <- jbrowse_stack(
     assembly = hg38),
   Tumor = jbrowse_alignments(tumor, locus, assembly = hg38, display = display),
   Normal = jbrowse_alignments(normal, locus, assembly = hg38,
-    display = display))
+    display = display), width = 1200)
 ```
 
 ```{r reads-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "COLO829 tumor above COLO829BL normal at the two chr3 breakends, soft clipping shown: the tumor's split reads, sorted to the top, start at the first breakend and stop at the second with clipped ends, while normal reads run straight through both"}
@@ -308,7 +308,8 @@ read per sample covers them:
 clipped_reads <- function(alignments, breakends, within = 25, at_least = 100) {
   clips <- alignments$clips |>
     filter(length >= at_least) |>
-    left_join(select(alignments$reads, read, name), by = "read")
+    left_join(select(alignments$reads, read, region, name),
+      by = c("read", "region"))
   unname(Map(function(chrom, pos)
     unique(clips$name[clips$chrom == chrom &
       abs(clips$position - pos) <= within]),
@@ -352,7 +353,7 @@ fig <- jbrowse_stack(
   `Somatic SVs` = jbrowse_features(calls_vcf, loci, width = 1200,
     assembly = hg38),
   Tumor = jbrowse_alignments(tumor, loci, assembly = hg38,
-    display = chain_display))
+    display = chain_display), width = 1200)
 ```
 
 ```{r chain-reads-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "Tumor split reads across chr3, chr10 and chr12, one row per molecule with its segments joined across the loci and an arc at each breakend: coverage on chr10 and chr12 exists only between each locus's two breakends, and on chr3 it halves at the second"}

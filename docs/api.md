@@ -1,8 +1,9 @@
 # API
 
-- Each reader returns a classed list of data frames, one per kind of mark the
-  JBrowse display draws. `?jbrowse_alignments` and its siblings list every
-  column; this page maps the pieces.
+- Each reader returns a classed list of data frames, one per kind of record
+  or mark the JBrowse display draws, beside a fixed set of other slots.
+  `?jbrowse_alignments` and its siblings list every column; this page maps
+  the pieces and states the contract.
 - Coordinates are 0-based and half-open, as in the engine. A locus string such
   as `"chr12:6,534,201-6,538,700"` is 1-based and inclusive, as JBrowse's
   location box writes it.
@@ -12,27 +13,32 @@
 | Function | Reads | Returns a `jbrowse_*` list of |
 |---|---|---|
 | `jbrowse_alignments()` | BAM, CRAM | `reads`, `mismatches`, `gaps`, `insertions`, `clips`, `coverage`, `allele_coverage`, `junctions`, `arcs`, ... |
-| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels`, `sections`, `attribute_fields`; for a VCF, `samples`, `info_fields`, `format_fields`, `annotations`, `annotation_fields` |
+| `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels`, `sections`; for a VCF, `samples` and `annotations` |
 | `jbrowse_wiggle()` | BigWig | `bins`, `marks`, `sources`, `rules` |
-| `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands`, `info_fields`, `annotations`, `annotation_fields` |
+| `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands`, `annotations` |
 | `jbrowse_synteny()` | PAF, PIF, delta, chain, MashMap | `alignments`, `ribbons`, `offscreen*` |
 | `jbrowse_dotplot()` | the same | `alignments`, `segments` |
 | `jbrowse_multiway()` | an all-vs-all PAF | `lanes`, `segments`, `blocks`, `ribbons`, `alignments` |
 
-- Every result also has `keys` and `ramps`, the color keys and color bars the
-  display shows.
-  `guides_jbrowse()` draws them.
 - `file` takes a path, a URL, or a JBrowse track's adapter config, including
   a `FromConfigAdapter` that lists its features inline.
-- `region` takes a locus string, a contig name with `start` and `end`, or a
-  data frame of `chrom`, `start` and `end` for several regions. Left out,
-  `jbrowse_features()`, `jbrowse_variants()` and `jbrowse_alignments()` read
-  the whole file in one call, every contig it lists but those its index
-  shows empty, each to the length the file or `assembly` states. They refuse
-  past 5 million rows in any one table, and `jbrowse_alignments()` past
-  `span_limit`, asking for a region.
+- `region` takes:
+  - `NULL`, the default: the whole file, every contig it lists but those its
+    index shows empty, each to the length the file or `assembly` states
+  - loci, `"chr1:1,001-2,000"`, several drawn end to end
+  - a contig name alone, `"chr1"`, for the whole contig
+  - a data frame of `chrom`, `start` and `end`, 0-based half-open, such as
+    `jbrowse_contigs()` returns
+  - a GRanges, which GenomicRanges counts from 1
+- A frame with `seqnames`, or with a `width` of `end - start + 1`, reads as
+  1-based and is refused.
+- A whole file or contig is refused past 5 million rows in any one table,
+  and `jbrowse_alignments()` past `span_limit`, asking for a region.
 - `display` takes a track config's `displays` entry. `jbrowse_synteny()` and
   `jbrowse_dotplot()` take the view's snapshot as `view`.
+- `width` is the pixels the reader lays the regions out across, 1,500 unless
+  given: the labels and zoom of a feature or quantitative track, and the
+  fade of a variant matrix, follow from it.
 - `assembly` takes a `jbrowse_assembly()`, an assembly as a JBrowse config's
   `assemblies` entry writes it, or a FASTA or 2bit path alone. Its sequence
   is the reference every reader reads against. A region may name a contig by
@@ -40,16 +46,84 @@
   the file's own alias, and the reader names the contig in its tables as the
   region does.
 
+## The result
+
+`jbrowse_alignments()`, `jbrowse_features()`, `jbrowse_variants()` and
+`jbrowse_wiggle()` share these slots, which `?jbrowse_result` documents:
+
+| Slot | Holds |
+|---|---|
+| `regions` | a data frame, a row per region: `chrom`, `start`, `end` (0-based, half-open), the axis layout `offset`, `cum_start` and `cum_end`, and `missing`, why the region's contig reads empty, `""` where the file has it |
+| `width` | the pixels the regions were laid out across |
+| `display` | the display's resolved config, under JBrowse's own camelCase names |
+| `keys` | the display's color keys, each a frame of `label` and `color` titled by its `"title"` attribute |
+| `ramps` | the display's color bars |
+| `y_scale` | the score axis (wiggle) or depth axis (alignments): `domain`, `type`, `symlog_constant`, `ticks`; `NULL` for the others |
+| `fields` | the file's declarations of its columns: `info`, `format`, `attributes`, `annotations` |
+| `warnings` | what the engine warned of, each also raised as an R warning |
+
+Every other slot is a table, but for a few that hold a class's drawing
+state:
+
+- features: `glyph`, `height`, `bp_per_px`
+- wiggle: `rendering`, `origin`, `row_layout`, `height`, `bp_per_px`
+- alignments: `read_pitch`, `glyph`, `arc_span_max`, and `sequence`, each
+  region's reference bases where `assembly` has a sequence
+- variants: `tree`, where a caller sets it
+
+## Records and their keys
+
+Every table has a `region` column, the 1-based row of `regions` each row was
+read in, and a table with coordinates of its own has `chrom`. A record read
+in two regions is listed in each, its copies sharing its key.
+
+| Parent | Key | Children |
+|---|---|---|
+| `reads` | `read` | `mismatches`, `gaps`, `insertions`, `clips`, `modifications`, `qualities` |
+| `features` | `feature` | `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels`, `samples`, `annotations` |
+| `subfeatures` | `subfeature` | `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels` |
+| `variants` | `variant` | `cells`, `annotations` |
+| `rows` | `name` | `cells`, by `row` |
+| `sources` | `name` | `bins` and `marks`, by `source` |
+
+- A child row holds its parent's key, and its `region` identifies the
+  parent's copy in that region.
+- The geoms join a parent's columns onto its children when they draw: a
+  read's `row` and `section`, a feature's `name`, `type`, `strand` and
+  `section` (and a chevron's, arrow's or label's `start` and `end`), and a
+  cell's record `start`, `end` and `opacity` and row `sample`. Reassigning
+  `a$reads$row` moves a read's marks.
+- Assigning a parent, `a$reads <- subset(a$reads, mapq >= 20)`, drops the
+  children's rows whose record it leaves out, so drawing, `as.matrix()` and
+  `saveRDS()` all see the same records. A dplyr tibble assigns the same way.
+- A geom takes a data frame in place of a child or summary table, but not a
+  parent's: `geom_jbrowse_reads(data = ...)` errors, pointing to assignment.
+- The summary tables an alignments track computes over every read
+  (`coverage`, `allele_coverage`, `modification_coverage`,
+  `interbase_coverage`, `indicators`, `junctions`, `chains`, `overlaps`,
+  `arcs`, `arc_ticks`) don't recompute after `reads` is filtered. Drawing one
+  then warns once: read again with `display = list(filter = ...)`.
+
+## Errors
+
+| Class | When |
+|---|---|
+| `ggjbrowse_too_large` | the regions pass `span_limit` or `byte_limit`, or a whole file or contig passes 5 million rows in a table |
+| `ggjbrowse_missing_contig` | no region's contig is one the file lists; a region on a missing contig beside others warns and reads empty |
+| `ggjbrowse_bad_display` | a `display` slot holds a value the config schema refuses, which the error names |
+| `ggjbrowse_bad_region` | a region is neither a locus nor a contig of the file, or a frame reads as 1-based |
+| `ggjbrowse_parent_data` | a geom is handed a parent table as `data` |
+| `ggjbrowse_forked` | the engine was started in a forked worker |
+
 ## Helpers
 
 - `jbrowse_assembly(sequence, aliases)`: an assembly, its reference sequence
   and its contigs' alias table, for any reader's `assembly`
-- `jbrowse_regions(assembly)`: the assembly's contigs as regions, to read a
-  file whole
-- `jbrowse_contigs(file)`: each side's contigs and lengths in a pairwise
-  alignment file
-- `jbrowse_sequence(assembly, chrom, start, end)`: the reference's bases as
-  one string
+- `jbrowse_contigs(x)`: an assembly's, a file's, or each side of a pairwise
+  file's contigs as `assembly`, `chrom`, `start` and `end`, a region frame
+  any reader takes; a linear file adds `has_data`
+- `jbrowse_sequence(assembly, region)`: each region's reference bases as a
+  string
 - `jbrowse_reset()`: restarts the engine and clears its caches
 
 ## Drawing
@@ -60,33 +134,34 @@
   each named one titled. A key several tracks share is drawn once, listing
   every entry any of them holds.
   `jbrowse_height()` and `jbrowse_width()` measure the figure.
+- `autoplot()` and `jbrowse_stack()` take `width` to draw at another size.
+  A stack otherwise draws at the widest `width` any of its tracks was read
+  at. Drawing a feature or quantitative track narrower than it was laid out
+  for warns, since its labels and zoom were chosen for more pixels.
 - One geom per table, all named `geom_jbrowse_*()`: `reads`, `mismatches`,
   `deletions`, `insertions`, `clips`, `coverage`, `alleles`, `junctions`,
   `glyphs`, `amino_acids`, `labels`, `wiggle`, `genotypes`, `ribbons`,
-  `dotplot`, `lanes` and the rest.
+  `dotplot`, `lanes` and the rest. A geom's `width` defaults to the
+  result's.
 - `jbrowse_color()` marks a column as the colors the display paints, so
   `aes(fill = color)` needs no scale. `scale_fill_jbrowse()`,
   `scale_color_jbrowse()` and `scale_x_jbrowse()` add the display's keys and
-  axes.
+  axes, and `scale_y_jbrowse()` the `y_scale`.
+- A saved result draws without its files: the sequence band reads
+  `sequence`, and the genotype fade `variants$opacity`.
 
 ## Notes
 
-- `reads$read` is the row number every other alignments table names a read
-  by, within one call. Filtering `reads` keeps it. `reads$id` is the record's
-  own id, the same in every call, where mates and supplementary segments
-  share a `name`.
+- `reads$id` is the record's own id, the same in every call, where mates and
+  supplementary segments share a `name`.
 - Every reader reads several regions in one engine call, which lays them out
   as one view, with one pileup layout, one set of variant rows and one depth
-  axis. A read reaching
-  two regions is listed in each, its copies sharing `key` and `row`, and a
-  record in two overlapping regions likewise. Each row's `.region` numbers
-  the region it sits in, from 1.
+  axis.
 - `coverage` and the band's other tables stop at the region's ends, though
   the reads reach past them. A band the `display` hides (`showCoverage =
   FALSE`, ...) reads as empty tables.
 - Under `display$facet`, an alignments or feature result lists its
-  `sections` in stacking order, and each table's `section` column names the
-  one a row sits in.
+  `sections` in stacking order, and `section` names the one a row sits in.
 - `fade` is the share of the depth a mark's site holds, zero under the
   display's threshold. R applies it at the figure's pixels per base.
 - `jbrowse_variants()` returns its `rows` in the display's arrangement, by
@@ -96,7 +171,7 @@
   key, named as the key, or `info_<key>` where the key names a record column
   such as `type`. The header's `Number` decides the shape: a flag is logical,
   `Number=1` a plain column, and `A`, `R`, `G` or `.` a list column of
-  vectors. `info_fields` names each key's column.
+  vectors. `fields$info` names each key's column.
 - `jbrowse_variants()` keeps a record only where a sample calls an allele, as
   the genotype matrix does, so a calls VCF with no GT keeps none.
   `jbrowse_features()` reads every record, as the plain variant track draws
@@ -113,19 +188,17 @@
   autoSql columns, typed as it declares them. A key naming a table column
   takes `attr_<key>`. A GFF3 has no header, so its columns are the keys the
   regions' records use, `NA` where a record lacks one.
-  `attribute_fields` lists each key's type and column.
-- The marks of a gene (`rects`, `lines`, `chevrons`, `arrows`,
-  `amino_acids`) name the transcript they draw in `subfeature`, a row number
-  of `subfeatures`.
-- `geom_jbrowse_genotypes()` fades records that share a pixel at the figure's
-  `width`, through the engine's `variantDensityAlpha`. `fade = FALSE` turns
-  it off.
+  `fields$attributes` lists each key's type and column.
+- `variants$opacity` is the fade the display paints a record's cells at
+  where records share a pixel at the result's `width`, through the engine's
+  `variantDensityAlpha`. `geom_jbrowse_genotypes(fade = FALSE)` turns it
+  off.
 - `byte_limit` refuses regions whose compressed size, read off the index,
   passes it. The default is 200 MB. `jbrowse_alignments()`'s `span_limit`
   refuses regions spanning more than 10 Mb in all, since the coverage band
   holds every base.
 - A setting the engine drops without an error, such as a column sort with no
-  `pos`, raises an R warning naming it.
+  `pos`, raises an R warning naming it, and lands in `warnings`.
 - A CRAM needs an `assembly` with a sequence, because it stores reads
   against the FASTA it was encoded with.
 - The bisulfite layer needs `assembly`, because it calls each cytosine by

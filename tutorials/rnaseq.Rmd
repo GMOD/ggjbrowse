@@ -93,7 +93,7 @@ actb_genes <- jbrowse_features(gff, actb, assembly = hg19, display = genes,
   width = 1200)
 actb_reads <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(showPileup = FALSE))
-fig <- jbrowse_stack(RefSeq = actb_genes, Reads = actb_reads)
+fig <- jbrowse_stack(RefSeq = actb_genes, Reads = actb_reads, width = 1200)
 ```
 
 ```{r actb-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "RNA-seq reads over ACTB under the RefSeq gene model: the coverage histogram with strand-colored splice arcs, each labelled with its read count"}
@@ -212,7 +212,8 @@ c(reads = nrow(file_order$reads), kept_by_filter = nrow(only_spliced$reads),
 ```
 
 ```{r spliced-plot}
-fig <- jbrowse_stack(RefSeq = actb_genes, "Only spliced reads" = only_spliced)
+fig <- jbrowse_stack(RefSeq = actb_genes, "Only spliced reads" = only_spliced,
+  width = 1200)
 ```
 
 ```{r spliced-figure, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "ACTB's spliced reads alone: the pileup keeps the reads whose CIGAR has a skip, and the coverage histogram above it follows"}
@@ -272,7 +273,8 @@ by_strand <- list(showPileup = FALSE,
   facet = list(field = "firstOfPairStrand"))
 surfeit_reads <- jbrowse_alignments(bam, surfeit, assembly = hg19,
   display = by_strand)
-fig <- jbrowse_stack(RefSeq = surfeit_genes, Reads = surfeit_reads)
+fig <- jbrowse_stack(RefSeq = surfeit_genes, Reads = surfeit_reads,
+  width = 1200)
 ```
 
 ```{r surfeit-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "The surfeit locus grouped by first-of-pair strand: the forward band holds RPL7A and SURF2, and the reverse band holds SURF1"}
@@ -288,7 +290,7 @@ nelfe_genes <- jbrowse_features(gff, nelfe, assembly = hg19, display = genes,
   width = 1200)
 nelfe_reads <- jbrowse_alignments(bam, nelfe, assembly = hg19,
   display = by_strand)
-fig <- jbrowse_stack(RefSeq = nelfe_genes, Reads = nelfe_reads)
+fig <- jbrowse_stack(RefSeq = nelfe_genes, Reads = nelfe_reads, width = 1200)
 ```
 
 ```{r nelfe-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "NELFE and SKIV2L, adjacent and on opposite strands, grouped by first-of-pair strand: each band shows signal over exactly one of the two genes"}
@@ -352,7 +354,7 @@ replace:
 ```{r isoseq}
 iso_reads <- jbrowse_alignments(isoseq, actb, assembly = hg19,
   display = list(showPileup = FALSE))
-fig <- jbrowse_stack(RefSeq = actb_genes, IsoSeq = iso_reads)
+fig <- jbrowse_stack(RefSeq = actb_genes, IsoSeq = iso_reads, width = 1200)
 ```
 
 ```{r isoseq-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "IsoSeq high-quality isoforms over ACTB: most reads span every exon, so each of the five RefSeq introns has about 2,000 reads and the coverage is flat across the exons"}
@@ -434,7 +436,7 @@ their counts and flags:
 folh1 <- "chr11:49,220,500-49,231,500"
 junction_track <- jbrowse_features(junction_adapter, folh1, assembly = hg19,
   display = list(filter = list(junction_filter)), width = 1200)
-w <- junction_track$region
+w <- junction_track$regions
 kept <- junction_track$features |>
   select(name) |>
   inner_join(junctions, by = "name") |>

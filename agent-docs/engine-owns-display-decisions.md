@@ -50,11 +50,11 @@ How each piece reaches R:
 
 - `features` and `subfeatures` carry a column per field the file states,
   keyed as written: a GFF3's `ID` and `Name` sit beside the engine's own `id`
-  and `name`. `attribute_fields` declares each one's type.
+  and `name`. `fields$attributes` declares each one's type.
 - `reads$id` is the record's own id, the same in every call, where `read` is
-  a row number within one call.
-- A gene's marks name their transcript in `subfeature`, so an exon joins to
-  its transcript.
+  the read's key within one call, shared by its copies in several regions.
+- A gene's marks name their transcript by its `subfeature` key, so an exon
+  joins to its transcript.
 - The engine sends numbers as bytes and repeated text as codes
   (`from_wire()` in `R/engine.R`), so a column's shape is the engine's, never
   jsonlite's guess.

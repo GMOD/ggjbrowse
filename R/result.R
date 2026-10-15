@@ -37,7 +37,8 @@
 #' which the sequence band draws; and a [jbrowse_variants()] result the `tree` a caller sets.
 #'
 #' @section Errors:
-#' A reader's errors carry a class, for [tryCatch()] to tell them apart:
+#' Each error a reader raises has a class, which a [tryCatch()] handler
+#' matches:
 #' * `ggjbrowse_too_large`: the regions pass `span_limit` or `byte_limit`,
 #'   which the error names, or a whole file or contig passes 5 million rows
 #'   in a table

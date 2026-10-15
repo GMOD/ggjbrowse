@@ -19,6 +19,10 @@ The examples read `a` and `e()` from the
   `scale_x_jbrowse(a)` the axis of several regions laid end to end, which
   `ggplot(a)` adds unasked, moving the result's tables in your own layers
   onto it.
+- **Filters:** assign a filtered table into the result, as in
+  `a$reads <- subset(a$reads, strand == 1)`, and its marks follow, since
+  each names its read by a key. A geom takes a filtered mark table as
+  `data`, but not a filtered `reads`.
 - **Facets:** the `section` column is the display's facet, so
   `facet_grid(section ~ .)` splits a plot the way `facet =` splits the track,
   on an alignments or a feature track.

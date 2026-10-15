@@ -118,6 +118,15 @@ sequenceDiagram
 - A JBrowse config's assembly works as is: `assembly = list(name = "hg19",
   uri = "hg19.fa.gz", refNameAliases = list(uri = "hg19_aliases.txt"))`.
 
+## How do I tell a reader's errors apart?
+
+- Each error has a class: `ggjbrowse_too_large` past `span_limit`,
+  `byte_limit` or the whole-file row cap, `ggjbrowse_missing_contig` where
+  no region's contig is in the file, `ggjbrowse_bad_display` for a `display`
+  slot the schema refuses, and `ggjbrowse_bad_region` for a region that
+  reads as neither a locus nor a contig. `tryCatch(..., ggjbrowse_too_large =
+  function(e) ...)` catches one. `?jbrowse_result` lists them all.
+
 ## Do R warnings from inside the engine work with `tryCatch`?
 
 - Yes, after the call. The engine's `console.warn` and `console.error` go to
@@ -137,7 +146,9 @@ sequenceDiagram
 ## Which coordinates do I give?
 
 - A locus string is 1-based and inclusive, as in JBrowse's location box.
-- `region = "chr12", start, end` is 0-based half-open.
+- A data frame of `chrom`, `start` and `end` is 0-based half-open, as BED
+  writes it. A frame that reads as 1-based, with `seqnames` or a `width` of
+  `end - start + 1`, is refused: pass a GRanges as it is.
 
 ## Can I restyle a figure?
 

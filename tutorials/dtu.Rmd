@@ -347,7 +347,8 @@ GFF3's 1-based start. An anti-join on overlapping coordinates finds it:
 
 ```{r cassette}
 exons <- genes$rects |>
-  mutate(transcript = genes$subfeatures$transcript_name[subfeature]) |>
+  left_join(select(genes$subfeatures, subfeature, region,
+    transcript = transcript_name), by = c("subfeature", "region")) |>
   filter(!is.na(transcript)) |>
   arrange(transcript, start) |>
   group_by(transcript) |>
@@ -372,10 +373,11 @@ windows <- bind_rows(
   mutate(select(flanks, start, end), exon = c("upstream", "downstream")),
   mutate(select(cassette, start, end), exon = "cassette"))
 
-depth <- jbrowse_wiggle(coverage, "chr10", windows$start - 1, windows$end,
+depth <- jbrowse_wiggle(coverage,
+  data.frame(chrom = "chr10", start = windows$start - 1, end = windows$end),
   width = sum(windows$end - windows$start + 1))
 depth$bins |>
-  mutate(exon = windows$exon[.region]) |>
+  mutate(exon = windows$exon[region]) |>
   group_by(tissue = source, exon) |>
   summarise(depth = weighted.mean(score, end - start), .groups = "drop") |>
   tidyr::pivot_wider(names_from = exon, values_from = depth)

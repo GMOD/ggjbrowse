@@ -1,6 +1,6 @@
 Package: ggjbrowse
 Title: Genome Browser Tracks as Data Frames for 'ggplot2'
-Version: 0.9.0
+Version: 0.10.0
 Authors@R: c(
     person("Colin", "Diesh", email = "colindiesh@berkeley.edu",
       role = c("aut", "cre")),

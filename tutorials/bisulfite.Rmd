@@ -110,10 +110,11 @@ autoplot(cg)
 ```
 
 The figure is drawn from data frames you can use directly. `cg$modifications`
-holds one row per call, with the read and pileup row it sits on:
+holds one row per call, with the read it sits on, which `cg$reads` places on
+its pileup row:
 
 ```{r calls}
-head(cg$modifications[, c("position", "read", "row", "name", "unmodified",
+head(cg$modifications[, c("position", "read", "name", "unmodified",
   "color")])
 ```
 
@@ -183,7 +184,7 @@ calls <- bind_rows(lapply(contexts, function(context) {
   r <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
     display = list(baseColor = list(field = "bisulfite"),
       modifications = list(cytosineContext = context, unmodified = "calls")))
-  mutate(r$modifications, context = context)
+  mutate(r$modifications, context = context, region = NULL)
 }))
 
 per_read <- calls |>

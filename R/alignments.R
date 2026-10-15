@@ -158,9 +158,9 @@ alignments_adapter <- function(file, index) {
 #'   `modifications`, `qualities`) name it by `read` and their `region`, and
 #'   take its `row` and `section` from `reads` when drawn, so reassigning
 #'   `reads$row` moves them; assigning `reads` drops the marks of the reads it
-#'   leaves out. The other tables carry `section`, a factor in stacking
-#'   order, each section's rows starting at 0. Every table carries the
-#'   1-based `region` it was read in, with its `chrom`, and every mark table
+#'   leaves out. The other tables have `section`, a factor in stacking
+#'   order, each section's rows starting at 0. Every table has the 1-based
+#'   `region` each row was read in, with its `chrom`, and every mark table
 #'   `color`, the color the display paints the mark. The coverage band's
 #'   tables, the junctions and the arcs count every read the engine read and
 #'   stay as they were when `reads` is filtered: filter with `display =

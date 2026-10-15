@@ -11,7 +11,7 @@ the fill the display paints it, its hue shaded by the alt dosage
   rows by.
 - `v$variants` gives each record's `filter`, its FILTER column, and a column
   per INFO key (`AC`, `AN`, ...), typed by the header. A key with a value per
-  alt, such as `AC`, is a list column. `v$info_fields` lists each key's
+  alt, such as `AC`, is a list column. `v$fields$info` lists each key's
   header line.
 - The matrix keeps a record only where a sample calls an allele. A calls VCF
   with no GT, such as a somatic SV caller's, reads through
@@ -23,7 +23,8 @@ the fill the display paints it, its hue shaded by the alt dosage
 - `facet = "superpopulation"` stacks the rows in a band per value, named
   beside them ([by band](gallery.md#variants_banded)).
 - Reordering or filtering `v$rows` rearranges the matrix's rows, each
-  staying in its band.
+  staying in its band. Assigning a filtered `v$rows` or `v$variants` drops
+  the cells of the rows or records it leaves out, so `as.matrix(v)` follows.
 - `as.matrix(v)` is the genotype matrix the display's "Cluster rows by
   genotype" clusters, a column per ALT allele with `NA` for a no-call.
 - A tree in `v$tree` puts the rows in its leaf order, and `autoplot()` draws
@@ -34,4 +35,5 @@ the fill the display paints it, its hue shaded by the alt dosage
 - Under bands, a list of trees, one per band, clusters each band apart, as
   the display does.
 - Zoomed out, records sharing a pixel fade by how many share it, as the
-  display fades them, so a row shades by its share of alt records.
+  display fades them, so a row shades by its share of alt records. The fade
+  is `v$variants$opacity`, at the `width` the reader read at.

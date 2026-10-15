@@ -80,7 +80,8 @@ exons <- tibble(
   filter(start < end)
 
 reference <- strsplit(toupper(
-  jbrowse_sequence(twobit, "chr30", window[["start"]], window[["end"]])), "")[[1]]
+  jbrowse_sequence(twobit, data.frame(chrom = "chr30",
+    start = window[["start"]], end = window[["end"]]))), "")[[1]]
 position <- unlist(Map(seq, exons$start, exons$end - 1))
 cds <- paste(reference[position - window[["start"]] + 1], collapse = "")
 
@@ -163,10 +164,10 @@ replace:
 
 ```{r neighbours}
 nearby <- jbrowse_variants(slice, "chr30:38,261,590-38,261,690")
+wolf_cells <- filter(nearby$cells, grepl("^CLUP", row))
 nearby$variants |>
-  mutate(carriers = tabulate(nearby$cells$variant, n()),
-    wolves = tabulate(nearby$cells$variant[grepl("^CLUP", nearby$cells$sample)],
-      n())) |>
+  mutate(carriers = tabulate(match(nearby$cells$variant, variant), n()),
+    wolves = tabulate(match(wolf_cells$variant, variant), n())) |>
   select(start, ref, alt, carriers, wolves)
 ```
 
@@ -210,7 +211,8 @@ with no cell is homozygous reference:
 
 ```{r frequency}
 calls <- everyone$cells |>
-  filter(start == stop_site - 1) |>
+  inner_join(filter(everyone$variants, start == stop_site - 1) |>
+    select(variant), by = "variant") |>
   transmute(name = as.character(row), alt = round(dosage * 2))
 
 alleles <- tibble(name = everyone$rows$sample) |>

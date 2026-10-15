@@ -170,9 +170,9 @@ A read's marks (\code{mismatches}, \code{gaps}, \code{insertions}, \code{clips},
 \code{modifications}, \code{qualities}) name it by \code{read} and their \code{region}, and
 take its \code{row} and \code{section} from \code{reads} when drawn, so reassigning
 \code{reads$row} moves them; assigning \code{reads} drops the marks of the reads it
-leaves out. The other tables carry \code{section}, a factor in stacking
-order, each section's rows starting at 0. Every table carries the
-1-based \code{region} it was read in, with its \code{chrom}, and every mark table
+leaves out. The other tables have \code{section}, a factor in stacking
+order, each section's rows starting at 0. Every table has the 1-based
+\code{region} each row was read in, with its \code{chrom}, and every mark table
 \code{color}, the color the display paints the mark. The coverage band's
 tables, the junctions and the arcs count every read the engine read and
 stay as they were when \code{reads} is filtered: filter with \code{display = list(filter = ...)} to recompute them. \code{fade} is the share of the depth a mark's site holds, zeroed

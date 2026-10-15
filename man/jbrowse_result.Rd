@@ -46,7 +46,8 @@ which the sequence band draws; and a \code{\link[=jbrowse_variants]{jbrowse_vari
 
 \section{Errors}{
 
-A reader's errors carry a class, for \code{\link[=tryCatch]{tryCatch()}} to tell them apart:
+Each error a reader raises has a class, which a \code{\link[=tryCatch]{tryCatch()}} handler
+matches:
 \itemize{
 \item \code{ggjbrowse_too_large}: the regions pass \code{span_limit} or \code{byte_limit},
 which the error names, or a whole file or contig passes 5 million rows

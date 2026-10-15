@@ -1,7 +1,7 @@
 # Alignments
 
-`jbrowse_alignments(file, region, display, assembly)` reads a BAM or CRAM
-region through JBrowse's alignments display.
+`jbrowse_alignments(file, region, display, width, assembly)` reads a BAM or
+CRAM region through JBrowse's alignments display.
 
 - **Files:** a path or a URL, which `curl` reads in byte ranges. CRAM needs
   `assembly`: a FASTA with its `.fai`, a bgzipped one with its `.fai` and
@@ -43,7 +43,11 @@ JBrowse does:
 - Any other slot, such as `showOrdinaryPairs = FALSE`.
 
 Each read comes back on the row the display lays it on, with the fill the
-display paints it, and `a$legend` is the display's key.
+display paints it, and `a$keys$reads` is the display's key. A mismatch,
+gap, insertion or clip names its read by `read`, so
+`a$reads <- subset(a$reads, mapq >= 20)` drops the filtered reads' marks
+too. The coverage band and the junctions keep counting every read; read
+again with `display = list(filter = ...)` to recompute them.
 
 The engine decides what each band shows, and `a$display` holds the
 resolved config it decided from:
