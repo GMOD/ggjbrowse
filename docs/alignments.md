@@ -1,11 +1,11 @@
 # Alignments
 
-`jbrowse_alignments(file, region, display, reference)` reads a BAM or CRAM
+`jbrowse_alignments(file, region, display, assembly)` reads a BAM or CRAM
 region through JBrowse's alignments display.
 
 - **Files:** a path or a URL, which `curl` reads in byte ranges. CRAM needs
-  `reference`: a FASTA with its `.fai`, a bgzipped one with its `.fai` and
-  `.gzi`, or a 2bit.
+  `assembly`: a FASTA with its `.fai`, a bgzipped one with its `.fai` and
+  `.gzi`, a 2bit, or a `jbrowse_assembly()` naming one.
 - **Bands:** the track stacks the display's splice-junction arcs, its
   coverage band with each mismatch position's alleles, and its pileup, each
   read's mismatches, indels and clips faded where the browser fades them.
@@ -29,7 +29,7 @@ JBrowse does:
 - `baseColor = list(field = "modifications")` paints MM/ML modification calls
   ([CpG methylation](gallery.md#methylation)).
 - `baseColor = list(field = "bisulfite")` paints the methylation bisulfite or
-  EM-seq reads show against `reference`, in the context
+  EM-seq reads show against `assembly`, in the context
   `modifications = list(cytosineContext = "CHH")` names
   ([CHH methylation](gallery.md#bisulfite)).
 - `readConnections = "arc"` adds the read-pair band, an arc per mate pair and

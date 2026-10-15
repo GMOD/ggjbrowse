@@ -37,10 +37,10 @@ list of the color object's slots) and \code{scales} (\code{list(y = list(type =,
 \item{width}{the width in pixels the display draws the region across,
 which picks the BigWig zoom level that answers and so each bin's width}
 
-\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
-config's \code{assemblies} entry writes it: \code{region} may name a contig by any
-alias it lists, the engine reads the file under the file's own, and the
-reader names the contig in its tables as \code{region} does}
+\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, an assembly as a JBrowse config's
+\code{assemblies} entry writes it, or its FASTA or 2bit alone: \code{region} may
+name a contig by any alias it lists, and the reader names the contig in
+its tables as \code{region} does}
 }
 \value{
 a \code{jbrowse_wiggle} list:

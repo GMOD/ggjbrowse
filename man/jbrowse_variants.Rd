@@ -44,10 +44,10 @@ order, \code{labels}, a label by row name, and \code{kept}, the rows shown) and
 each take a band of rows) and \code{rowHeight} (pixels a row, where
 \code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the rows into the display's height)}
 
-\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
-config's \code{assemblies} entry writes it: \code{region} may name a contig by any
-alias it lists, the engine reads the file under the file's own, and the
-reader names the contig in its tables as \code{region} does}
+\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, an assembly as a JBrowse config's
+\code{assemblies} entry writes it, or its FASTA or 2bit alone: \code{region} may
+name a contig by any alias it lists, and the reader names the contig in
+its tables as \code{region} does}
 
 \item{samples}{a tab-separated file of the samples' attributes, a \code{name}
 column and one column per attribute, which \code{display$rowColor} colors

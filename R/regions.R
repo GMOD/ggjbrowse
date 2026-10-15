@@ -50,17 +50,6 @@ regions_of <- function(region, start, end) {
     end = number(5))
 }
 
-# Each region's contig as `reference` spells it: `reference_chrom` for every
-# region, or one per region, else NULL, which the engine resolves
-reference_chroms <- function(reference_chrom, regions) {
-  if (is.null(reference_chrom)) return(NULL)
-  if (!length(reference_chrom) %in% c(1, nrow(regions))) {
-    stop("give reference_chrom once, or once per region (", nrow(regions),
-      ")", call. = FALSE)
-  }
-  rep_len(as.character(reference_chrom), nrow(regions))
-}
-
 # Several regions end to end on one axis: each spans its width in bp, a gap
 # of `gap_frac` of the axis between them; the first keeps its own
 # coordinates, so one region is drawn at its genomic position. JBrowse's

@@ -268,7 +268,7 @@ autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
       "showLegend=true", grow, "--loc", "20:10,001-22,000"),
     r = r"-(
 autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
-  reference = e("hg38_clip.fa"),
+  assembly = e("hg38_clip.fa"),
   display = list(baseColor = list(field = "modifications"),
     modifications = list(unmodified = "all"))))
 )-"),
@@ -292,7 +292,7 @@ methyldackel <- list(type = "MultiWiggleAdapter",
     list(type = "BigWigAdapter", name = context, bigWigLocation = list(
       uri = e(sprintf("arabidopsis_methyldackel_%s.bw", context))))))
 reads <- jbrowse_alignments(e("arabidopsis_wgbs.bam"), locus,
-  reference = e("arabidopsis_tair10.fa.gz"),
+  assembly = e("arabidopsis_tair10.fa.gz"),
   display = list(baseColor = list(field = "bisulfite"),
     modifications = list(cytosineContext = "CHH")))
 jbrowse_stack(`RefSeq genes` = genes, RepeatMasker = repeats,
@@ -371,7 +371,7 @@ jbrowse_stack(genes, signal, reads)
     r = r"-(
 loci <- c("chr12:6,534,811-6,534,880", "chr12:6,536,476-6,536,545")
 genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci,
-  reference = e("gapdh_hg38.fa.gz"), width = 1200)
+  assembly = e("gapdh_hg38.fa.gz"), width = 1200)
 jbrowse_stack(genes)
 )-"),
   variants_by_population = list(

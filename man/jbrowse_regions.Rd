@@ -7,8 +7,8 @@
 jbrowse_regions(assembly)
 }
 \arguments{
-\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
-config's \code{assemblies} entry writes it}
+\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, an assembly as a JBrowse config's
+\code{assemblies} entry writes it, or the sequence's path or URL alone}
 }
 \value{
 a data frame of \code{chrom}, \code{start} and \code{end}

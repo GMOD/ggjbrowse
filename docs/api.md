@@ -30,12 +30,12 @@
   any one table, asking for a region.
 - `display` takes a track config's `displays` entry. `jbrowse_synteny()` and
   `jbrowse_dotplot()` take the view's snapshot as `view`.
-- `assembly` takes a `jbrowse_assembly()`, or an assembly as a JBrowse
-  config's `assemblies` entry writes it. A region may name a contig by any
-  alias in the assembly's alias table. The engine reads each file under the
-  file's own alias, and the reader names the contig in its tables as the
-  region does. The assembly's sequence is the `reference` where none is
-  given.
+- `assembly` takes a `jbrowse_assembly()`, an assembly as a JBrowse config's
+  `assemblies` entry writes it, or a FASTA or 2bit path alone. Its sequence
+  is the reference every reader reads against. A region may name a contig by
+  any alias in the assembly's alias table. The engine reads each file under
+  the file's own alias, and the reader names the contig in its tables as the
+  region does.
 
 ## Helpers
 
@@ -45,7 +45,7 @@
   file whole
 - `jbrowse_contigs(file)`: each side's contigs and lengths in a pairwise
   alignment file
-- `jbrowse_sequence(reference, chrom, start, end)`: the reference's bases as
+- `jbrowse_sequence(assembly, chrom, start, end)`: the reference's bases as
   one string
 - `jbrowse_reset()`: restarts the engine and clears its caches
 
@@ -113,11 +113,11 @@
   it off.
 - `byte_limit` refuses a region whose compressed size, read off the index,
   passes it. The default is 200 MB.
-- A CRAM needs `reference`, or an `assembly` with a sequence, because it
-  stores reads against the FASTA it was encoded with.
-- The bisulfite layer needs `reference`, because it calls each cytosine by
+- A CRAM needs an `assembly` with a sequence, because it stores reads
+  against the FASTA it was encoded with.
+- The bisulfite layer needs `assembly`, because it calls each cytosine by
   comparing the read's base to the reference's.
-- `jbrowse_features()` with `reference` translates each CDS once `width`
+- `jbrowse_features()` with `assembly` translates each CDS once `width`
   gives a base a pixel or more, striping `rects` by codon and listing each
   residue in `amino_acids`. A residue's `text` is the letter the display
   writes at 8 pixels a base or more, numbered once the codon fits the number.

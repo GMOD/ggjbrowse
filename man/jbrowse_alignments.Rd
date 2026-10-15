@@ -10,8 +10,6 @@ jbrowse_alignments(
   start = NULL,
   end = NULL,
   display = NULL,
-  reference = NULL,
-  reference_chrom = NULL,
   assembly = NULL,
   index = NULL,
   byte_limit = 2e+08
@@ -49,7 +47,7 @@ read, an insertion or deletion of 50 bp or more, or a discordant pair),
 \item \code{baseColor}: the per-base layer painted over the reads:
 \code{list(field = "modifications")} for the reads' MM/ML base
 modifications, \code{list(field = "bisulfite")} for the methylation a
-bisulfite or EM-seq read shows against \code{reference} (a retained C is
+bisulfite or EM-seq read shows against \code{assembly} (a retained C is
 methylated, a C read as T is not), \code{list(field = "baseQuality")} for
 each base's Phred score; unset paints none. Under \code{"modifications"} or
 \code{"bisulfite"} the display greys every mismatched base so the calls
@@ -81,19 +79,13 @@ set not to show (\code{showCoverage}, \code{showPileup}, \code{showMismatches},
 \code{showInterbaseIndicators}, \code{showSashimiArcs}) reads as empty tables
 }}
 
-\item{reference}{the reference: an indexed FASTA, plain or bgzipped, or a
-2bit, path or URL; a CRAM and the bisulfite layer need it, and a BAM
-read without an MD tag is compared against it. \code{NULL} takes
-\code{assembly}'s sequence}
-
-\item{reference_chrom}{the contig's name in \code{reference}, where the file
-spells it another way (\code{1} in the BAM, \code{chr1} in the FASTA): one name
-for every region, or one per region. An \code{assembly} with aliases finds it}
-
-\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
-config's \code{assemblies} entry writes it: \code{region} may name a contig by any
-alias it lists, the engine reads the file under the file's own, and the
-reader names the contig in its tables as \code{region} does}
+\item{assembly}{the reference: a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, an assembly as a
+JBrowse config's \code{assemblies} entry writes it, or an indexed FASTA,
+plain or bgzipped, or a 2bit alone, path or URL. A CRAM and the
+bisulfite layer need its sequence, and a BAM read without an MD tag is
+compared against it. \code{region} may name a contig by any alias it lists,
+the engine reads each file under the file's own, and the reader names
+the contig in its tables as \code{region} does}
 
 \item{index}{the BAI, CSI or CRAI, if not beside \code{file} under its usual name}
 

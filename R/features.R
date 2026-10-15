@@ -60,14 +60,15 @@ features_adapter <- function(file, index) {
 #'   how the `auto` modes resolve all follow from it. [autoplot()] scales those
 #'   pixels to the panel, so a smaller `width` gives larger labels in a figure
 #'   of the same size
-#' @param reference the reference FASTA (indexed) or 2bit, path or URL, for
-#'   `color_by_cds`; `NULL` takes `assembly`'s sequence
-#' @param reference_chrom the contig's name in `reference`, where the file
-#'   spells it another way: one name for every region, or one per region
-#' @inheritParams jbrowse_alignments
+#' @param assembly the reference: a [jbrowse_assembly()], an assembly as a
+#'   JBrowse config's `assemblies` entry writes it, or an indexed FASTA or a
+#'   2bit alone, path or URL. `color_by_cds` and `amino_acids` read its
+#'   sequence. `region` may name a contig by any alias it lists, the engine
+#'   reads the file under the file's own, and the reader names the contig in
+#'   its tables as `region` does
 #' @param color_by_cds paint each CDS by its reading frame, as the view's
 #'   "Color by CDS" does
-#' @param amino_acids with `reference`, translate each CDS once the layout
+#' @param amino_acids with `assembly`, translate each CDS once the layout
 #'   reaches a base a pixel, as the view's "Show amino acids" does: codon
 #'   stripes in `rects`, and each residue in `amino_acids`
 #' @param index the tabix or CSI index, if not beside `file` under its usual
@@ -152,22 +153,20 @@ features_adapter <- function(file, index) {
 #' g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
 #' head(g$features)
 jbrowse_features <- function(file, region = NULL, start = NULL, end = NULL,
-                             display = NULL, width = 800, reference = NULL,
-                             reference_chrom = NULL, assembly = NULL,
+                             display = NULL, width = 800, assembly = NULL,
                              color_by_cds = FALSE, amino_acids = TRUE,
                              index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() features_adapter(file, index))
   regions <- reader_regions(adapter, region, start, end)
-  read <- data.frame(refName = regions$chrom, start = regions$start,
-    end = regions$end)
-  read$originalRefName <- reference_chroms(reference_chrom, regions)
-  args <- c(list(
+  args <- list(
     adapterConfig = adapter,
-    regions = read,
+    regions = data.frame(refName = regions$chrom, start = regions$start,
+      end = regions$end),
     bpPerPx = sum(regions$end - regions$start) / width,
     colorByCDS = color_by_cds,
     aminoAcids = amino_acids,
-    byteLimit = byte_limit), reference_args(reference, assembly))
+    byteLimit = byte_limit)
+  args$assembly <- assembly_config(assembly)
   display <- display %||% list()
   display$heightMode <- display$heightMode %||% "grow"
   args$display <- display_config(display)

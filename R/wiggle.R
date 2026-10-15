@@ -23,7 +23,10 @@
 #'   domainMin =, domainMax =, domainQuantile =, zero =, rules =))`)
 #' @param width the width in pixels the display draws the region across,
 #'   which picks the BigWig zoom level that answers and so each bin's width
-#' @inheritParams jbrowse_alignments
+#' @param assembly a [jbrowse_assembly()], an assembly as a JBrowse config's
+#'   `assemblies` entry writes it, or its FASTA or 2bit alone: `region` may
+#'   name a contig by any alias it lists, and the reader names the contig in
+#'   its tables as `region` does
 #' @return a `jbrowse_wiggle` list:
 #'   * `bins`: each bin's scores as the file serves them at this zoom:
 #'     `source`, `start`, `end`, `score`, and `min` and `max` where the file
@@ -50,13 +53,13 @@
 jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
                            display = NULL, width = 800, assembly = NULL) {
   regions <- regions_of(region, start, end)
-  args <- c(list(
+  args <- list(
     adapterConfig = adapter_of(file, function()
       list(type = "BigWigAdapter", bigWigLocation = location(file))),
     regions = data.frame(refName = regions$chrom, start = regions$start,
       end = regions$end),
-    bpPerPx = sum(regions$end - regions$start) / width),
-    reference_args(NULL, assembly))
+    bpPerPx = sum(regions$end - regions$start) / width)
+  args$assembly <- assembly_config(assembly)
   args$display <- display_config(display)
   t <- call_engine("wiggle", args)
   marks <- as_frame(t$marks)

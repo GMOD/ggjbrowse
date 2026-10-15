@@ -37,19 +37,9 @@ test_that("a contig the file lacks warns only where no region is on one it has",
   expect_no_warning(jbrowse_features(gff, c("ctgA:1-5,000", "chr1:1-5,000")))
 })
 
-test_that("reference_chrom names every region's contig, or each its own", {
-  r <- regions_of(c("1:1-100", "2:1-100"), NULL, NULL)
-  expect_null(reference_chroms(NULL, r))
-  expect_equal(reference_chroms("chr1", r), c("chr1", "chr1"))
-  expect_equal(reference_chroms(c("chr1", "chr2"), r), c("chr1", "chr2"))
-  expect_error(jbrowse_alignments(extdata("volvox-sorted.bam"),
-    c("ctgA:1-100", "ctgA:201-300"), reference_chrom = c("a", "b", "c")),
-    "once per region \\(2\\)")
-})
-
 test_that("a CRAM read without its reference says to pass one", {
   expect_error(jbrowse_alignments(extdata("volvox-sorted.cram"), "ctgA:1-100"),
-    "pass that FASTA or 2bit as `reference =`")
+    "pass that FASTA or 2bit as `assembly =`")
 })
 
 test_that("jbrowse_stack stacks each track's bands as the display shows them", {

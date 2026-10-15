@@ -50,7 +50,7 @@ test_that("a geom reads its table from the plot's result or from its own data", 
 
 test_that("a data frame as a geom's data stands in for the table it draws", {
   s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300,
-    reference = extdata("volvox.fa"))
+    assembly = extdata("volvox.fa"))
   blocks <- ggjbrowse:::read_blocks(s)
   forward <- s$reads[s$reads$strand == 1, ]
   drawn <- layer_data(ggplot(s) + geom_jbrowse_reads(data = forward))

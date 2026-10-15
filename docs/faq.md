@@ -63,7 +63,7 @@ sequenceDiagram
 ## How does it compare with Rsamtools?
 
 - Rsamtools cannot open a CRAM. `jbrowse_alignments()` reads one when given
-  its `reference`.
+  its reference as `assembly`.
 - Rsamtools parses faster. On a local 50 kb region with 9,596 reads,
   `scanBam()` took 0.02 s and `jbrowse_alignments()` 0.37 s; on a 73-read
   region, 0.02 s and 0.07 s (median of 5, ggjbrowse 0.7.0, Rsamtools 2.26.0).
@@ -106,7 +106,7 @@ sequenceDiagram
 ## A CRAM gives an error about the reference
 
 - A CRAM stores reads against the FASTA it was encoded with. Pass that FASTA
-  or 2bit as `reference =`.
+  or 2bit as `assembly =`.
 
 ## The files spell a contig differently
 
@@ -117,8 +117,6 @@ sequenceDiagram
   contig in its tables as the region does.
 - A JBrowse config's assembly works as is: `assembly = list(name = "hg19",
   uri = "hg19.fa.gz", refNameAliases = list(uri = "hg19_aliases.txt"))`.
-- Without an alias table, `reference_chrom` names one region's contig as the
-  FASTA spells it.
 
 ## Do R warnings from inside the engine work with `tryCatch`?
 

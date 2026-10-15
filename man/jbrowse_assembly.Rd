@@ -20,22 +20,24 @@ contig listing its names, the first column the sequence's, as UCSC's
 a \code{jbrowse_assembly}: the list a config's \code{assemblies} entry writes
 }
 \description{
-The assembly a JBrowse config's \code{assemblies} entry writes, for files that
-spell one contig several ways (\code{chr7} in a BAM, \code{NC_000007.13} in a GFF,
-\code{7} in the FASTA). Each reader takes it as \code{assembly}, as each track of a
-JBrowse config names its assembly:
+The assembly a JBrowse config's \code{assemblies} entry writes. Each reader
+takes it as \code{assembly}, as each track of a JBrowse config names its
+assembly:
 \itemize{
-\item a region may name a contig by any of its aliases, and the engine reads
-each file under the alias that file uses, as JBrowse renames a track's
-regions
+\item its sequence is the reference a CRAM decodes against, the bisulfite
+layer calls cytosines against, a BAM without MD tags finds its
+mismatches against, and a CDS translates against
+\item for files that spell one contig several ways (\code{chr7} in a BAM,
+\code{NC_000007.13} in a GFF, \code{7} in the FASTA), a region may name a contig by
+any of its aliases, and the engine reads each file under the alias that
+file uses, as JBrowse renames a track's regions
 \item the reader names the contig in its tables as the region does, so
 \code{\link[=jbrowse_stack]{jbrowse_stack()}} draws files that spell it differently on one axis
-\item its sequence is the \code{reference} where a reader takes one and none is
-given, which a CRAM and the bisulfite layer read against
 }
 }
 \details{
-A JBrowse config's own assembly, as a list, serves the same:
+A reader also takes the sequence's path alone as \code{assembly}, an assembly
+with no aliases, or a JBrowse config's own assembly as a list:
 \code{list(name = "hg19", uri = "hg19.fa.gz", refNameAliases = list(uri = "hg19_aliases.txt"))}.
 }
 \examples{

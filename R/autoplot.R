@@ -184,11 +184,11 @@ depth_transform <- function(scale) {
 sequence_plot <- function(x, o) {
   if (is.null(x$reference)) {
     stop("the sequence band draws the reference's bases: read the alignments ",
-      "with `reference =`", call. = FALSE)
+      "with `assembly =`", call. = FALSE)
   }
   xlim <- xlim_of(x)
   bases <- data.frame(position = seq(xlim[1], xlim[2] - 1))
-  bases$base <- toupper(strsplit(jbrowse_sequence(x$reference$file,
+  bases$base <- toupper(strsplit(jbrowse_sequence(x$reference$assembly,
     x$reference$chrom, xlim[1], xlim[2]), "")[[1]])
   bases$cell <- max(1, 1 / px_of(x, o$width))
   bases$tint <- ggplot2::alpha(jbrowse_colors()$bases[bases$base], 0.35)

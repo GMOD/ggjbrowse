@@ -37,7 +37,7 @@ The tables work without the geoms as well:
 
 ```r
 cram <- jbrowse_alignments(e("gapdh_direct_rna.cram"),
-  "chr12:6,534,201-6,535,200", reference = e("gapdh_hg38.fa.gz"))
+  "chr12:6,534,201-6,535,200", assembly = e("gapdh_hg38.fa.gz"))
 ggplot(cram$mismatches, aes(position, frequency, colour = color)) +
   geom_point() +
   scale_colour_jbrowse(cram, "bases")

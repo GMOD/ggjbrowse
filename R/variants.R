@@ -49,7 +49,10 @@ variants_adapter <- function(file, index, samples) {
 #'   the rows by, e.g. `list(rowColor = list(field = "group"))`
 #' @param byte_limit the most compressed bytes the region may need, refused
 #'   off the index before any record is fetched
-#' @inheritParams jbrowse_alignments
+#' @param assembly a [jbrowse_assembly()], an assembly as a JBrowse config's
+#'   `assemblies` entry writes it, or its FASTA or 2bit alone: `region` may
+#'   name a contig by any alias it lists, and the reader names the contig in
+#'   its tables as `region` does
 #' @return a `jbrowse_variants` list of data frames:
 #'   * `variants`: each record the display keeps: `start`, `end`, `id`,
 #'     `name`, `ref`, `alt`, `type`, `color`, its lane color, `filter`, the
@@ -111,10 +114,11 @@ jbrowse_variants <- function(file, region = NULL, start = NULL, end = NULL,
 
 variants_region <- function(adapter, chrom, start, end, display, assembly,
                             byte_limit, whole = FALSE) {
-  args <- c(list(
+  args <- list(
     adapterConfig = adapter,
     region = list(refName = chrom, start = start, end = end),
-    byteLimit = byte_limit), reference_args(NULL, assembly))
+    byteLimit = byte_limit)
+  args$assembly <- assembly_config(assembly)
   if (whole) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("variants", args)

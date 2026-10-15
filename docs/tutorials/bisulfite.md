@@ -136,7 +136,7 @@ We'll start by reading the reads over the window the website tutorial opens
 on, `NC_003070.9:4,398,001-4,412,000`. It holds the gene AT1G12930
 (RefSeq `NM_101164.5`) on the left and a transposon on the right.
 
-- **`reference`:** a CRAM stores its reads against a reference, here TAIR10's
+- **`assembly`:** a CRAM stores its reads against a reference, here TAIR10's
   2bit from the UCSC genome browser. A BAM needs it only for `bisulfite`
   coloring, which reads each cytosine's context off the reference.
 - **`display`:** the alignments track's settings, spelled as a JBrowse track
@@ -148,11 +148,11 @@ library(ggjbrowse)
 library(ggplot2)
 
 tair10 <- "https://hgdownload.soe.ucsc.edu/hubs/GCF/000/001/735/GCF_000001735.4"
-reference <- file.path(tair10, "GCF_000001735.4.2bit")
+tair10_2bit <- file.path(tair10, "GCF_000001735.4.2bit")
 cram <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_bisulfite.cram"
 locus <- "NC_003070.9:4,398,001-4,412,000"
 
-cg <- jbrowse_alignments(cram, locus, reference = reference,
+cg <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
   display = list(baseColor = list(field = "bisulfite"),
     modifications = list(cytosineContext = "CG")))
 ```
@@ -226,7 +226,7 @@ subset(repeats$features, end - start > 1000, c(name, start, end))
 
 contexts <- c("CG", "CHG", "CHH")
 reads <- lapply(contexts, function(context)
-  jbrowse_alignments(cram, locus, reference = reference,
+  jbrowse_alignments(cram, locus, assembly = tair10_2bit,
     display = list(baseColor = list(field = "bisulfite"),
       modifications = list(cytosineContext = context))))
 
@@ -264,7 +264,7 @@ regions <- data.frame(
   from = c(4398322, 4406000), to = c(4405669, 4410000))
 
 calls <- bind_rows(lapply(contexts, function(context) {
-  r <- jbrowse_alignments(cram, locus, reference = reference,
+  r <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
     display = list(baseColor = list(field = "bisulfite"),
       modifications = list(cytosineContext = context, unmodified = "calls")))
   mutate(r$modifications, context = context)
@@ -346,7 +346,7 @@ To run this on your own WGBS or EM-seq run:
 - Align it as [above](#producing-the-bam), or use a Bismark BAM, which keeps
   the original read sequences too.
 - Pass the BAM's path and the FASTA you aligned to:
-  `jbrowse_alignments("my_wgbs.bam", "chr1:1-20000", reference = "ref.fa", display = ...)`.
+  `jbrowse_alignments("my_wgbs.bam", "chr1:1-20000", assembly = "ref.fa", display = ...)`.
   A FASTA needs its `.fai`; a bgzipped one needs its `.gzi` as well.
 - Name the locus the way the BAM's header names the chromosome. ggjbrowse has
   no alias table, so a BAM aligned to RefSeq TAIR10 takes `NC_003070.9`, not

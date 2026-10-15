@@ -4,10 +4,10 @@
 \alias{jbrowse_sequence}
 \title{Read a region of the reference}
 \usage{
-jbrowse_sequence(reference, chrom, start, end)
+jbrowse_sequence(assembly, chrom, start, end)
 }
 \arguments{
-\item{reference}{an indexed FASTA, plain or bgzipped, or a 2bit, path or
+\item{assembly}{an indexed FASTA, plain or bgzipped, or a 2bit, path or
 URL; or a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, whose aliases then name \code{chrom}}
 
 \item{chrom, start, end}{the region, 0-based half-open}

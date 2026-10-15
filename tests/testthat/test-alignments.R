@@ -18,7 +18,7 @@ test_that("a BAM region reads as JBrowse lays it out", {
 
 test_that("a CRAM reads as the same tables as its BAM", {
   cram <- jbrowse_alignments(extdata("volvox-sorted.cram"), "ctgA", 1000, 6000,
-    reference = extdata("volvox.fa"))
+    assembly = extdata("volvox.fa"))
   key <- function(x) sort(paste(x$reads$name, x$reads$start, x$reads$end,
     x$reads$row))
   expect_equal(key(cram), key(bam))
@@ -180,7 +180,7 @@ test_that("the display's sort object lays the rows out", {
 
 test_that("splice junctions arc over the coverage, counted and stranded", {
   s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300,
-    reference = extdata("volvox.fa"))
+    assembly = extdata("volvox.fa"))
   expect_equal(nrow(s$junctions), 2)
   expect_equal(sum(s$junctions$count), sum(s$gaps$type == "skip"))
   expect_true(all(s$junctions$strand %in% c(1, -1, 0)))
@@ -198,7 +198,7 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   plain <- jbrowse_alignments(bam, "20", 10000, 20000)
   expect_equal(nrow(plain$modifications), 0)
   m <- jbrowse_alignments(bam, "20", 10000, 20000,
-    reference = extdata("hg38_clip.fa"),
+    assembly = extdata("hg38_clip.fa"),
     display = list(baseColor = list(field = "modifications")))
   expect_gt(nrow(m$modifications), 100)
   expect_setequal(unique(m$modifications$name), "5mC")
@@ -226,12 +226,12 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
 test_that("modification coloring greys the mismatched bases and drops their key", {
   bam <- extdata("methylation_clip.bam")
   fa <- extdata("hg38_clip.fa")
-  plain <- jbrowse_alignments(bam, "20", 10000, 12000, reference = fa)
+  plain <- jbrowse_alignments(bam, "20", 10000, 12000, assembly = fa)
   expect_gt(length(unique(plain$mismatches$color)), 1)
   expect_setequal(as.character(plain$keys$bases$color),
     unique(as.character(c(plain$mismatches$color,
       plain$allele_coverage$color))))
-  m <- jbrowse_alignments(bam, "20", 10000, 12000, reference = fa,
+  m <- jbrowse_alignments(bam, "20", 10000, 12000, assembly = fa,
     display = list(baseColor = list(field = "modifications")))
   expect_gt(nrow(m$mismatches), 0)
   expect_setequal(as.character(m$mismatches$color), "#888")
@@ -244,7 +244,7 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   fa <- extdata("arabidopsis_tair10.fa.gz")
   locus <- "NC_003070.9:4,406,001-4,408,000"
   bisulfite <- function(modifications = NULL) jbrowse_alignments(bam, locus,
-    reference = fa, display = list(baseColor = list(field = "bisulfite"),
+    assembly = fa, display = list(baseColor = list(field = "bisulfite"),
       modifications = modifications))
   cg <- bisulfite()
   expect_gt(nrow(cg$modifications), 100)
@@ -300,7 +300,7 @@ test_that("a bgzipped FASTA reads as a reference, and MD tags stand in for one",
   tagged <- jbrowse_alignments(bam, locus)
   expect_gt(nrow(tagged$mismatches), 1000)
   expect_true(all(tagged$junctions$motif == ""))
-  read <- jbrowse_alignments(bam, locus, reference = fa)
+  read <- jbrowse_alignments(bam, locus, assembly = fa)
   expect_equal(read$mismatches, tagged$mismatches)
   common <- read$junctions[read$junctions$count >= 10, ]
   expect_gt(nrow(common), 5)
@@ -312,7 +312,7 @@ test_that("the reference reads as its bases, drawn as a band only when asked", {
   seq <- jbrowse_sequence(fa, "ctgA", 1000, 1020)
   expect_match(seq, "^[ACGTNacgtn]{20}$")
   z <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 1100,
-    reference = fa)
+    assembly = fa)
   expect_equal(nchar(jbrowse_sequence(fa, "ctgA", 1000, 1100)), 100)
   s <- ggplot2::ggplot_build(ggplot2::autoplot(z, "sequence"))
   expect_equal(nrow(s$data[[2]]), 100)
@@ -475,7 +475,7 @@ test_that("a short pileup's figure is still tall enough for its keys", {
 
 test_that("a base modification call draws at least a display pixel wide", {
   m <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
-    reference = extdata("hg38_clip.fa"),
+    assembly = extdata("hg38_clip.fa"),
     display = list(baseColor = list(field = "modifications")))
   d <- ggplot2::layer_data(ggplot2::ggplot(m) + geom_jbrowse_modifications(), 1)
   expect_true(all(d$xmax - d$xmin >= 12000 / 1500 - 1e-9))
@@ -508,7 +508,7 @@ test_that("an empty display slot reads as the display's defaults", {
   fa <- extdata("arabidopsis_tair10.fa.gz")
   locus <- "NC_003070.9:4,406,001-4,407,000"
   read <- function(modifications) jbrowse_alignments(bam, locus,
-    reference = fa, display = list(baseColor = list(field = "bisulfite"),
+    assembly = fa, display = list(baseColor = list(field = "bisulfite"),
       modifications = modifications))
   expect_equal(read(list())$modifications, read(NULL)$modifications)
 })
@@ -516,7 +516,7 @@ test_that("an empty display slot reads as the display's defaults", {
 test_that("the sequence band asks for the reference it draws", {
   a <- jbrowse_alignments(extdata("arabidopsis_wgbs.bam"),
     "NC_003070.9:4,406,001-4,406,300")
-  expect_error(autoplot(a, "sequence"), "reference =")
+  expect_error(autoplot(a, "sequence"), "assembly =")
 })
 
 test_that("every section keys the track's read colors, insertions and clips", {
@@ -582,7 +582,7 @@ test_that("a stack draws a key two tracks share once, with every entry either ho
 
 test_that("the junction band hides non-canonical junctions where the display does", {
   read <- function(show) jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
-    "chr12:6,534,201-6,538,700", reference = extdata("gapdh_hg38.fa.gz"),
+    "chr12:6,534,201-6,538,700", assembly = extdata("gapdh_hg38.fa.gz"),
     display = list(showNonCanonicalJunctions = show))
   arcs <- function(x) length(unique(ggplot2::layer_data(
     ggplot2::ggplot(x) + geom_jbrowse_junctions(min_reads = 1), 1)$group))

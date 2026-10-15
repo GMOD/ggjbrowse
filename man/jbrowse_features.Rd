@@ -11,8 +11,6 @@ jbrowse_features(
   end = NULL,
   display = NULL,
   width = 800,
-  reference = NULL,
-  reference_chrom = NULL,
   assembly = NULL,
   color_by_cds = FALSE,
   amino_acids = TRUE,
@@ -59,21 +57,17 @@ how the \code{auto} modes resolve all follow from it. \code{\link[=autoplot]{aut
 pixels to the panel, so a smaller \code{width} gives larger labels in a figure
 of the same size}
 
-\item{reference}{the reference FASTA (indexed) or 2bit, path or URL, for
-\code{color_by_cds}; \code{NULL} takes \code{assembly}'s sequence}
-
-\item{reference_chrom}{the contig's name in \code{reference}, where the file
-spells it another way: one name for every region, or one per region}
-
-\item{assembly}{a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, or an assembly as a JBrowse
-config's \code{assemblies} entry writes it: \code{region} may name a contig by any
-alias it lists, the engine reads the file under the file's own, and the
-reader names the contig in its tables as \code{region} does}
+\item{assembly}{the reference: a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, an assembly as a
+JBrowse config's \code{assemblies} entry writes it, or an indexed FASTA or a
+2bit alone, path or URL. \code{color_by_cds} and \code{amino_acids} read its
+sequence. \code{region} may name a contig by any alias it lists, the engine
+reads the file under the file's own, and the reader names the contig in
+its tables as \code{region} does}
 
 \item{color_by_cds}{paint each CDS by its reading frame, as the view's
 "Color by CDS" does}
 
-\item{amino_acids}{with \code{reference}, translate each CDS once the layout
+\item{amino_acids}{with \code{assembly}, translate each CDS once the layout
 reaches a base a pixel, as the view's "Show amino acids" does: codon
 stripes in \code{rects}, and each residue in \code{amino_acids}}
 
