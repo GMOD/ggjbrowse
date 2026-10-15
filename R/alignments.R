@@ -18,16 +18,15 @@ alignments_adapter <- function(file, index) {
 #'
 #' @param file a BAM or CRAM file, a path or a URL; or a JBrowse track's
 #'   `adapter` config, as a list
-#' @param region the region: a locus as JBrowse's location box writes it
-#'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
-#'   the engine reads as one view and draws end to end on one axis as a
-#'   JBrowse view lays them out, a data frame of `chrom`, `start` and `end`, or a contig name
-#'   with `start` and `end`. With `NULL`, the default, the reader reads the
-#'   whole file: each contig it lists but those its index shows empty, to
-#'   the length the file or `assembly` states, refused with a message past 5
-#'   million rows in any one table or past `span_limit`
-#' @param start,end with a contig name as `region`, the region's bounds,
-#'   0-based half-open
+#' @param region the regions to read, read as one view and drawn end to end
+#'   on one axis as a JBrowse view lays them out: loci as JBrowse's location
+#'   box writes them (`"ctgA:1,001-9,000"`, 1-based and inclusive), contig
+#'   names alone for whole contigs, a data frame of `chrom`, `start` and `end`
+#'   (0-based, half-open, as BED writes them), or a GRanges. With `NULL`, the
+#'   default, the reader reads the whole file: each contig it lists but those
+#'   its index shows empty, to the length the file or `assembly` states. A whole
+#'   file or contig is refused past 5 million rows in any one table or past
+#'   `span_limit`
 #' @param assembly the reference: a [jbrowse_assembly()], an assembly as a
 #'   JBrowse config's `assemblies` entry writes it, or an indexed FASTA,
 #'   plain or bgzipped, or a 2bit alone, path or URL. A CRAM and the
@@ -174,12 +173,11 @@ alignments_adapter <- function(file, index) {
 #' @examples
 #' bam <- system.file("extdata", "gapdh_direct_rna.bam",
 #'   package = "ggjbrowse")
-#' a <- jbrowse_alignments(bam, "chr12", 6534200, 6538700,
+#' a <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
 #'   display = list(color = list(field = "strand")))
 #' head(a$reads)
 #' a$legend
-jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
-                               display = NULL, assembly = NULL, index = NULL,
+jbrowse_alignments <- function(file, region = NULL, display = NULL, assembly = NULL, index = NULL,
                                byte_limit = 2e8, span_limit = 1e7) {
   adapter <- adapter_of(file, function() alignments_adapter(file, index))
   assembly <- assembly_config(assembly)
@@ -191,7 +189,7 @@ jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
     stop("bisulfite calls compare each read's cytosines to the reference: ",
       "pass that FASTA or 2bit as `assembly =`", call. = FALSE)
   }
-  regions <- reader_regions(adapter, region, start, end, assembly)
+  regions <- reader_regions(adapter, region, assembly)
   span <- sum(regions$end - regions$start)
   if (is.null(region) && span > span_limit) {
     stop(sprintf(paste("the whole file spans %s bp over %d contigs, past",
@@ -202,7 +200,7 @@ jbrowse_alignments <- function(file, region = NULL, start = NULL, end = NULL,
   args <- list(adapterConfig = adapter, regions = engine_regions(regions),
     byteLimit = byte_limit, spanLimit = span_limit)
   args$assembly <- assembly
-  if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
+  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("alignments", args)
   x <- alignments_result(t, assembly)
@@ -293,20 +291,29 @@ alignments_result <- function(t, assembly) {
 
 #' Read a region of the reference
 #'
-#' The bases of a region, read through JBrowse's own FASTA or 2bit reader.
+#' The bases of each region, read through JBrowse's own FASTA or 2bit
+#' reader.
 #' @param assembly an indexed FASTA, plain or bgzipped, or a 2bit, path or
-#'   URL; or a [jbrowse_assembly()], whose aliases then name `chrom`
-#' @param chrom,start,end the region, 0-based half-open
-#' @return one string of `end - start` bases
+#'   URL; or a [jbrowse_assembly()], whose aliases a region may then name a
+#'   contig by
+#' @param region the regions, as a reader's `region` takes them: loci such as
+#'   `"chr12:6,534,501-6,534,520"`, contig names for whole contigs, a data
+#'   frame of `chrom`, `start` and `end` (0-based, half-open), or a GRanges
+#' @return a string of each region's bases, `end - start` of them
 #' @export
 #' @examples
 #' fa <- system.file("extdata", "gapdh_hg38.fa.gz", package = "ggjbrowse")
-#' jbrowse_sequence(fa, "chr12", 6534500, 6534520)
-jbrowse_sequence <- function(assembly, chrom, start, end) {
-  args <- list(region = list(refName = chrom, start = start, end = end),
-    assembly = assembly_config(assembly))
-  in_engine(function(ctx) ctx$call("jbrowse.sequence",
-    as_engine_json(args), await = TRUE))
+#' jbrowse_sequence(fa, "chr12:6,534,501-6,534,520")
+jbrowse_sequence <- function(assembly, region) {
+  assembly <- assembly_config(assembly)
+  regions <- regions_of(region, function()
+    region_frame(call_engine("regions", list(assembly = assembly))))
+  vapply(seq_len(nrow(regions)), function(i) {
+    args <- list(region = list(refName = regions$chrom[i],
+      start = regions$start[i], end = regions$end[i]), assembly = assembly)
+    in_engine(function(ctx) ctx$call("jbrowse.sequence",
+      as_engine_json(args), await = TRUE))
+  }, "")
 }
 
 # The 0-based region a junction draws in: the one holding its start, else its

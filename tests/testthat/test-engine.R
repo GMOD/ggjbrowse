@@ -70,7 +70,7 @@ test_that("numbers read off the engine's bytes, NA where it wrote none", {
 
 test_that("a column keeps the type it had when the tables crossed as JSON", {
   bam <- jbrowse_alignments(system.file("extdata", "volvox-sorted.bam",
-    package = "ggjbrowse"), "ctgA", 1000, 2000)
+    package = "ggjbrowse"), "ctgA:1,001-2,000")
   expect_type(bam$reads$start, "integer")
   expect_type(bam$reads$strand, "integer")
   expect_type(bam$mismatches$frequency, "double")

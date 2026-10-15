@@ -187,7 +187,7 @@ write_tsv(mutate(panel, group = ifelse(category == "Breed_Dogs", "Dog breed",
 genotypes <- jbrowse_variants(slice, locus, samples = samples_file,
   display = display)
 
-bases <- strsplit(jbrowse_sequence(twobit, "chr30", 38261614, 38261655), "")[[1]]
+bases <- strsplit(jbrowse_sequence(twobit, "chr30:38,261,615-38,261,655"), "")[[1]]
 codon <- ggplot(tibble(x = 38261614 + seq_along(bases) - 0.5, base = bases),
   aes(x, 1, label = base)) +
   annotate("rect", xmin = 38261634, xmax = 38261637, ymin = 0.5, ymax = 1.5,

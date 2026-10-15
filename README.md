@@ -110,11 +110,11 @@ ggplot(a) +
 - **Data:** every example runs as written on clips of public human data
   installed with the package. `scripts/extdata-*.sh` make the clips.
 - **Regions:** a locus as JBrowse's location box writes it, 1-based
-  (`"chr12:6,534,201-6,538,700"`), or `"chr12", 6534200, 6538700` in 0-based
-  half-open coordinates. A vector of several loci draws them end to end.
-- **Whole files:** leave out the region and the alignments, features and
-  variants readers read every contig the file lists. `jbrowse_wiggle()` needs
-  a region.
+  (`"chr12:6,534,201-6,538,700"`), a contig name alone for the whole contig,
+  a data frame of `chrom`, `start` and `end` in 0-based half-open
+  coordinates, or a GRanges. Several regions draw end to end.
+- **Whole files:** leave out the region and a reader reads every contig the
+  file lists.
 - **Files:** a path or a URL. CRAM needs its FASTA as `assembly`.
 - **The file's own fields:** a GFF3's attributes, a BigBed's autoSql columns
   and a VCF's INFO, FORMAT and consequence fields come back as columns,

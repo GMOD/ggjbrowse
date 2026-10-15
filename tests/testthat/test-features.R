@@ -1,6 +1,6 @@
 extdata <- function(f) system.file("extdata", f, package = "ggjbrowse")
 gff <- extdata("volvox.sort.gff3.gz")
-g <- jbrowse_features(gff, "ctgA", 0, 25000)
+g <- jbrowse_features(gff, "ctgA:1-25,000")
 
 test_that("a GFF3 region reads as JBrowse's feature display lays it out", {
   f <- g$features
@@ -23,17 +23,17 @@ test_that("a GFF3 region reads as JBrowse's feature display lays it out", {
 })
 
 test_that("the display's settings reach the tables", {
-  bare <- jbrowse_features(gff, "ctgA", 0, 25000,
+  bare <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(showLabels = "none", displayDirectionalChevrons = FALSE))
   expect_equal(nrow(bare$labels), 0)
   expect_equal(nrow(bare$chevrons), 0)
   expect_lt(bare$height, g$height)
-  genes <- jbrowse_features(gff, "ctgA", 0, 25000,
+  genes <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(showOnlyGenes = TRUE))
   expect_true(all(genes$features$gene))
-  typed <- jbrowse_features(gff, "ctgA", 0, 25000,
+  typed <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(color = list(field = "type")))
-  purple <- jbrowse_features(gff, "ctgA", 0, 25000,
+  purple <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(color = "purple"))
   expect_equal(unique(as.character(purple$rects$color)), "#800080")
   expect_gt(nrow(typed$legend), 1)
@@ -42,7 +42,7 @@ test_that("the display's settings reach the tables", {
 })
 
 test_that("an identity key lists every domain color, drawn or not, as the browser does", {
-  keyed <- jbrowse_features(gff, "ctgA", 0, 25000, display = list(color = list(
+  keyed <- jbrowse_features(gff, "ctgA:1-25,000", display = list(color = list(
     scale = "identity", domain = c("goldenrod", "purple"),
     labels = c("Drawn", "Not drawn"))))
   expect_false("#800080" %in% keyed$rects$color)
@@ -52,7 +52,7 @@ test_that("an identity key lists every domain color, drawn or not, as the browse
 })
 
 test_that("a fitted track gives up what the browser gives up to fit it", {
-  fit <- jbrowse_features(gff, "ctgA", 0, 25000,
+  fit <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(heightMode = "fit", height = 100))
   eden <- which(fit$features$name == "EDEN")
   expect_lte(max(fit$features$bottom), 100)
@@ -61,12 +61,12 @@ test_that("a fitted track gives up what the browser gives up to fit it", {
 })
 
 test_that("a wider layout fits more names", {
-  narrow <- jbrowse_features(gff, "ctgA", 0, 25000, width = 300)
+  narrow <- jbrowse_features(gff, "ctgA:1-25,000", width = 300)
   expect_lt(nrow(narrow$labels), nrow(g$labels))
 })
 
 test_that("a BigBed reads through the same display", {
-  b <- jbrowse_features(extdata("volvox.bb"), "ctgA", 0, 25000)
+  b <- jbrowse_features(extdata("volvox.bb"), "ctgA:1-25,000")
   expect_gt(nrow(b$features), 0)
   expect_gt(nrow(b$rects), 0)
 })
@@ -75,7 +75,7 @@ test_that("a track's adapter config reads with its own settings", {
   bb <- list(type = "BigBedAdapter",
     bigBedLocation = list(localPath = extdata("volvox.bb")),
     aggregateField = "geneName")
-  b <- jbrowse_features(bb, "ctgA", 0, 25000)
+  b <- jbrowse_features(bb, "ctgA:1-25,000")
   eden <- which(b$features$name == "EDEN")
   expect_equal(b$features$type[eden], "gene")
   expect_setequal(b$subfeatures$name[b$subfeatures$feature == eden],
@@ -169,7 +169,7 @@ test_that("a figure at jbrowse_width() draws labels the same size at any view wi
 })
 
 test_that("the display's facet packs a section per value, each on its own rows", {
-  s <- jbrowse_features(gff, "ctgA", 0, 25000,
+  s <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(facet = "strand"))
   expect_gt(nrow(s$sections), 1)
   expect_equal(nrow(s$features), nrow(g$features))
@@ -187,18 +187,18 @@ test_that("the display's facet packs a section per value, each on its own rows",
     expect_equal(d$section, s$features$section[d$feature])
   }
   keys <- s$sections$key
-  hidden <- jbrowse_features(gff, "ctgA", 0, 25000,
+  hidden <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(facet = list(field = "strand", hidden = keys[1])))
   expect_false(keys[1] %in% hidden$sections$key)
   expect_lt(nrow(hidden$features), nrow(s$features))
-  reordered <- jbrowse_features(gff, "ctgA", 0, 25000,
+  reordered <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(facet = list(field = "strand", domain = rev(keys))))
   expect_equal(reordered$sections$key, rev(keys))
   expect_equal(g$sections$label, "")
 })
 
 test_that("autoplot draws each section in its own panel over its rows", {
-  s <- jbrowse_features(gff, "ctgA", 0, 25000,
+  s <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(facet = "strand"))
   built <- ggplot2::ggplot_build(ggplot2::autoplot(s))
   expect_equal(nrow(built$layout$layout), nrow(s$sections))
@@ -258,8 +258,8 @@ test_that("the residues draw as haloed monospace letters", {
 test_that("a track's name in jbrowse_stack titles its first band", {
   bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
   gff <- system.file("extdata", "volvox.sort.gff3.gz", package = "ggjbrowse")
-  genes <- jbrowse_features(gff, "ctgA", 1000, 3000)
-  reads <- jbrowse_alignments(bam, "ctgA", 1000, 3000)
+  genes <- jbrowse_features(gff, "ctgA:1,001-3,000")
+  reads <- jbrowse_alignments(bam, "ctgA:1,001-3,000")
   titles <- function(fig) vapply(c(fig$patches$plots, list(fig)),
     function(p) p$labels$title %||% "", "")
   expect_equal(titles(jbrowse_stack(genes, reads)), rep("", 3))
@@ -271,7 +271,7 @@ test_that("a track's name in jbrowse_stack titles its first band", {
 
 test_that("an adapter config's uri shorthand reads as JBrowse expands it", {
   shorthand <- jbrowse_features(list(type = "Gff3TabixAdapter", uri = gff),
-    "ctgA", 0, 25000)
+    "ctgA:1-25,000")
   same <- setdiff(names(g$features), "id")
   expect_equal(shorthand$features[same], g$features[same])
 })
@@ -286,8 +286,8 @@ test_that("features a config writes inline read as the same features in a file",
     seq_len(nrow(spans)), function(i) list(uniqueId = spans$name[i],
       refName = spans$chrom[i], start = spans$start[i], end = spans$end[i],
       name = spans$name[i])))
-  from_file <- jbrowse_features(bed, "chr2L", 0, 23513712)
-  from_config <- jbrowse_features(inline, "chr2L", 0, 23513712)
+  from_file <- jbrowse_features(bed, "chr2L:1-23,513,712")
+  from_config <- jbrowse_features(inline, "chr2L:1-23,513,712")
   expect_equal(from_config$features$name, c("In(2L)t", "probe"))
   same <- setdiff(names(from_file$features), "id")
   expect_equal(from_config$features[same], from_file$features[same])
@@ -297,8 +297,8 @@ test_that("features a config writes inline read as the same features in a file",
 })
 
 test_that("a GFF3's attributes are columns keyed as the file writes them", {
-  g <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"), "chr12", 6534200,
-    6538700, display = list(geneGlyphMode = "all"))
+  g <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"), "chr12:6,534,201-6,538,700",
+     display = list(geneGlyphMode = "all"))
   gapdh <- g$features[g$features$name == "GAPDH", ]
   expect_equal(gapdh$ID, "ENSG00000111640.15")
   expect_equal(gapdh$gene_name, "GAPDH")
@@ -314,8 +314,8 @@ test_that("a GFF3's attributes are columns keyed as the file writes them", {
 })
 
 test_that("an exon names its transcript, so its box joins to it", {
-  g <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"), "chr12", 6534200,
-    6538700, display = list(geneGlyphMode = "all"))
+  g <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"), "chr12:6,534,201-6,538,700",
+     display = list(geneGlyphMode = "all"))
   exons <- g$rects[!is.na(g$rects$subfeature), ]
   expect_gt(nrow(exons), nrow(g$subfeatures))
   tx <- g$subfeatures[exons$subfeature, ]
@@ -332,7 +332,7 @@ test_that("an attribute named like a table column takes an attr_ prefix", {
       "ID=g1;Name=one;type=odd;end=x", sep = "\t"),
     paste("ctgA", "src", "gene", "601", "900", ".", "-", ".",
       "ID=g2;Name=two;Alias=a,b", sep = "\t")), gff)
-  g <- jbrowse_features(gff, "ctgA", 0, 1000)
+  g <- jbrowse_features(gff, "ctgA:1-1,000")
   expect_equal(g$features$type, c("gene", "gene"))
   expect_equal(g$features$attr_type, c("odd", NA))
   expect_equal(g$features$attr_end, c("x", NA))
@@ -362,7 +362,7 @@ test_that("a GFF3's attributes are text, a list where the spec lists several", {
 })
 
 test_that("a BigBed's fields take the types its autoSql declares", {
-  b <- jbrowse_features(extdata("volvox.bb"), "ctgA", 0, 50000)
+  b <- jbrowse_features(extdata("volvox.bb"), "ctgA:1-50,000")
   fields <- b$attribute_fields
   expect_equal(fields$type[fields$key == "score"], "Integer")
   expect_equal(fields$description[fields$key == "geneName"], "Gene name")
@@ -373,17 +373,17 @@ test_that("a BigBed's fields take the types its autoSql declares", {
 test_that("a file with no region reads whole, each contig it lists", {
   whole <- jbrowse_features(gff)
   expect_setequal(unique(whole$features$chrom), c("ctgA", "ctgB"))
-  b <- jbrowse_features(gff, "ctgB", 0, 6079)
+  b <- jbrowse_features(gff, "ctgB:1-6,079")
   expect_equal(whole$features$name[whole$features$chrom == "ctgB"],
     b$features$name)
   expect_equal(sum(whole$features$chrom == "ctgA"),
-    nrow(jbrowse_features(gff, "ctgA", 0, 50001)$features))
+    nrow(jbrowse_features(gff, "ctgA:1-50,001")$features))
 })
 
 test_that("a whole file past the row limit is refused, asking for a region", {
   local_mocked_bindings(WHOLE_FILE_ROWS = 10)
   expect_error(jbrowse_features(gff), "over the 10-row limit .*pass a region")
-  expect_gt(nrow(jbrowse_features(gff, "ctgB", 0, 6079)$features), 0)
+  expect_gt(nrow(jbrowse_features(gff, "ctgB:1-6,079")$features), 0)
 })
 
 vep <- function() {
@@ -406,7 +406,7 @@ vep <- function() {
 
 test_that("a VCF's CSQ reads as a row per record and consequence", {
   vcf <- vep()
-  v <- jbrowse_variants(vcf, "ctgA", 0, 1000)
+  v <- jbrowse_variants(vcf, "ctgA:1-1,000")
   a <- v$annotations
   expect_equal(a$variant, c(1, 1))
   expect_equal(a$Consequence, c("missense_variant", "upstream_gene_variant"))
@@ -415,7 +415,7 @@ test_that("a VCF's CSQ reads as a row per record and consequence", {
     c("Allele", "Consequence", "IMPACT", "SYMBOL", "DISTANCE"))
   expect_null(v$variants$CSQ)
   expect_equal(v$variants$DP, c(9L, 4L))
-  f <- jbrowse_features(vcf, "ctgA", 0, 1000)
+  f <- jbrowse_features(vcf, "ctgA:1-1,000")
   expect_equal(f$annotations$feature, c(1, 1))
   expect_equal(f$annotations$SYMBOL, c("GENE1", "GENE2"))
   expect_null(f$features$CSQ)

@@ -22,7 +22,7 @@ column through a continuous scale of your own to key it the ggplot way.
 \examples{
 bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
-w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700,
+w <- jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700",
   display = list(mark = "span"))
 library(ggplot2)
 ggplot(w) + geom_jbrowse_wiggle() + guides_jbrowse(w)

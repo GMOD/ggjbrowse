@@ -1,5 +1,5 @@
 extdata <- function(f) system.file("extdata", f, package = "ggjbrowse")
-bam <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000)
+bam <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000")
 
 test_that("a BAM region reads as JBrowse lays it out", {
   expect_equal(nrow(bam$reads), 982)
@@ -17,7 +17,7 @@ test_that("a BAM region reads as JBrowse lays it out", {
 })
 
 test_that("a CRAM reads as the same tables as its BAM", {
-  cram <- jbrowse_alignments(extdata("volvox-sorted.cram"), "ctgA", 1000, 6000,
+  cram <- jbrowse_alignments(extdata("volvox-sorted.cram"), "ctgA:1,001-6,000",
     assembly = extdata("volvox.fa"))
   key <- function(x) sort(paste(x$reads$name, x$reads$start, x$reads$end,
     x$reads$row))
@@ -28,7 +28,7 @@ test_that("a CRAM reads as the same tables as its BAM", {
 })
 
 test_that("insertions and clips sit on their reads, in the track's layers", {
-  l <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000, 20000)
+  l <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000")
   expect_gt(nrow(l$insertions), 0)
   expect_true(all(l$insertions$position >= l$reads$start[l$insertions$read] &
     l$insertions$position <= l$reads$end[l$insertions$read]))
@@ -66,8 +66,7 @@ test_that("the coverage band stacks each position's alleles as the display does"
     bam$coverage$depth[findInterval(strict$x, bam$coverage$start)] >= 0.5))
 })
 
-sv <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000,
-  20000)
+sv <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000")
 
 test_that("the interbase tables count the reads' insertions and clips", {
   ib <- sv$interbase_coverage
@@ -93,8 +92,8 @@ test_that("the coverage band draws on the display's depth axis, inset as the dis
   expect_equal(y$continuous_range,
     scale$domain + c(-1, 1) * inset * span)
 
-  hidden <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA",
-    1000, 20000, display = list(showInterbaseIndicators = FALSE))
+  hidden <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000",
+     display = list(showInterbaseIndicators = FALSE))
   expect_length(ggplot2::ggplot_build(ggplot2::autoplot(hidden,
     "coverage"))$data, 3)
 })
@@ -129,8 +128,8 @@ test_that("a stack hangs from the triangles' tip, as deep a share of the depth a
 })
 
 test_that("a log depth axis leaves the hang linear", {
-  log <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000,
-    20000, display = list(scales = list(y = list(type = "log"))))
+  log <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000",
+     display = list(scales = list(y = list(type = "log"))))
   expect_equal(log$coverage_scale$domain[1], 1)
   built <- ggplot2::ggplot_build(ggplot2::autoplot(log, "coverage"))
   hang <- built$data[[4]]
@@ -146,8 +145,8 @@ test_that("a log depth axis leaves the hang linear", {
 })
 
 test_that("every section shares the display's one depth axis", {
-  s <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA", 1000,
-    20000, display = list(facet = "strand"))
+  s <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000",
+     display = list(facet = "strand"))
   expect_gt(length(unique(s$interbase_coverage$section)), 1)
   built <- ggplot2::ggplot_build(ggplot2::autoplot(s, "coverage"))
   ranges <- lapply(built$layout$panel_params, function(p) p$y$continuous_range)
@@ -166,20 +165,20 @@ test_that("several regions' indicators land on the axis that lays them end to en
 
 test_that("the display's sort object lays the rows out", {
   site <- bam$mismatches$position[1]
-  s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+  s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(sort = list(type = "basePair", pos = site)))
   covering <- which(s$reads$start <= site & s$reads$end > site)
   mismatched <- unique(s$mismatches$read[s$mismatches$position == site])
   expect_gt(length(mismatched), 0)
   expect_lt(max(s$reads$row[mismatched]),
     min(s$reads$row[setdiff(covering, mismatched)]))
-  l <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+  l <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(sort = list(type = "length")))
   expect_false(identical(l$reads$row, bam$reads$row))
 })
 
 test_that("splice junctions arc over the coverage, counted and stranded", {
-  s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300,
+  s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300",
     assembly = extdata("volvox.fa"))
   expect_equal(nrow(s$junctions), 2)
   expect_equal(sum(s$junctions$count), sum(s$gaps$type == "skip"))
@@ -195,9 +194,9 @@ test_that("splice junctions arc over the coverage, counted and stranded", {
 
 test_that("base modifications paint under the layer, keyed and tinted as the display paints them", {
   bam <- extdata("methylation_clip.bam")
-  plain <- jbrowse_alignments(bam, "20", 10000, 20000)
+  plain <- jbrowse_alignments(bam, "20:10,001-20,000")
   expect_equal(nrow(plain$modifications), 0)
-  m <- jbrowse_alignments(bam, "20", 10000, 20000,
+  m <- jbrowse_alignments(bam, "20:10,001-20,000",
     assembly = extdata("hg38_clip.fa"),
     display = list(baseColor = list(field = "modifications")))
   expect_gt(nrow(m$modifications), 100)
@@ -212,11 +211,11 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   p <- ggplot2::ggplot_build(ggplot2::autoplot(m, "pileup"))
   expect_equal(nrow(p$data[[6]]), nrow(m$modifications))
   expect_true(all(p$data[[6]]$fill %in% m$legend$color))
-  calls <- jbrowse_alignments(bam, "20", 10000, 20000,
+  calls <- jbrowse_alignments(bam, "20:10,001-20,000",
     display = list(baseColor = list(field = "modifications"),
       modifications = list(unmodified = "calls")))
   expect_gt(sum(calls$modifications$unmodified), 0)
-  every <- jbrowse_alignments(bam, "20", 10000, 20000,
+  every <- jbrowse_alignments(bam, "20:10,001-20,000",
     display = list(baseColor = list(field = "modifications"),
       modifications = list(unmodified = "all")))
   expect_gt(sum(every$modifications$unmodified),
@@ -226,12 +225,12 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
 test_that("modification coloring greys the mismatched bases and drops their key", {
   bam <- extdata("methylation_clip.bam")
   fa <- extdata("hg38_clip.fa")
-  plain <- jbrowse_alignments(bam, "20", 10000, 12000, assembly = fa)
+  plain <- jbrowse_alignments(bam, "20:10,001-12,000", assembly = fa)
   expect_gt(length(unique(plain$mismatches$color)), 1)
   expect_setequal(as.character(plain$keys$bases$color),
     unique(as.character(c(plain$mismatches$color,
       plain$allele_coverage$color))))
-  m <- jbrowse_alignments(bam, "20", 10000, 12000, assembly = fa,
+  m <- jbrowse_alignments(bam, "20:10,001-12,000", assembly = fa,
     display = list(baseColor = list(field = "modifications")))
   expect_gt(nrow(m$mismatches), 0)
   expect_setequal(as.character(m$mismatches$color), "#888888")
@@ -255,7 +254,7 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   expect_gt(nrow(cg$modification_coverage), 0)
   expect_setequal(as.character(cg$mismatches$color), "#888888")
   expect_equal(nrow(cg$keys$bases), 0)
-  seq <- jbrowse_sequence(fa, "NC_003070.9", 4406000, 4408000)
+  seq <- jbrowse_sequence(fa, "NC_003070.9:4,406,001-4,408,000")
   base_at <- function(p, offset) toupper(substring(seq, p - 4406000 + 1 +
     offset, p - 4406000 + 1 + offset))
   forward <- cg$modifications[base_at(cg$modifications$position, 0) == "C", ]
@@ -275,7 +274,7 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
 
 test_that("base quality paints each aligned base on its read, keyed as a bar", {
   bam <- extdata("methylation_clip.bam")
-  q <- jbrowse_alignments(bam, "20", 10000, 10300,
+  q <- jbrowse_alignments(bam, "20:10,001-10,300",
     display = list(baseColor = list(field = "baseQuality")))
   expect_gt(nrow(q$qualities), 1000)
   expect_equal(q$qualities$row, q$reads$row[q$qualities$read])
@@ -286,14 +285,14 @@ test_that("base quality paints each aligned base on its read, keyed as a bar", {
   expect_equal(attr(q$ramps[[1]], "labels")[1], "0")
   p <- ggplot2::ggplot_build(ggplot2::autoplot(q, "pileup"))
   expect_equal(nrow(p$data[[3]]), nrow(q$qualities))
-  expect_equal(nrow(jbrowse_alignments(bam, "20", 10000, 10300)$qualities), 0)
+  expect_equal(nrow(jbrowse_alignments(bam, "20:10,001-10,300")$qualities), 0)
 })
 
 test_that("a bgzipped FASTA reads as a reference, and MD tags stand in for one", {
   fa <- extdata("gapdh_hg38.fa.gz")
-  expect_equal(jbrowse_sequence(fa, "chr12", 6499990, 6500000),
+  expect_equal(jbrowse_sequence(fa, "chr12:6,499,991-6,500,000"),
     strrep("N", 10))
-  expect_match(jbrowse_sequence(fa, "chr12", 6534500, 6534600),
+  expect_match(jbrowse_sequence(fa, "chr12:6,534,501-6,534,600"),
     "^[ACGTacgt]{100}$")
   bam <- extdata("gapdh_direct_rna.bam")
   locus <- "chr12:6,534,201-6,538,700"
@@ -309,11 +308,13 @@ test_that("a bgzipped FASTA reads as a reference, and MD tags stand in for one",
 
 test_that("the reference reads as its bases, drawn as a band only when asked", {
   fa <- extdata("volvox.fa")
-  seq <- jbrowse_sequence(fa, "ctgA", 1000, 1020)
+  seq <- jbrowse_sequence(fa, "ctgA:1,001-1,020")
   expect_match(seq, "^[ACGTNacgtn]{20}$")
-  z <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 1100,
+  z <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-1,100",
     assembly = fa)
-  expect_equal(nchar(jbrowse_sequence(fa, "ctgA", 1000, 1100)), 100)
+  expect_equal(nchar(jbrowse_sequence(fa, "ctgA:1,001-1,100")), 100)
+  expect_equal(nchar(jbrowse_sequence(fa, c("ctgB", "ctgA:1-10"))),
+    c(6079, 10))
   s <- ggplot2::ggplot_build(ggplot2::autoplot(z, "sequence"))
   expect_equal(nrow(s$data[[2]]), 100)
   track <- ggplot2::autoplot(z)
@@ -329,7 +330,7 @@ test_that("the sequence band reads each region's own bases at its offset", {
   second <- band[band$x > two$regions$offset[2], ]
   second <- second[order(second$x), ]
   expect_equal(paste(second$label, collapse = ""),
-    toupper(jbrowse_sequence(fa, "ctgA", 3000, 3040)))
+    toupper(jbrowse_sequence(fa, "ctgA:3,001-3,040")))
   expect_equal(min(second$x), two$regions$offset[2] + 0.5)
   past_end <- jbrowse_alignments(extdata("volvox-sorted.bam"),
     "ctgA:49,901-50,100", assembly = fa)
@@ -339,7 +340,7 @@ test_that("the sequence band reads each region's own bases at its offset", {
 })
 
 test_that("a spliced read splits into its blocks at its skips", {
-  s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300)
+  s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300")
   skips <- s$gaps[s$gaps$type == "skip", ]
   expect_gt(nrow(skips), 0)
   blocks <- ggjbrowse:::read_blocks(s)
@@ -387,7 +388,7 @@ test_that("every mark takes the engine's color, and every key the browser's word
 })
 
 test_that("reads fill as the display's color object paints them, with its key", {
-  s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+  s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(color = list(field = "strand")))
   expect_equal(attr(s$legend, "title"), "Read colors")
   expect_equal(s$legend$label, c("Forward strand", "Reverse strand"))
@@ -397,13 +398,13 @@ test_that("reads fill as the display's color object paints them, with its key", 
   p <- ggplot2::ggplot_build(ggplot2::autoplot(s))
   expect_setequal(unique(p$data[[1]]$fill), s$legend$color)
 
-  own <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+  own <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(color = list(field = "strand",
       range = c("#ff0000", "#0000ff"), title = "Mine")))
   expect_equal(unique(own$reads$color[own$reads$strand == 1]), "#ff0000")
   expect_equal(attr(own$legend, "title"), "Mine")
 
-  m <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+  m <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(color = list(field = "mapq")))
   expect_equal(attr(m$legend, "title"), "Mapping quality")
   expect_true(all(m$reads$color %in% m$legend$color))
@@ -411,7 +412,7 @@ test_that("reads fill as the display's color object paints them, with its key", 
 })
 
 test_that("the display's filter object keeps the reads it keeps", {
-  r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 6000,
+  r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(filter = list(flagInclude = 16)))
   expect_true(all(r$reads$strand == -1))
   expect_gt(nrow(r$reads), 0)
@@ -435,7 +436,7 @@ test_that("a remote BAM reads over HTTP", {
   skip_on_cran()
   skip_if_offline("jbrowse.org")
   u <- "https://jbrowse.org/code/jb2/main/test_data/volvox/volvox-sorted.bam"
-  r <- jbrowse_alignments(u, "ctgA", 1000, 2000)
+  r <- jbrowse_alignments(u, "ctgA:1,001-2,000")
   expect_gt(nrow(r$reads), 100)
 })
 
@@ -448,11 +449,11 @@ test_that("a file overwritten in place is read again", {
     file.copy(extdata(paste0(f, ".bai")), paste0(path, ".bai"), overwrite = TRUE)
   }
   put("volvox-sorted.bam")
-  first <- jbrowse_alignments(path, "ctgA", 400, 1300)
+  first <- jbrowse_alignments(path, "ctgA:401-1,300")
   Sys.sleep(1.1)
   put("spliced.bam")
-  second <- jbrowse_alignments(path, "ctgA", 400, 1300)
-  fresh <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300)
+  second <- jbrowse_alignments(path, "ctgA:401-1,300")
+  fresh <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300")
   expect_false(nrow(first$reads) == nrow(second$reads))
   expect_equal(second$reads$name, fresh$reads$name)
 })
@@ -464,12 +465,12 @@ test_that("a path with %, ? and # in it reads", {
   path <- file.path(dir, "x.bam")
   file.copy(extdata("volvox-sorted.bam"), path)
   file.copy(extdata("volvox-sorted.bam.bai"), paste0(path, ".bai"))
-  expect_equal(nrow(jbrowse_alignments(path, "ctgA", 1000, 6000)$reads), 982)
+  expect_equal(nrow(jbrowse_alignments(path, "ctgA:1,001-6,000")$reads), 982)
 })
 
 test_that("a region over the byte limit is refused with its size", {
   expect_error(
-    jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 0, 50000,
+    jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1-50,000",
       byte_limit = 1000),
     "over the 1000-byte limit")
 })
@@ -477,13 +478,14 @@ test_that("a region over the byte limit is refused with its size", {
 test_that("a whole file reads the contigs its index shows reads on, to the assembly's lengths", {
   cram <- extdata("gapdh_direct_rna.cram")
   fa <- extdata("gapdh_hg38.fa.gz")
-  listed <- file_regions(alignments_adapter(cram, NULL), assembly_config(fa))
+  listed <- file_contigs(alignments_adapter(cram, NULL), assembly_config(fa))
+  listed <- listed[!listed$has_data %in% FALSE, ]
   expect_equal(listed$chrom, "chr12")
   expect_equal(listed$end, 6570000)
   whole <- jbrowse_alignments(cram, assembly = fa)
   expect_equal(max(whole$regions$end), 6570000)
   expect_equal(nrow(whole$reads), nrow(jbrowse_alignments(cram,
-    "chr12", 0, 6570000, assembly = fa)$reads))
+    "chr12:1-6,570,000", assembly = fa)$reads))
 })
 
 test_that("a whole file spanning past span_limit is refused before any read", {
@@ -532,7 +534,7 @@ test_that("a short pileup's figure is still tall enough for its keys", {
 })
 
 test_that("a base modification call draws at least a display pixel wide", {
-  m <- jbrowse_alignments(extdata("methylation_clip.bam"), "20", 10000, 22000,
+  m <- jbrowse_alignments(extdata("methylation_clip.bam"), "20:10,001-22,000",
     assembly = extdata("hg38_clip.fa"),
     display = list(baseColor = list(field = "modifications")))
   d <- ggplot2::layer_data(ggplot2::ggplot(m) + geom_jbrowse_modifications(), 1)
@@ -674,12 +676,12 @@ test_that("a result carries the display's resolved config and read pitch", {
   expect_equal(bam$display$minSashimiScore, 2)
   expect_equal(bam$read_connections, "off")
   expect_equal(bam$read_pitch, list(featureHeight = 7L, featureSpacing = 1L))
-  compact <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000,
-    2000, display = list(featureHeight = 3))
+  compact <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
+     display = list(featureHeight = 3))
   expect_equal(compact$read_pitch$featureSpacing, 0)
   expect_equal(read_inset(compact), 0)
-  off <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000,
-    2000, display = list(fadeLowFrequencyMismatches = FALSE))
+  off <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
+     display = list(fadeLowFrequencyMismatches = FALSE))
   expect_false(fades(off, NULL))
   expect_true(fades(off, TRUE))
 })
@@ -704,8 +706,8 @@ test_that("coverage stops at the region's ends, where the reads do not", {
 })
 
 test_that("a band the display hides reads as an empty table", {
-  hidden <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000,
-    6000, display = list(showCoverage = FALSE))
+  hidden <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
+     display = list(showCoverage = FALSE))
   expect_equal(nrow(hidden$coverage), 0)
   expect_equal(nrow(hidden$allele_coverage), 0)
   expect_equal(hidden$reads$start, bam$reads$start)
@@ -713,11 +715,10 @@ test_that("a band the display hides reads as an empty table", {
 
 test_that("a read's id is its record's, where mates share a name", {
   paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"),
-    "ctgA", 18000, 32000)$reads
+    "ctgA:18,001-32,000")$reads
   expect_lt(length(unique(paired$name)), nrow(paired))
   expect_false(anyDuplicated(paired$id) > 0)
-  later <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 3000,
-    6000)$reads
+  later <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:3,001-6,000")$reads
   shared <- match(later$id, bam$reads$id)
   expect_gt(sum(!is.na(shared)), 100)
   expect_equal(later$start[!is.na(shared)], bam$reads$start[na.omit(shared)])

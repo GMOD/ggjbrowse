@@ -4,21 +4,25 @@
 \alias{jbrowse_sequence}
 \title{Read a region of the reference}
 \usage{
-jbrowse_sequence(assembly, chrom, start, end)
+jbrowse_sequence(assembly, region)
 }
 \arguments{
 \item{assembly}{an indexed FASTA, plain or bgzipped, or a 2bit, path or
-URL; or a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, whose aliases then name \code{chrom}}
+URL; or a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}}, whose aliases a region may then name a
+contig by}
 
-\item{chrom, start, end}{the region, 0-based half-open}
+\item{region}{the regions, as a reader's \code{region} takes them: loci such as
+\code{"chr12:6,534,501-6,534,520"}, contig names for whole contigs, a data
+frame of \code{chrom}, \code{start} and \code{end} (0-based, half-open), or a GRanges}
 }
 \value{
-one string of \code{end - start} bases
+a string of each region's bases, \code{end - start} of them
 }
 \description{
-The bases of a region, read through JBrowse's own FASTA or 2bit reader.
+The bases of each region, read through JBrowse's own FASTA or 2bit
+reader.
 }
 \examples{
 fa <- system.file("extdata", "gapdh_hg38.fa.gz", package = "ggjbrowse")
-jbrowse_sequence(fa, "chr12", 6534500, 6534520)
+jbrowse_sequence(fa, "chr12:6,534,501-6,534,520")
 }

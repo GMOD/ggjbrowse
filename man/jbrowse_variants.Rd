@@ -7,8 +7,6 @@
 jbrowse_variants(
   file,
   region = NULL,
-  start = NULL,
-  end = NULL,
   display = NULL,
   assembly = NULL,
   samples = NULL,
@@ -20,17 +18,14 @@ jbrowse_variants(
 \item{file}{a VCF, bgzipped with a tabix or CSI index beside it, or plain;
 a path or a URL; or a JBrowse track's \code{adapter} config, as a list}
 
-\item{region}{the region: a locus as JBrowse's location box writes it
-(\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
-the engine reads as one view and draws end to end on one axis as a
-JBrowse view lays them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a contig name
-with \code{start} and \code{end}. With \code{NULL}, the default, the reader reads the
-whole file: each contig it lists but those its index shows empty, to
-the length the file or \code{assembly} states, refused with a message past 5
-million rows in any one table}
-
-\item{start, end}{with a contig name as \code{region}, the region's bounds,
-0-based half-open}
+\item{region}{the regions to read, read as one view and drawn end to end
+on one axis as a JBrowse view lays them out: loci as JBrowse's location
+box writes them (\code{"ctgA:1,001-9,000"}, 1-based and inclusive), contig
+names alone for whole contigs, a data frame of \code{chrom}, \code{start} and \code{end}
+(0-based, half-open, as BED writes them), or a GRanges. With \code{NULL}, the
+default, the reader reads the whole file: each contig it lists but those
+its index shows empty, to the length the file or \code{assembly} states. A whole
+file or contig is refused past 5 million rows in any one table}
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearMultiSampleVariantDisplay}: a list with
@@ -128,6 +123,6 @@ track draws them, with their FILTER, INFO and FORMAT columns.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
-v <- jbrowse_variants(vcf, "1", 155000000, 155050000)
+v <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
 head(v$cells)
 }

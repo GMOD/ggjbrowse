@@ -22,5 +22,5 @@ display autoscales to, a row per source where the display gives each one.
 \examples{
 bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
-autoplot(jbrowse_wiggle(bw, "chr12", 6534200, 6538700))
+autoplot(jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700"))
 }

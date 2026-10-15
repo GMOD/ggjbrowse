@@ -132,7 +132,7 @@ test_that("an INFO key named like a record column takes an info_ prefix", {
       "GT", "0/1", sep = "\t"),
     paste("ctgA", "200", ".", "C", "T", "50", "q10;s50", "type=other", "GT",
       "1/1", sep = "\t")), vcf)
-  v <- jbrowse_variants(vcf, "ctgA", 0, 1000)
+  v <- jbrowse_variants(vcf, "ctgA:1-1,000")
   expect_equal(v$info_fields$key, c("type", "DB", "EXTRA"))
   expect_equal(v$info_fields$column, c("info_type", "DB", "EXTRA"))
   expect_equal(v$variants$type, c("SNV", "SNV"))
@@ -156,7 +156,7 @@ test_that("an INFO column keeps its type with no records or no values", {
 })
 
 test_that("a list column stays a list whatever lengths its rows share", {
-  v <- jbrowse_variants(dogs, "chr30", 38259000, 38259200)$variants
+  v <- jbrowse_variants(dogs, "chr30:38,259,001-38,259,200")$variants
   expect_true(all(lengths(v$AC) == 1))
   expect_type(v$AC, "list")
   expect_identical(v$AC[[1]], v$AC[[1]][1])
@@ -186,7 +186,7 @@ test_that("a first region with no records leaves every row and the second region
 test_that("a VCF with no region reads whole", {
   whole <- jbrowse_variants(dogs)
   expect_equal(whole$variants$start,
-    jbrowse_variants(dogs, "chr30", 0, 4e7)$variants$start)
+    jbrowse_variants(dogs, "chr30:1-40,000,000")$variants$start)
   expect_gt(nrow(whole$cells), 1000)
 })
 

@@ -91,7 +91,7 @@ with_inset <- function(d, model) {
 #' @examples
 #' bam <- system.file("extdata", "gapdh_direct_rna.bam",
 #'   package = "ggjbrowse")
-#' a <- jbrowse_alignments(bam, "chr12", 6534200, 6538700)
+#' a <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700")
 #' library(ggplot2)
 #' ggplot(a) +
 #'   geom_jbrowse_reads(aes(fill = mapq)) +

@@ -21,16 +21,14 @@ variants_adapter <- function(file, index, samples) {
 #'
 #' @param file a VCF, bgzipped with a tabix or CSI index beside it, or plain;
 #'   a path or a URL; or a JBrowse track's `adapter` config, as a list
-#' @param region the region: a locus as JBrowse's location box writes it
-#'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
-#'   the engine reads as one view and draws end to end on one axis as a
-#'   JBrowse view lays them out, a data frame of `chrom`, `start` and `end`, or a contig name
-#'   with `start` and `end`. With `NULL`, the default, the reader reads the
-#'   whole file: each contig it lists but those its index shows empty, to
-#'   the length the file or `assembly` states, refused with a message past 5
-#'   million rows in any one table
-#' @param start,end with a contig name as `region`, the region's bounds,
-#'   0-based half-open
+#' @param region the regions to read, read as one view and drawn end to end
+#'   on one axis as a JBrowse view lays them out: loci as JBrowse's location
+#'   box writes them (`"ctgA:1,001-9,000"`, 1-based and inclusive), contig
+#'   names alone for whole contigs, a data frame of `chrom`, `start` and `end`
+#'   (0-based, half-open, as BED writes them), or a GRanges. With `NULL`, the
+#'   default, the reader reads the whole file: each contig it lists but those
+#'   its index shows empty, to the length the file or `assembly` states. A whole
+#'   file or contig is refused past 5 million rows in any one table
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearMultiSampleVariantDisplay`: a list with
 #'   any of `unit` (`"sample"` for a row per sample, `"haplotype"` for a row
@@ -107,18 +105,17 @@ variants_adapter <- function(file, index, samples) {
 #' @export
 #' @examples
 #' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
-#' v <- jbrowse_variants(vcf, "1", 155000000, 155050000)
+#' v <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
 #' head(v$cells)
-jbrowse_variants <- function(file, region = NULL, start = NULL, end = NULL,
-                             display = NULL, assembly = NULL, samples = NULL,
+jbrowse_variants <- function(file, region = NULL, display = NULL, assembly = NULL, samples = NULL,
                              index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
   assembly <- assembly_config(assembly)
-  regions <- reader_regions(adapter, region, start, end, assembly)
+  regions <- reader_regions(adapter, region, assembly)
   args <- list(adapterConfig = adapter, regions = engine_regions(regions),
     byteLimit = byte_limit)
   args$assembly <- assembly
-  if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
+  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("variants", args)
   in_one_call(variants_result(t), regions, t$missingContigs)
@@ -264,7 +261,7 @@ print.jbrowse_variants <- function(x, ...) {
 #' @export
 #' @examples
 #' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
-#' v <- jbrowse_variants(vcf, "1", 155000000, 155050000)
+#' v <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
 #' library(ggplot2)
 #' ggplot(v) + geom_jbrowse_genotypes(aes(fill = genotype), layout = "columns")
 geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
@@ -331,7 +328,7 @@ reference_rows <- function(x) {
 #' @exportS3Method ggplot2::autoplot
 #' @examples
 #' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
-#' autoplot(jbrowse_variants(vcf, "1", 155000000, 155050000))
+#' autoplot(jbrowse_variants(vcf, "1:155,000,001-155,050,000"))
 autoplot.jbrowse_variants <- function(object,
                                       layout = c("genomic", "columns"), ...) {
   rlang::check_dots_empty()

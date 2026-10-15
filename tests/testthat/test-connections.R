@@ -1,6 +1,6 @@
 extdata <- function(f) system.file("extdata", f, package = "ggjbrowse")
 paired <- extdata("volvox-simple-inv-paired.bam")
-read <- function(...) jbrowse_alignments(paired, "ctgA", 18000, 32000, ...)
+read <- function(...) jbrowse_alignments(paired, "ctgA:18,001-32,000", ...)
 
 test_that("a facet splits the reads into sections, each packed on its own", {
   plain <- read()

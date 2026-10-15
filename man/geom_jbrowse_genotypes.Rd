@@ -49,7 +49,7 @@ gives each record's fade at the figure's pixels per base.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
-v <- jbrowse_variants(vcf, "1", 155000000, 155050000)
+v <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
 library(ggplot2)
 ggplot(v) + geom_jbrowse_genotypes(aes(fill = genotype), layout = "columns")
 }

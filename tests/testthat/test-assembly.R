@@ -33,8 +33,8 @@ test_that("a CRAM decodes against the assembly's sequence, and the sequence band
     "chr12:6,534,201-6,534,500")
   expect_equal(cram$reads$start, bam$reads$start)
   expect_equal(cram$reference$chrom, "chr12")
-  expect_equal(jbrowse_sequence(hg38, "12", 6534300, 6534320),
-    jbrowse_sequence(extdata("gapdh_hg38.fa.gz"), "chr12", 6534300, 6534320))
+  expect_equal(jbrowse_sequence(hg38, "12:6,534,301-6,534,320"),
+    jbrowse_sequence(extdata("gapdh_hg38.fa.gz"), "chr12:6,534,301-6,534,320"))
   expect_s3_class(ggplot2::ggplot_build(autoplot(cram, "sequence")),
     "ggplot_built")
 })
@@ -94,7 +94,7 @@ test_that("a calls VCF with no GT reads as features with its FILTER, INFO and FO
       "SVTYPE=DEL;SVLEN=-400", "DP:AD", "40:12", sep = "\t"),
     paste("12", "6535000", "i_2", "G", "<INS>", ".", "Too_low_VAF",
       "SVTYPE=INS", "DP:AD", "35:2", sep = "\t")), vcf)
-  expect_equal(nrow(jbrowse_variants(vcf, "12", 6534200, 6538700)$variants),
+  expect_equal(nrow(jbrowse_variants(vcf, "12:6,534,201-6,538,700")$variants),
     0)
   calls <- jbrowse_features(vcf, locus, assembly = hg38)
   f <- calls$features

@@ -1,6 +1,6 @@
 bw <- system.file("extdata", "volvox_microarray_posneg.bw",
   package = "ggjbrowse")
-w <- jbrowse_wiggle(bw, "ctgA", 0, 50000)
+w <- jbrowse_wiggle(bw, "ctgA:1-50,000")
 
 test_that("a BigWig region reads as the wiggle display scales and colors it", {
   expect_gt(nrow(w$bins), 100)
@@ -11,13 +11,13 @@ test_that("a BigWig region reads as the wiggle display scales and colors it", {
   sides <- split(w$marks$color, w$marks$score < 0)
   expect_equal(lengths(lapply(sides, unique)), c(`FALSE` = 1, `TRUE` = 1))
   expect_false(identical(sides[[1]][1], sides[[2]][1]))
-  pinned <- jbrowse_wiggle(bw, "ctgA", 0, 50000,
+  pinned <- jbrowse_wiggle(bw, "ctgA:1-50,000",
     display = list(scales = list(y = list(domainMin = -50, domainMax = 300))))
   expect_equal(pinned$domain, c(-50, 300))
 })
 
 test_that("density keys its ramp as a bar beside the plot, and bars key none", {
-  d <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = "span"))
+  d <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "span"))
   expect_length(d$ramps, 1)
   ramp <- d$ramps[[1]]
   expect_equal(attr(ramp, "title"), "Score")
@@ -33,11 +33,11 @@ test_that("density keys its ramp as a bar beside the plot, and bars key none", {
 })
 
 test_that("a zoomed-out min-max extent draws the max, mean and min bands on each side", {
-  wide <- jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100)
+  wide <- jbrowse_wiggle(bw, "ctgA:1-50,000", width = 100)
   expect_equal(length(unique(wide$marks$layer)), 6)
   expect_true(all(wide$bins$min <= wide$bins$score &
     wide$bins$score <= wide$bins$max))
-  line <- jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100,
+  line <- jbrowse_wiggle(bw, "ctgA:1-50,000", width = 100,
     display = list(mark = "line"))
   band <- line$marks[line$marks$band, ]
   expect_gte(nrow(band), nrow(line$bins))
@@ -49,7 +49,7 @@ test_that("a zoomed-out min-max extent draws the max, mean and min bands on each
 
 test_that("each plot type draws every mark", {
   for (mark in c("bar", "point", "line", "span")) {
-    x <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = mark,
+    x <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = mark,
       extent = "none"))
     built <- ggplot2::ggplot_build(ggplot2::autoplot(x))
     drawn <- sum(vapply(built$data[2:6], nrow, 1L))
@@ -72,7 +72,7 @@ test_that("a line changes color where it crosses the origin, not at the next poi
 })
 
 test_that("a stepped line's riser across the origin is cut there too", {
-  line <- jbrowse_wiggle(bw, "ctgA", 0, 50000, width = 100,
+  line <- jbrowse_wiggle(bw, "ctgA:1-50,000", width = 100,
     display = list(mark = "line"))
   steps <- ggplot2::ggplot_build(ggplot2::autoplot(line))$data[[5]]
   at <- which(steps$y == 0)
@@ -85,7 +85,7 @@ test_that("a stepped line's riser across the origin is cut there too", {
 test_that("an empty region draws, whatever the plot type", {
   for (mark in c("bar", "line", "span")) {
     expect_warning(
-      empty <- jbrowse_wiggle(bw, "ctgB", 0, 1000, display = list(mark = mark)),
+      empty <- jbrowse_wiggle(bw, "ctgB:1-1,000", display = list(mark = mark)),
       "ctgB is not a contig of this file")
     expect_equal(nrow(empty$marks), 0)
     expect_s3_class(ggplot2::ggplot_build(ggplot2::autoplot(empty)),
@@ -94,7 +94,7 @@ test_that("an empty region draws, whatever the plot type", {
 })
 
 test_that("a stepped line joins its bins, and a rule is labelled in its color", {
-  x <- jbrowse_wiggle(bw, "ctgA", 0, 50000, display = list(mark = "line",
+  x <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "line",
     extent = "none", scales = list(y = list(rules = list(
       list(value = 500, label = "gain"), list(value = 0))))))
   expect_equal(x$rules$label, c("gain", ""))
@@ -109,20 +109,20 @@ test_that("a stepped line joins its bins, and a rule is labelled in its color", 
 
 test_that("a BigWig stacks over reads as one of the track's tracks", {
   bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
-  reads <- jbrowse_alignments(bam, "ctgA", 1000, 6000)
+  reads <- jbrowse_alignments(bam, "ctgA:1,001-6,000")
   track <- ggplot2::autoplot(reads,
-    above = jbrowse_wiggle(bw, "ctgA", 1000, 6000))
+    above = jbrowse_wiggle(bw, "ctgA:1,001-6,000"))
   expect_equal(length(track$patches$plots) + 1, 3)
 })
 
 test_that("the score axis takes the display's log or symlog transform", {
   axis <- function(type) {
-    w <- jbrowse_wiggle(bw, "ctgA", 0, 50000,
+    w <- jbrowse_wiggle(bw, "ctgA:1-50,000",
       display = list(scales = list(y = list(type = type))))
     scale_y_jbrowse(w)$get_transformation()$name
   }
   expect_equal(axis("log"), "log-10")
-  w <- jbrowse_wiggle(bw, "ctgA", 0, 50000,
+  w <- jbrowse_wiggle(bw, "ctgA:1-50,000",
     display = list(scales = list(y = list(type = "symlog"))))
   expect_equal(scale_y_jbrowse(w, name = "Score")$name, "Score")
   expect_equal(scale_y_jbrowse(w, name = "Score")$get_transformation()$name,
@@ -137,7 +137,7 @@ test_that("a row layout packs its sources into the display's height, a slice eac
   multi <- function(n) list(type = "MultiWiggleAdapter",
     subadapters = lapply(seq_len(n), function(i) list(type = "BigWigAdapter",
       name = sprintf("s%03d", i), bigWigLocation = list(uri = bw))))
-  w <- jbrowse_wiggle(multi(120), "ctgA", 0, 50000,
+  w <- jbrowse_wiggle(multi(120), "ctgA:1-50,000",
     display = list(mark = "span"))
   expect_true(w$row_layout)
   expect_equal(jbrowse_stack(w)$patches$layout$heights, w$height)
@@ -147,7 +147,7 @@ test_that("a row layout packs its sources into the display's height, a slice eac
   expect_setequal(unique(tiles$ymin), 0:119)
   expect_equal(tiles$ymax - tiles$ymin, rep(1, nrow(tiles)))
   expect_s3_class(p$theme$axis.text.y, "element_blank")
-  two <- autoplot(jbrowse_wiggle(multi(2), "ctgA", 0, 50000))
+  two <- autoplot(jbrowse_wiggle(multi(2), "ctgA:1-50,000"))
   expect_false(inherits(two$theme$axis.text.y, "element_blank"))
 })
 
@@ -217,6 +217,13 @@ test_that("a mark narrower than a pixel draws a pixel wide", {
 test_that("the result keeps the display's resolved config and aggregate", {
   expect_equal(w$display$type, "LinearWiggleDisplay")
   expect_equal(w$aggregate, "mean")
-  expect_equal(jbrowse_wiggle(bw, "ctgA", 0, 50000,
+  expect_equal(jbrowse_wiggle(bw, "ctgA:1-50,000",
     display = list(aggregate = "max"))$aggregate, "max")
+})
+
+test_that("a BigWig with no region reads whole, each contig it lists", {
+  whole <- jbrowse_wiggle(bw)
+  expect_equal(whole$regions[c("chrom", "start", "end")],
+    data.frame(chrom = "ctgA", start = 0, end = 50001))
+  expect_gt(nrow(whole$marks), 0)
 })

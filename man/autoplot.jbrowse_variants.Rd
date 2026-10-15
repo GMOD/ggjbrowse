@@ -23,5 +23,5 @@ the y axis, keyed by the display's genotype colors.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
-autoplot(jbrowse_variants(vcf, "1", 155000000, 155050000))
+autoplot(jbrowse_variants(vcf, "1:155,000,001-155,050,000"))
 }

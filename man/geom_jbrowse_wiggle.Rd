@@ -33,7 +33,7 @@ declares, each labelled above its line as the display labels it.
 \examples{
 bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
-w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700)
+w <- jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700")
 library(ggplot2)
 ggplot(w) + geom_jbrowse_wiggle(aes(fill = abs(score))) +
   scale_fill_viridis_c()

@@ -47,5 +47,5 @@ writeLines("chr12\t12\tNC_000012.12", aliases)
 hg38 <- jbrowse_assembly(e("gapdh_hg38.fa.gz"), aliases)
 a <- jbrowse_alignments(e("gapdh_direct_rna.bam"), "12:6,534,201-6,538,700",
   assembly = hg38)
-a$region$chrom
+a$regions$chrom
 }

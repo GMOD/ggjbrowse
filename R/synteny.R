@@ -119,9 +119,11 @@ memo <- function(f) {
 # and with none given every contig of the axis's assembly, in natural order
 # `side` picks the file's side where the axis names no assembly the file has.
 axis_regions <- function(given, contigs, assembly, side) {
-  if (is.data.frame(given)) return(regions_of(given, NULL, NULL))
+  if (is.data.frame(given) || inherits(given, "GRanges")) {
+    return(regions_of(given))
+  }
   whole <- !grepl(LOCUS, given)
-  if (length(given) && !any(whole)) return(regions_of(given, NULL, NULL))
+  if (length(given) && !any(whole)) return(regions_of(given))
   all <- contigs()
   named <- length(assembly) && !is.na(assembly) && assembly %in% all$assembly
   own <- all[if (named) all$assembly == assembly else all$side == side, ]
@@ -148,7 +150,7 @@ axis_regions <- function(given, contigs, assembly, side) {
   }
   do.call(rbind, lapply(seq_along(given), function(i)
     if (whole[i]) data.frame(chrom = given[i], start = 0, end = length[i])
-    else regions_of(given[i], NULL, NULL)))
+    else regions_of(given[i])))
 }
 
 # Both axes of a comparative view: the assembly each is on and its regions,

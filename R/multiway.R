@@ -122,7 +122,7 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     stop("name the anchor lane's assembly, the PanSN sample its sequences ",
       "are named after", call. = FALSE)
   }
-  regions <- regions_of(region, NULL, NULL)
+  regions <- regions_of(region)
   choice <- lane_choice(lanes)
   display <- display %||% list()
   if (!is.null(choice$rows)) display$rows <- choice$rows

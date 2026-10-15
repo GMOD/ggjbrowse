@@ -6,9 +6,7 @@
 \usage{
 jbrowse_wiggle(
   file,
-  region,
-  start = NULL,
-  end = NULL,
+  region = NULL,
   display = NULL,
   width = 800,
   assembly = NULL
@@ -18,14 +16,14 @@ jbrowse_wiggle(
 \item{file}{a BigWig, a path or a URL; or a JBrowse track's \code{adapter}
 config, as a list, such as a \code{MultiWiggleAdapter}'s}
 
-\item{region}{the region: a locus as JBrowse's location box writes it
-(\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
-share one score axis and color ramp and are drawn end to end as a JBrowse
-view lays them out, a data frame of \code{chrom}, \code{start} and \code{end}, or a
-contig name with \code{start} and \code{end}}
-
-\item{start, end}{with a contig name as \code{region}, the region's bounds,
-0-based half-open}
+\item{region}{the regions to read, read as one view and drawn end to end
+on one axis as a JBrowse view lays them out: loci as JBrowse's location
+box writes them (\code{"ctgA:1,001-9,000"}, 1-based and inclusive), contig
+names alone for whole contigs, a data frame of \code{chrom}, \code{start} and \code{end}
+(0-based, half-open, as BED writes them), or a GRanges. With \code{NULL}, the
+default, the reader reads the whole file: each contig it lists but those
+its index shows empty, to the length the file or \code{assembly} states. Several
+regions share one score axis and color ramp}
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearWiggleDisplay}: a list with any of \code{mark}
@@ -74,6 +72,6 @@ half-open, on the reference.
 \examples{
 bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
-w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700)
+w <- jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700")
 head(w$marks)
 }

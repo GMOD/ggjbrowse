@@ -30,17 +30,14 @@ features_adapter <- function(file, index) {
 #'   or CSI index beside it) or a BigBed, a path or a URL; or a JBrowse track's
 #'   `adapter` config, as a list, for an adapter's own settings, or a
 #'   `FromConfigAdapter` whose `features` list them inline
-#' @param region the region: a locus as JBrowse's location box writes it
-#'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
-#'   share one layout, a feature on the same row in each, and are drawn end
-#'   to end as a JBrowse view lays them out (a gene's exons with the introns
-#'   collapsed, say), a data frame of `chrom`, `start` and `end`, or a contig
-#'   name with `start` and `end`. With `NULL`, the default, the reader reads
-#'   the whole file: each contig it lists but those its index shows empty,
-#'   to the length the file or `assembly` states, refused with a message
-#'   past 5 million rows in any one table
-#' @param start,end with a contig name as `region`, the region's bounds,
-#'   0-based half-open
+#' @param region the regions to read, read as one view and drawn end to end
+#'   on one axis as a JBrowse view lays them out: loci as JBrowse's location
+#'   box writes them (`"ctgA:1,001-9,000"`, 1-based and inclusive), contig
+#'   names alone for whole contigs, a data frame of `chrom`, `start` and `end`
+#'   (0-based, half-open, as BED writes them), or a GRanges. With `NULL`, the
+#'   default, the reader reads the whole file: each contig it lists but those
+#'   its index shows empty, to the length the file or `assembly` states. A whole
+#'   file or contig is refused past 5 million rows in any one table
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearBasicDisplay`: a list with any of
 #'   `color` (a constant such as `"purple"`, or the color object's slots,
@@ -153,15 +150,14 @@ features_adapter <- function(file, index) {
 #' @export
 #' @examples
 #' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
-#' g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
+#' g <- jbrowse_features(gff, "chr12:6,534,201-6,538,700")
 #' head(g$features)
-jbrowse_features <- function(file, region = NULL, start = NULL, end = NULL,
-                             display = NULL, width = 800, assembly = NULL,
+jbrowse_features <- function(file, region = NULL, display = NULL, width = 800, assembly = NULL,
                              color_by_cds = FALSE, amino_acids = TRUE,
                              index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() features_adapter(file, index))
   assembly <- assembly_config(assembly)
-  regions <- reader_regions(adapter, region, start, end, assembly)
+  regions <- reader_regions(adapter, region, assembly)
   args <- list(
     adapterConfig = adapter,
     regions = engine_regions(regions),
@@ -173,7 +169,7 @@ jbrowse_features <- function(file, region = NULL, start = NULL, end = NULL,
   display <- display %||% list()
   display$heightMode <- display$heightMode %||% "grow"
   args$display <- display_config(display)
-  if (is.null(region)) args$rowLimit <- WHOLE_FILE_ROWS
+  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
   t <- call_engine("features", args)
   legend <- structure(as_frame(t$legend), title = t$legendTitle,
     complete = TRUE)
@@ -339,7 +335,7 @@ for_geom <- function(mapping, geom) {
 #' @export
 #' @examples
 #' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
-#' g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
+#' g <- jbrowse_features(gff, "chr12:6,534,201-6,538,700")
 #' library(ggplot2)
 #' ggplot(g) + geom_jbrowse_glyphs(aes(fill = type)) + scale_y_reverse()
 geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
@@ -425,7 +421,7 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 #' @exportS3Method ggplot2::autoplot
 #' @examples
 #' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
-#' g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
+#' g <- jbrowse_features(gff, "chr12:6,534,201-6,538,700")
 #' autoplot(g)
 autoplot.jbrowse_features <- function(object, ...) {
   rlang::check_dots_empty()

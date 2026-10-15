@@ -1,5 +1,5 @@
 extdata <- function(f) system.file("extdata", f, package = "ggjbrowse")
-bam <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 3000)
+bam <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-3,000")
 library(ggplot2)
 
 test_that("a plot-level mapping warns that jbrowse geoms map in the geom", {
@@ -49,7 +49,7 @@ test_that("a geom reads its table from the plot's result or from its own data", 
 })
 
 test_that("a data frame as a geom's data stands in for the table it draws", {
-  s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300,
+  s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300",
     assembly = extdata("volvox.fa"))
   blocks <- ggjbrowse:::read_blocks(s)
   forward <- s$reads[s$reads$strand == 1, ]
@@ -91,7 +91,7 @@ test_that("the display's keys are scales, each listing what was painted", {
   expect_equal(renamed$name, "Mismatch")
   expect_equal(renamed$breaks, scale_colour_jbrowse(bam, "bases")$breaks)
   expect_error(scale_fill_jbrowse(bam, "nope"), "keys reads, bases")
-  s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA", 1000, 3000,
+  s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-3,000",
     display = list(color = list(field = "strand",
       range = c("#FF0000", "#0000FF"))))
   expect_setequal(as.character(unique(s$reads$color)), c("#ff0000", "#0000ff"))
@@ -102,7 +102,7 @@ test_that("the display's keys are scales, each listing what was painted", {
 })
 
 test_that("a feature track's boxes take any feature column", {
-  g <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA", 0, 25000)
+  g <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1-25,000")
   built <- ggplot_build(ggplot(g) + geom_jbrowse_glyphs(aes(fill = type)))
   boxes <- built$data[[3]]
   expect_equal(nrow(boxes), nrow(g$rects))
@@ -110,8 +110,8 @@ test_that("a feature track's boxes take any feature column", {
 })
 
 test_that("a multi-sample VCF reads as the display paints its genotypes", {
-  v <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"), "chr30",
-    38258000, 38265000)
+  v <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"), "chr30:38,258,001-38,265,000")
+
   expect_equal(nrow(v$variants), 490)
   expect_equal(nrow(v$rows), 39)
   expect_equal(levels(v$cells$row), v$rows$name)
@@ -148,13 +148,13 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
   expect_equal(drawn_pt(5), 0.85 * 5)
   expect_equal(drawn_pt(2), 0)
   haplotypes <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
-    "chr30", 38258000, 38265000, display = list(unit = "haplotype"))
+    "chr30:38,258,001-38,265,000", display = list(unit = "haplotype"))
   expect_equal(nrow(haplotypes$rows), 78)
 })
 
 test_that("a key row names every label its color stands for", {
-  paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA",
-    18000, 32000, display = list(readConnections = "arc"))
+  paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA:18,001-32,000",
+     display = list(readConnections = "arc"))
   legend <- paired$arc_legend
   expect_true(anyDuplicated(legend$color) > 0)
   key <- get_guide_data(ggplot(paired) + geom_jbrowse_arcs() +
@@ -167,15 +167,15 @@ test_that("a key row names every label its color stands for", {
 })
 
 test_that("the multi-layer geoms take any column of their tables", {
-  paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA",
-    18000, 32000, display = list(readConnections = "arc"))
+  paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA:18,001-32,000",
+     display = list(readConnections = "arc"))
   domes <- layer_data(ggplot(paired) + geom_jbrowse_arcs(aes(alpha = span)), 1)
   expect_equal(length(unique(domes$group)), nrow(paired$arcs))
   expect_gt(length(unique(domes$alpha)), 1)
-  g <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA", 0, 25000)
+  g <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1-25,000")
   built <- ggplot_build(ggplot(g) + geom_jbrowse_glyphs(aes(alpha = end - start)))
   expect_equal(nrow(built$data[[2]]), 2 * nrow(g$chevrons))
-  labelled <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA", 0, 25000,
+  labelled <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1-25,000",
     width = 5000, display = list(subfeatureLabels = "below"))
   expect_true(all(labelled$labels$feature >= 1))
   sub <- labelled$labels[!is.na(labelled$labels$subfeature), ]
@@ -185,7 +185,7 @@ test_that("the multi-layer geoms take any column of their tables", {
 })
 
 test_that("the junction band keys the strands its arcs are drawn in", {
-  spliced <- jbrowse_alignments(extdata("spliced.bam"), "ctgA", 400, 1300)
+  spliced <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300")
   key <- get_guide_data(autoplot(spliced, "junctions", min_reads = 1),
     "colour")
   expect_equal(key$.label, "Forward transcript strand")

@@ -188,7 +188,7 @@ sequence_plot <- function(x, o) {
   offset <- r$offset %||% r$start
   bases <- do.call(rbind, lapply(seq_len(nrow(r)), function(i) {
     base <- toupper(strsplit(jbrowse_sequence(x$reference$assembly,
-      r$chrom[i], r$start[i], r$end[i]), "")[[1]])
+      r[i, c("chrom", "start", "end")]), "")[[1]])
     data.frame(position = offset[i] + seq_along(base) - 1, base = base)
   }))
   bases$cell <- max(1, 1 / px_of(x, o$width))

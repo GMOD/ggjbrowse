@@ -7,8 +7,6 @@
 jbrowse_features(
   file,
   region = NULL,
-  start = NULL,
-  end = NULL,
   display = NULL,
   width = 800,
   assembly = NULL,
@@ -24,18 +22,14 @@ or CSI index beside it) or a BigBed, a path or a URL; or a JBrowse track's
 \code{adapter} config, as a list, for an adapter's own settings, or a
 \code{FromConfigAdapter} whose \code{features} list them inline}
 
-\item{region}{the region: a locus as JBrowse's location box writes it
-(\code{"ctgA:1,001-9,000"}, 1-based and inclusive), several of them, which
-share one layout, a feature on the same row in each, and are drawn end
-to end as a JBrowse view lays them out (a gene's exons with the introns
-collapsed, say), a data frame of \code{chrom}, \code{start} and \code{end}, or a contig
-name with \code{start} and \code{end}. With \code{NULL}, the default, the reader reads
-the whole file: each contig it lists but those its index shows empty,
-to the length the file or \code{assembly} states, refused with a message
-past 5 million rows in any one table}
-
-\item{start, end}{with a contig name as \code{region}, the region's bounds,
-0-based half-open}
+\item{region}{the regions to read, read as one view and drawn end to end
+on one axis as a JBrowse view lays them out: loci as JBrowse's location
+box writes them (\code{"ctgA:1,001-9,000"}, 1-based and inclusive), contig
+names alone for whole contigs, a data frame of \code{chrom}, \code{start} and \code{end}
+(0-based, half-open, as BED writes them), or a GRanges. With \code{NULL}, the
+default, the reader reads the whole file: each contig it lists but those
+its index shows empty, to the length the file or \code{assembly} states. A whole
+file or contig is refused past 5 million rows in any one table}
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearBasicDisplay}: a list with any of
@@ -168,6 +162,6 @@ are the display's pixels, down from the track's top.
 }
 \examples{
 gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
-g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
+g <- jbrowse_features(gff, "chr12:6,534,201-6,538,700")
 head(g$features)
 }

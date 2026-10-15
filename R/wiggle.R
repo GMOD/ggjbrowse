@@ -7,13 +7,14 @@
 #'
 #' @param file a BigWig, a path or a URL; or a JBrowse track's `adapter`
 #'   config, as a list, such as a `MultiWiggleAdapter`'s
-#' @param region the region: a locus as JBrowse's location box writes it
-#'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
-#'   share one score axis and color ramp and are drawn end to end as a JBrowse
-#'   view lays them out, a data frame of `chrom`, `start` and `end`, or a
-#'   contig name with `start` and `end`
-#' @param start,end with a contig name as `region`, the region's bounds,
-#'   0-based half-open
+#' @param region the regions to read, read as one view and drawn end to end
+#'   on one axis as a JBrowse view lays them out: loci as JBrowse's location
+#'   box writes them (`"ctgA:1,001-9,000"`, 1-based and inclusive), contig
+#'   names alone for whole contigs, a data frame of `chrom`, `start` and `end`
+#'   (0-based, half-open, as BED writes them), or a GRanges. With `NULL`, the
+#'   default, the reader reads the whole file: each contig it lists but those
+#'   its index shows empty, to the length the file or `assembly` states. Several
+#'   regions share one score axis and color ramp
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearWiggleDisplay`: a list with any of `mark`
 #'   (`"bar"`, `"line"`, `"point"`, or `"span"` for density), `interpolate`
@@ -50,17 +51,18 @@
 #' @examples
 #' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
-#' w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700)
+#' w <- jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700")
 #' head(w$marks)
-jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
-                           display = NULL, width = 800, assembly = NULL) {
-  regions <- regions_of(region, start, end)
-  args <- list(
-    adapterConfig = adapter_of(file, function()
-      list(type = "BigWigAdapter", bigWigLocation = location(file))),
-    regions = engine_regions(regions),
+jbrowse_wiggle <- function(file, region = NULL, display = NULL, width = 800,
+                           assembly = NULL) {
+  adapter <- adapter_of(file, function()
+    list(type = "BigWigAdapter", bigWigLocation = location(file)))
+  assembly <- assembly_config(assembly)
+  regions <- reader_regions(adapter, region, assembly)
+  args <- list(adapterConfig = adapter, regions = engine_regions(regions),
     bpPerPx = sum(regions$end - regions$start) / width)
-  args$assembly <- assembly_config(assembly)
+  args$assembly <- assembly
+  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
   args$display <- display_config(display)
   t <- call_engine("wiggle", args)
   marks <- as_frame(t$marks)
@@ -156,7 +158,7 @@ symlog_transform <- function(constant) {
 #' @examples
 #' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
-#' w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700,
+#' w <- jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700",
 #'   display = list(scales = list(y = list(type = "symlog"))))
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle() + scale_y_jbrowse(w)
@@ -232,7 +234,7 @@ cut_at_origin <- function(d, origin) {
 #' @examples
 #' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
-#' w <- jbrowse_wiggle(bw, "chr12", 6534200, 6538700)
+#' w <- jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700")
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle(aes(fill = abs(score))) +
 #'   scale_fill_viridis_c()
@@ -320,7 +322,7 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
 #' @examples
 #' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
-#' autoplot(jbrowse_wiggle(bw, "chr12", 6534200, 6538700))
+#' autoplot(jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700"))
 autoplot.jbrowse_wiggle <- function(object, ...) {
   rlang::check_dots_empty()
   object <- on_axis(object)

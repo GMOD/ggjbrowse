@@ -40,7 +40,7 @@ mapping every part that has a stroke, the boxes' outlines included.
 }
 \examples{
 gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
-g <- jbrowse_features(gff, "chr12", 6534200, 6538700)
+g <- jbrowse_features(gff, "chr12:6,534,201-6,538,700")
 library(ggplot2)
 ggplot(g) + geom_jbrowse_glyphs(aes(fill = type)) + scale_y_reverse()
 }

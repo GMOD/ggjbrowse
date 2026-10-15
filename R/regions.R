@@ -6,11 +6,16 @@ LOCUS <- "^(.+):([0-9,]+)(-|\\.\\.)([0-9,]+)$"
 # A contig the index shows empty is left out; one it cannot tell about stays.
 WHOLE_FILE_ROWS <- 5e6
 
-file_regions <- function(adapter, assembly = NULL) {
+# Each contig a file lists, from 0 to the length the file or `assembly`
+# states, and whether the file's index shows records there: `NA` where it
+# cannot tell
+file_contigs <- function(adapter, assembly = NULL) {
   args <- list(adapterConfig = adapter)
   args$assembly <- assembly
   r <- call_engine("fileRegions", args)
-  region_frame(r)[!unlist(r$hasData) %in% FALSE, , drop = FALSE]
+  d <- region_frame(r)
+  d$has_data <- as.logical(unlist(r$hasData) %||% logical(0))
+  d
 }
 
 # The engine's regions as `chrom`, `start` and `end`
@@ -19,11 +24,24 @@ region_frame <- function(r) {
     end = as.numeric(r$end))
 }
 
-# The regions a reader reads: those `region` names, or each contig the file
-# lists where it names none
-reader_regions <- function(adapter, region, start, end, assembly = NULL) {
-  if (is.null(region)) file_regions(adapter, assembly)
-  else regions_of(region, start, end)
+# The regions a reader reads, 0-based half-open: those `region` names, or
+# each contig the file lists but those its index shows empty where it names
+# none. A whole contig, or the whole file, is marked `whole`, which the
+# engine caps at WHOLE_FILE_ROWS rows.
+reader_regions <- function(adapter, region, assembly = NULL) {
+  contigs <- memo(function() file_contigs(adapter, assembly))
+  if (is.null(region)) {
+    all <- contigs()
+    all <- all[!all$has_data %in% FALSE, c("chrom", "start", "end")]
+    rownames(all) <- NULL
+    return(structure(all, whole = TRUE))
+  }
+  regions_of(region, function() {
+    file <- contigs()
+    if (is.null(assembly)) return(file)
+    rbind(file[c("chrom", "start", "end")], region_frame(call_engine("regions",
+      list(assembly = assembly))))
+  })
 }
 
 # Regions as the engine's `regions` argument names them
@@ -31,33 +49,64 @@ engine_regions <- function(regions) {
   data.frame(refName = regions$chrom, start = regions$start, end = regions$end)
 }
 
-# The regions a reader was asked for, 0-based half-open: a contig with
-# `start` and `end`, locus strings as JBrowse's location box writes them
-# ("ctgA:1,001-9,000", 1-based and inclusive), or a data frame of chrom,
-# start and end
-regions_of <- function(region, start, end) {
-  if (is.data.frame(region)) {
-    return(data.frame(chrom = as.character(region$chrom),
-      start = as.numeric(region$start), end = as.numeric(region$end)))
+# Regions as 0-based half-open `chrom`, `start` and `end`, from loci as
+# JBrowse's location box writes them ("ctgA:1,001-9,000", 1-based and
+# inclusive), contig names alone for the whole contig at the length
+# `contigs()` lists, a data frame of `chrom`, `start` and `end`, or a GRanges
+regions_of <- function(region, contigs = NULL) {
+  if (inherits(region, "GRanges")) {
+    d <- as.data.frame(region)
+    return(data.frame(chrom = as.character(d$seqnames), start = d$start - 1,
+      end = as.numeric(d$end)))
   }
-  if (!is.null(start) || !is.null(end)) {
-    if (is.null(start) || is.null(end)) {
-      stop("give both start and end, or a locus such as \"ctgA:1,001-9,000\"",
-        call. = FALSE)
-    }
-    return(data.frame(chrom = as.character(region), start = as.numeric(start),
-      end = as.numeric(end)))
+  if (is.data.frame(region)) return(region_table(region))
+  if (!is.character(region) || !length(region)) {
+    rlang::abort(paste("a region is a locus such as \"ctgA:1,001-9,000\", a",
+      "contig name, a data frame of chrom, start and end (0-based,",
+      "half-open), or a GRanges"), class = "ggjbrowse_bad_region")
   }
   m <- regmatches(region, regexec(LOCUS, region))
-  bad <- lengths(m) == 0
-  if (any(bad)) {
-    stop("cannot read ", paste0("\"", region[bad], "\"", collapse = ", "),
-      " as a locus: write \"ctgA:1,001-9,000\", or pass start and end",
-      call. = FALSE)
+  locus <- lengths(m) > 0
+  number <- function(i) as.numeric(gsub(",", "", vapply(m[locus], `[`, "", i)))
+  out <- data.frame(chrom = region, start = NA_real_, end = NA_real_)
+  out$chrom[locus] <- vapply(m[locus], `[`, "", 2)
+  out$start[locus] <- number(3) - 1
+  out$end[locus] <- number(5)
+  if (all(locus)) return(out)
+  known <- if (is.null(contigs)) NULL else contigs()
+  at <- match(region[!locus], known$chrom)
+  if (anyNA(at)) {
+    rlang::abort(sprintf(paste("\"%s\" is neither a locus such as",
+      "\"ctgA:1,001-9,000\" nor a contig of the file%s"),
+      region[!locus][is.na(at)][1], if (length(known$chrom)) paste0(
+        ", whose contigs are ", paste(utils::head(unique(known$chrom), 20),
+          collapse = ", ")) else ""), class = "ggjbrowse_bad_region")
   }
-  number <- function(i) as.numeric(gsub(",", "", vapply(m, `[`, "", i)))
-  data.frame(chrom = vapply(m, `[`, "", 2), start = number(3) - 1,
-    end = number(5))
+  out$start[!locus] <- known$start[at]
+  out$end[!locus] <- known$end[at]
+  structure(out, whole = TRUE)
+}
+
+# A data frame of regions as `chrom`, `start` and `end`, refused where it
+# reads as 1-based: a GRanges' `seqnames`, or a `width` of end - start + 1
+region_table <- function(region) {
+  closed <- !is.null(region$width) && nrow(region) &&
+    isTRUE(all(region$width == region$end - region$start + 1))
+  if (!is.null(region$seqnames) || closed) {
+    rlang::abort(paste0("a region frame is 0-based and half-open, chrom, ",
+      "start and end, as BED writes it, but this one reads as 1-based (",
+      if (closed) "its width is end - start + 1" else "it has seqnames",
+      "): pass the GRanges itself, or subtract 1 from start"),
+      class = "ggjbrowse_bad_region")
+  }
+  missing <- setdiff(c("chrom", "start", "end"), names(region))
+  if (length(missing)) {
+    rlang::abort(paste0("a region frame names chrom, start and end, ",
+      "0-based and half-open; this one lacks ", paste(missing,
+        collapse = ", ")), class = "ggjbrowse_bad_region")
+  }
+  data.frame(chrom = as.character(region$chrom),
+    start = as.numeric(region$start), end = as.numeric(region$end))
 }
 
 # Several regions end to end on one axis: each spans its width in bp, a gap

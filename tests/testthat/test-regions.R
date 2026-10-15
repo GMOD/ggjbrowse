@@ -4,11 +4,39 @@ bam <- extdata("volvox-sorted.bam")
 
 test_that("a locus reads as JBrowse's location box writes it, 1-based", {
   by_locus <- jbrowse_features(gff, "ctgA:1,001-9,000")
-  by_bounds <- jbrowse_features(gff, "ctgA", 1000, 9000)
-  expect_equal(by_locus$features, by_bounds$features)
+  by_frame <- jbrowse_features(gff,
+    data.frame(chrom = "ctgA", start = 1000, end = 9000))
+  expect_equal(by_locus$features, by_frame$features)
   expect_equal(jbrowse_features(gff, "ctgA:1001..9000")$features,
-    by_bounds$features)
-  expect_error(jbrowse_features(gff, "ctgA"), "ctgA:1,001-9,000")
+    by_frame$features)
+  expect_equal(by_locus$regions[c("chrom", "start", "end")],
+    data.frame(chrom = "ctgA", start = 1000, end = 9000))
+})
+
+test_that("a contig named alone reads whole, at the length the file states", {
+  whole <- jbrowse_alignments(bam, "ctgA")
+  expect_equal(whole$regions$end, 50001)
+  expect_equal(nrow(whole$reads), nrow(jbrowse_alignments(bam,
+    "ctgA:1-50,001")$reads))
+  expect_error(jbrowse_alignments(bam, "ctgZ"),
+    class = "ggjbrowse_bad_region")
+  expect_error(jbrowse_alignments(bam, "ctgZ"), "whose contigs are ctgA")
+})
+
+test_that("a GRanges reads as its 1-based ranges, a 1-based frame refused", {
+  skip_if_not_installed("GenomicRanges")
+  gr <- GenomicRanges::GRanges("ctgA",
+    IRanges::IRanges(c(1001, 6001), c(4000, 9000)))
+  by_ranges <- jbrowse_features(gff, gr)
+  expect_equal(by_ranges$regions$start, c(1000, 6000))
+  expect_equal(by_ranges$features,
+    jbrowse_features(gff, c("ctgA:1,001-4,000", "ctgA:6,001-9,000"))$features)
+  expect_error(jbrowse_features(gff, as.data.frame(gr)),
+    class = "ggjbrowse_bad_region")
+  one_based <- data.frame(chrom = "ctgA", start = 1001, end = 4000,
+    width = 3000)
+  expect_error(jbrowse_features(gff, one_based), "0-based and half-open")
+  expect_no_error(jbrowse_features(gff, transform(one_based, start = 1000)))
 })
 
 test_that("loci print with commas however their starts differ in size", {
