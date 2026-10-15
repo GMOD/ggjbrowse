@@ -92,10 +92,50 @@ read_regions <- function(regions, read) {
 join_regions <- function(regions, parts) {
   parts <- lapply(seq_along(parts), function(i)
     placed(parts[[i]], regions$chrom[i], i))
-  missing <- vapply(parts, function(p) p$missing_contig %||% "", "")
-  if (all(missing != "")) warning(missing[1], call. = FALSE)
+  warn_missing(lapply(parts, `[[`, "missing_contig"))
   if (length(parts) == 1) parts[[1]] else bind_regions(region_layout(regions),
     parts)
+}
+
+# Each region's missing-contig message, "" or NULL where the file has the
+# region's contig; warns with the first where no region's contig is the file's
+warn_missing <- function(messages) {
+  missing <- vapply(messages, function(m) m %||% "", "")
+  if (all(missing != "")) warning(missing[1], call. = FALSE)
+  missing
+}
+
+# A result the engine read over every region in one call, as join_regions()
+# answers one: each row of a table the engine numbers by its 0-based `region`
+# names its contig and region, and several regions lie on the axis
+# region_layout() lays them on
+in_one_call <- function(x, regions, missing_contigs) {
+  missing <- warn_missing(lapply(seq_len(nrow(regions)), function(i)
+    missing_contigs[[i]]))
+  for (name in setdiff(names(x), LISTING)) {
+    d <- x[[name]]
+    if (!is.data.frame(d) || is.null(d$region)) next
+    i <- d$region + 1
+    d$region <- NULL
+    d$chrom <- regions$chrom[i]
+    d$.region <- i
+    x[[name]] <- d
+  }
+  if (nrow(regions) == 1) {
+    x$region <- as.list(regions)
+    x$missing_contig <- missing
+    return(x)
+  }
+  on_layout(x, region_layout(regions))
+}
+
+# A result over several regions, its region the axis `regions` lays them on
+on_layout <- function(x, regions) {
+  x$region <- list(chrom = "", start = min(regions$cum_start),
+    end = max(regions$cum_end))
+  x$missing_contig <- ""
+  x$regions <- regions
+  x
 }
 
 # The tables that list a result's keys and fields rather than marks on the
@@ -119,14 +159,12 @@ placed <- function(x, chrom, i) {
 }
 
 # Bind each region's result into one of the same class, its rows at their
-# genomic positions. A read, feature, subfeature or variant number indexes
-# the bound table, and a line's run stays its own. A key lists each entry
-# once, the score domain spans every region's, and the result's region is
-# the axis region_layout() lays them on, which on_axis() moves them onto.
+# genomic positions. A read or variant number indexes the bound table. A key
+# lists each entry once, and the result's region is the axis region_layout()
+# lays them on, which on_axis() moves them onto.
 bind_regions <- function(regions, parts) {
-  indexes <- c(read = "reads", feature = "features",
-    subfeature = "subfeatures", variant = "variants")
-  counts <- stats::setNames(numeric(length(indexes) + 1), c(indexes, "run"))
+  indexes <- c(read = "reads", variant = "variants")
+  counts <- stats::setNames(numeric(length(indexes)), indexes)
   for (i in seq_along(parts)) {
     x <- parts[[i]]
     for (name in setdiff(names(x), LISTING)) {
@@ -135,13 +173,11 @@ bind_regions <- function(regions, parts) {
       for (column in intersect(names(indexes), names(d))) {
         d[[column]] <- d[[column]] + counts[[indexes[[column]]]]
       }
-      if (!is.null(d$run)) d$run <- d$run + counts[["run"]]
       x[[name]] <- d
     }
     for (table in intersect(indexes, names(x))) {
       counts[[table]] <- counts[[table]] + nrow(parts[[i]][[table]])
     }
-    counts[["run"]] <- counts[["run"]] + max(c(-1, parts[[i]]$marks$run)) + 1
     parts[[i]] <- x
   }
   bound <- function(pick) {
@@ -172,18 +208,12 @@ bind_regions <- function(regions, parts) {
   for (key in names(out$keys)) {
     out$keys[[key]] <- unique(bound(function(x) x$keys[[key]]))
   }
-  if (!is.null(out$domain)) out$domain <- range(lapply(parts, `[[`, "domain"))
   if (!is.null(out$coverage_scale)) {
     domain <- range(lapply(parts, function(p) p$coverage_scale$domain))
     out$coverage_scale$domain <- domain
     out$coverage_scale$ticks <- unique(c(domain[1], domain[2]))
   }
-  if (!is.null(out$height)) out$height <- max(sapply(parts, `[[`, "height"))
-  out$missing_contig <- ""
-  out$region <- list(chrom = "", start = min(regions$cum_start),
-    end = max(regions$cum_end))
-  out$regions <- regions
-  out
+  on_layout(out, regions)
 }
 
 # A result's tables as its geoms draw them, on the axis that lays several

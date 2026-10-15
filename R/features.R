@@ -175,81 +175,51 @@ jbrowse_features <- function(file, region = NULL, start = NULL, end = NULL,
   t <- call_engine("features", args)
   legend <- structure(as_frame(t$legend), title = t$legendTitle,
     complete = TRUE)
-  all_features <- as_frame(t$features)
-  all_subfeatures <- as_frame(t$subfeatures)
+  features <- as_frame(t$features)
+  subfeatures <- as_frame(t$subfeatures)
   sections <- as_frame(t$sections)
-  vcf <- vcf_columns(t$vcf, nrow(all_features), names(all_features))
-  taken <- c(names(all_features), names(all_subfeatures), "strand", "section",
+  vcf <- vcf_columns(t$vcf, nrow(features), names(features))
+  taken <- c(names(features), names(subfeatures), "strand", "section",
     "chrom")
   attributes <- typed_columns(t$attributes, t$attributeFields,
-    nrow(all_features), taken, "attr")
+    nrow(features), taken, "attr")
   subfeature_attributes <- typed_columns(t$subfeatureAttributes,
-    t$attributeFields, nrow(all_subfeatures), taken, "attr")$frame
-  attribute_fields <- attributes$fields
-  join_regions(regions, lapply(seq_len(nrow(regions)), function(i) {
-    # the engine numbers features and subfeatures across every region
-    before <- sum(all_features$region < i - 1)
-    subs_before <- sum(all_subfeatures$region < i - 1)
-    of_region <- function(table) {
-      d <- as_frame(table)
-      d <- d[d$region == i - 1, setdiff(names(d), "region"), drop = FALSE]
-      rownames(d) <- NULL
-      d
+    t$attributeFields, nrow(subfeatures), taken, "attr")$frame
+  features$section <- factor(features$section, levels = sections$label)
+  features <- cbind(features, attributes$frame)
+  if (!is.null(vcf)) features <- cbind(features, vcf$records)
+  on_feature <- function(table) {
+    d <- as_frame(table)
+    d$feature <- d$feature + 1
+    for (column in setdiff(c("name", "type", "strand", "start", "end",
+      "section"), names(d))) {
+      d[[column]] <- features[[column]][d$feature]
     }
-    features <- of_region(t$features)
-    features$section <- factor(features$section, levels = sections$label)
-    in_region <- which(all_features$region == i - 1)
-    features <- cbind(features, attributes$frame[in_region, , drop = FALSE])
-    if (!is.null(vcf)) {
-      features <- cbind(features, vcf$records[in_region, , drop = FALSE])
-      samples <- vcf$samples[vcf$samples$feature %in% in_region, ,
-        drop = FALSE]
-      samples$feature <- match(samples$feature, in_region)
-      rownames(samples) <- NULL
-      annotations <- vcf$annotations[vcf$annotations$feature %in% in_region, ,
-        drop = FALSE]
-      annotations$feature <- match(annotations$feature, in_region)
-      rownames(annotations) <- NULL
+    if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
+    if (!is.null(d$subfeature)) {
+      d$subfeature <- d$subfeature + 1
+      d$subfeature[d$subfeature < 1] <- NA
     }
-    on_feature <- function(table) {
-      d <- of_region(table)
-      d$feature <- d$feature - before + 1
-      for (column in setdiff(c("name", "type", "strand", "start", "end",
-        "section"), names(d))) {
-        d[[column]] <- features[[column]][d$feature]
-      }
-      if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
-      if (!is.null(d$subfeature)) {
-        d$subfeature <- ifelse(d$subfeature >= 0,
-          d$subfeature - subs_before + 1, NA_integer_)
-      }
-      d
-    }
-    subfeatures <- cbind(on_feature(t$subfeatures), subfeature_attributes[
-      all_subfeatures$region == i - 1, , drop = FALSE])
-    labels <- on_feature(t$labels)
-    arrows <- on_feature(t$arrows)
-    names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
-    residues <- snake(on_feature(t$aminoAcids))
-    structure(
-      list(features = features,
-        subfeatures = subfeatures, rects = on_feature(t$rects),
-        lines = on_feature(t$lines), chevrons = on_feature(t$chevrons),
-        arrows = arrows, amino_acids = residues, labels = labels,
-        sections = sections, legend = legend,
-        attribute_fields = if (nrow(attribute_fields)) attribute_fields,
-        info_fields = vcf$info_fields,
-        samples = if (!is.null(vcf)) samples,
-        format_fields = vcf$format_fields,
-        annotations = if (!is.null(vcf)) annotations,
-        annotation_fields = vcf$annotation_fields,
-        keys = list(features = legend), ramps = ramp_frames(t$ramps),
-        glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
-        region = as.list(regions[i, ]),
-        missing_contig = t$missingContigs[[i]]),
-      primary = "features",
-      class = c("jbrowse_features", "jbrowse_result"))
-  }))
+    d
+  }
+  arrows <- on_feature(t$arrows)
+  names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
+  in_one_call(structure(
+    list(features = features,
+      subfeatures = cbind(on_feature(t$subfeatures), subfeature_attributes),
+      rects = on_feature(t$rects), lines = on_feature(t$lines),
+      chevrons = on_feature(t$chevrons), arrows = arrows,
+      amino_acids = snake(on_feature(t$aminoAcids)),
+      labels = on_feature(t$labels), sections = sections, legend = legend,
+      attribute_fields = if (nrow(attributes$fields)) attributes$fields,
+      info_fields = vcf$info_fields, samples = vcf$samples,
+      format_fields = vcf$format_fields, annotations = vcf$annotations,
+      annotation_fields = vcf$annotation_fields,
+      keys = list(features = legend), ramps = ramp_frames(t$ramps),
+      glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx),
+    primary = "features",
+    class = c("jbrowse_features", "jbrowse_result")),
+    regions, t$missingContigs)
 }
 
 # Text sized in the display's pixels, scaled to the panel when it draws:

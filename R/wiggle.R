@@ -64,23 +64,16 @@ jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
   bins <- as_frame(t$bins)
   rules <- as_frame(t$rules)
   rules$color <- jbrowse_color(rules$color)
-  of_region <- function(d, i) {
-    d <- d[d$region == i - 1, setdiff(names(d), "region"), drop = FALSE]
-    rownames(d) <- NULL
-    d
-  }
-  join_regions(regions, lapply(seq_len(nrow(regions)), function(i) structure(
-    list(bins = of_region(bins, i), marks = of_region(marks, i),
-      sources = as_frame(t$sources), rules = rules, keys = list(),
-      ramps = ramp_frames(t$ramps),
+  in_one_call(structure(
+    list(bins = bins, marks = marks, sources = as_frame(t$sources),
+      rules = rules, keys = list(), ramps = ramp_frames(t$ramps),
       domain = unlist(t$domain), scale_type = t$scaleType,
       symlog_constant = t$symlogConstant, rendering = t$rendering,
       origin = t$origin, row_layout = t$rowLayout, height = t$height,
-      bp_per_px = args$bpPerPx, aggregate = display$aggregate %||% "mean",
-      region = as.list(regions[i, ]),
-      missing_contig = t$missingContigs[[i]]),
+      bp_per_px = args$bpPerPx, aggregate = display$aggregate %||% "mean"),
     primary = "marks",
-    class = c("jbrowse_wiggle", "jbrowse_result"))))
+    class = c("jbrowse_wiggle", "jbrowse_result")),
+    regions, t$missingContigs)
 }
 
 #' A quantitative track's sources as the display's clustering reads them
