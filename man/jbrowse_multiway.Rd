@@ -64,8 +64,8 @@ cut where it opens a hole: \code{lane}, \code{chrom}, \code{start}, \code{end}, 
 \item \code{blocks}: each alignment or gene's placement on each lane: \code{lane},
 \code{group}, \code{name}, \code{chrom}, \code{start}, \code{end}, \code{strand} against the anchor,
 \code{x1}, \code{x2}, \code{region}
-\item \code{ribbons}: what each gutter draws, in paint order: \code{alignment} (a row
-of \code{alignments}), \code{group}, \code{kind} (\code{"match"}, or \code{"mismatch"} for a
+\item \code{ribbons}: what each gutter draws, in paint order: \code{alignment} (the
+record's key in \code{alignments}), \code{group}, \code{kind} (\code{"match"}, or \code{"mismatch"} for a
 base tile), \code{gutter} (the lane it hangs under), \code{upper_lane},
 \code{lower_lane}, each foot's \verb{*_region}, \verb{*_chrom}, \verb{*_start} and
 \verb{*_end}, and its
@@ -73,7 +73,8 @@ pixels \code{upper_x1}, \code{upper_x2}, \code{lower_x1}, \code{lower_x2}, where
 joins \code{upper_x1} to \code{lower_x1}, so a reversed pair crosses; \code{color},
 \code{alpha}, \code{thin} and \code{bridge}, a ribbon that skips a lane placing
 nothing for its group
-\item \code{alignments}: the records the ribbons draw: \code{id}, \code{group}, \code{name},
+\item \code{alignments}: the records the ribbons draw: \code{alignment}, the key
+assigning \code{alignments} drops the ribbons of, \code{id}, \code{group}, \code{name},
 \code{assembly}, \code{chrom}, \code{start}, \code{end}, \code{strand}, \code{mate_assembly},
 \code{mate_chrom}, \code{mate_start}, \code{mate_end}, and the measurements and
 columns the file carries

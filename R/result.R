@@ -93,7 +93,16 @@ FAMILIES <- list(
       children = "cells")),
   jbrowse_wiggle = list(
     sources = list(key = "name", child_key = "source", columns = character(0),
-      children = c("marks", "bins"))))
+      children = c("marks", "bins"))),
+  jbrowse_synteny = list(
+    alignments = list(key = "alignment", columns = character(0),
+      children = "ribbons")),
+  jbrowse_dotplot = list(
+    alignments = list(key = "alignment", columns = character(0),
+      children = "segments")),
+  jbrowse_multiway = list(
+    alignments = list(key = "alignment", columns = character(0),
+      children = "ribbons")))
 
 # The tables an alignments track summarizes its reads in, which the engine
 # computed over every read and a filter in R leaves as they were

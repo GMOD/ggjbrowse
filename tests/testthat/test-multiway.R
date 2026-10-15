@@ -53,6 +53,14 @@ test_that("the anchor takes loci, frames and GRanges, and refuses whole contigs"
     lanes = c(volvox_del = "ctgA:x")), class = "ggjbrowse_bad_region")
 })
 
+test_that("assigning alignments drops their ribbons", {
+  kept <- m
+  kept$alignments <- m$alignments[1, ]
+  expect_true(all(kept$ribbons$alignment == m$alignments$alignment[1]))
+  expect_equal(nrow(kept$ribbons), sum(m$ribbons$alignment == 1))
+  expect_equal(nrow(kept$segments), nrow(m$segments))
+})
+
 test_that("lanes draw in the order given, and a named lane pins its contig", {
   ordered <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     lanes = c("volvox_del", "volvox_ins"))

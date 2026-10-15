@@ -23,6 +23,13 @@ axis_args <- function(regions, assembly, width) {
   a
 }
 
+# The engine's alignments, each keyed by `alignment`, the number the tables
+# drawn from it name it by
+keyed_alignments <- function(columns) {
+  d <- snake(as_frame(columns))
+  cbind(alignment = seq_len(nrow(d)), d)
+}
+
 # The engine's camelCase columns as this package's snake_case
 snake <- function(d) {
   names(d) <- gsub("([A-Z])", "_\\L\\1", names(d), perl = TRUE)
@@ -290,14 +297,15 @@ on_axis_of <- function(regions, axis) {
 #'   assembly name itself, `"query"` and `"target"` for a guessed file
 #' @param index the tabix or CSI index of a `.pif.gz`, if not beside it
 #' @return a `jbrowse_synteny` list, beside the slots [jbrowse_result] lists:
-#'   * `alignments`: each block, in the band's paint order: `id`, `name`,
+#'   * `alignments`: each block, in the band's paint order: `alignment`,
+#'     its key, `id`, `name`,
 #'     `query_chrom`, `query_start`, `query_end`, `target_chrom`,
 #'     `target_start`, `target_end`, `strand`, `length`, the measurements the
 #'     file carries (`identity`, `mean_identity`, `mapq`, and any column the
 #'     adapter's `attributeColumns` declares), `color` and `alpha`
 #'   * `ribbons`: what the band draws, in paint order, each a trapezoid from
-#'     a span on the query row to a span on the target row: `alignment` (a row
-#'     number of `alignments`), `kind` (`"match"`, `"insertion"`,
+#'     a span on the query row to a span on the target row: `alignment` (the
+#'     block's key in `alignments`), `kind` (`"match"`, `"insertion"`,
 #'     `"deletion"`, `"skip"`, or `"marker"` for a location tick),
 #'     `query_region`, `query_chrom`, `query_start`, `query_end`,
 #'     `target_region`, `target_chrom`, `target_start`, `target_end`, each
@@ -318,6 +326,8 @@ on_axis_of <- function(regions, axis) {
 #'     `alpha`) and `labels` (`axis`, `label`, `x`, `y` at the baseline,
 #'     `color`, `alpha`, `halo`), in a `font_px` font
 #'
+#'   Assigning `alignments` drops the ribbons of the blocks it leaves out;
+#'   the off-screen tables summarize the band's edges as read, and stay.
 #'   `keys$ribbons` is the key the view shows, `ramps` a continuous field's
 #'   color bar, as [guides_jbrowse()] draws it. `regions` lays out both rows, its `axis` `"query"` for the top row and
 #'   `"target"` for the bottom. `display` holds the settings the view drew
@@ -346,10 +356,10 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
   r <- read$value
   regions <- rbind(axis_rows(q, "query", axes$names[1]),
     axis_rows(t, "target", axes$names[2]))
-  alignments <- snake(as_frame(r$alignments))
+  alignments <- keyed_alignments(r$alignments)
   alignments$color <- jbrowse_color(alignments$color)
   ribbons <- snake(as_frame(r$ribbons))
-  ribbons$alignment <- ribbons$alignment + 1
+  ribbons$alignment <- as.integer(ribbons$alignment) + 1L
   ribbons$query_region <- ribbons$query_region + 1
   ribbons$target_region <- ribbons$target_region + 1 + nrow(q)
   ribbons$color <- jbrowse_color(ribbons$color)
@@ -807,16 +817,17 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #' @param labels what each axis title calls its assembly, as for
 #'   [jbrowse_synteny()]: `c(query = "peach", target = "grape")`
 #' @return a `jbrowse_dotplot` list, beside the slots [jbrowse_result] lists:
-#'   * `alignments`: each block: `name`, `x_chrom`, `x_start`, `x_end`,
+#'   * `alignments`: each block: `alignment`, its key, `name`, `x_chrom`, `x_start`, `x_end`,
 #'     `y_chrom`, `y_start`, `y_end`, `strand`, `length`, the measurements
 #'     the file carries, `color` and `alpha`
-#'   * `segments`: the lines the plot draws, in paint order: `alignment` (a
-#'     row number of `alignments`), `op` (`"match"`, `"insertion"`,
+#'   * `segments`: the lines the plot draws, in paint order: `alignment` (the
+#'     block's key in `alignments`), `op` (`"match"`, `"insertion"`,
 #'     `"deletion"` or `"skip"`), `x_region`, `x_chrom`, `x_start`, `x_end`,
 #'     `y_region`, `y_chrom`, `y_start`, `y_end`, from (`x_start`, `y_start`)
 #'     to (`x_end`, `y_end`), each `*_region` a row of `regions`, `color` and
 #'     `alpha`
 #'
+#'   Assigning `alignments` drops the segments of the blocks it leaves out.
 #'   `keys$segments` is the key the view shows, `ramps` a continuous field's
 #'   color bar. `regions` lays out both axes, its `axis` `"x"` or `"y"`. `display`
 #'   holds the settings the view drew with: those given, the view's defaults
@@ -842,10 +853,10 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
     y = axis_args(yr, axes$names[2], height)))
   read <- warned_call("dotplot", args)
   r <- read$value
-  alignments <- snake(as_frame(r$alignments))
+  alignments <- keyed_alignments(r$alignments)
   alignments$color <- jbrowse_color(alignments$color)
   segments <- snake(as_frame(r$segments))
-  segments$alignment <- segments$alignment + 1
+  segments$alignment <- as.integer(segments$alignment) + 1L
   segments$x_region <- segments$x_region + 1
   segments$y_region <- segments$y_region + 1 + nrow(xr)
   segments$color <- jbrowse_color(segments$color)

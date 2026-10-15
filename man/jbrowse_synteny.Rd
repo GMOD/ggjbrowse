@@ -69,14 +69,15 @@ assembly name itself, \code{"query"} and \code{"target"} for a guessed file}
 \value{
 a \code{jbrowse_synteny} list, beside the slots \link{jbrowse_result} lists:
 \itemize{
-\item \code{alignments}: each block, in the band's paint order: \code{id}, \code{name},
+\item \code{alignments}: each block, in the band's paint order: \code{alignment},
+its key, \code{id}, \code{name},
 \code{query_chrom}, \code{query_start}, \code{query_end}, \code{target_chrom},
 \code{target_start}, \code{target_end}, \code{strand}, \code{length}, the measurements the
 file carries (\code{identity}, \code{mean_identity}, \code{mapq}, and any column the
 adapter's \code{attributeColumns} declares), \code{color} and \code{alpha}
 \item \code{ribbons}: what the band draws, in paint order, each a trapezoid from
-a span on the query row to a span on the target row: \code{alignment} (a row
-number of \code{alignments}), \code{kind} (\code{"match"}, \code{"insertion"},
+a span on the query row to a span on the target row: \code{alignment} (the
+block's key in \code{alignments}), \code{kind} (\code{"match"}, \code{"insertion"},
 \code{"deletion"}, \code{"skip"}, or \code{"marker"} for a location tick),
 \code{query_region}, \code{query_chrom}, \code{query_start}, \code{query_end},
 \code{target_region}, \code{target_chrom}, \code{target_start}, \code{target_end}, each
@@ -98,6 +99,8 @@ top left: \code{marks} (\code{axis}, \code{x}, \code{y}, \code{width}, \code{hei
 \code{color}, \code{alpha}, \code{halo}), in a \code{font_px} font
 }
 
+Assigning \code{alignments} drops the ribbons of the blocks it leaves out;
+the off-screen tables summarize the band's edges as read, and stay.
 \code{keys$ribbons} is the key the view shows, \code{ramps} a continuous field's
 color bar, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws it. \code{regions} lays out both rows, its \code{axis} \code{"query"} for the top row and
 \code{"target"} for the bottom. \code{display} holds the settings the view drew

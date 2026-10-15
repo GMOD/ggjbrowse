@@ -89,8 +89,8 @@ lane_pin <- function(locus) {
 #'   * `blocks`: each alignment or gene's placement on each lane: `lane`,
 #'     `group`, `name`, `chrom`, `start`, `end`, `strand` against the anchor,
 #'     `x1`, `x2`, `region`
-#'   * `ribbons`: what each gutter draws, in paint order: `alignment` (a row
-#'     of `alignments`), `group`, `kind` (`"match"`, or `"mismatch"` for a
+#'   * `ribbons`: what each gutter draws, in paint order: `alignment` (the
+#'     record's key in `alignments`), `group`, `kind` (`"match"`, or `"mismatch"` for a
 #'     base tile), `gutter` (the lane it hangs under), `upper_lane`,
 #'     `lower_lane`, each foot's `*_region`, `*_chrom`, `*_start` and
 #'     `*_end`, and its
@@ -98,7 +98,8 @@ lane_pin <- function(locus) {
 #'     joins `upper_x1` to `lower_x1`, so a reversed pair crosses; `color`,
 #'     `alpha`, `thin` and `bridge`, a ribbon that skips a lane placing
 #'     nothing for its group
-#'   * `alignments`: the records the ribbons draw: `id`, `group`, `name`,
+#'   * `alignments`: the records the ribbons draw: `alignment`, the key
+#'     assigning `alignments` drops the ribbons of, `id`, `group`, `name`,
 #'     `assembly`, `chrom`, `start`, `end`, `strand`, `mate_assembly`,
 #'     `mate_chrom`, `mate_start`, `mate_end`, and the measurements and
 #'     columns the file carries
@@ -165,6 +166,7 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     mid(blocks))
   ribbons <- one_based(snake(as_frame(r$ribbons)),
     c("alignment", "gutter", "upper_lane", "lower_lane"))
+  ribbons$alignment <- as.integer(ribbons$alignment)
   ribbons$upper_region <- region_at(layout, axis(ribbons$upper_lane),
     ribbons$upper_chrom, mid(ribbons, "upper_"))
   ribbons$lower_region <- region_at(layout, axis(ribbons$lower_lane),
@@ -175,7 +177,7 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   attr(key, "override") <- list(alpha = 0.6)
   comparative_result("jbrowse_multiway", "ribbons",
     list(lanes = lane_frame, segments = segments, blocks = blocks,
-      ribbons = ribbons, alignments = snake(as_frame(r$alignments))),
+      ribbons = ribbons, alignments = keyed_alignments(r$alignments)),
     layout, width,
     resolved_display(given, MULTIWAY_DEFAULTS,
       list(ribbonColor = painted(given$ribbonColor, r$field),

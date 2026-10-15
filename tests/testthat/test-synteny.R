@@ -173,6 +173,24 @@ test_that("warnings the engine raises land in warnings", {
   expect_equal(w$warnings, "the engine says so")
 })
 
+test_that("assigning alignments drops the ribbons and segments of the blocks it leaves out", {
+  expect_equal(s$alignments$alignment, seq_len(nrow(s$alignments)))
+  forward <- s
+  forward$alignments <- subset(s$alignments, strand == 1)
+  expect_true(all(forward$ribbons$alignment %in% forward$alignments$alignment))
+  expect_equal(nrow(forward$ribbons),
+    sum(s$alignments$strand[s$ribbons$alignment] == 1))
+  expect_equal(attr(forward, "filtered"), "alignments")
+  expect_equal(nrow(forward$offscreen), nrow(s$offscreen))
+  built <- ggplot2::layer_data(autoplot(forward), 1)
+  expect_equal(length(unique(built$group)), sum(!forward$ribbons$thin))
+  d <- jbrowse_dotplot(paf, query, target)
+  d$alignments <- d$alignments[d$alignments$strand == -1, ]
+  expect_true(all(d$alignments$strand[match(d$segments$alignment,
+    d$alignments$alignment)] == -1))
+  expect_gt(nrow(d$segments), 0)
+})
+
 test_that("an unknown extension and a missing contig say so", {
   expect_error(jbrowse_synteny("aln.tsv", query, target), "expected .paf")
   expect_error(jbrowse_synteny(paf, "ctgY:1-1,000", "ctgZ:1-1,000"),

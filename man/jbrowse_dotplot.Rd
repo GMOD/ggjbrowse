@@ -50,17 +50,18 @@ query on the vertical, as \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s \c
 \value{
 a \code{jbrowse_dotplot} list, beside the slots \link{jbrowse_result} lists:
 \itemize{
-\item \code{alignments}: each block: \code{name}, \code{x_chrom}, \code{x_start}, \code{x_end},
+\item \code{alignments}: each block: \code{alignment}, its key, \code{name}, \code{x_chrom}, \code{x_start}, \code{x_end},
 \code{y_chrom}, \code{y_start}, \code{y_end}, \code{strand}, \code{length}, the measurements
 the file carries, \code{color} and \code{alpha}
-\item \code{segments}: the lines the plot draws, in paint order: \code{alignment} (a
-row number of \code{alignments}), \code{op} (\code{"match"}, \code{"insertion"},
+\item \code{segments}: the lines the plot draws, in paint order: \code{alignment} (the
+block's key in \code{alignments}), \code{op} (\code{"match"}, \code{"insertion"},
 \code{"deletion"} or \code{"skip"}), \code{x_region}, \code{x_chrom}, \code{x_start}, \code{x_end},
 \code{y_region}, \code{y_chrom}, \code{y_start}, \code{y_end}, from (\code{x_start}, \code{y_start})
 to (\code{x_end}, \code{y_end}), each \verb{*_region} a row of \code{regions}, \code{color} and
 \code{alpha}
 }
 
+Assigning \code{alignments} drops the segments of the blocks it leaves out.
 \code{keys$segments} is the key the view shows, \code{ramps} a continuous field's
 color bar. \code{regions} lays out both axes, its \code{axis} \code{"x"} or \code{"y"}. \code{display}
 holds the settings the view drew with: those given, the view's defaults
