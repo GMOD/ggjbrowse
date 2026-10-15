@@ -30,6 +30,11 @@ test_that("an index beside a URL takes the URL's query after its extension", {
   vcf <- features_adapter("https://host/x.vcf.gz?x=1",
     "https://host/x.vcf.gz.csi?x=1")
   expect_equal(vcf$index$indexType, "CSI")
+  expect_equal(beside("https://host/x.bam#part", ".bai"),
+    "https://host/x.bam.bai#part")
+  expect_equal(features_adapter("https://host/x.vcf.gz#part", NULL)$type,
+    "VcfTabixAdapter")
+  expect_equal(bare_name("/data/a?b.vcf.gz"), "/data/a?b.vcf.gz")
 })
 
 test_that("a nested column reads as a list column, a missing row NA", {

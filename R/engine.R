@@ -36,7 +36,7 @@ engine <- local({
       return(invisible())
     }
     if (is.null(ctx)) {
-      if (!identical(Sys.getpid(), deferred$pid)) {
+      if (!identical(Sys.getpid(), deferred$pid) || forked()) {
         rlang::abort(paste("the engine cannot start in a forked worker",
           "(parallel::mclapply(), future's multicore, BiocParallel's",
           "MulticoreParam), where V8 hangs: read in a socket cluster, such",
@@ -83,6 +83,10 @@ deferred$warnings <- character(0)
 .onLoad <- function(libname, pkgname) {
   deferred$pid <- Sys.getpid()
 }
+
+# Whether this process is a worker parallel's fork made, where a V8 the parent
+# loaded hangs starting, even when ggjbrowse loaded only after the fork
+forked <- function() get("isChild", asNamespace("parallel"))()
 
 read_range_deferring <- function(url, start, end) {
   withCallingHandlers(read_range(url, start, end), warning = function(w) {
@@ -199,7 +203,7 @@ location <- function(path) {
 # `slot`, and where it names an `index` type, the index (`index`, else the
 # file's name and that type's extension), CSI where its name says so
 guess_adapter <- function(file, index, formats, expected = NULL) {
-  name <- tolower(sub("\\?.*$", "", file))
+  name <- tolower(bare_name(file))
   for (format in formats) {
     if (!grepl(format$pattern, name)) next
     adapter <- list(type = format$type)
@@ -207,7 +211,7 @@ guess_adapter <- function(file, index, formats, expected = NULL) {
     if (!is.null(format$index)) {
       index <- index %||% beside(file, paste0(".", tolower(format$index)))
       adapter$index <- list(location = location(index),
-        indexType = if (grepl("\\.csi(\\?|$)", index)) "CSI"
+        indexType = if (grepl("\\.csi$", tolower(bare_name(index)))) "CSI"
           else format$index)
     }
     return(adapter)
@@ -216,12 +220,17 @@ guess_adapter <- function(file, index, formats, expected = NULL) {
     call. = FALSE)
 }
 
-# The file beside `file` its name and `suffix` name, a URL's query kept after
-# it, as a signed URL's index carries the same query; a local path's `?` is
-# part of its name
+# The file beside `file` its name and `suffix` name, a URL's query and
+# fragment kept after it, as a signed URL's index carries the same query; a
+# local path's `?` and `#` are part of its name
 beside <- function(file, suffix) {
   if (!grepl("^[a-z]+://", file)) return(paste0(file, suffix))
-  sub("^([^?]*)", paste0("\\1", suffix), file)
+  sub("^([^?#]*)", paste0("\\1", suffix), file)
+}
+
+# A path or URL as its extension reads, a URL's query and fragment aside
+bare_name <- function(file) {
+  if (grepl("^[a-z]+://", file)) sub("[?#].*$", "", file) else file
 }
 
 # The adapter config the engine reads `file` through: a track's own adapter

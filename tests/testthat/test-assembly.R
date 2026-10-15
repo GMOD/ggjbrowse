@@ -62,6 +62,15 @@ test_that("an alias file rewritten in place reads anew", {
   expect_gt(nrow(twelve$reads), 0)
 })
 
+test_that("refNameAliases written as the alias file's path alone serves", {
+  aliases_file <- tempfile(fileext = ".txt")
+  writeLines("chr12\t12", aliases_file)
+  config <- list(name = "hg38", uri = extdata("gapdh_hg38.fa.gz"),
+    refNameAliases = aliases_file)
+  expect_gt(nrow(jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "12:6,534,201-6,534,700", assembly = config)$reads), 0)
+})
+
 test_that("an inline alias list of one alias stays a list", {
   config <- list(name = "hg38", uri = extdata("gapdh_hg38.fa.gz"),
     refNameAliases = list(adapter = list(type = "FromConfigAdapter",

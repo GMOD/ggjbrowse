@@ -102,6 +102,7 @@ assembly_config <- function(assembly) {
     assembly$uri <- NULL
   }
   aliases <- assembly$refNameAliases
+  if (is.character(aliases)) aliases <- list(uri = aliases)
   if (is.character(aliases$uri) && is.null(aliases$adapter)) {
     assembly$refNameAliases <- list(adapter = alias_adapter(aliases$uri))
   }
@@ -120,7 +121,7 @@ assembly_config <- function(assembly) {
 # The adapter an alias file is read with, by its name as the engine's
 # refNameAliasAdapterType() names it
 alias_adapter <- function(aliases) {
-  ncbi <- grepl("sequence_report\\.tsv(\\.gz)?$", sub("\\?.*$", "", aliases),
+  ncbi <- grepl("sequence_report\\.tsv(\\.gz)?$", bare_name(aliases),
     ignore.case = TRUE)
   list(type = if (ncbi) "NcbiSequenceReportAliasAdapter"
     else "RefNameAliasAdapter", location = location(aliases))
