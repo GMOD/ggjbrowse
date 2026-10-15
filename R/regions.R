@@ -139,7 +139,9 @@ on_axis <- function(x) {
 # A read connection or splice junction with each foot on the axis in the
 # region the engine names it by (`startRegion`, `endRegion`), so one across
 # two regions arcs over the gap between them, and a foot outside every region
-# at the edge of the connection's own region
+# at the edge of the connection's own region. A connection between two
+# contigs has no genomic radius, so its dome rises half as high as its feet
+# lie apart on the axis, as the display draws it.
 arcs_on_axis <- function(d, regions) {
   if (is.null(d$.region) || !is.null(d$.on_axis)) return(d)
   r <- regions
@@ -149,6 +151,12 @@ arcs_on_axis <- function(d, regions) {
   }
   d$start <- place(d$start, d$startRegion)
   d$end <- place(d$end, d$endRegion)
+  if (!is.null(d$y)) {
+    feet <- d$startRegion >= 0 & d$endRegion >= 0
+    across <- feet & r$chrom[pmax(d$startRegion, 0) + 1L] !=
+      r$chrom[pmax(d$endRegion, 0) + 1L]
+    d$y[across] <- abs(d$end[across] - d$start[across]) / 2
+  }
   d$.on_axis <- rep(TRUE, nrow(d))
   d
 }

@@ -171,6 +171,17 @@ test_that("an alignments track refuses tracks above it over other regions", {
     above = jbrowse_features(gff, "ctgA:20,001-30,000")), "same regions")
 })
 
+test_that("an arc between two contigs rises half as high as its feet lie apart", {
+  axis <- region_layout(data.frame(chrom = c("chr3", "chr10"),
+    start = c(1000, 5000), end = c(2000, 6000)))
+  arcs <- data.frame(start = c(1500, 1200), end = c(5500, 1800),
+    y = c(0, 300), startRegion = c(0L, 0L), endRegion = c(1L, 0L),
+    .region = c(1L, 1L))
+  placed <- arcs_on_axis(arcs, axis)
+  expect_equal(placed$y[1], (placed$end[1] - placed$start[1]) / 2)
+  expect_equal(placed$y[2], 300)
+})
+
 test_that("a split read across two regions arcs over the gap, listed once", {
   r <- jbrowse_alignments(
     system.file("extdata", "volvox-long-reads-sv.bam", package = "ggjbrowse"),
