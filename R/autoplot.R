@@ -192,10 +192,11 @@ sequence_plot <- function(x, o) {
   xlim <- xlim_of(x)
   r <- regions_read(x)
   offset <- r$offset %||% r$start
-  bases <- do.call(rbind, lapply(seq_len(nrow(r)), function(i) data.frame(
-    position = offset[i] + seq_len(r$end[i] - r$start[i]) - 1,
-    base = toupper(strsplit(jbrowse_sequence(x$reference$assembly,
-      r$chrom[i], r$start[i], r$end[i]), "")[[1]]))))
+  bases <- do.call(rbind, lapply(seq_len(nrow(r)), function(i) {
+    base <- toupper(strsplit(jbrowse_sequence(x$reference$assembly,
+      r$chrom[i], r$start[i], r$end[i]), "")[[1]])
+    data.frame(position = offset[i] + seq_along(base) - 1, base = base)
+  }))
   bases$cell <- max(1, 1 / px_of(x, o$width))
   bases$tint <- ggplot2::alpha(jbrowse_colors()$bases[bases$base], 0.35)
   ggplot2::ggplot(bases) +
