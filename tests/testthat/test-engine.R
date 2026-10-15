@@ -72,3 +72,16 @@ test_that("a column keeps the type it had when the tables crossed as JSON", {
   expect_type(bam$reads$category, "character")
   expect_type(bam$reads$name, "character")
 })
+
+test_that("a forked worker refuses to start the engine, and inherits a started one", {
+  skip_on_os("windows")
+  bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
+  read <- function() nrow(jbrowse_alignments(bam, "ctgA:1-5,000")$reads)
+  in_fork <- function(f) parallel::mccollect(parallel::mcparallel(f()))[[1]]
+  started <- read()
+  expect_equal(in_fork(read), started)
+  expect_equal(in_fork(function() tryCatch({
+    jbrowse_reset()
+    read()
+  }, ggjbrowse_forked = function(e) "refused")), "refused")
+})

@@ -124,6 +124,16 @@ sequenceDiagram
   a queue, and `in_engine()` raises it once V8 returns. A handler that unwinds
   through V8's frames would break the context.
 
+## Can I read in parallel?
+
+- Yes, in a socket cluster: `parallel::makeCluster()`, `parLapply()`, or
+  future's `multisession`. Each worker loads ggjbrowse and starts its own
+  engine.
+- Not in forked workers (`mclapply()`, future's `multicore`, BiocParallel's
+  `MulticoreParam`): V8 hangs starting there, so the reader refuses with a
+  `ggjbrowse_forked` error. A worker forked after the parent has read
+  inherits the parent's engine.
+
 ## Which coordinates do I give?
 
 - A locus string is 1-based and inclusive, as in JBrowse's location box.

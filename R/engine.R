@@ -36,6 +36,13 @@ engine <- local({
       return(invisible())
     }
     if (is.null(ctx)) {
+      if (!identical(Sys.getpid(), deferred$pid)) {
+        rlang::abort(paste("the engine cannot start in a forked worker",
+          "(parallel::mclapply(), future's multicore, BiocParallel's",
+          "MulticoreParam), where V8 hangs: read in a socket cluster, such",
+          "as parallel::makeCluster() or future's multisession, whose",
+          "workers load ggjbrowse afresh"), class = "ggjbrowse_forked")
+      }
       fresh <- V8::v8()
       fresh$eval(paste(
         "var jbrowseHost = { readRange: function(url, start, end) {",
@@ -70,6 +77,12 @@ jbrowse_reset <- function() engine(reset = TRUE)
 # the call, as it did when V8 raised it.
 deferred <- new.env()
 deferred$warnings <- character(0)
+
+# The process that loaded ggjbrowse, the only one engine() starts V8 in: a
+# forked child inherits a started engine, but one starting there hangs
+.onLoad <- function(libname, pkgname) {
+  deferred$pid <- Sys.getpid()
+}
 
 read_range_deferring <- function(url, start, end) {
   withCallingHandlers(read_range(url, start, end), warning = function(w) {
