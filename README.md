@@ -143,35 +143,31 @@ Whole analyses done in R, each on the data and question of a
   reads counted in tumor and normal, and the der(3) allele against the truth
   set
 
-## Guides
+## Docs
 
-One page per reader, with its options and the gallery figures it draws:
-
-| Track | Reader | Guide |
-|---|---|---|
-| BAM, CRAM | `jbrowse_alignments()` | [Alignments](docs/alignments.md): color, filter, sort, split and chain reads, methylation |
-| GFF3, GTF, BED, BigBed | `jbrowse_features()` | [Feature tracks](docs/features.md): gene glyphs, labels, facets |
-| BigWig | `jbrowse_wiggle()` | [Quantitative tracks](docs/wiggle.md): bars, lines, density, rows per source, clustering |
-| VCF | `jbrowse_variants()` | [Variant matrices](docs/variants.md): genotypes by sample, bands, clustering |
-| PAF, PIF, delta, chain, MashMap | `jbrowse_synteny()`, `jbrowse_dotplot()`, `jbrowse_multiway()` | [Synteny](docs/synteny.md): ribbons, dotplots, several genomes |
-| Several tracks | `jbrowse_stack()` | [A view of several tracks](docs/stack.md): end-to-end regions, collapsed introns, figure size, and the **Export R script** JBrowse menu item |
-
-- [The grammar](docs/grammar.md): the geoms, scales and facets that
+- [docs/alignments.md](docs/alignments.md): BAM and CRAM with
+  `jbrowse_alignments()`: color, filter, sort, split and chain reads,
+  methylation
+- [docs/features.md](docs/features.md): GFF3, GTF, BED and BigBed with
+  `jbrowse_features()`: gene glyphs, labels, facets
+- [docs/wiggle.md](docs/wiggle.md): BigWig with `jbrowse_wiggle()`: bars,
+  lines, density, rows per source, clustering
+- [docs/variants.md](docs/variants.md): VCF with `jbrowse_variants()`:
+  genotypes by sample, bands, clustering
+- [docs/synteny.md](docs/synteny.md): PAF, PIF, delta, chain and MashMap with
+  `jbrowse_synteny()`, `jbrowse_dotplot()` and `jbrowse_multiway()`: ribbons,
+  dotplots, several genomes
+- [docs/stack.md](docs/stack.md): several tracks with
+  `jbrowse_stack()`: end-to-end regions, collapsed introns, figure size, and
+  the **Export R script** JBrowse menu item
+- [docs/grammar.md](docs/grammar.md): the geoms, scales and facets that
   `autoplot()` composes, for building a figure by hand
-- [API](docs/api.md): every reader, helper and geom, and what each returns
-- [Gallery recipes](docs/gallery.md): the R and `jb2export` code of each figure
-
-## How it works
-
-- **In V8:** JBrowse's `@jbrowse/tables` package. It takes a region through
-  the same fetching and layout as a display and returns the result as
-  tables. JBrowse's canvas drawing and UI do not run.
-- **In R:** reading the files and passing their bytes to that package, then
-  drawing the tables it returns with ggplot2.
-- **More:** [How does this work?](docs/how-does-this-work.md), a
-  [diagram of one call](docs/dataflow.md) and the [FAQ](docs/faq.md).
-- **Developing:** [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, rebuilding
-  the engine and CI.
+- [docs/api.md](docs/api.md): every reader, helper and geom, and what each
+  returns
+- [docs/gallery.md](docs/gallery.md): the R and `jb2export` code of each figure
+- [docs/faq.md](docs/faq.md): how the engine works, what one call does, and
+  common errors
+- [CONTRIBUTING.md](CONTRIBUTING.md): setup, rebuilding the engine and CI
 
 ## Not yet
 

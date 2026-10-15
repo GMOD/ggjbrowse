@@ -1,5 +1,63 @@
 # FAQ
 
+## How does it work?
+
+- **In V8:** JBrowse's `@jbrowse/tables` package. It takes a region through
+  the same fetching and layout as a display and returns the result as
+  tables. JBrowse's canvas drawing and UI do not run.
+- **In R:** the readers pass file bytes to that package, and ggplot2 draws the
+  tables it returns.
+- `engine()` in `R/engine.R` starts one [V8](https://CRAN.R-project.org/package=V8)
+  context per R session and sources the bundle into it. The context stays
+  alive between calls, so the engine's caches do too.
+- `jbrowse_reset()` drops the context, which clears the caches.
+
+## What happens in one call?
+
+One `jbrowse_alignments(bam, "chr12:6,534,201-6,538,700")` call, from path to plot:
+
+```mermaid
+sequenceDiagram
+    participant R as R reader
+    participant V as V8 context
+    participant H as read_range()
+    participant F as File or URL
+
+    R->>R: regions_of() parses the locus
+    R->>R: adapter_of() and location() build the adapter config
+    R->>V: call_engine("alignments", JSON)
+    loop each byte range the engine needs
+        V->>H: jbrowseHost.readRange(url, start, end)
+        H->>F: seek and readBin, or curl range request
+        F-->>H: bytes
+        H-->>V: bytes, base64 through jsonlite
+    end
+    V-->>R: columns as JSON
+    R->>R: as_frame() builds the data frames
+    R->>R: in_engine() raises queued warnings and errors
+    R->>R: autoplot() hands each frame to its geom
+```
+
+- **Parse:** `regions_of()` in `R/regions.R` turns the region into 0-based
+  half-open bounds.
+- **Config:** `adapter_of()` guesses the adapter from the file name and
+  index. `location()` gives a local file a `file://` URL with its modification
+  time and size.
+- **Engine:** `call_engine()` runs `jbrowse.<table>` in the session's V8
+  context and waits on the promise. The engine returns columns as JSON, and
+  `as_frame()` makes each a data frame.
+- **Draw:** each geom in `R/geoms-alignments.R` and its siblings draws one
+  table.
+
+## Who decides what?
+
+- The engine decides whatever JBrowse decides from the track's config, such as
+  colors and the display's geometry.
+- R decides whatever depends on the figure, such as pixels per base, inches,
+  label sizes and which ggplot layer draws what.
+- [agent-docs/engine-owns-display-decisions.md](../agent-docs/engine-owns-display-decisions.md)
+  lists the rules R still copies.
+
 ## Why V8 and not QuickJS?
 
 - JBrowse's engine is a 3 MB bundle built for a browser-like host. V8 runs it
@@ -10,10 +68,8 @@
 ## Is the engine a reimplementation of JBrowse?
 
 - No. `inst/js/jbrowse-tables.js` is `@jbrowse/tables`, built from
-  jbrowse-components' own source. JBrowse's tests hold it to the browser's
-  output.
-- R draws the tables. Where the browser decides a color or a geometry, the
-  engine returns it.
+  jbrowse-components' own source and run with no web globals. JBrowse's tests
+  hold it to the browser's output.
 
 ## How does it compare with Rsamtools?
 
@@ -32,12 +88,18 @@
 - Installing the package needs no Node or pnpm.
 - The first line of the file names the release, or the jbrowse-components
   commit, it came from.
+- [`inst/COPYRIGHTS`](../inst/COPYRIGHTS) names the license and copyright of
+  each package bundled in it.
 
 ## How does it read a file in R?
 
-- The JavaScript calls `jbrowseHost.readRange(url, start, end)` and R's
-  `read_range()` answers, from disk or over HTTP.
-- See [how-does-this-work.md](how-does-this-work.md#reading-files).
+- The JavaScript cannot touch a disk or a network. It calls
+  `jbrowseHost.readRange(url, start, end)`, which V8 routes back to R's
+  `read_range()`.
+- `read_range()` seeks and reads a local file, or sends a `curl` range request
+  for a remote one. The JavaScript waits on the answer, so the call is
+  synchronous.
+- jsonlite sends the bytes to the JavaScript base64-encoded.
 
 ## Why does a changed remote file still show old data?
 
@@ -64,9 +126,9 @@
 
 ## Do R warnings from inside the engine work with `tryCatch`?
 
-- Yes, after the call. The engine queues its warnings and errors, and
-  `in_engine()` raises them once V8 returns. A handler that unwinds through
-  V8's frames would break the context.
+- Yes, after the call. The engine's `console.warn` and `console.error` go to
+  a queue, and `in_engine()` raises it once V8 returns. A handler that unwinds
+  through V8's frames would break the context.
 
 ## Which coordinates do I give?
 
@@ -83,4 +145,8 @@
 
 ## How do I update the engine?
 
-- See [CONTRIBUTING.md](../CONTRIBUTING.md#updating-the-engine).
+- Run `pnpm install` in a jbrowse-components checkout, then
+  `scripts/build-js.sh` here. The script looks in `../jbrowse-components`, or
+  in `$JBROWSE_COMPONENTS`.
+- [CONTRIBUTING.md](../CONTRIBUTING.md#updating-the-engine) covers the CI that
+  takes each new release.

@@ -73,6 +73,6 @@ scripts/build-js.sh
 ## Where decisions live
 
 - R draws and the engine decides. See
-  [docs/how-does-this-work.md](docs/how-does-this-work.md#who-decides-what).
+  [docs/faq.md](docs/faq.md#who-decides-what).
 - [agent-docs/engine-owns-display-decisions.md](agent-docs/engine-owns-display-decisions.md)
   lists the rules R still copies.
