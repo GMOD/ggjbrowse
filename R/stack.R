@@ -205,7 +205,7 @@ regions_read <- function(x) x$regions %||% as.data.frame(x$region)
 
 # Regions as JBrowse's location box writes them
 loci_of_layout <- function(layout) {
-  bp <- function(x) formatC(x, format = "d", big.mark = ",")
+  bp <- function(x) formatC(x, format = "f", digits = 0, big.mark = ",")
   sprintf("%s:%s-%s", layout$chrom, bp(layout$start + 1), bp(layout$end))
 }
 

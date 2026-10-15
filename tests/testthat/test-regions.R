@@ -12,8 +12,9 @@ test_that("a locus reads as JBrowse's location box writes it, 1-based", {
 })
 
 test_that("loci print with commas however their starts differ in size", {
-  expect_equal(loci_of_layout(data.frame(chrom = "1", start = c(0, 155e6),
-    end = c(1000, 155050000))), c("1:1-1,000", "1:155,000,001-155,050,000"))
+  expect_equal(loci_of_layout(data.frame(chrom = "1", start = c(0, 155e6, 3e9),
+    end = c(1000, 155050000, 3000000100))), c("1:1-1,000",
+    "1:155,000,001-155,050,000", "1:3,000,000,001-3,000,000,100"))
 })
 
 test_that("several regions keep their genomic positions and draw end to end", {
