@@ -271,3 +271,11 @@ test_that("a facet value only the second region holds stacks its section", {
     "Forward strand")
   expect_length(alignment_bands(a)$plots, 4)
 })
+
+test_that("regions on several contigs the file lacks warn once", {
+  expect_warning(r <- jbrowse_features(gff,
+    c("ctgA:1-5,000", "chr1:1-100", "chr2:1-100")),
+    "2 contigs are not the file's and read empty: chr1, chr2")
+  expect_length(r$warnings, 1)
+  expect_equal(r$regions$missing != "", c(FALSE, TRUE, TRUE))
+})

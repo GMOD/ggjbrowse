@@ -129,15 +129,23 @@ region_layout <- function(regions, gap_frac = 0.012) {
 }
 
 # Each region's missing-contig message, "" or NULL where the file has the
-# region's contig: an error where no region's contig is the file's, and a
-# warning for each other
-check_missing <- function(messages) {
+# region's contig: an error where no region's contig is the file's, and else
+# one warning naming the contigs that read empty
+check_missing <- function(messages, chrom) {
   missing <- vapply(messages, function(m) m %||% "", "")
   if (length(missing) && all(missing != "")) {
     rlang::abort(missing[1], class = "ggjbrowse_missing_contig", call = NULL)
   }
-  for (m in unique(missing[missing != ""])) warning(m, call. = FALSE)
-  missing
+  lacking <- unique(chrom[missing != ""])
+  said <- if (length(lacking) == 1) missing[missing != ""][1]
+    else if (length(lacking) > 1) {
+      sprintf(paste("%d contigs are not the file's and read empty: %s;",
+        "regions$missing says why"), length(lacking), paste(c(
+          utils::head(lacking, 5), if (length(lacking) > 5)
+            sprintf("and %d more", length(lacking) - 5)), collapse = ", "))
+    }
+  if (length(said)) warning(said, call. = FALSE)
+  structure(missing, warning = said)
 }
 
 # A result the engine `t` read over every region in one call, laid out for
@@ -147,7 +155,7 @@ check_missing <- function(messages) {
 # missing-contig message, and `warnings` holds what the engine warned of
 in_one_call <- function(x, regions, t, width) {
   missing <- check_missing(lapply(seq_len(nrow(regions)), function(i)
-    t$missingContigs[[i]]))
+    t$missingContigs[[i]]), regions$chrom)
   cls <- class(x)
   x <- unclass(x)
   for (name in names(x)) {
@@ -162,10 +170,11 @@ in_one_call <- function(x, regions, t, width) {
     x[[name]] <- d
   }
   layout <- region_layout(regions[c("chrom", "start", "end")])
-  layout$missing <- missing
+  layout$missing <- as.vector(missing)
   x$regions <- layout
   x$width <- width
-  x$warnings <- unique(c(unlist(t$warnings), missing[missing != ""]))
+  x$warnings <- unique(c(character(0), unlist(t$warnings),
+    attr(missing, "warning")))
   structure(x, class = cls)
 }
 
