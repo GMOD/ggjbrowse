@@ -345,3 +345,78 @@ test_that("an attribute named like a table column takes an attr_ prefix", {
   expect_equal(apart$features$Alias, list(NA_character_, c("a", "b")))
   expect_equal(apart$features$attr_type, c("odd", NA))
 })
+
+test_that("a GFF3's attributes are text, a list where the spec lists several", {
+  fields <- g$attribute_fields
+  declared <- function(key) {
+    paste(fields$type[fields$key == key], fields$number[fields$key == key])
+  }
+  expect_equal(declared("Name"), "String 1")
+  expect_equal(declared("Note"), "String .")
+  expect_equal(declared("score"), "Float 1")
+  eden <- g$features[g$features$name == "EDEN", ]
+  expect_equal(eden$Note, list("protein kinase"))
+  expect_type(g$features$score, "double")
+  expect_equal(g$features$source[g$features$name == "Apple4"],
+    "bare_predicted")
+})
+
+test_that("a BigBed's fields take the types its autoSql declares", {
+  b <- jbrowse_features(extdata("volvox.bb"), "ctgA", 0, 50000)
+  fields <- b$attribute_fields
+  expect_equal(fields$type[fields$key == "score"], "Integer")
+  expect_equal(fields$description[fields$key == "geneName"], "Gene name")
+  expect_type(b$features$score, "integer")
+  expect_type(b$features$geneName, "character")
+})
+
+test_that("a file with no region reads whole, each contig it lists", {
+  whole <- jbrowse_features(gff)
+  expect_setequal(unique(whole$features$chrom), c("ctgA", "ctgB"))
+  b <- jbrowse_features(gff, "ctgB", 0, 6079)
+  expect_equal(whole$features$name[whole$features$chrom == "ctgB"],
+    b$features$name)
+  expect_equal(sum(whole$features$chrom == "ctgA"),
+    nrow(jbrowse_features(gff, "ctgA", 0, 50001)$features))
+})
+
+test_that("a whole file past the row limit is refused, asking for a region", {
+  local_mocked_bindings(WHOLE_FILE_ROWS = 10)
+  expect_error(jbrowse_features(gff), "over the 10-row limit .*pass a region")
+  expect_gt(nrow(jbrowse_features(gff, "ctgB", 0, 6079)$features), 0)
+})
+
+vep <- function() {
+  vcf <- tempfile(fileext = ".vcf")
+  writeLines(c("##fileformat=VCFv4.2",
+    paste0('##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence ',
+      'annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|',
+      'SYMBOL|DISTANCE">'),
+    '##INFO=<ID=DP,Number=1,Type=Integer,Description="Depth">',
+    '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
+    paste("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
+      "FORMAT", "s1", sep = "\t"),
+    paste("ctgA", "100", ".", "A", "G", "50", "PASS", paste0("DP=9;CSQ=",
+      "G|missense_variant|MODERATE|GENE1|,G|upstream_gene_variant|MODIFIER|",
+      "GENE2|420"), "GT", "0/1", sep = "\t"),
+    paste("ctgA", "200", ".", "C", "T", "50", "PASS", "DP=4", "GT", "1/1",
+      sep = "\t")), vcf)
+  vcf
+}
+
+test_that("a VCF's CSQ reads as a row per record and consequence", {
+  vcf <- vep()
+  v <- jbrowse_variants(vcf, "ctgA", 0, 1000)
+  a <- v$annotations
+  expect_equal(a$variant, c(1, 1))
+  expect_equal(a$Consequence, c("missense_variant", "upstream_gene_variant"))
+  expect_equal(a$DISTANCE, c(NA, "420"))
+  expect_equal(v$annotation_fields$field,
+    c("Allele", "Consequence", "IMPACT", "SYMBOL", "DISTANCE"))
+  expect_null(v$variants$CSQ)
+  expect_equal(v$variants$DP, c(9L, 4L))
+  f <- jbrowse_features(vcf, "ctgA", 0, 1000)
+  expect_equal(f$annotations$feature, c(1, 1))
+  expect_equal(f$annotations$SYMBOL, c("GENE1", "GENE2"))
+  expect_null(f$features$CSQ)
+})

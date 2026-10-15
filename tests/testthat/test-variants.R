@@ -171,3 +171,10 @@ test_that("two regions bind their INFO columns, each record once", {
   expect_equal(both$variants$filter, whole$variants$filter)
   expect_equal(both$info_fields, whole$info_fields)
 })
+
+test_that("a VCF with no region reads whole", {
+  whole <- jbrowse_variants(dogs)
+  expect_equal(whole$variants$start,
+    jbrowse_variants(dogs, "chr30", 0, 4e7)$variants$start)
+  expect_gt(nrow(whole$cells), 1000)
+})

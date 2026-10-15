@@ -4,6 +4,17 @@ LOCUS <- "^(.+):([0-9,]+)(-|\\.\\.)([0-9,]+)$"
 # `start` and `end`, locus strings as JBrowse's location box writes them
 # ("ctgA:1,001-9,000", 1-based and inclusive), or a data frame of chrom,
 # start and end
+# A read with no region reads the whole file: each contig the file lists, from
+# 0 to the end its index addresses, refused past WHOLE_FILE_ROWS rows in any
+# one table, which a region read has no need of
+WHOLE_FILE_ROWS <- 5e6
+
+file_regions <- function(adapter) {
+  r <- call_engine("fileRegions", list(adapterConfig = adapter))
+  data.frame(chrom = as.character(unlist(r$refName)),
+    start = as.numeric(unlist(r$start)), end = as.numeric(unlist(r$end)))
+}
+
 regions_of <- function(region, start, end) {
   if (is.data.frame(region)) {
     return(data.frame(chrom = as.character(region$chrom),
@@ -80,9 +91,10 @@ join_regions <- function(regions, parts) {
 }
 
 # The tables that list a result's keys, sections and rows rather than marks
-# on the reference. bind_regions() binds the first five, each row once.
+# on the reference. bind_regions() binds the first six, each row once.
 LISTING <- c("legend", "arc_legend", "info_fields", "format_fields",
-  "attribute_fields", "sections", "sources", "rows", "rules", "bands")
+  "attribute_fields", "annotation_fields", "sections", "sources", "rows",
+  "rules", "bands")
 
 placed <- function(x, chrom, i) {
   for (name in setdiff(names(x), LISTING)) {
@@ -142,7 +154,7 @@ bind_regions <- function(regions, parts) {
   }
   out <- parts[[1]]
   for (name in names(out)) {
-    if (is.data.frame(out[[name]]) && !name %in% LISTING[-(1:5)]) {
+    if (is.data.frame(out[[name]]) && !name %in% LISTING[-(1:6)]) {
       out[[name]] <- bound(function(x) x[[name]])
       if (name %in% LISTING) out[[name]] <- unique(out[[name]])
     }

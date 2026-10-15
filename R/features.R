@@ -132,13 +132,15 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
                              reference_chrom = NULL, assembly = NULL,
                              color_by_cds = FALSE, amino_acids = TRUE,
                              index = NULL, byte_limit = 2e8) {
-  regions <- regions_of(region, start, end)
+  adapter <- adapter_of(file, function() features_adapter(file, index))
+  whole <- missing(region)
+  regions <- if (whole) file_regions(adapter)
+    else regions_of(region, start, end)
   read <- data.frame(refName = regions$chrom, start = regions$start,
     end = regions$end)
   read$originalRefName <- reference_chroms(reference_chrom, regions)
   args <- c(list(
-    adapterConfig = adapter_of(file, function()
-      features_adapter(file, index)),
+    adapterConfig = adapter,
     regions = read,
     bpPerPx = sum(regions$end - regions$start) / width,
     colorByCDS = color_by_cds,
@@ -152,6 +154,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
     display$facet <- in_json(display$facet, c("domain", "hidden"))
   }
   args$display <- display
+  if (whole) args$rowLimit <- WHOLE_FILE_ROWS
   t <- call_engine("features", args)
   legend <- as_frame(t$legend)
   attr(legend, "title") <- t$legendTitle
@@ -160,14 +163,20 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
   all_subfeatures <- as_frame(t$subfeatures)
   sections <- as_frame(t$sections)
   vcf <- vcf_columns(t$vcf, nrow(all_features), names(all_features))
-  attribute_fields <- attribute_columns(c(names(t$attributes),
-    names(t$subfeatureAttributes)), c(names(all_features),
-    names(all_subfeatures), "strand", "section", "chrom"))
-  with_attributes <- function(d, attributes, rows) {
-    for (i in seq_len(nrow(attribute_fields))) {
-      values <- attributes[[attribute_fields$key[i]]]
-      if (!is.null(values)) d[[attribute_fields$column[i]]] <- values[rows]
-    }
+  attribute_fields <- attribute_columns(as_frame(t$attributeFields),
+    c(names(all_features), names(all_subfeatures), "strand", "section",
+      "chrom"))
+  typed <- function(attributes, n) {
+    lapply(stats::setNames(seq_len(nrow(attribute_fields)),
+      attribute_fields$column), function(i) {
+        values <- attributes[[attribute_fields$key[i]]] %||% rep(NA, n)
+        info_column(values, attribute_fields$number[i], attribute_fields$type[i])
+      })
+  }
+  attributes <- typed(t$attributes, nrow(all_features))
+  subfeature_attributes <- typed(t$subfeatureAttributes, nrow(all_subfeatures))
+  with_attributes <- function(d, columns, rows) {
+    for (column in names(columns)) d[[column]] <- columns[[column]][rows]
     d
   }
   join_regions(regions, lapply(seq_len(nrow(regions)), function(i) {
@@ -183,13 +192,17 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
     features <- of_region(t$features)
     features$section <- factor(features$section, levels = sections$label)
     in_region <- which(all_features$region == i - 1)
-    features <- with_attributes(features, t$attributes, in_region)
+    features <- with_attributes(features, attributes, in_region)
     if (!is.null(vcf)) {
       features <- cbind(features, vcf$records[in_region, , drop = FALSE])
       samples <- vcf$samples[vcf$samples$feature %in% in_region, ,
         drop = FALSE]
       samples$feature <- match(samples$feature, in_region)
       rownames(samples) <- NULL
+      annotations <- vcf$annotations[vcf$annotations$feature %in% in_region, ,
+        drop = FALSE]
+      annotations$feature <- match(annotations$feature, in_region)
+      rownames(annotations) <- NULL
     }
     on_feature <- function(table) {
       d <- of_region(table)
@@ -206,7 +219,7 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
       d
     }
     subfeatures <- with_attributes(on_feature(t$subfeatures),
-      t$subfeatureAttributes, which(all_subfeatures$region == i - 1))
+      subfeature_attributes, which(all_subfeatures$region == i - 1))
     labels <- on_feature(t$labels)
     arrows <- on_feature(t$arrows)
     names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
@@ -221,6 +234,8 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
         info_fields = vcf$info_fields,
         samples = if (!is.null(vcf)) samples,
         format_fields = vcf$format_fields,
+        annotations = if (!is.null(vcf)) annotations,
+        annotation_fields = vcf$annotation_fields,
         keys = list(features = legend), ramps = ramp_frames(t$ramps),
         glyph = t$glyph, height = t$height, bp_per_px = t$bpPerPx,
         region = as.list(regions[i, ]),
@@ -230,13 +245,13 @@ jbrowse_features <- function(file, region, start = NULL, end = NULL,
   }))
 }
 
-# The column each of a file's field `keys` takes: the key as the file writes
+# Each of a file's fields with the column it takes: its key as the file writes
 # it, or `attr_<key>` where that names one of the table's own columns, as an
 # INFO key takes `info_<key>`
-attribute_columns <- function(keys, taken) {
-  keys <- unique(keys)
-  data.frame(key = keys,
-    column = ifelse(keys %in% taken, paste0("attr_", keys), keys))
+attribute_columns <- function(fields, taken) {
+  fields$column <- ifelse(fields$key %in% taken, paste0("attr_", fields$key),
+    fields$key)
+  fields
 }
 
 # Text sized in the display's pixels, scaled to the panel when it draws:

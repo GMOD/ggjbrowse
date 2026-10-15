@@ -189,16 +189,18 @@ jbrowse_alignments <- function(file, region, start = NULL, end = NULL,
     stop("bisulfite calls compare each read's cytosines to the reference: ",
       "pass that FASTA or 2bit as `reference =`", call. = FALSE)
   }
-  regions <- regions_of(region, start, end)
+  whole <- missing(region)
+  regions <- if (whole) file_regions(adapter)
+    else regions_of(region, start, end)
   spelt <- reference_chroms(reference_chrom, regions)
   read_regions(regions, NULL, NULL, function(chrom, start, end, share, i)
     alignments_region(adapter, chrom, start, end, reference, spelt[i],
-      assembly, display, byte_limit))
+      assembly, display, byte_limit, whole))
 }
 
 alignments_region <- function(adapter, chrom, start, end, reference,
                               reference_chrom, assembly, display,
-                              byte_limit) {
+                              byte_limit, whole = FALSE) {
   display <- display %||% list()
   display$color <- config_color(display$color)
   if (!is.null(display$facet)) display$facet <- in_json(display$facet,
@@ -211,6 +213,7 @@ alignments_region <- function(adapter, chrom, start, end, reference,
   region$originalRefName <- reference_chrom
   args <- c(list(adapterConfig = adapter, region = region,
     byteLimit = byte_limit), reference_args(reference, assembly))
+  if (whole) args$rowLimit <- WHOLE_FILE_ROWS
   if (length(display)) args$display <- display
   t <- call_engine("alignments", args)
   sections <- as_frame(t$sections)

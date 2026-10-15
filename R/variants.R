@@ -94,16 +94,19 @@ jbrowse_variants <- function(file, region, start = NULL, end = NULL,
                              display = NULL, index = NULL, samples = NULL,
                              assembly = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
-  read_regions(region, start, end, function(chrom, start, end, share, i)
-    variants_region(adapter, chrom, start, end, display, assembly, byte_limit))
+  whole <- missing(region)
+  read_regions(if (whole) file_regions(adapter) else region, start, end,
+    function(chrom, start, end, share, i) variants_region(adapter, chrom,
+      start, end, display, assembly, byte_limit, whole))
 }
 
 variants_region <- function(adapter, chrom, start, end, display, assembly,
-                            byte_limit) {
+                            byte_limit, whole = FALSE) {
   args <- list(
     adapterConfig = adapter,
     region = list(refName = chrom, start = start, end = end),
     byteLimit = byte_limit)
+  if (whole) args$rowLimit <- WHOLE_FILE_ROWS
   if (!is.null(assembly)) args$assembly <- assembly_config(assembly)
   if (!is.null(display)) {
     display$color <- config_color(display$color)
@@ -118,6 +121,7 @@ variants_region <- function(adapter, chrom, start, end, display, assembly,
     "info")
   variants <- cbind(variants, info$frame)
   info_fields <- info$fields
+  annotations <- annotation_frame(t$annotations, "variant")
   rows <- as_frame(t$rows)
   rows$color <- jbrowse_color(rows$color)
   bands <- as_frame(t$bands)[c("key", "label")]
@@ -135,6 +139,8 @@ variants_region <- function(adapter, chrom, start, end, display, assembly,
   structure(
     list(variants = variants, cells = cells, rows = rows, bands = bands,
       legend = legend, info_fields = info_fields,
+      annotations = annotations,
+      annotation_fields = annotation_fields(t$annotationFields),
       keys = list(genotypes = legend, rows = key_frame(
         unlist(t$rowLegend$label) %||% character(0),
         unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
@@ -180,7 +186,25 @@ vcf_columns <- function(vcf, n, taken) {
   format <- typed_columns(vcf$format, vcf$formatFields, nrow(samples),
     c(names(samples), "chrom"), "format")
   list(records = cbind(records, info$frame), info_fields = info$fields,
-    samples = cbind(samples, format$frame), format_fields = format$fields)
+    samples = cbind(samples, format$frame), format_fields = format$fields,
+    annotations = annotation_frame(vcf$annotations, "feature"),
+    annotation_fields = annotation_fields(vcf$annotationFields))
+}
+
+# Each record's ANN or CSQ consequences, a row each: `index`, the record's row
+# number, `key`, the INFO key, and a column per field its header line names,
+# each character, as the header types none of them
+annotation_frame <- function(columns, index) {
+  d <- as_frame(columns)
+  d[[index]] <- as.numeric(d[[index]]) + 1
+  for (column in setdiff(names(d), c(index, "key"))) {
+    d[[column]] <- as.character(d[[column]])
+  }
+  d
+}
+
+annotation_fields <- function(fields) {
+  if (length(unlist(fields$key))) as_frame(fields)
 }
 
 # An INFO key's values as a column, typed by its header line: a flag as
