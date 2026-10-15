@@ -14,6 +14,13 @@
 - `jbrowse_reset()` drops the context, which clears the caches.
 - The engine runs on V8 through the `V8` package, which handles the 3 MB bundle
   at full speed with full ES support. QuickJS could host it the same way.
+- The bundle is committed, so installing needs no JavaScript toolchain.
+- JBrowse's own tests hold the bundle, run with no web globals, to the
+  browser's engine.
+- [`inst/COPYRIGHTS`](../inst/COPYRIGHTS) names the bundle's source and the
+  license and copyright of each package bundled in it.
+- [CONTRIBUTING.md](../CONTRIBUTING.md#updating-the-engine) covers rebuilding
+  it and the CI that takes each new release.
 
 ## A call
 

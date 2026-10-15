@@ -542,7 +542,7 @@ bash build_dog10k_cyp1a2_cn.sh   # writes ./dog10k_cyp1a2_cn_build/
 
 - [Dog10K loss-of-function tutorial](https://jbrowse.org/jb2/docs/tutorials/dog10k_lof/),
   the same analysis in the JBrowse app
-- [Variant matrices](../../README.md#variant-matrices)
+- [Variant matrices](../variants.md)
 
 ## Citations
 

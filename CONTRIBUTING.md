@@ -19,7 +19,8 @@
   - `--r` draws only the R half, which needs no jbrowse-components checkout:
     `Rscript scripts/gallery.R --r inversion`.
   - `--check` runs each R recipe, then rewrites as `--docs` does. CI runs it
-    and `scripts/check-readme.R`, which runs the README's R blocks, and fails
+    and `scripts/check-readme.R`, which runs the R blocks of the README and the
+    guides in `docs/`, and fails
     if either leaves the docs changed.
 - `scripts/tutorials.R` builds `docs/tutorials/` from `tutorials/*.Rmd`.
   - A source is R Markdown whose `<!-- jbrowse ... -->` comments pull

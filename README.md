@@ -95,19 +95,24 @@ autoplot(a)
 
 ![Nanopore direct RNA reads from NA12878 across GAPDH: junction arcs counting each splice, the coverage band and the reads split at the introns](man/figures/gapdh.png)
 
+`a` is a list of data frames, so the figure is also ordinary ggplot2:
+
+```r
+library(ggplot2)
+
+ggplot(a) +
+  geom_jbrowse_reads(aes(fill = mapq)) +
+  geom_jbrowse_mismatches() +
+  scale_fill_viridis_c() +
+  scale_y_reverse()
+```
+
 - **Data:** every example runs as written on clips of public human data
   installed with the package. `scripts/extdata-*.sh` make the clips.
 - **Regions:** a locus as JBrowse's location box writes it, 1-based
   (`"chr12:6,534,201-6,538,700"`), or `"chr12", 6534200, 6538700` in 0-based
   half-open coordinates. A vector of several loci draws them end to end.
-- **Files:** a path or a URL, which `curl` reads in byte ranges. CRAM needs
-  the reference: a FASTA with its `.fai`, a bgzipped one with its `.fai` and
-  `.gzi`, or a 2bit.
-- **Bands:** the track stacks the display's splice-junction arcs, its
-  coverage band with each mismatch position's alleles, and its pileup, each
-  read's mismatches, indels and clips faded where the browser fades them.
-  `autoplot(a, "pileup")` draws one band alone, as do `"coverage"`,
-  `"junctions"` and `"arcs"`.
+- **Files:** a path or a URL. CRAM needs a `reference`.
 
 ## Tutorials
 
@@ -131,291 +136,41 @@ Whole analyses done in R, each on the data and question of a
   the _CYP1A2_ stop codon derived from the reference, its frequency per breed
   with wolves and coyotes as controls, and the gene's copy number
 
-## Alignments
+## Guides
 
-`display` is the display's config, written as a JBrowse track config writes
-it, so `jbrowse_alignments()` colors, filters, sorts and splits reads as
-JBrowse does:
+One page per reader, each with its options and the gallery figures it draws:
 
-- `color = list(field = "mapq")`, or
-  `list(field = "insertSize", domain = c(200, 600))`. A bare string such as
-  `color = "purple"` is one constant color.
-- `filter = list(flagExclude = 1796, tagFilters = list(list(tag = "HP", value = "1")))`
-- `sort = list(type = "basePair", pos = 122836300)` sorts by the base at a
-  position ([a somatic deletion](docs/gallery.md#deletion)).
-- `featureHeight = 3` packs reads compact
-  ([compact reads](docs/gallery.md#compact_reads)).
-- `baseColor = list(field = "modifications")` paints MM/ML modification calls
-  ([CpG methylation](docs/gallery.md#methylation)).
-- `baseColor = list(field = "bisulfite")` paints the methylation bisulfite or
-  EM-seq reads show against `reference`, in the context
-  `modifications = list(cytosineContext = "CHH")` names
-  ([CHH methylation](docs/gallery.md#bisulfite)).
-- `readConnections = "arc"` adds the read-pair band, an arc per mate pair and
-  split read colored by insert size and pair orientation. `"cloud"`
-  plots each abnormal pair at its insert size instead.
-- `unit = "chain"` puts a read's mate or split segments on one row, joined by
-  a hairline ([COLO829 split reads](docs/gallery.md#long_reads_sv)).
-- `facet = list(field = "split")` splits the reads into the display's stacked
-  sections, each packed separately
-  ([an inversion](docs/gallery.md#inversion)).
-- Any other slot, such as `showOrdinaryPairs = FALSE`.
+| Track | Reader | Guide |
+|---|---|---|
+| BAM, CRAM | `jbrowse_alignments()` | [Alignments](docs/alignments.md): color, filter, sort, split and chain reads, methylation |
+| GFF3, GTF, BED, BigBed | `jbrowse_features()` | [Feature tracks](docs/features.md): gene glyphs, labels, facets |
+| BigWig | `jbrowse_wiggle()` | [Quantitative tracks](docs/wiggle.md): bars, lines, density, rows per source, clustering |
+| VCF | `jbrowse_variants()` | [Variant matrices](docs/variants.md): genotypes by sample, bands, clustering |
+| PAF, PIF, delta, chain, MashMap | `jbrowse_synteny()`, `jbrowse_dotplot()`, `jbrowse_multiway()` | [Synteny](docs/synteny.md): ribbons, dotplots, several genomes |
+| Several tracks | `jbrowse_stack()` | [A view of several tracks](docs/stack.md): end-to-end regions, collapsed introns, figure size |
 
-Each read comes back on the row the display lays it on, with the fill the
-display paints it, and `a$legend` is the display's key.
+- [The grammar](docs/grammar.md): the geoms, scales and facets that
+  `autoplot()` composes, for building a figure by hand
+- [API](docs/api.md): every reader, helper and geom, and what each returns
+- [Gallery recipes](docs/gallery.md): the R and `jb2export` code of each figure
 
-## The grammar
+## How it works
 
-`autoplot()` only composes pieces you can use yourself:
-
-- **Data:** `ggplot(a)` holds a result, and each table is a data frame
-  (`a$reads`, `a$mismatches`, `a$coverage`, ...).
-- **Geoms:** one per table: `geom_jbrowse_reads()`,
-  `geom_jbrowse_mismatches()`, `geom_jbrowse_coverage()`,
-  `geom_jbrowse_arcs()`, `geom_jbrowse_glyphs()`, `geom_jbrowse_wiggle()`,
-  `geom_jbrowse_genotypes()` and the rest. Each draws as the display does
-  and takes any column of its table in `aes()`.
-- **Scales:** each table's `color` column is the display's color, which
-  ggplot paints through an identity scale. Map another column and ggplot's
-  own scales take over. `scale_fill_jbrowse(a)` adds the display's key,
-  `scale_y_jbrowse(w)` a quantitative display's score axis, and
-  `scale_x_jbrowse(a)` the axis of several regions laid end to end, which
-  `ggplot(a)` adds unasked, moving the result's tables in your own layers
-  onto it.
-- **Facets:** the `section` column is the display's facet, so
-  `facet_grid(section ~ .)` splits a plot the way `facet =` splits the track,
-  on an alignments or a feature track.
-
-```r
-library(ggplot2)
-
-ggplot(a) +
-  geom_jbrowse_reads(aes(fill = mapq)) +
-  geom_jbrowse_mismatches() +
-  scale_fill_viridis_c() +
-  scale_y_reverse()
-```
-
-The tables work without the geoms as well:
-
-```r
-cram <- jbrowse_alignments(e("gapdh_direct_rna.cram"),
-  "chr12:6,534,201-6,535,200", reference = e("gapdh_hg38.fa.gz"))
-ggplot(cram$mismatches, aes(position, frequency, colour = color)) +
-  geom_point() +
-  scale_colour_jbrowse(cram, "bases")
-```
-
-## Feature tracks
-
-`jbrowse_features()` reads a GFF3, GTF, BED or BigBed region through
-JBrowse's feature display and returns what it draws:
-
-- each feature on its row, its gene glyph's boxes, intron lines, strand
-  chevrons and arrows in their colors, and its transcripts
-- the labels the display shows at that zoom, scaled to keep to the room the
-  layout left them at any output size
-
-`display` takes the display's settings (`color`, `displayMode`,
-`showLabels`, `geneGlyphMode`, `showOnlyGenes`, ...), and `width` is the
-pixel width the display lays the region out across, which decides which
-names fit. `autoplot(reads, above = genes)` draws genes over reads
-([GENCODE genes](docs/gallery.md#genes_and_reads)).
-
-- Under `facet = "strand"`, or `list(field = "type", domain = ...,
-  hidden = ...)`, the display packs a section per value, and `autoplot()`
-  draws each section in its own panel.
-
-## Quantitative tracks
-
-`jbrowse_wiggle()` reads a BigWig through JBrowse's quantitative display: the
-bins the file serves at that zoom, the marks the display draws from them, and
-the score axis it autoscales to. `display` takes its settings (`mark`,
-`aggregate`, `extent`, `color`, `scales`, ...), and `width` picks the zoom
-level that answers ([bars, a line and density](docs/gallery.md#conservation)).
-
-- A `MultiWiggleAdapter` config draws a row per source in `w$sources`' order.
-  Reorder or filter that table to rearrange them
-  ([twelve cell lines](docs/gallery.md#dnase_rows)).
-- `as.matrix(w)` is the matrix the display's "Cluster rows" clusters: a row
-  per source, a column per pixel.
-- `w$tree <- hclust(dist(as.matrix(w)), "average")` puts the rows in the
-  tree's order, and `autoplot()` draws the tree beside them
-  ([clustered](docs/gallery.md#dnase_clustered)).
-
-## Variant matrices
-
-`jbrowse_variants()` reads a multi-sample VCF through JBrowse's variant
-display: the records its filters keep, each sample's genotype at each, and
-the fill the display paints it, its hue shaded by the alt dosage
-([by superpopulation](docs/gallery.md#variants_by_population)).
-
-- `display` takes the display's settings: `unit = "haplotype"` for a row per
-  haplotype, `color`, `filter`, `minorAlleleFrequencyFilter`, ...
-- `samples` is a table of the samples' attributes, which `rowColor` marks the
-  rows by.
-- `v$variants` gives each record's `filter`, its FILTER column, and a column
-  per INFO key (`AC`, `AN`, ...), typed by the header. A key with a value per
-  alt, such as `AC`, is a list column. `v$info_fields` lists each key's
-  header line.
-- `rows` arranges the rows as a saved session does. `domain` lists the rows
-  that lead, `labels` renames rows, and `kept` names the rows shown.
-- `facet = "superpopulation"` stacks the rows in a band per value, named
-  beside them ([by band](docs/gallery.md#variants_banded)).
-- Reordering or filtering `v$rows` rearranges the matrix's rows, each
-  staying in its band.
-- `as.matrix(v)` is the genotype matrix the display's "Cluster rows by
-  genotype" clusters, a column per ALT allele with `NA` for a no-call.
-- A tree in `v$tree` puts the rows in its leaf order, and `autoplot()` draws
-  it beside them. The display's dialog writes
-  `v$tree <- hclust(dist(as.matrix(v)), "average")`, and any `hclust`, or
-  anything `as.hclust()` takes, labelled by row name, will do
-  ([clustered](docs/gallery.md#variants_clustered)).
-- Under bands, a list of trees, one per band, clusters each band apart, as
-  the display does.
-- Zoomed out, records sharing a pixel fade by how many share it, as the
-  display fades them, so a row shades by its share of alt records.
-
-## A view of several tracks
-
-`jbrowse_stack()` stacks tracks as a JBrowse view does: each track's plot, or
-an alignments track's bands, top to bottom in the order given, on one x axis,
-with the keys collected.
-
-- `jbrowse_stack()` lays several loci end to end, as a view lays out several
-  regions, and labels each tick in its own region's positions
-  ([two regions](docs/gallery.md#two_regions)).
-- A transcript's exons, each with a few bases of flank, lay out side by side
-  with the introns collapsed, as JBrowse's **Collapse introns** does, and each
-  splice junction arcs from one exon straight to the next
-  ([GAPDH's exons](docs/gallery.md#collapsed_introns)).
-- Each band is an ordinary ggplot, so patchwork's `&` restyles them all, as
-  in `jbrowse_stack(genes, signal, reads) & theme_classic()`. A ggplot of
-  your own stacks as a band on the same axis.
-- A track's name titles it, as the view labels a track:
-  `jbrowse_stack(Genes = genes, reads)`, or `setNames(reads, contexts)` for
-  a list of them.
-- An alignments track read with `display = list(showCoverage = FALSE)`
-  stacks no coverage band.
-
-Each band takes the pixels the display gives it. Reads draw at the display's
-`featureHeight` (7, or 3 and 1 for its compact and super-compact settings),
-and `jbrowse_height()` gives the figure height that keeps those proportions,
-so a compact pileup saves as a shorter figure. `jbrowse_width()` gives the
-width at the same scale, so a track read at a wide view's `width` draws its
-labels at the display's size:
-
-```r
-loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
-genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci)
-reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
-  display = list(featureHeight = 3))
-fig <- jbrowse_stack(genes, reads)
-ggsave("stack.png", fig, width = jbrowse_width(fig),
-  height = jbrowse_height(fig))
-```
-
-## Synteny
-
-`jbrowse_synteny()`, `jbrowse_dotplot()` and `jbrowse_multiway()` read
-alignments (PAF, indexed PIF, MUMmer delta, UCSC chain, MashMap) through
-JBrowse's synteny displays.
-
-- A file guessed from its extension names its sides `query` and `target`. A
-  PAF names its sequences by assembly when they read `sample#haplotype#contig`
-  ([the amylase locus](docs/gallery.md#amylase_synteny)), and a JBrowse
-  adapter config names assemblies, which `assemblies = c(query, target)` puts
-  on rows.
-- `swap = TRUE` puts the file's target on the top row.
-- `labels = c(query = "peach", target = "grape")` writes those names in the
-  axis titles, whichever side each is on.
-- `guides_jbrowse()` keys a continuous field such as
-  `list(field = "identity")` as the display's `0%` to `100%` bar. A threshold
-  field such as `mapq` keys its bins as chips.
-
-### Two rows
-
-`jbrowse_synteny()` returns the blocks two rows of regions share and the
-ribbons the linear synteny display draws between them, in its colors and
-opacity, with each CIGAR insertion, deletion and skip wider than a pixel
-([HG002's chr8 inversion](docs/gallery.md#inversion_synteny),
-[a CIGAR zoom](docs/gallery.md#amylase_zoom)).
-
-- `view` takes the `LinearSyntenyView`'s settings (`color`, `opacity`,
-  `cigarMode`, `minAlignmentLength`, `drawLocationMarkers`, ...).
-- `autoplot(s, above = genes, below = genes2)` stacks tracks over either row
-  ([genes on both rows](docs/gallery.md#synteny_genes)).
-- `geom_jbrowse_ribbons()` draws `s$ribbons`, each foot's span on its row,
-  with `thin` set where the band draws a one-pixel line. `s$alignments` holds
-  the blocks.
-- `geom_jbrowse_offscreen_mates()` draws `s$offscreen_strip`, the marks and
-  contig names the band hangs off a row's edge for blocks whose mate the other
-  row does not show (`s$offscreen`). `autoplot()` keys each contig from
-  `s$offscreen_contigs`.
-
-### Dotplots
-
-`jbrowse_dotplot()` reads the same files through JBrowse's dotplot display,
-which draws a line per block, or per CIGAR step where a block is wide enough
-on the plot, and `view` takes the `DotplotView`'s settings
-([HG002's chr8](docs/gallery.md#inversion_dotplot)). With no regions given,
-each axis shows every contig of its assembly in natural order, so a
-whole-genome dotplot is one call
-([peach against grape](docs/gallery.md#whole_genome)).
-`geom_jbrowse_dotplot()` draws its lines.
-
-### Several genomes
-
-`jbrowse_multiway()` reads an all-vs-all PAF, an indexed PIF or a
-multi-genome adapter config through JBrowse's multi-way synteny display. It
-returns an anchor lane over the locus given, a lane per other genome in the
-alignments' own coordinates, and the ribbons between adjacent lanes
-([TP53 in four primates](docs/gallery.md#multiway)).
-
-- `lanes` picks and orders the genomes, or pins a lane to a contig.
-- `display` takes the display's settings (`ribbonColor`, `drawCurves`,
-  `bridgeSkippedLanes`, ...).
-- `autoplot(m, above = genes)` stacks tracks over the anchor lane.
-
-## From a JBrowse view
-
-JBrowse's linear genome view is gaining an **Export R script** menu item, not
-yet in a release. It writes one ggjbrowse reader per open track, then
-`jbrowse_stack()` and `ggsave()` at `jbrowse_width(fig)` by
-`jbrowse_height(fig)`.
-
-## The engine
-
-- `inst/js/jbrowse-tables.js` is
-  [`@jbrowse/tables`](https://github.com/GMOD/jbrowse-components/tree/main/packages/tables)
-  bundled for a bare JavaScript host, committed so installing needs no
-  JavaScript toolchain.
-- JBrowse's own tests hold the bundle, run with no web globals, to the
-  browser's engine.
-- [`inst/COPYRIGHTS`](inst/COPYRIGHTS) names the bundle's source and the
-  license and copyright of each package bundled in it.
-- [CONTRIBUTING.md](CONTRIBUTING.md#updating-the-engine) covers rebuilding it
-  and the CI that takes each new release.
+- JBrowse's own display code runs in V8 and returns the tables its displays
+  draw from. R reads the files for it and draws the tables.
+- [How does this work?](docs/how-does-this-work.md) covers the engine, file
+  reading and who decides what.
+- [Dataflow](docs/dataflow.md) diagrams one call from path to plot.
+- [FAQ](docs/faq.md): V8 versus QuickJS, caching, indexes, coordinates.
+- [CONTRIBUTING.md](CONTRIBUTING.md): development, rebuilding the engine and CI.
+- JBrowse's linear genome view is gaining an **Export R script** menu item,
+  not yet in a release, that writes a ggjbrowse script for the open tracks.
 
 ## Not yet
 
 - A CRAN submission: `R CMD check --as-cran` leaves the new-submission NOTE,
   and the 7.9 MB installed size, 4.3 MB of it `inst/extdata`, may need
   trimming or a word to CRAN
-
-## Docs
-
-- [docs/gallery.md](docs/gallery.md): the R and `jb2export` recipe of each
-  gallery figure
-- [docs/api.md](docs/api.md): every reader, helper and geom, and what each
-  returns
-- [docs/how-does-this-work.md](docs/how-does-this-work.md): the engine,
-  reading files and who decides what
-- [docs/dataflow.md](docs/dataflow.md): a diagram of one call from path to plot
-- [docs/faq.md](docs/faq.md): V8 versus QuickJS, caching, indexes, coordinates
-- [agent-docs/engine-owns-display-decisions.md](agent-docs/engine-owns-display-decisions.md):
-  the plan to move the rules R still copies into the engine
-- [CONTRIBUTING.md](CONTRIBUTING.md): development, rebuilding the engine and CI
 
 ## See also
 
