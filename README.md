@@ -145,29 +145,29 @@ Whole analyses done in R, each on the data and question of a
 
 ## Docs
 
-- [docs/alignments.md](docs/alignments.md): BAM and CRAM with
-  `jbrowse_alignments()`: color, filter, sort, split and chain reads,
+- [docs/alignments.md](docs/alignments.md): BAM and CRAM reads
+  (`jbrowse_alignments()`): color, filter, sort, split and chain reads,
   methylation
-- [docs/features.md](docs/features.md): GFF3, GTF, BED and BigBed with
-  `jbrowse_features()`: gene glyphs, labels, facets
-- [docs/wiggle.md](docs/wiggle.md): BigWig with `jbrowse_wiggle()`: bars,
-  lines, density, rows per source, clustering
-- [docs/variants.md](docs/variants.md): VCF with `jbrowse_variants()`:
-  genotypes by sample, bands, clustering
-- [docs/synteny.md](docs/synteny.md): PAF, PIF, delta, chain and MashMap with
-  `jbrowse_synteny()`, `jbrowse_dotplot()` and `jbrowse_multiway()`: ribbons,
+- [docs/features.md](docs/features.md): GFF3, GTF, BED and BigBed
+  (`jbrowse_features()`): gene glyphs, labels, facets
+- [docs/wiggle.md](docs/wiggle.md): BigWig (`jbrowse_wiggle()`): bars, lines,
+  density, rows per source, clustering
+- [docs/variants.md](docs/variants.md): VCF (`jbrowse_variants()`): genotypes
+  by sample, bands, clustering
+- [docs/synteny.md](docs/synteny.md): PAF, PIF, delta, chain and MashMap
+  (`jbrowse_synteny()`, `jbrowse_dotplot()`, `jbrowse_multiway()`): ribbons,
   dotplots, several genomes
-- [docs/stack.md](docs/stack.md): several tracks with
-  `jbrowse_stack()`: end-to-end regions, collapsed introns, figure size, and
-  the **Export R script** JBrowse menu item
+- [docs/stack.md](docs/stack.md): several tracks (`jbrowse_stack()`):
+  end-to-end regions, collapsed introns, figure size, the **Export R script**
+  JBrowse menu item
 - [docs/grammar.md](docs/grammar.md): the geoms, scales and facets that
-  `autoplot()` composes, for building a figure by hand
+  `autoplot()` composes
 - [docs/api.md](docs/api.md): every reader, helper and geom, and what each
   returns
 - [docs/gallery.md](docs/gallery.md): the R and `jb2export` code of each figure
-- [docs/faq.md](docs/faq.md): how the engine works, what one call does, and
-  common errors
-- [CONTRIBUTING.md](CONTRIBUTING.md): setup, rebuilding the engine and CI
+- [docs/faq.md](docs/faq.md): how the engine works, what one call does, common
+  errors
+- [CONTRIBUTING.md](CONTRIBUTING.md): setup, rebuilding the engine, CI
 
 ## Not yet
 

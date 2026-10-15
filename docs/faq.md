@@ -38,17 +38,6 @@ sequenceDiagram
     R->>R: autoplot() hands each frame to its geom
 ```
 
-- **Parse:** `regions_of()` in `R/regions.R` turns the region into 0-based
-  half-open bounds.
-- **Config:** `adapter_of()` guesses the adapter from the file name and
-  index. `location()` gives a local file a `file://` URL with its modification
-  time and size.
-- **Engine:** `call_engine()` runs `jbrowse.<table>` in the session's V8
-  context and waits on the promise. The engine returns columns as JSON, and
-  `as_frame()` makes each a data frame.
-- **Draw:** each geom in `R/geoms-alignments.R` and its siblings draws one
-  table.
-
 ## Who decides what?
 
 - The engine decides whatever JBrowse decides from the track's config, such as
