@@ -338,7 +338,7 @@ multiway_stack <- function(x, curves) {
 # position moved to its pixel on the lane, through the lane's segments
 lane_band <- function(track, x, lane, where) {
   s <- x$segments[x$segments$lane == lane, , drop = FALSE]
-  read <- regions_read(track)
+  read <- track$regions
   if (!nrow(s) || !all(read$chrom %in% s$chrom) ||
     min(read$start) > min(s$start) || max(read$end) < max(s$end)) {
     stop("a track ", where, " the stack draws over ", x$lanes$locus[lane],

@@ -157,10 +157,10 @@ test_that("several regions share one score axis and color ramp", {
   m <- d$marks
   colors <- tapply(m$color, m$score, function(c) length(unique(c)))
   expect_true(all(colors == 1))
-  expect_true(any(duplicated(m$score[!duplicated(m[c("score", ".region")])])))
+  expect_true(any(duplicated(m$score[!duplicated(m[c("score", "region")])])))
   expect_equal(as.numeric(attr(d$ramps[[1]], "labels")), d$domain)
   alone <- jbrowse_wiggle(bw, loci[1], display = list(mark = "span"))
-  expect_equal(d$marks[d$marks$.region == 1, c("start", "end", "score")],
+  expect_equal(d$marks[d$marks$region == 1, c("start", "end", "score")],
     alone$marks[c("start", "end", "score")])
   expect_false(isTRUE(all.equal(d$domain, alone$domain)))
 })

@@ -4,10 +4,8 @@
 # The pixels a base spans, which the display's sub-pixel fade reads, in a
 # figure `width` pixels across its region, else 1,500
 px_of <- function(x, width) {
-  (width %||% (10 * PX_PER_INCH)) / (x$region$end - x$region$start)
+  (width %||% (10 * PX_PER_INCH)) / diff(xlim_of(x))
 }
-
-xlim_of <- function(x) c(x$region$start, x$region$end)
 
 # The share of a pileup row left empty above and below a read, from the
 # engine's read pitch: a read `featureHeight` pixels tall over a row

@@ -481,7 +481,7 @@ test_that("a whole file reads the contigs its index shows reads on, to the assem
   expect_equal(listed$chrom, "chr12")
   expect_equal(listed$end, 6570000)
   whole <- jbrowse_alignments(cram, assembly = fa)
-  expect_equal(whole$region$end, 6570000)
+  expect_equal(max(whole$regions$end), 6570000)
   expect_equal(nrow(whole$reads), nrow(jbrowse_alignments(cram,
     "chr12", 0, 6570000, assembly = fa)$reads))
 })

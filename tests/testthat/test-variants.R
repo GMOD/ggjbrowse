@@ -178,7 +178,7 @@ test_that("a first region with no records leaves every row and the second region
   alone <- jbrowse_variants(vcf, "1:155,000,001-155,050,000")
   expect_equal(both$rows$name, alone$rows$name)
   expect_equal(nrow(both$cells), nrow(alone$cells))
-  expect_true(all(both$variants$.region == 2))
+  expect_true(all(both$variants$region == 2))
   drawn <- ggplot2::layer_data(ggplot2::autoplot(both), 2)
   expect_equal(nrow(drawn), nrow(alone$cells))
 })

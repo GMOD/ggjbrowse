@@ -375,7 +375,7 @@ geom_jbrowse_amino_acids <- function(mapping = NULL, data = NULL, ...) {
     d <- x$amino_acids[nzchar(x$amino_acids$text), , drop = FALSE]
     n <- nrow(d)
     d$position <- (d$start + d$end) / 2
-    d$px_wide <- rep((x$region$end - x$region$start) / x$bp_per_px, n)
+    d$px_wide <- rep(diff(xlim_of(x)) / x$bp_per_px, n)
     d$px_tall <- if (is.null(d$section)) rep(x$height, n)
       else section_px(x)[as.integer(d$section)]
     d$halo <- rep(x$glyph$aminoAcidHalo, n)
@@ -396,7 +396,7 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
     d <- x$labels
     n <- nrow(d)
     d$size <- rep(x$glyph$fontSize, n)
-    d$px_wide <- rep((x$region$end - x$region$start) / x$bp_per_px, n)
+    d$px_wide <- rep(diff(xlim_of(x)) / x$bp_per_px, n)
     d$px_tall <- if (is.null(d$section)) rep(x$height, n)
       else section_px(x)[as.integer(d$section)]
     d
@@ -441,7 +441,7 @@ autoplot.jbrowse_features <- function(object, ...) {
     geom_jbrowse_labels() +
     ggplot2::scale_y_reverse() +
     ggplot2::coord_cartesian(
-      xlim = c(object$region$start, object$region$end),
+      xlim = xlim_of(object),
       ylim = if (!faceted) c(0, object$height), expand = FALSE) +
     by_section(object, rows = TRUE) +
     genomic_x(object) +

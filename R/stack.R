@@ -186,7 +186,7 @@ result_px <- function(x) {
   if (is.null(x)) return(0)
   if (!is.null(x$width)) return(x$width)
   if (is.null(x$bp_per_px)) return(0)
-  r <- regions_read(x)
+  r <- x$regions
   sum(r$end - r$start) / x$bp_per_px
 }
 
@@ -201,7 +201,6 @@ stack_px <- function(results) {
 # inches
 PX_PER_INCH <- 150
 
-regions_read <- function(x) x$regions %||% as.data.frame(x$region)
 
 # Regions as JBrowse's location box writes them
 loci_of_layout <- function(layout) {
@@ -210,7 +209,7 @@ loci_of_layout <- function(layout) {
 }
 
 # The loci a result reads
-loci_of <- function(x) loci_of_layout(regions_read(x))
+loci_of <- function(x) loci_of_layout(x$regions)
 
 # The loci a result reads, for its print header
 print_loci <- function(x) paste(loci_of(x), collapse = ", ")
@@ -234,7 +233,7 @@ region_breaks <- function(r) {
 # across the tracks stop.
 same_regions <- function(results) {
   span <- function(x) {
-    r <- regions_read(x)
+    r <- x$regions
     paste(r$start, r$end, collapse = ";")
   }
   spans <- vapply(results, span, "")
@@ -246,9 +245,9 @@ same_regions <- function(results) {
         collapse = ", "), call. = FALSE)
   }
   bare <- function(chrom) sub("^chr", "", chrom, ignore.case = TRUE)
-  first <- regions_read(results[[1]])$chrom
+  first <- results[[1]]$regions$chrom
   for (i in seq_along(results)[-1]) {
-    chrom <- regions_read(results[[i]])$chrom
+    chrom <- results[[i]]$regions$chrom
     pairs <- unique(data.frame(a = first, b = chrom))
     if (anyDuplicated(pairs$a) || anyDuplicated(pairs$b)) {
       stop("jbrowse_stack draws its tracks over the same contigs, but track ",
@@ -281,7 +280,7 @@ own_band <- function(p, axis) {
 # them end to end, the plot's own and each layer's, and that axis's scale
 # where the plot sets none
 onto_axis <- function(p, axis) {
-  if (is.null(axis$regions)) return(p)
+  if (NROW(axis$regions) < 2) return(p)
   if (is.data.frame(p$data)) p$data <- frame_on_axis(p$data, axis$regions)
   p$layers <- lapply(p$layers, function(layer) {
     if (!is.data.frame(layer$data)) return(layer)
@@ -357,7 +356,7 @@ stack_bands <- function(bands, axis_at = NULL) {
 # to end, or the contigs and the count of more
 axis_label <- function(x) {
   r <- x$regions
-  if (is.null(r)) return(sprintf("%s (bp)", x$region$chrom))
+  if (nrow(r) == 1) return(sprintf("%s (bp)", r$chrom))
   if (nrow(r) <= 2) {
     return(sprintf("%s (bp, end to end)", paste(loci_of(x), collapse = ", ")))
   }
@@ -374,7 +373,7 @@ axis_label <- function(x) {
 # band draws, as the view masks its tracks.
 genomic_x <- function(x, ...) {
   r <- x$regions
-  if (is.null(r)) {
+  if (nrow(r) == 1) {
     return(scale_with(ggplot2::scale_x_continuous,
       list(labels = scales::label_comma()), ...))
   }

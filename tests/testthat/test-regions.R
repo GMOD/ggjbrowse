@@ -22,18 +22,18 @@ test_that("several regions keep their genomic positions and draw end to end", {
   both <- jbrowse_alignments(bam, loci)
   alone <- jbrowse_alignments(bam, loci[2])
   r <- both$regions
-  second <- both$reads[both$reads$.region == 2, ]
+  second <- both$reads[both$reads$region == 2, ]
   expect_equal(second$start, alone$reads$start)
   expect_equal(unique(second$chrom), "ctgA")
   m <- both$mismatches
   expect_true(all(m$position >= both$reads$start[m$read] &
     m$position < both$reads$end[m$read]))
-  expect_true(all(m$.region == both$reads$.region[m$read]))
+  expect_true(all(m$region == both$reads$region[m$read]))
   drawn <- on_axis(both)$reads
-  expect_equal(min(drawn$start[drawn$.region == 2]),
+  expect_equal(min(drawn$start[drawn$region == 2]),
     max(min(alone$reads$start), 6000) - r$start[2] + r$offset[2])
   expect_equal(ggplot2::fortify(both)$start, drawn$start)
-  expect_equal(c(both$region$start, both$region$end),
+  expect_equal(xlim_of(both),
     c(min(r$cum_start), max(r$cum_end)))
 })
 
@@ -103,7 +103,7 @@ test_that("a plain ggplot of several regions draws them, and one's own layers, e
   r <- a$regions
   expect_lte(max(b$data[[2]]$x), max(r$cum_end))
   m <- a$mismatches
-  second <- m$.region == 2 & m$position >= r$start[2] & m$position < r$end[2]
+  second <- m$region == 2 & m$position >= r$start[2] & m$position < r$end[2]
   expect_equal(sort(b$data[[2]]$x[b$data[[2]]$x > r$cum_end[1]]),
     sort(a$mismatches$position[second] - r$start[2] + r$offset[2]))
   own <- ggplot2::ggplot(a) + geom_jbrowse_coverage() +
@@ -121,7 +121,7 @@ test_that("jbrowse_stack takes a contig's other spelling and warns at another co
   b <- jbrowse_features(gff, "ctgB:1,001-3,000")
   expect_warning(jbrowse_stack(a, b), "track 2 reads ctgB where track 1 reads ctgA")
   prefixed <- a
-  prefixed$region$chrom <- "chrctgA"
+  prefixed$regions$chrom <- "chrctgA"
   expect_no_warning(jbrowse_stack(a, prefixed))
   loci <- c("ctgA:1,001-2,000", "ctgA:3,001-4,000")
   two <- jbrowse_features(gff, loci)
@@ -149,7 +149,7 @@ test_that("jbrowse_stack draws a ggplot of one's own on the tracks' axis", {
 test_that("a result's table handed to a geom or stacked in a plot of one's own draws on the axis", {
   loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
   a <- jbrowse_alignments(bam, loci)
-  axis <- c(a$region$start, a$region$end)
+  axis <- xlim_of(a)
   minus <- subset(a$reads, strand == -1)
   p <- ggplot2::autoplot(a, "pileup") + geom_jbrowse_reads(data = minus)
   drawn <- ggplot2::layer_data(p, length(p$layers))
@@ -163,7 +163,7 @@ test_that("a result's table handed to a geom or stacked in a plot of one's own d
   built <- ggplot2::ggplot_build(band)
   expect_true(all(built$data[[1]]$x >= axis[1] & built$data[[1]]$x <= axis[2]))
   expect_equal(built$layout$panel_params[[1]]$y.range, c(0, 5))
-  expect_null(own$data$.on_axis)
+  expect_null(attr(own$data, "on_axis"))
 })
 
 test_that("an alignments track refuses tracks above it over other regions", {
@@ -176,7 +176,7 @@ test_that("an arc between two contigs rises half as high as its feet lie apart",
     start = c(1000, 5000), end = c(2000, 6000)))
   arcs <- data.frame(start = c(1500, 1200), end = c(5500, 1800),
     y = c(0, 300), startRegion = c(0L, 0L), endRegion = c(1L, 0L),
-    .region = c(1L, 1L))
+    region = c(1L, 1L))
   placed <- arcs_on_axis(arcs, axis)
   expect_equal(placed$y[1], (placed$end[1] - placed$start[1]) / 2)
   expect_equal(placed$y[2], 300)
@@ -198,7 +198,7 @@ test_that("a split read across two regions arcs over the gap, listed once", {
 test_that("a line breaks at the seam between regions", {
   w <- jbrowse_wiggle(extdata("volvox_microarray_posneg.bw"),
     c("ctgA:1-10000", "ctgA:20001-30000"), display = list(mark = "line"))
-  regions_per_run <- tapply(w$marks$.region, w$marks$run,
+  regions_per_run <- tapply(w$marks$region, w$marks$run,
     function(r) length(unique(r)))
   expect_true(all(regions_per_run == 1))
 })
@@ -217,10 +217,10 @@ test_that("a splice junction across two regions arcs over the seam, listed once"
 test_that("a read crossing a seam keeps one row in both regions", {
   a <- jbrowse_alignments(bam, c("ctgA:1,001-3,000", "ctgA:3,001-5,000"))
   r <- a$reads
-  shared <- intersect(r$key[r$.region == 1], r$key[r$.region == 2])
+  shared <- intersect(r$key[r$region == 1], r$key[r$region == 2])
   expect_gt(length(shared), 10)
-  first <- r[r$.region == 1 & r$key %in% shared, ]
-  second <- r[r$.region == 2 & r$key %in% shared, ]
+  first <- r[r$region == 1 & r$key %in% shared, ]
+  second <- r[r$region == 2 & r$key %in% shared, ]
   expect_equal(second$row[match(first$key, second$key)], first$row)
   expect_equal(second$id[match(first$key, second$key)], first$id)
 })
@@ -230,7 +230,7 @@ test_that("a facet value only the second region holds stacks its section", {
     display = list(facet = list(field = "strand")))
   expect_setequal(as.character(a$reads$section), a$sections$label)
   expect_equal(nrow(a$sections), 2)
-  expect_equal(unique(as.character(a$reads$section[a$reads$.region == 1])),
+  expect_equal(unique(as.character(a$reads$section[a$reads$region == 1])),
     "Forward strand")
   expect_length(alignment_bands(a)$plots, 4)
 })

@@ -32,7 +32,7 @@
 #' hg38 <- jbrowse_assembly(e("gapdh_hg38.fa.gz"), aliases)
 #' a <- jbrowse_alignments(e("gapdh_direct_rna.bam"), "12:6,534,201-6,538,700",
 #'   assembly = hg38)
-#' a$region$chrom
+#' a$regions$chrom
 jbrowse_assembly <- function(sequence = NULL, aliases = NULL,
                              name = "assembly") {
   config <- list(name = name, uri = sequence)

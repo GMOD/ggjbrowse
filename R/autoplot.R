@@ -184,7 +184,7 @@ sequence_plot <- function(x, o) {
       "with `assembly =`", call. = FALSE)
   }
   xlim <- xlim_of(x)
-  r <- regions_read(x)
+  r <- x$regions
   offset <- r$offset %||% r$start
   bases <- do.call(rbind, lapply(seq_len(nrow(r)), function(i) {
     base <- toupper(strsplit(jbrowse_sequence(x$reference$assembly,

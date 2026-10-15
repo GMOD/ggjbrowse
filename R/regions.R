@@ -85,10 +85,10 @@ warn_missing <- function(messages) {
   missing
 }
 
-# A result the engine read over every region in one call: each row of a
-# table the engine numbers by its 0-based `region` names its contig and its
-# 1-based `.region`, and several regions lie on the axis region_layout() lays
-# them on
+# A result the engine read over every region in one call: each row of a table
+# the engine numbers by its 0-based `region` gets its contig and its 1-based
+# `region`, and `regions` lays the regions on one axis, each with its
+# missing-contig message
 in_one_call <- function(x, regions, missing_contigs) {
   missing <- warn_missing(lapply(seq_len(nrow(regions)), function(i)
     missing_contigs[[i]]))
@@ -98,42 +98,43 @@ in_one_call <- function(x, regions, missing_contigs) {
     i <- as.integer(d$region) + 1L
     d$region <- NULL
     d$chrom <- regions$chrom[i]
-    d$.region <- i
+    d$region <- i
     x[[name]] <- d
   }
-  if (nrow(regions) == 1) {
-    x$region <- as.list(regions)
-    x$missing_contig <- missing
-    return(x)
-  }
-  on_layout(x, region_layout(regions))
-}
-
-# A result over several regions, its region the axis `regions` lays them on
-on_layout <- function(x, regions) {
-  x$region <- list(chrom = "", start = min(regions$cum_start),
-    end = max(regions$cum_end))
-  x$missing_contig <- ""
-  x$regions <- regions
+  layout <- region_layout(regions[c("chrom", "start", "end")])
+  layout$missing <- missing
+  x$regions <- layout
   x
 }
 
+# The x range a result's regions span on its axis
+xlim_of <- function(x) c(min(x$regions$cum_start), max(x$regions$cum_end))
+
 # A result's tables as its geoms draw them, on the axis that lays several
-# regions end to end. One region's result draws as it is.
+# regions end to end, each table marked so it moves once. One region's
+# tables draw where they are.
 on_axis <- function(x) {
   if (inherits(x, "jbrowse_synteny")) return(synteny_on_axis(x))
   if (inherits(x, "jbrowse_dotplot")) return(dotplot_on_axis(x))
   if (inherits(x, "jbrowse_multiway")) return(multiway_on_axis(x))
   if (inherits(x, "jbrowse_variants")) x <- in_row_order(x)
   if (inherits(x, "jbrowse_wiggle")) x <- in_source_order(x)
+  cls <- class(x)
+  x <- unclass(x)
   r <- x$regions
-  if (is.null(r)) return(x)
   for (name in names(x)) {
-    if (!is.data.frame(x[[name]])) next
+    if (!is.data.frame(x[[name]]) || name == "regions") next
     x[[name]] <- if (name %in% c("arcs", "junctions"))
       arcs_on_axis(x[[name]], r) else frame_on_axis(x[[name]], r)
   }
-  x
+  structure(x, class = cls, on_axis = TRUE)
+}
+
+is_on_axis <- function(d) isTRUE(attr(d, "on_axis"))
+
+# Whether `d` names its rows' regions of `regions` in a `region` column
+has_regions <- function(d, regions) {
+  is.numeric(d$region) && all(d$region %in% seq_len(nrow(regions)))
 }
 
 # A read connection or splice junction with each foot on the axis in the
@@ -143,10 +144,11 @@ on_axis <- function(x) {
 # contigs has no genomic radius, so its dome rises half as high as its feet
 # lie apart on the axis, as the display draws it.
 arcs_on_axis <- function(d, regions) {
-  if (is.null(d$.region) || !is.null(d$.on_axis)) return(d)
+  if (is_on_axis(d) || !has_regions(d, regions)) return(d)
+  if (nrow(regions) == 1) return(structure(d, on_axis = TRUE))
   r <- regions
   place <- function(pos, foot) {
-    i <- ifelse(foot >= 0, foot + 1L, d$.region)
+    i <- ifelse(foot >= 0, foot + 1L, d$region)
     pmin(pmax(pos, r$start[i]), r$end[i]) - r$start[i] + r$offset[i]
   }
   d$start <- place(d$start, d$startRegion)
@@ -157,35 +159,31 @@ arcs_on_axis <- function(d, regions) {
       r$chrom[pmax(d$endRegion, 0) + 1L]
     d$y[across] <- abs(d$end[across] - d$start[across]) / 2
   }
-  d$.on_axis <- rep(TRUE, nrow(d))
-  d
+  structure(d, on_axis = TRUE)
 }
 
 # A table's rows on the axis `regions` lays end to end: each moved by its
 # region's offset, a span cut to its region and a mark outside it dropped, so
-# nothing draws over the gap into the next region. A row keeps `.region` and
-# gains `.on_axis`, so a table already moved stays where it is.
+# nothing draws over the gap into the next region
 frame_on_axis <- function(d, regions) {
-  if (is.null(regions) || is.null(d$.region) || !is.null(d$.on_axis)) {
-    return(d)
-  }
+  if (is_on_axis(d) || !has_regions(d, regions)) return(d)
+  if (nrow(regions) == 1) return(structure(d, on_axis = TRUE))
   r <- regions
   if (!is.null(d$start)) {
-    d <- d[d$end > r$start[d$.region] & d$start < r$end[d$.region], ,
+    d <- d[d$end > r$start[d$region] & d$start < r$end[d$region], ,
       drop = FALSE]
-    d$start <- pmax(d$start, r$start[d$.region])
-    d$end <- pmin(d$end, r$end[d$.region])
+    d$start <- pmax(d$start, r$start[d$region])
+    d$end <- pmin(d$end, r$end[d$region])
   }
   if (!is.null(d$position)) {
-    d <- d[d$position >= r$start[d$.region] &
-      d$position < r$end[d$.region], , drop = FALSE]
+    d <- d[d$position >= r$start[d$region] &
+      d$position < r$end[d$region], , drop = FALSE]
   }
-  shift <- r$offset[d$.region] - r$start[d$.region]
+  shift <- r$offset[d$region] - r$start[d$region]
   if (!is.null(d$start)) {
     d$start <- d$start + shift
     d$end <- d$end + shift
   }
   if (!is.null(d$position)) d$position <- d$position + shift
-  d$.on_axis <- rep(TRUE, nrow(d))
-  d
+  structure(d, on_axis = TRUE)
 }

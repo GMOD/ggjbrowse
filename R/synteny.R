@@ -633,7 +633,7 @@ row_tracks <- function(tracks, layout, row) {
   if (is.null(tracks)) return(list())
   if (inherits(tracks, "jbrowse_result")) tracks <- list(tracks)
   for (t in tracks) {
-    r <- regions_read(t)
+    r <- t$regions
     if (!identical(paste(r$start, r$end), paste(layout$start, layout$end))) {
       stop("a ", row, " track draws over the ", row, " row's regions, ",
         paste(loci_of_layout(layout), collapse = ", "), ", but one reads ",
@@ -641,10 +641,8 @@ row_tracks <- function(tracks, layout, row) {
     }
   }
   lapply(tracks, function(t) {
-    if (is.null(t$regions)) return(t)
-    t$regions <- layout
-    t$region$start <- min(layout$cum_start)
-    t$region$end <- max(layout$cum_end)
+    axis <- c("offset", "cum_start", "cum_end")
+    t$regions[axis] <- layout[axis]
     t
   })
 }

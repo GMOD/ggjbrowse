@@ -105,13 +105,13 @@ jbrowse_wiggle <- function(file, region, start = NULL, end = NULL,
 #' dim(as.matrix(w))
 #' w$tree <- hclust(dist(as.matrix(w)), "average")
 as.matrix.jbrowse_wiggle <- function(x, ...) {
-  r <- regions_read(x)
+  r <- x$regions
   per_px <- 1 / x$bp_per_px
   columns <- pmax(0, floor((r$end - r$start) * per_px))
   offset <- cumsum(c(0, columns))[seq_along(columns)]
   b <- x$bins[x$bins$source %in% x$sources$name, , drop = FALSE]
   value <- switch(x$aggregate, min = b$min, max = b$max, b$score) %||% b$score
-  i <- b$.region
+  i <- b$region
   from <- pmax(0, trunc((b$start - r$start[i]) * per_px))
   to <- pmin(columns[i], pmax(trunc((b$end - r$start[i]) * per_px), from + 1))
   keep <- b$end > r$start[i] & to > from & !is.na(value)
@@ -289,7 +289,7 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
   rules <- function(x) {
     r <- if (x$rendering == "density" || isTRUE(x$row_layout)) x$rules[0, ]
       else x$rules
-    r$x <- rep(x$region$start, nrow(r))
+    r$x <- rep(xlim_of(x)[1], nrow(r))
     r
   }
   list(
@@ -334,7 +334,7 @@ autoplot.jbrowse_wiggle <- function(object, ...) {
     guides_jbrowse(object) +
     (if (!rows && !density) scale_y_jbrowse(object)) +
     ggplot2::coord_cartesian(
-      xlim = c(object$region$start, object$region$end),
+      xlim = xlim_of(object),
       ylim = if (rows) c(0, n) else if (density) c(0, 1) else object$domain,
       expand = FALSE, clip = if (rows) "off" else "on") +
     genomic_x(object) +

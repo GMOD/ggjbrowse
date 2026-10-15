@@ -127,14 +127,14 @@ test_that("a gene's exons with the introns collapsed keep each feature on one ro
   exons <- c("ctgA:1,001-1,600", "ctgA:2,901-4,000", "ctgA:4,901-5,600",
     "ctgA:6,901-9,100")
   g <- jbrowse_features(gff, exons)
-  expect_setequal(unique(g$features$.region), 1:4)
+  expect_setequal(unique(g$features$region), 1:4)
   tops <- tapply(g$features$top, g$features$id, function(t) length(unique(t)))
   expect_true(all(tops == 1))
   eden <- g$features[g$features$name == "EDEN", ]
-  expect_identical(eden$.region, 1:4)
+  expect_identical(eden$region, 1:4)
   for (name in c("rects", "lines", "labels", "subfeatures")) {
     d <- g[[name]]
-    expect_equal(d$.region, g$features$.region[d$feature])
+    expect_equal(d$region, g$features$region[d$feature])
   }
   subs <- g$labels[!is.na(g$labels$subfeature), ]
   expect_equal(g$subfeatures$feature[subs$subfeature], subs$feature)
@@ -218,7 +218,7 @@ test_that("a zoomed-in CDS carries its residues, in frame across an intron", {
   hg38 <- extdata("gapdh_hg38.fa.gz")
   near <- jbrowse_features(gapdh, loci, assembly = hg38, width = 1200)
   aa <- near$amino_acids
-  first <- aa[aa$.region == 1 & aa$top == aa$top[1], ]
+  first <- aa[aa$region == 1 & aa$top == aa$top[1], ]
   expect_equal(paste(first$amino_acid, collapse = ""), "MGKVKVGVNG")
   expect_equal(first$protein_index, 0:9)
   expect_equal(first$text, first$amino_acid)
@@ -293,7 +293,7 @@ test_that("features a config writes inline read as the same features in a file",
   expect_equal(from_config$features[same], from_file$features[same])
   expect_equal(from_config$rects, from_file$rects)
   expect_equal(from_config$labels, from_file$labels)
-  expect_equal(from_config$missing_contig, "")
+  expect_equal(from_config$regions$missing, "")
 })
 
 test_that("a GFF3's attributes are columns keyed as the file writes them", {

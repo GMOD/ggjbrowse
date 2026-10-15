@@ -300,7 +300,7 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
 # region, as the display fades each displayed region's cells
 density_alpha <- function(variants, bp_per_px) {
   alpha <- rep(1, nrow(variants))
-  region <- variants$.region %||% rep(1, nrow(variants))
+  region <- variants$region
   for (i in split(seq_len(nrow(variants)), region)) {
     if (length(i) < 2) next
     alpha[i] <- unlist(call_engine("variantDensityAlpha", list(
@@ -339,7 +339,7 @@ autoplot.jbrowse_variants <- function(object,
   object <- on_axis(object)
   rows <- as.character(object$rows$label %||% object$rows$name)
   genomic <- layout == "genomic"
-  xlim <- if (genomic) c(object$region$start, object$region$end)
+  xlim <- if (genomic) xlim_of(object)
     else c(0.5, nrow(object$variants) + 0.5)
   inner <- if (any(object$rows$color != "")) 9 else 2.2
   tree <- object$tree
