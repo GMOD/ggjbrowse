@@ -241,7 +241,8 @@ arcs_on_axis <- function(d, regions) {
   }
   d$start <- place(d$start)
   d$end <- place(d$end)
-  d <- d[!duplicated(d[setdiff(names(d), ".region")]), , drop = FALSE]
+  same <- setdiff(names(d), c(".region", "region", "startRegion", "endRegion"))
+  d <- d[!duplicated(d[same]), , drop = FALSE]
   d$.on_axis <- rep(TRUE, nrow(d))
   d
 }
