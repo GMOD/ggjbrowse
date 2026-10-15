@@ -421,6 +421,10 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 #' each section draws in its own panel over its rows, named by its strip.
 #'
 #' @param object a [jbrowse_features()] result
+#' @param width the pixels the figure draws the regions across, which
+#'   [jbrowse_width()] sizes a stack by; `NULL` takes the `width` the track
+#'   was read at. Narrower than that warns, since the labels were laid out
+#'   for more pixels
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot, to extend or to stack over an alignments track with
 #'   patchwork
@@ -429,9 +433,9 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 #' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
 #' g <- jbrowse_features(gff, "chr12:6,534,201-6,538,700")
 #' autoplot(g)
-autoplot.jbrowse_features <- function(object, ...) {
+autoplot.jbrowse_features <- function(object, width = NULL, ...) {
   rlang::check_dots_empty()
-  object <- on_axis(object)
+  object <- on_axis(drawn_at(object, width))
   faceted <- !identical(object$sections$label %||% "", "")
   p <- ggplot2::ggplot(object)
   if (faceted) p <- p + section_extents(object)

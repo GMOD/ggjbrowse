@@ -325,6 +325,9 @@ reference_rows <- function(x) {
 #' @param object a [jbrowse_variants()] result
 #' @param layout `"genomic"` for cells at their records' positions,
 #'   `"columns"` for the genotype matrix, a column per record
+#' @param width the pixels the figure draws the regions across, which widen
+#'   a record to two of them at genomic positions; `NULL` takes the `width`
+#'   the variants were read at, which their fade keeps
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot
 #' @exportS3Method ggplot2::autoplot
@@ -332,10 +335,11 @@ reference_rows <- function(x) {
 #' vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
 #' autoplot(jbrowse_variants(vcf, "1:155,000,001-155,050,000"))
 autoplot.jbrowse_variants <- function(object,
-                                      layout = c("genomic", "columns"), ...) {
+                                      layout = c("genomic", "columns"),
+                                      width = NULL, ...) {
   rlang::check_dots_empty()
   layout <- match.arg(layout)
-  object <- on_axis(object)
+  object <- on_axis(drawn_at(object, width))
   rows <- as.character(object$rows$label %||% object$rows$name)
   genomic <- layout == "genomic"
   xlim <- if (genomic) xlim_of(object)

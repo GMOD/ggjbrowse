@@ -4,10 +4,15 @@
 \alias{autoplot.jbrowse_wiggle}
 \title{Draw a BigWig as JBrowse's quantitative track}
 \usage{
-\method{autoplot}{jbrowse_wiggle}(object, ...)
+\method{autoplot}{jbrowse_wiggle}(object, width = NULL, ...)
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result}
+
+\item{width}{the pixels the figure draws the regions across, which
+\code{\link[=jbrowse_width]{jbrowse_width()}} sizes a stack by; \code{NULL} takes the \code{width} the track
+was read at. Narrower than that warns, since the file's zoom level was
+picked for more pixels}
 
 \item{...}{must be empty, so a misspelt argument errors}
 }

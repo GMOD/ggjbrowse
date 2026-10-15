@@ -315,6 +315,10 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
 #' display autoscales to, a row per source where the display gives each one.
 #'
 #' @param object a [jbrowse_wiggle()] result
+#' @param width the pixels the figure draws the regions across, which
+#'   [jbrowse_width()] sizes a stack by; `NULL` takes the `width` the track
+#'   was read at. Narrower than that warns, since the file's zoom level was
+#'   picked for more pixels
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot, to extend or to stack over an alignments track with
 #'   patchwork
@@ -323,9 +327,9 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
 #' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
 #' autoplot(jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700"))
-autoplot.jbrowse_wiggle <- function(object, ...) {
+autoplot.jbrowse_wiggle <- function(object, width = NULL, ...) {
   rlang::check_dots_empty()
-  object <- on_axis(object)
+  object <- on_axis(drawn_at(object, width))
   density <- object$rendering == "density"
   rows <- isTRUE(object$row_layout)
   tree <- rows && !is.null(object$tree)

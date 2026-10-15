@@ -290,7 +290,7 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   deep pileup; `NULL` takes the display's `fadeLowFrequencyMismatches`
 #' @param width the pixels the figure spans across its region, which that
 #'   fade and the read-connection band's reach read; `NULL` takes the widest
-#'   `width` the tracks above and below were read at, else 1,500
+#'   `width` this track and those above and below it were read at
 #' @param above,below tracks to draw above and below a `"track"`, each a
 #'   ggjbrowse result over the same regions or a ggplot, or a list of them, as
 #'   [jbrowse_stack()] stacks them
@@ -316,20 +316,22 @@ autoplot.jbrowse_alignments <- function(object,
                                         below = NULL, ...) {
   rlang::check_dots_empty()
   what <- match.arg(what)
-  object <- on_axis(object)
-  o <- alignment_options(object, min_allele_frequency, min_reads,
-    letters, fade_low_frequency, width)
-  if (what != "track") return(BAND_PLOTS[[what]](object, o))
   above <- listed_tracks(above)
   below <- listed_tracks(below)
   results <- Filter(function(t) inherits(t, "jbrowse_result"),
     c(above, list(object), below))
+  if (what == "track") {
+    width <- width %||% stack_px(results)
+  }
+  object <- on_axis(drawn_at(object, width))
+  o <- alignment_options(object, min_allele_frequency, min_reads,
+    letters, fade_low_frequency)
+  if (what != "track") return(BAND_PLOTS[[what]](object, o))
   same_regions(results)
   shared <- with_shared_keys(c(above, list(object), below), o$min_reads)
   above <- shared[seq_along(above)]
   object <- shared[[length(above) + 1]]
   below <- shared[-seq_len(length(above) + 1)]
-  o$width <- o$width %||% stack_px(results)
   stack_bands(c(lapply(above, band_of, object, o$width),
     list(alignment_bands(object, o)), lapply(below, band_of, object, o$width)))
 }
@@ -337,7 +339,7 @@ autoplot.jbrowse_alignments <- function(object,
 # What the alignments bands draw: the caller's settings, else the display's
 alignment_options <- function(object, min_allele_frequency = NULL,
                               min_reads = NULL, letters = NULL,
-                              fade_low_frequency = NULL, width = NULL) {
+                              fade_low_frequency = NULL) {
   s <- object$display
   xlim <- xlim_of(object)
   list(
@@ -345,7 +347,7 @@ alignment_options <- function(object, min_allele_frequency = NULL,
     min_reads = min_reads,
     letters = letters %||% (xlim[2] - xlim[1] <= 300),
     fade = fades(object, fade_low_frequency),
-    width = width,
+    width = object$width,
     coverage = !isFALSE(s$showCoverage),
     pileup = !isFALSE(s$showPileup),
     junctions = !isFALSE(s$showSashimiArcs))

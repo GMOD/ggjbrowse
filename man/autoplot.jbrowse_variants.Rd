@@ -4,13 +4,17 @@
 \alias{autoplot.jbrowse_variants}
 \title{Draw a multi-sample VCF as JBrowse's variant matrix}
 \usage{
-\method{autoplot}{jbrowse_variants}(object, layout = c("genomic", "columns"), ...)
+\method{autoplot}{jbrowse_variants}(object, layout = c("genomic", "columns"), width = NULL, ...)
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result}
 
 \item{layout}{\code{"genomic"} for cells at their records' positions,
 \code{"columns"} for the genotype matrix, a column per record}
+
+\item{width}{the pixels the figure draws the regions across, which widen
+a record to two of them at genomic positions; \code{NULL} takes the \code{width}
+the variants were read at, which their fade keeps}
 
 \item{...}{must be empty, so a misspelt argument errors}
 }

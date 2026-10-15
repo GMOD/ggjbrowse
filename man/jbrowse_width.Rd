@@ -10,8 +10,7 @@ jbrowse_width(fig)
 \item{fig}{a \code{\link[=jbrowse_stack]{jbrowse_stack()}} figure, restyled or not}
 }
 \value{
-inches, at most 49; a stack of tracks read with no \code{width} of
-their own spans 1,500 pixels
+inches, at most 49
 }
 \description{
 The inches a \code{\link[=jbrowse_stack]{jbrowse_stack()}} figure needs to give its panels the pixels

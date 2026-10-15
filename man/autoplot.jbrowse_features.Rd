@@ -4,10 +4,15 @@
 \alias{autoplot.jbrowse_features}
 \title{Draw features as JBrowse's feature track}
 \usage{
-\method{autoplot}{jbrowse_features}(object, ...)
+\method{autoplot}{jbrowse_features}(object, width = NULL, ...)
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_features]{jbrowse_features()}} result}
+
+\item{width}{the pixels the figure draws the regions across, which
+\code{\link[=jbrowse_width]{jbrowse_width()}} sizes a stack by; \code{NULL} takes the \code{width} the track
+was read at. Narrower than that warns, since the labels were laid out
+for more pixels}
 
 \item{...}{must be empty, so a misspelt argument errors}
 }

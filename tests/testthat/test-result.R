@@ -158,3 +158,20 @@ test_that("a saved result redraws after its files are gone", {
   expect_setequal(unique(cells$alpha), unique(of(on_axis(v)$cells,
     v$variants, "variant")$opacity))
 })
+
+test_that("autoplot and jbrowse_stack draw at a width, warning where narrower than a layout", {
+  gff <- extdata("volvox.sort.gff3.gz")
+  genes <- jbrowse_features(gff, loci[1], width = 1200)
+  reads <- jbrowse_alignments(bam, loci[1], width = 900)
+  expect_equal(jbrowse_width(jbrowse_stack(genes, reads)),
+    jbrowse_width(jbrowse_stack(genes, reads, width = 1200)))
+  expect_gt(jbrowse_width(jbrowse_stack(genes, reads, width = 2400)),
+    jbrowse_width(jbrowse_stack(genes, reads)) + 7)
+  expect_warning(jbrowse_stack(genes, reads, width = 600),
+    "narrower than the 1200 px it was laid out for")
+  expect_no_warning(jbrowse_stack(reads, width = 600))
+  expect_warning(ggplot2::autoplot(genes, width = 600), "1200 px")
+  wide <- ggplot2::autoplot(genes, width = 3000)
+  expect_equal(attr(wide$data, "jbrowse")$width, 3000)
+  expect_equal(genes$width, 1200)
+})

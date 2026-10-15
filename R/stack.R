@@ -8,6 +8,11 @@
 #' share, such as two alignments tracks' "Insertions and clips", is drawn
 #' once, listing every entry either track holds.
 #'
+#' Every track draws at one width, `width` or else the widest any of them was
+#' read at. A [jbrowse_features()] or [jbrowse_wiggle()] track read wider
+#' than that warns, since its labels and bins were laid out for more pixels
+#' than it gets; any other track draws at any width.
+#'
 #' @param ... [jbrowse_features()], [jbrowse_wiggle()], [jbrowse_variants()]
 #'   and [jbrowse_alignments()] results over the same regions, top to bottom,
 #'   or lists of them; or a ggplot of your own, drawn on the stack's x axis:
@@ -15,6 +20,9 @@
 #'   `ggplot(<result>)` draws on. A track's name, as an argument's or a list
 #'   element's, titles its first band, as the view labels a track:
 #'   `jbrowse_stack(genes, CHH = reads)`
+#' @param width the pixels the stack draws its regions across, which
+#'   [jbrowse_width()] sizes the figure by; `NULL` takes the widest `width`
+#'   its tracks were read at
 #' @return a patchwork
 #' @export
 #' @examples
@@ -25,7 +33,7 @@
 #' reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), locus)
 #' jbrowse_stack(genes, signal, reads)
 #' jbrowse_stack(GENCODE = genes, phyloP = signal, reads)
-jbrowse_stack <- function(...) {
+jbrowse_stack <- function(..., width = NULL) {
   args <- list(...)
   tracks <- do.call(c, unname(Map(named_tracks, args,
     names(args) %||% rep("", length(args)))))
@@ -36,7 +44,7 @@ jbrowse_stack <- function(...) {
   }
   same_regions(results)
   tracks <- with_shared_keys(tracks)
-  px <- stack_px(results)
+  px <- width %||% stack_px(results)
   stack_bands(unname(Map(function(track, name)
     titled(band_of(track, results[[1]], px), name), tracks,
     names(tracks) %||% rep("", length(tracks)))))
@@ -161,8 +169,7 @@ jbrowse_height <- function(fig) {
 #' as one read at 800, where a fixed figure width would shrink them to fit.
 #' Pass it as `ggsave()`'s `width`.
 #' @inheritParams jbrowse_height
-#' @return inches, at most 49; a stack of tracks read with no `width` of
-#'   their own spans 1,500 pixels
+#' @return inches, at most 49
 #' @export
 #' @examples
 #' gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")
@@ -180,21 +187,25 @@ jbrowse_width <- function(fig) {
   min(49, px / PX_PER_INCH + margins)
 }
 
-# The display pixels a result was read across, 0 for none or a track read
-# with no width
-result_px <- function(x) {
-  if (is.null(x)) return(0)
-  if (!is.null(x$width)) return(x$width)
-  if (is.null(x$bp_per_px)) return(0)
-  r <- x$regions
-  sum(r$end - r$start) / x$bp_per_px
-}
+# The pixels a result draws across, 0 for none
+result_px <- function(x) x$width %||% 0
 
-# The widest pixels any of `results` was read across, NULL if none was read
-# at a width, so an alignments track stacked with them draws at that width
-stack_px <- function(results) {
-  px <- max(0, vapply(results, result_px, 0))
-  if (px > 0) px
+# The widest pixels any of `results` was read across
+stack_px <- function(results) max(0, vapply(results, result_px, 0))
+
+# `x` to draw `width` px across, warning where that is narrower than a
+# feature or quantitative track was laid out for
+drawn_at <- function(x, width) {
+  if (is.null(width) || identical(width, x$width)) return(x)
+  laid_out <- inherits(x, c("jbrowse_features", "jbrowse_wiggle"))
+  if (laid_out && width < x$width) {
+    warning(sprintf(paste("drawing a %s track %s px wide, narrower than the",
+      "%s px it was laid out for: its labels and bins may crowd; read it",
+      "with `width = %s`"), sub("jbrowse_", "", class(x)[1]), width, x$width,
+      width), call. = FALSE)
+  }
+  x$width <- width
+  x
 }
 
 # The display pixels a figure gives an inch: a 1,500 pixel view across 10
@@ -334,8 +345,9 @@ scale_x_jbrowse <- function(object, ...) genomic_x(object, ...)
 # tall as its laid-out pixels, an alignments track's bands as its display
 # sizes them at `px`
 track_bands <- function(x, px = NULL) {
+  x <- drawn_at(x, px)
   if (inherits(x, "jbrowse_alignments")) {
-    return(alignment_bands(x, alignment_options(x, width = px)))
+    return(alignment_bands(x, alignment_options(x)))
   }
   height <- if (inherits(x, "jbrowse_features")) max(30, x$height)
     else if (inherits(x, "jbrowse_variants")) row_px(x) * nrow(x$rows)

@@ -4,7 +4,7 @@
 \alias{jbrowse_stack}
 \title{Stack tracks as a JBrowse view stacks them}
 \usage{
-jbrowse_stack(...)
+jbrowse_stack(..., width = NULL)
 }
 \arguments{
 \item{...}{\code{\link[=jbrowse_features]{jbrowse_features()}}, \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}}, \code{\link[=jbrowse_variants]{jbrowse_variants()}}
@@ -14,6 +14,10 @@ genomic positions over one region, and over several the axis that
 \verb{ggplot(<result>)} draws on. A track's name, as an argument's or a list
 element's, titles its first band, as the view labels a track:
 \code{jbrowse_stack(genes, CHH = reads)}}
+
+\item{width}{the pixels the stack draws its regions across, which
+\code{\link[=jbrowse_width]{jbrowse_width()}} sizes the figure by; \code{NULL} takes the widest \code{width}
+its tracks were read at}
 }
 \value{
 a patchwork
@@ -26,6 +30,12 @@ Each piece is an ordinary ggplot, so \code{autoplot(reads, "pileup")} or a plot
 of your own built from the same tables restyles one band. A key two tracks
 share, such as two alignments tracks' "Insertions and clips", is drawn
 once, listing every entry either track holds.
+}
+\details{
+Every track draws at one width, \code{width} or else the widest any of them was
+read at. A \code{\link[=jbrowse_features]{jbrowse_features()}} or \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} track read wider
+than that warns, since its labels and bins were laid out for more pixels
+than it gets; any other track draws at any width.
 }
 \examples{
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")
