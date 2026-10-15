@@ -19,7 +19,9 @@
 #'   genomic positions over one region, and over several the axis that
 #'   `ggplot(<result>)` draws on. A track's name, as an argument's or a list
 #'   element's, titles its first band, as the view labels a track:
-#'   `jbrowse_stack(genes, CHH = reads)`
+#'   `jbrowse_stack(genes, CHH = reads)`. A comparative result lays out
+#'   several axes and stops: `autoplot(<synteny result>, above =, below =)`
+#'   stacks tracks over its rows
 #' @param width the pixels the stack draws its regions across, which
 #'   [jbrowse_width()] sizes the figure by; `NULL` takes the widest `width`
 #'   its tracks were read at
@@ -41,6 +43,13 @@ jbrowse_stack <- function(..., width = NULL) {
   if (!length(results)) {
     stop("jbrowse_stack needs at least one ggjbrowse reader's result",
       call. = FALSE)
+  }
+  comparative <- Filter(function(t) inherits(t, COMPARATIVE), results)
+  if (length(comparative)) {
+    stop("jbrowse_stack stacks linear tracks on one axis, and a ",
+      class(comparative[[1]])[1], " result lays out several: draw it with ",
+      "autoplot(), which stacks tracks over a synteny or multi-way result's ",
+      "rows as autoplot(x, above = , below = )", call. = FALSE)
   }
   same_regions(results)
   tracks <- with_shared_keys(tracks)

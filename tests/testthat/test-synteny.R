@@ -55,6 +55,10 @@ test_that("tracks over each row stack around the band", {
   expect_equal(fig$patches$layout$heights[1], s$display$height)
   expect_gt(jbrowse_height(fig), 1)
   expect_error(autoplot(s, above = genes), "top row.s regions")
+  expect_error(jbrowse_stack(genes, s), "jbrowse_synteny result lays out several")
+  expect_error(jbrowse_stack(s), "autoplot\\(x, above")
+  expect_error(jbrowse_stack(jbrowse_dotplot(paf, query, target)),
+    "jbrowse_dotplot result")
 })
 
 test_that("a PAF reads as the dotplot lays out and colors it", {
