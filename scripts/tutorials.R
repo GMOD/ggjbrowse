@@ -30,7 +30,8 @@
 #
 # A directive with `assign` writes an R chunk instead, each variable taking a
 # value out of the track config whose trackId starts its path, so the R code
-# draws with the settings the website's track loads:
+# draws with the settings the website's track loads. A number in the path
+# steps into an array, from 1 (`multi.adapter.subadapters.2.uri`):
 #
 #   <!-- jbrowse
 #   chunk: track                   # the chunk's label
@@ -323,7 +324,8 @@ resolve_anchors <- function(text) {
   text
 }
 
-# The website tutorial's JSON fences that configure a track, by trackId
+# The website tutorial's JSON fences that configure a track, a list of them
+# per trackId, since a page may show one track's config more than once
 track_configs <- function(tutorial) {
   blocks <- parse_blocks(split_frontmatter(tutorial_lines(tutorial))$body)
   configs <- list()
@@ -334,13 +336,22 @@ track_configs <- function(tutorial) {
       simplifyMatrix = FALSE), error = function(e) NULL)
     id <- config$trackId
     if (is.null(id)) next
-    if (!is.null(configs[[id]])) {
-      stop(sprintf("the website tutorial configures trackId %s twice", id),
-        call. = FALSE)
-    }
-    configs[[id]] <- config
+    configs[[id]] <- c(configs[[id]], list(config))
   }
   configs
+}
+
+# The value at `path` in a track config: a name steps into an object, a number
+# into an array, counting from 1 as R does
+config_value <- function(config, path) {
+  for (step in path) {
+    if (is.null(config)) return(NULL)
+    config <- if (grepl("^[0-9]+$", step)) {
+      i <- as.integer(step)
+      if (i <= length(config)) config[[i]]
+    } else config[[step]]
+  }
+  config
 }
 
 # An R expression that evaluates to `x`, indented to sit `indent` spaces in
@@ -378,19 +389,21 @@ assign_chunk <- function(spec, tutorial) {
   configs <- track_configs(tutorial)
   lines <- vapply(names(spec[["assign"]]), function(name) {
     path <- strsplit(spec[["assign"]][[name]], ".", fixed = TRUE)[[1]]
-    value <- configs[[path[1]]]
-    if (is.null(value)) {
+    fences <- configs[[path[1]]]
+    if (is.null(fences)) {
       stop(sprintf("no track config with trackId %s in the website tutorial",
         path[1]), call. = FALSE)
     }
-    for (step in path[-1]) {
-      value <- value[[step]]
-      if (is.null(value)) {
-        stop(sprintf("track %s has no %s", path[1], spec[["assign"]][[name]]),
-          call. = FALSE)
-      }
+    values <- Filter(Negate(is.null), lapply(fences, config_value, path[-1]))
+    if (!length(values)) {
+      stop(sprintf("track %s has no %s", path[1], spec[["assign"]][[name]]),
+        call. = FALSE)
     }
-    paste(name, "<-", r_literal(value, 0))
+    if (length(unique(values)) > 1) {
+      stop(sprintf("the website's configs of track %s disagree on %s",
+        path[1], spec[["assign"]][[name]]), call. = FALSE)
+    }
+    paste(name, "<-", r_literal(values[[1]], 0))
   }, "")
   header <- paste0("```{r", if (!is.null(spec[["chunk"]]))
     paste0(" ", spec[["chunk"]]), "}")
