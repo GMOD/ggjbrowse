@@ -28,7 +28,8 @@ features_adapter <- function(file, index) {
 #'
 #' @param file a GFF3, GTF, BED or VCF file (plain, or bgzipped with a tabix
 #'   or CSI index beside it) or a BigBed, a path or a URL; or a JBrowse track's
-#'   `adapter` config, as a list, for an adapter's own settings
+#'   `adapter` config, as a list, for an adapter's own settings, or a
+#'   `FromConfigAdapter` whose `features` list them inline
 #' @param region the region: a locus as JBrowse's location box writes it
 #'   (`"ctgA:1,001-9,000"`, 1-based and inclusive), several of them, which
 #'   share one layout, a feature on the same row in each, and are drawn end

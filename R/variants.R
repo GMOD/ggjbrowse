@@ -44,7 +44,17 @@ variants_adapter <- function(file, index, samples) {
 #'   off the index before any record is fetched
 #' @return a `jbrowse_variants` list of data frames:
 #'   * `variants`: each record the display keeps: `start`, `end`, `id`,
-#'     `name`, `ref`, `alt`, `type` and `color`, its lane color
+#'     `name`, `ref`, `alt`, `type`, `color`, its lane color, `filter`, the
+#'     FILTER column as the file writes it (`"PASS"`, or the failed filters
+#'     joined by `;`, `NA` for `.`), and a column per INFO key the header
+#'     declares or a record uses, named as the key (`AC`, `AN`, ...), or
+#'     `info_<key>` where the key names a column above. A flag is logical,
+#'     `FALSE` where the record lacks it; a `Number=1` key is integer,
+#'     numeric or character as its `Type` says; any other `Number` (`A`,
+#'     `R`, `G`, `.`, 2) is a list column of vectors, so `AC` at a site with
+#'     two alts is `c(33L, 1L)`. A record lacking a key has `NA`
+#'   * `info_fields`: each INFO column's `key`, `number`, `type` and
+#'     `description` off the header, and the `column` it takes in `variants`
 #'   * `cells`: each row's cell at a record: `variant` (a row number of
 #'     `variants`), `start`, `end`, `row` (a factor in `rows`' order),
 #'     `sample`, `genotype`, `dosage` (the share of the called alleles that
@@ -96,6 +106,15 @@ variants_region <- function(adapter, chrom, start, end, display,
   t <- call_engine("variants", args)
   variants <- as_frame(t$variants)
   variants$color <- jbrowse_color(variants$color)
+  variants$filter <- as.character(variants$filter)
+  info_fields <- as_frame(t$infoFields)
+  info_fields$column <- ifelse(info_fields$key %in% names(variants),
+    paste0("info_", info_fields$key), info_fields$key)
+  for (i in seq_len(nrow(info_fields))) {
+    variants[[info_fields$column[i]]] <- info_column(
+      t$info[[info_fields$key[i]]], info_fields$number[i],
+      info_fields$type[i])
+  }
   rows <- as_frame(t$rows)
   rows$color <- jbrowse_color(rows$color)
   bands <- as_frame(t$bands)[c("key", "label")]
@@ -112,7 +131,7 @@ variants_region <- function(adapter, chrom, start, end, display,
     "Genotypes")[1]
   structure(
     list(variants = variants, cells = cells, rows = rows, bands = bands,
-      legend = legend,
+      legend = legend, info_fields = info_fields,
       keys = list(genotypes = legend, rows = key_frame(
         unlist(t$rowLegend$label) %||% character(0),
         unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
@@ -123,6 +142,20 @@ variants_region <- function(adapter, chrom, start, end, display,
       missing_contig = t$missingContig),
     primary = "cells",
     class = c("jbrowse_variants", "jbrowse_result"))
+}
+
+# An INFO key's values as a column, typed by its header line: a flag as
+# logical, a Number=1 key as a vector, any other Number as a list of vectors,
+# one per record; NA where a record lacks the key
+info_column <- function(x, number, type) {
+  if (type == "Flag" || number == "0") return(as.logical(unlist(x)))
+  cast <- switch(type, Integer = as.integer, Float = as.numeric,
+    as.character)
+  if (is.list(x)) x[vapply(x, is.null, NA)] <- NA
+  if (number == "1") return(cast(unlist(x)))
+  rows <- if (is.matrix(x)) lapply(seq_len(nrow(x)), function(i) x[i, ])
+    else as.list(x)
+  lapply(rows, cast)
 }
 
 #' @export

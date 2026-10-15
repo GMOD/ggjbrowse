@@ -55,7 +55,17 @@ off the index before any record is fetched}
 a \code{jbrowse_variants} list of data frames:
 \itemize{
 \item \code{variants}: each record the display keeps: \code{start}, \code{end}, \code{id},
-\code{name}, \code{ref}, \code{alt}, \code{type} and \code{color}, its lane color
+\code{name}, \code{ref}, \code{alt}, \code{type}, \code{color}, its lane color, \code{filter}, the
+FILTER column as the file writes it (\code{"PASS"}, or the failed filters
+joined by \verb{;}, \code{NA} for \code{.}), and a column per INFO key the header
+declares or a record uses, named as the key (\code{AC}, \code{AN}, ...), or
+\verb{info_<key>} where the key names a column above. A flag is logical,
+\code{FALSE} where the record lacks it; a \code{Number=1} key is integer,
+numeric or character as its \code{Type} says; any other \code{Number} (\code{A},
+\code{R}, \code{G}, \code{.}, 2) is a list column of vectors, so \code{AC} at a site with
+two alts is \code{c(33L, 1L)}. A record lacking a key has \code{NA}
+\item \code{info_fields}: each INFO column's \code{key}, \code{number}, \code{type} and
+\code{description} off the header, and the \code{column} it takes in \code{variants}
 \item \code{cells}: each row's cell at a record: \code{variant} (a row number of
 \code{variants}), \code{start}, \code{end}, \code{row} (a factor in \code{rows}' order),
 \code{sample}, \code{genotype}, \code{dosage} (the share of the called alleles that

@@ -80,9 +80,9 @@ join_regions <- function(regions, parts) {
 }
 
 # The tables that list a result's keys, sections and rows rather than marks
-# on the reference
-LISTING <- c("legend", "arc_legend", "sections", "sources", "rows", "rules",
-  "bands")
+# on the reference. bind_regions() binds the first three, each row once.
+LISTING <- c("legend", "arc_legend", "info_fields", "sections", "sources",
+  "rows", "rules", "bands")
 
 placed <- function(x, chrom, i) {
   for (name in setdiff(names(x), LISTING)) {
@@ -124,7 +124,12 @@ bind_regions <- function(regions, parts) {
   }
   bound <- function(pick) {
     first <- pick(parts[[1]])
-    d <- do.call(rbind, lapply(parts, pick))
+    frames <- lapply(parts, pick)
+    columns <- unique(unlist(lapply(frames, names)))
+    d <- do.call(rbind, lapply(frames, function(f) {
+      for (column in setdiff(columns, names(f))) f[[column]] <- rep(NA, nrow(f))
+      f[columns]
+    }))
     rownames(d) <- NULL
     for (a in setdiff(names(attributes(first)),
       c("names", "row.names", "class"))) {
@@ -134,7 +139,7 @@ bind_regions <- function(regions, parts) {
   }
   out <- parts[[1]]
   for (name in names(out)) {
-    if (is.data.frame(out[[name]]) && !name %in% LISTING[-(1:2)]) {
+    if (is.data.frame(out[[name]]) && !name %in% LISTING[-(1:3)]) {
       out[[name]] <- bound(function(x) x[[name]])
       if (name %in% LISTING) out[[name]] <- unique(out[[name]])
     }

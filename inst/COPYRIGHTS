@@ -52,7 +52,7 @@ the JBrowse authors) with the packages below, minified.
 - @emotion/weak-memoize 0.4.0
   License: MIT
   Copyright: Copyright (c) Emotion team and other contributors
-- @gmod/bam 10.0.6
+- @gmod/bam 10.1.0
   License: MIT
   Copyright: Copyright (c) 2018 Colin Diesh
 - @gmod/bbi 11.3.2
@@ -61,7 +61,7 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/bed 2.3.2
   License: MIT
   Copyright: Copyright (c) 2026 Colin Diesh
-- @gmod/bgzf-filehandle 6.7.0
+- @gmod/bgzf-filehandle 6.8.0
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
 - @gmod/cram 14.3.1
@@ -79,7 +79,7 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/shared-read-cache 2.1.0
   License: MIT
   Copyright: Copyright (c) 2021 Colin Diesh
-- @gmod/tabix 3.10.2
+- @gmod/tabix 3.11.0
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels
 - @gmod/trix 3.0.22
@@ -112,7 +112,7 @@ the JBrowse authors) with the packages below, minified.
 - @jbrowse/jexl 6.0.0
   License: MIT
   Copyright: Copyright (c) 2025 Colin Diesh; Copyright (c) 2020 Tom Shawver
-- @jbrowse/mobx-state-tree 6.7.0
+- @jbrowse/mobx-state-tree 6.8.1
   License: MIT
   Copyright: Copyright (c) 2016 Michel Weststrate
 - @jbrowse/modifications-utils 5.0.0-beta.13
@@ -128,6 +128,9 @@ the JBrowse authors) with the packages below, minified.
   License: Apache-2.0
   Copyright: JBrowse Team
 - @jbrowse/plugin-comparative-adapters 5.0.0-beta.13
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-config 5.0.0-beta.13
   License: Apache-2.0
   Copyright: JBrowse Team
 - @jbrowse/plugin-dotplot-view 5.0.0-beta.13

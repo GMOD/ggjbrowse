@@ -275,3 +275,23 @@ test_that("an adapter config's uri shorthand reads as JBrowse expands it", {
   same <- setdiff(names(g$features), "id")
   expect_equal(shorthand$features[same], g$features[same])
 })
+
+test_that("features a config writes inline read as the same features in a file", {
+  spans <- data.frame(chrom = "chr2L", start = c(2225744, 2900000),
+    end = c(13154180, 3100000), name = c("In(2L)t", "probe"))
+  bed <- tempfile(fileext = ".bed")
+  utils::write.table(spans, bed, sep = "\t", quote = FALSE,
+    row.names = FALSE, col.names = FALSE)
+  inline <- list(type = "FromConfigAdapter", features = lapply(
+    seq_len(nrow(spans)), function(i) list(uniqueId = spans$name[i],
+      refName = spans$chrom[i], start = spans$start[i], end = spans$end[i],
+      name = spans$name[i])))
+  from_file <- jbrowse_features(bed, "chr2L", 0, 23513712)
+  from_config <- jbrowse_features(inline, "chr2L", 0, 23513712)
+  expect_equal(from_config$features$name, c("In(2L)t", "probe"))
+  same <- setdiff(names(from_file$features), "id")
+  expect_equal(from_config$features[same], from_file$features[same])
+  expect_equal(from_config$rects, from_file$rects)
+  expect_equal(from_config$labels, from_file$labels)
+  expect_equal(from_config$missing_contig, "")
+})

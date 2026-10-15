@@ -254,6 +254,10 @@ the fill the display paints it, its hue shaded by the alt dosage
   haplotype, `color`, `filter`, `minorAlleleFrequencyFilter`, ...
 - `samples` is a table of the samples' attributes, which `rowColor` marks the
   rows by.
+- `v$variants` gives each record's `filter`, its FILTER column, and a column
+  per INFO key (`AC`, `AN`, ...), typed by the header. A key with a value per
+  alt, such as `AC`, is a list column. `v$info_fields` lists each key's
+  header line.
 - `rows` arranges the rows as a saved session does. `domain` lists the rows
   that lead, `labels` renames rows, and `kept` names the rows shown.
 - `facet = "superpopulation"` stacks the rows in a band per value, named

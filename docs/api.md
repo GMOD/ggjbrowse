@@ -14,14 +14,15 @@
 | `jbrowse_alignments()` | BAM, CRAM | `reads`, `mismatches`, `gaps`, `insertions`, `clips`, `coverage`, `allele_coverage`, `junctions`, `arcs`, ... |
 | `jbrowse_features()` | GFF3, GTF, BED, BigBed, VCF | `features`, `subfeatures`, `rects`, `lines`, `chevrons`, `arrows`, `amino_acids`, `labels`, `sections` |
 | `jbrowse_wiggle()` | BigWig | `bins`, `marks`, `sources`, `rules` |
-| `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands` |
+| `jbrowse_variants()` | VCF | `variants`, `cells`, `rows`, `bands`, `info_fields` |
 | `jbrowse_synteny()` | PAF, PIF, delta, chain, MashMap | `alignments`, `ribbons`, `offscreen*` |
 | `jbrowse_dotplot()` | the same | `alignments`, `segments` |
 | `jbrowse_multiway()` | an all-vs-all PAF | `lanes`, `segments`, `blocks`, `ribbons`, `alignments` |
 
 - Every result also has `legend` and `ramps`, the keys the display shows.
   `guides_jbrowse()` draws them.
-- `file` takes a path, a URL, or a JBrowse track's adapter config.
+- `file` takes a path, a URL, or a JBrowse track's adapter config, including
+  a `FromConfigAdapter` that lists its features inline.
 - `region` takes a locus string, a contig name with `start` and `end`, or a
   data frame of `chrom`, `start` and `end` for several regions.
 - `display` takes a track config's `displays` entry. `jbrowse_synteny()` and
@@ -63,6 +64,11 @@
 - `jbrowse_variants()` returns its `rows` in the display's arrangement, by
   the `rows` config (`domain`, `labels`, `kept`) and the `facet` bands.
   `tree` takes an `hclust`, or a list of them, one per band.
+- `jbrowse_variants()` gives each record its `filter` and a column per INFO
+  key, named as the key, or `info_<key>` where the key names a record column
+  such as `type`. The header's `Number` decides the shape: a flag is logical,
+  `Number=1` a plain column, and `A`, `R`, `G` or `.` a list column of
+  vectors. `info_fields` names each key's column.
 - `geom_jbrowse_genotypes()` fades records that share a pixel at the figure's
   `width`, through the engine's `variantDensityAlpha`. `fade = FALSE` turns
   it off.

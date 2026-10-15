@@ -80,3 +80,87 @@ test_that("zoomed out, records sharing a pixel fade as the display fades them", 
   v$variants$end[1] <- v$variants$start[1] + 30000
   expect_equal(density_alpha(v$variants, 50)[1], 1)
 })
+
+dogs <- extdata("dog10k_cyp1a2_snvs.vcf.gz")
+cyp1a2 <- "chr30:38,258,001-38,265,000"
+
+test_that("each record carries its FILTER and INFO, typed by the header", {
+  v <- jbrowse_variants(dogs, cyp1a2)$variants
+  site <- v[v$start == 38258773, ]
+  expect_equal(site$alt, "C,A")
+  expect_equal(site$filter, "VQSRTrancheSNP99.00to99.90")
+  expect_identical(site$AC[[1]], c(33L, 1L))
+  expect_identical(site$AN, 78L)
+  expect_identical(site$culprit, "MQ")
+  expect_type(v$AF, "list")
+  expect_type(v$POSITIVE_TRAIN_SITE, "logical")
+  expect_equal(sum(v$POSITIVE_TRAIN_SITE), 5)
+  expect_equal(sum(v$filter == "PASS"), 22)
+  expect_true(all(is.na(unlist(v$RAW_MQandDP))))
+  expect_equal(sum(is.na(v$BaseQRankSum)), 4)
+})
+
+test_that("the INFO columns agree with bcftools query", {
+  skip_if(Sys.which("bcftools") == "")
+  # R's LD_LIBRARY_PATH can shadow the htslib bcftools was linked against
+  out <- suppressWarnings(system2("bcftools", c("query", "-f",
+    shQuote("%POS\\t%FILTER\\t%INFO/AC\\t%INFO/AN\\t%INFO/MQ\\t%INFO/POSITIVE_TRAIN_SITE\\n"),
+    dogs), stdout = TRUE, stderr = FALSE, env = "LD_LIBRARY_PATH="))
+  skip_if(!is.null(attr(out, "status")), "bcftools does not run")
+  query <- utils::read.table(text = out, sep = "\t", na.strings = ".",
+    col.names = c("pos", "filter", "AC", "AN", "MQ", "flag"),
+    colClasses = c("integer", "character", "character", "integer",
+      "numeric", "character"))
+  v <- jbrowse_variants(dogs, cyp1a2)$variants
+  expect_equal(v$start + 1, query$pos)
+  expect_equal(v$filter, query$filter)
+  expect_equal(vapply(v$AC, paste, "", collapse = ","), query$AC)
+  expect_equal(v$AN, query$AN)
+  expect_equal(v$MQ, query$MQ)
+  expect_equal(v$POSITIVE_TRAIN_SITE, !is.na(query$flag))
+})
+
+test_that("an INFO key named like a record column takes an info_ prefix", {
+  vcf <- tempfile(fileext = ".vcf")
+  writeLines(c("##fileformat=VCFv4.2",
+    '##INFO=<ID=type,Number=1,Type=String,Description="Named like a column">',
+    '##INFO=<ID=DB,Number=0,Type=Flag,Description="dbSNP">',
+    '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
+    paste("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
+      "FORMAT", "s1", sep = "\t"),
+    paste("ctgA", "100", ".", "A", "G", "50", ".", "type=snv;DB;EXTRA=x,y",
+      "GT", "0/1", sep = "\t"),
+    paste("ctgA", "200", ".", "C", "T", "50", "q10;s50", "type=other", "GT",
+      "1/1", sep = "\t")), vcf)
+  v <- jbrowse_variants(vcf, "ctgA", 0, 1000)
+  expect_equal(v$info_fields$key, c("type", "DB", "EXTRA"))
+  expect_equal(v$info_fields$column, c("info_type", "DB", "EXTRA"))
+  expect_equal(v$variants$type, c("SNV", "SNV"))
+  expect_equal(v$variants$info_type, c("snv", "other"))
+  expect_equal(v$variants$filter, c(NA, "q10;s50"))
+  expect_equal(v$variants$DB, c(TRUE, FALSE))
+  expect_equal(v$variants$EXTRA, list(c("x", "y"), NA_character_))
+  apart <- jbrowse_variants(vcf, data.frame(chrom = "ctgA", start = c(0, 150),
+    end = c(150, 1000)))
+  expect_equal(apart$variants$EXTRA, list(c("x", "y"), NA))
+  expect_equal(apart$info_fields$key, c("type", "DB", "EXTRA"))
+})
+
+test_that("an INFO column keeps its type with no records or no values", {
+  expect_equal(info_column(list(), "A", "Integer"), list())
+  expect_identical(info_column(c(1L, NA), "1", "Integer"), c(1L, NA))
+  expect_identical(info_column(list(c(1L, 2L), NULL), "A", "Integer"),
+    list(c(1L, 2L), NA_integer_))
+  expect_identical(info_column(matrix(c(1, 2), 2), "R", "Float"),
+    list(1, 2))
+})
+
+test_that("two regions bind their INFO columns, each record once", {
+  halves <- data.frame(chrom = "chr30", start = c(38258000, 38262000),
+    end = c(38262000, 38265000))
+  both <- jbrowse_variants(dogs, halves)
+  whole <- jbrowse_variants(dogs, cyp1a2)
+  expect_equal(both$variants$AC, whole$variants$AC)
+  expect_equal(both$variants$filter, whole$variants$filter)
+  expect_equal(both$info_fields, whole$info_fields)
+})
