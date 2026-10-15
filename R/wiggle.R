@@ -174,6 +174,14 @@ scale_y_jbrowse <- function(object, ...) {
 # Marks as the display stacks its rows: under a row layout each source's
 # scores fill its own slice of the axis, first source on top, with no gap
 # between rows, on the display's own scale; `base` is the slice's floor
+# The display draws a mark narrower than a pixel a pixel wide, so a sparse
+# track of 1 bp sites stays visible zoomed out.
+pixel_wide <- function(x, keep) {
+  m <- x$marks[keep, , drop = FALSE]
+  if (!is.null(x$bp_per_px)) m$end <- pmax(m$end, m$start + x$bp_per_px)
+  m
+}
+
 in_rows <- function(x, d) {
   n <- nrow(x$sources)
   d$base <- if (isTRUE(x$row_layout)) n - 1 - d$row else rep(0, nrow(d))
@@ -237,8 +245,8 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
     d <- pick(x)
     if (x$rendering %in% rendering) d else d[0, , drop = FALSE]
   }
-  marks <- function(x) in_rows(x, x$marks[!x$marks$band, , drop = FALSE])
-  band <- function(x) in_rows(x, x$marks[x$marks$band, , drop = FALSE])
+  marks <- function(x) in_rows(x, pixel_wide(x, !x$marks$band))
+  band <- function(x) in_rows(x, pixel_wide(x, x$marks$band))
   steps <- function(x) {
     m <- marks(x)
     d <- m[rep(seq_len(nrow(m)), each = 2), , drop = FALSE]

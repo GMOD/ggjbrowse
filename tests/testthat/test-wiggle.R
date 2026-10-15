@@ -202,3 +202,14 @@ test_that("as.matrix() bins each source into the display's pixel columns", {
   expect_setequal(unique(on_axis(m3)$marks$source), c("rep2", "rep3"))
   expect_equal(rownames(as.matrix(m3)), c("rep2", "rep3"))
 })
+
+test_that("a mark narrower than a pixel draws a pixel wide", {
+  sparse <- w
+  sparse$marks <- w$marks[1, ]
+  sparse$marks$end <- sparse$marks$start + 1
+  drawn <- ggplot2::layer_data(ggplot2::ggplot(sparse) +
+    geom_jbrowse_wiggle(), 2)
+  expect_equal(drawn$xmax - drawn$xmin, w$bp_per_px)
+  wide <- ggplot2::layer_data(ggplot2::ggplot(w) + geom_jbrowse_wiggle(), 2)
+  expect_equal(wide$xmax - wide$xmin, w$marks$end - w$marks$start)
+})
