@@ -78,6 +78,10 @@ test_that("a column keeps the type it had when the tables crossed as JSON", {
   expect_type(bam$reads$name, "character")
 })
 
+test_that("the main process is no fork, on every platform", {
+  expect_false(forked())
+})
+
 test_that("a forked worker refuses to start the engine, and inherits a started one", {
   skip_on_os("windows")
   bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")

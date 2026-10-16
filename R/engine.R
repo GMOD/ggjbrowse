@@ -86,7 +86,10 @@ deferred$warnings <- character(0)
 
 # Whether this process is a worker parallel's fork made, where a V8 the parent
 # loaded hangs starting, even when ggjbrowse loaded only after the fork
-forked <- function() get("isChild", asNamespace("parallel"))()
+forked <- function() {
+  is_child <- get0("isChild", asNamespace("parallel"))
+  !is.null(is_child) && is_child()
+}
 
 read_range_deferring <- function(url, start, end) {
   withCallingHandlers(read_range(url, start, end), warning = function(w) {
