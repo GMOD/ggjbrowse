@@ -7,20 +7,27 @@
 jbrowse_cache(limit = NULL)
 }
 \arguments{
-\item{limit}{The budget in bytes. A smaller budget evicts at once. \code{NULL}
-leaves it as it is.}
+\item{limit}{The budget in bytes, \code{Inf} for none. A smaller budget evicts
+at once. \code{NULL} leaves it as it is.}
 }
 \value{
 A list: \code{limit}, the budget; \code{decoded}, the bytes of decoded
-records held; \code{read}, the file bytes read since the engine last emptied
-its file cache, the most that cache holds; \code{adapters}, the files and
-sequences held open.
+records held; \code{chunks}, the file bytes read in ranges that the engine
+may hold; \code{indexes}, the bytes the open files read whole, at least 1 MiB
+each; \code{adapters}, the files and sequences held open; \code{assemblies}, the
+assemblies resolved.
 }
 \description{
-Between calls the engine keeps the records it decoded and the file bytes
-it read, up to \code{limit} bytes, 256 MiB unless set, and the files it read
-most recently open with their parsed indexes. The memory the engine
-frees stays with R's process, which reuses it for the next reads.
+Between calls the engine keeps up to \code{limit} bytes, 256 MiB unless set:
+three quarters for the records it decoded, one quarter for file bytes,
+first the indexes of the files it keeps open, then the chunks it read.
+The files the last call read stay open whatever their indexes weigh.
+}
+\details{
+The budget counts the caches the engine keeps between calls. While a call
+runs, the engine also holds that call's reads and tables, which a wide
+region of a deep file takes to gigabytes, and R's process keeps the memory
+the engine frees for its next reads.
 }
 \examples{
 jbrowse_cache()

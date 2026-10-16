@@ -138,10 +138,26 @@ test_that("the engine holds what it keeps to the budget", {
   for (path in paths) {
     jbrowse_alignments(path, "ctgA:1-2,000")
     held <- jbrowse_cache()
-    expect_lte(held$decoded + held$read, 8 * 2^20)
+    expect_lte(held$decoded + held$chunks + held$indexes, 8 * 2^20)
   }
   expect_lt(held$adapters, length(paths))
   expect_error(jbrowse_cache(limit = -1), "number of bytes")
+})
+
+test_that("a budget of Inf is none, and a restarted engine takes it again", {
+  limit <- jbrowse_cache()$limit
+  on.exit(jbrowse_cache(limit = limit))
+  expect_equal(jbrowse_cache(limit = Inf)$limit, Inf)
+  engine(drop = TRUE)
+  expect_equal(jbrowse_cache()$limit, Inf)
+})
+
+test_that("an engine that cannot empty its caches restarts, and says so", {
+  jbrowse_alignments(bam, "ctgA:1-2,000")
+  local_mocked_bindings(in_engine = function(...) stop("unreachable"))
+  expect_warning(jbrowse_reset(),
+    "could not empty its caches, so it restarts: unreachable")
+  expect_null(engine(start = FALSE))
 })
 
 test_that("jbrowse_reset() empties the caches and keeps the budget", {
@@ -151,8 +167,8 @@ test_that("jbrowse_reset() empties the caches and keeps the budget", {
   jbrowse_alignments(bam, "ctgA:1-5,000")
   expect_gt(jbrowse_cache()$decoded, 0)
   jbrowse_reset()
-  expect_equal(jbrowse_cache(),
-    list(limit = 2^30, decoded = 0, read = 0, adapters = 0))
+  expect_equal(jbrowse_cache(), list(limit = 2^30, decoded = 0, chunks = 0,
+    indexes = 0, adapters = 0, assemblies = 0))
   expect_gt(nrow(jbrowse_alignments(bam, "ctgA:1-5,000")$reads), 0)
 })
 

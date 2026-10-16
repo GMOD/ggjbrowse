@@ -55,8 +55,7 @@ engine <- local({
         "console.error = ggjbrowseQueue('errors')"))
       fresh$source(system.file("js", "jbrowse-tables.js", package = "ggjbrowse"))
       if (!is.null(deferred$limit)) {
-        fresh$call("jbrowse.cache", as_engine_json(list(limit = deferred$limit)),
-          await = TRUE)
+        fresh$call("jbrowse.cache", limit_json(deferred$limit), await = TRUE)
       }
       ctx <<- fresh
     }
@@ -69,40 +68,57 @@ engine <- local({
 #' The engine caches what it reads, keyed by each file's URL. A local file's
 #' URL carries its modification time and size, so an overwritten file is read
 #' again; a remote file changed on its server is not, until this is called.
-#' The engine keeps its budget, which [jbrowse_cache()] sets.
+#' The engine keeps its budget, which [jbrowse_cache()] sets. An engine that
+#' fails to empty its caches restarts, with a warning.
 #' @return `NULL`, invisibly.
 #' @export
 jbrowse_reset <- function() {
   deferred$warnings <- character(0)
   if (!is.null(engine(start = FALSE))) {
     tryCatch(in_engine(function(ctx) ctx$call("jbrowse.clearCache",
-      await = TRUE)), error = function(e) engine(drop = TRUE))
+      await = TRUE)), error = function(e) {
+        engine(drop = TRUE)
+        warning("the engine could not empty its caches, so it restarts: ",
+          conditionMessage(e), call. = FALSE)
+      })
   }
   invisible()
 }
 
 #' The engine's cache budget
 #'
-#' Between calls the engine keeps the records it decoded and the file bytes
-#' it read, up to `limit` bytes, 256 MiB unless set, and the files it read
-#' most recently open with their parsed indexes. The memory the engine
-#' frees stays with R's process, which reuses it for the next reads.
-#' @param limit The budget in bytes. A smaller budget evicts at once. `NULL`
-#'   leaves it as it is.
+#' Between calls the engine keeps up to `limit` bytes, 256 MiB unless set:
+#' three quarters for the records it decoded, one quarter for file bytes,
+#' first the indexes of the files it keeps open, then the chunks it read.
+#' The files the last call read stay open whatever their indexes weigh.
+#'
+#' The budget counts the caches the engine keeps between calls. While a call
+#' runs, the engine also holds that call's reads and tables, which a wide
+#' region of a deep file takes to gigabytes, and R's process keeps the memory
+#' the engine frees for its next reads.
+#' @param limit The budget in bytes, `Inf` for none. A smaller budget evicts
+#'   at once. `NULL` leaves it as it is.
 #' @return A list: `limit`, the budget; `decoded`, the bytes of decoded
-#'   records held; `read`, the file bytes read since the engine last emptied
-#'   its file cache, the most that cache holds; `adapters`, the files and
-#'   sequences held open.
+#'   records held; `chunks`, the file bytes read in ranges that the engine
+#'   may hold; `indexes`, the bytes the open files read whole, at least 1 MiB
+#'   each; `adapters`, the files and sequences held open; `assemblies`, the
+#'   assemblies resolved.
 #' @examples
 #' jbrowse_cache()
 #' jbrowse_cache(limit = 512 * 2^20)
 #' @export
 jbrowse_cache <- function(limit = NULL) {
   json <- in_engine(function(ctx) ctx$call("jbrowse.cache",
-    as_engine_json(if (is.null(limit)) list() else list(limit = limit)),
-    await = TRUE))
+    if (is.null(limit)) "{}" else limit_json(limit), await = TRUE))
   if (!is.null(limit)) deferred$limit <- limit
-  lapply(jsonlite::fromJSON(json), as.numeric)
+  held <- jsonlite::fromJSON(json)
+  held$limit <- held$limit %||% Inf
+  lapply(held, as.numeric)
+}
+
+# JSON has no Inf, so the engine reads a null limit as none
+limit_json <- function(limit) {
+  as_engine_json(list(limit = if (identical(limit, Inf)) NA else limit))
 }
 
 # V8 raises console.warn as an R warning and console.error as an R error from
