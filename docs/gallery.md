@@ -35,7 +35,7 @@ reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"),
   "chr12:6,534,201-6,538,700")
 genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"),
   "chr12:6,534,201-6,538,700")
-autoplot(reads, above = genes)
+jbrowse_stack(genes, reads)
 ```
 
 ```sh
