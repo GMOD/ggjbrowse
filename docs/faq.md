@@ -98,11 +98,18 @@ sequenceDiagram
 
 ## How much memory does the engine keep?
 
-- Between calls the engine keeps up to 256 MiB of decoded records and file
-  bytes, and the files it read most recently open with their parsed indexes.
+- Between calls the engine keeps up to 256 MiB: three quarters for the records
+  it decoded, one quarter for file bytes, first the indexes of the files it
+  keeps open, then the chunks it read. A file's index counts at least 1 MiB.
+- The files the last call read stay open whatever their indexes weigh, so a
+  BAM with a 41 MB index stays open between reads of it.
 - `jbrowse_cache()` reports what it holds. `jbrowse_cache(limit = 64 * 2^20)`
   sets a smaller budget, which evicts at once; a larger one keeps more reads
-  of a deep file for a second call.
+  of a deep file for a second call, and `jbrowse_cache(limit = Inf)` keeps
+  everything.
+- The budget counts the caches the engine keeps between calls. While a call
+  runs, the engine also holds that call's reads and tables: one read of 1 Mb
+  of a 100x BAM took R to 2.2 GB under the default budget.
 - `jbrowse_reset()` empties the caches. R's process keeps the freed memory
   and reuses it for the next reads, so its size seen from the system stays
   where it was.
