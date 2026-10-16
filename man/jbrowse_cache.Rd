@@ -2,32 +2,40 @@
 % Please edit documentation in R/engine.R
 \name{jbrowse_cache}
 \alias{jbrowse_cache}
-\title{The engine's cache budget}
+\title{The engine's cache limit}
 \usage{
 jbrowse_cache(limit = NULL)
 }
 \arguments{
-\item{limit}{The budget in bytes, \code{Inf} for none. A smaller budget evicts
-at once. \code{NULL} leaves it as it is.}
+\item{limit}{The bound in bytes, \code{Inf} for none. A smaller one evicts at
+once. \code{NULL} leaves it as it is.}
 }
 \value{
-A list: \code{limit}, the budget; \code{decoded}, the bytes of decoded
-records held; \code{chunks}, the file bytes read in ranges that the engine
-may hold; \code{indexes}, the bytes the open files read whole, at least 1 MiB
-each; \code{adapters}, the files and sequences held open; \code{assemblies}, the
-assemblies resolved.
+A list: \code{limit}; \code{decoded}, the bytes of decoded records held;
+\code{chunks}, the file bytes the chunk cache holds; \code{indexes}, what the open
+files' indexes weigh, at least 1 MiB each; \code{adapters}, the files and
+sequences held open; \code{assemblies}, the assemblies resolved.
 }
 \description{
-Between calls the engine keeps up to \code{limit} bytes, 256 MiB unless set:
-three quarters for the records it decoded, one quarter for file bytes,
-first the indexes of the files it keeps open, then the chunks it read.
-The files the last call read stay open whatever their indexes weigh.
+Sets or reports \code{limit}, which bounds the decoded records the engine keeps
+between calls and, separately, the indexes of the files it keeps open.
 }
 \details{
-The budget counts the caches the engine keeps between calls. While a call
-runs, the engine also holds that call's reads and tables, which a wide
-region of a deep file takes to gigabytes, and R's process keeps the memory
-the engine frees for its next reads.
+Between calls the engine keeps three caches, each under its own bound:
+\itemize{
+\item The records it decoded, at most \code{limit} bytes, 256 MiB unless set.
+\item The file bytes it read in ranges, under the chunk cache's own 256 MiB cap,
+whatever \code{limit} is.
+\item The files the last call read stay open, then the most recently read
+others while their indexes fit another \code{limit}. An index counts an
+estimate of what it holds once parsed, several times its file size.
+}
+
+A call's own reads and tables come on top, which a wide region of a deep
+file takes to gigabytes, as do R's copies of the tables. So does the memory
+of the engine's decompressor, which \code{limit} cannot lower: about 262 MiB
+after one window of 1000x long reads. R's process keeps the memory the
+engine frees for its next reads.
 }
 \examples{
 jbrowse_cache()

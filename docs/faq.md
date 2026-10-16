@@ -98,23 +98,23 @@ sequenceDiagram
 
 ## How much memory does the engine keep?
 
-- Between calls the engine keeps up to 256 MiB: three quarters for the records
-  it decoded, one quarter for file bytes, first the indexes of the files it
-  keeps open, then the chunks it read. A file's index counts at least 1 MiB.
-- The files the last call read stay open whatever their indexes weigh, so a
-  BAM with a 41 MB index stays open between reads of it.
-- `jbrowse_cache()` reports what it holds. `jbrowse_cache(limit = 64 * 2^20)`
-  sets a smaller budget, which evicts at once; a larger one keeps more reads
-  of a deep file for a second call, and `jbrowse_cache(limit = Inf)` keeps
-  everything.
-- The budget counts the caches the engine keeps between calls. While a call
-  runs, the engine also holds that call's reads and tables: one read of 1 Mb
-  of a 100x BAM took R to 2.2 GB under the default budget.
+- Between calls the engine keeps three caches, each under its own bound:
+  - the records it decoded, at most 256 MiB;
+  - the file bytes it read in ranges, under the chunk cache's own 256 MiB cap;
+  - the files the last call read, open whatever their indexes weigh, then the
+    most recently read others while their indexes fit another 256 MiB. An
+    index counts an estimate of what it holds once parsed, several times its
+    file size.
+- `jbrowse_cache()` reports what each holds. `jbrowse_cache(limit = 64 * 2^20)`
+  lowers both 256 MiB bounds to 64 MiB, and evicts at once;
+  `jbrowse_cache(limit = Inf)` keeps everything.
+- A call's own reads and tables come on top: one read of 1 Mb of a 100x BAM
+  took R to 2.2 GB. So do R's copies of the tables, and the engine's
+  decompressor memory, which no limit lowers: about 262 MiB after one window
+  of 1000x long reads.
 - `jbrowse_reset()` empties the caches. R's process keeps the freed memory
   and reuses it for the next reads, so its size seen from the system stays
   where it was.
-- Over 60 reads of a remote long-read CRAM, the R process levelled at about
-  680 MB under the default budget.
 
 ## Can it read a file without an index?
 

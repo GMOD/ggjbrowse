@@ -154,8 +154,8 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
   any reader takes; a linear file adds `has_data`
 - `jbrowse_sequence(assembly, region)`: each region's reference bases as a
   string
-- `jbrowse_cache(limit)`: what the engine's caches hold, and their budget in
-  bytes, `Inf` for none
+- `jbrowse_cache(limit)`: what the engine's caches hold, and the bound in
+  bytes on its decoded records and on its open files' indexes, `Inf` for none
 - `jbrowse_reset()`: empties the engine's caches
 
 ## Drawing

@@ -68,7 +68,7 @@ engine <- local({
 #' The engine caches what it reads, keyed by each file's URL. A local file's
 #' URL carries its modification time and size, so an overwritten file is read
 #' again; a remote file changed on its server is not, until this is called.
-#' The engine keeps its budget, which [jbrowse_cache()] sets. An engine that
+#' The engine keeps its limit, which [jbrowse_cache()] sets. An engine that
 #' fails to empty its caches restarts, with a warning.
 #' @return `NULL`, invisibly.
 #' @export
@@ -85,24 +85,31 @@ jbrowse_reset <- function() {
   invisible()
 }
 
-#' The engine's cache budget
+#' The engine's cache limit
 #'
-#' Between calls the engine keeps up to `limit` bytes, 256 MiB unless set:
-#' three quarters for the records it decoded, one quarter for file bytes,
-#' first the indexes of the files it keeps open, then the chunks it read.
-#' The files the last call read stay open whatever their indexes weigh.
+#' Sets or reports `limit`, which bounds the decoded records the engine keeps
+#' between calls and, separately, the indexes of the files it keeps open.
 #'
-#' The budget counts the caches the engine keeps between calls. While a call
-#' runs, the engine also holds that call's reads and tables, which a wide
-#' region of a deep file takes to gigabytes, and R's process keeps the memory
-#' the engine frees for its next reads.
-#' @param limit The budget in bytes, `Inf` for none. A smaller budget evicts
-#'   at once. `NULL` leaves it as it is.
-#' @return A list: `limit`, the budget; `decoded`, the bytes of decoded
-#'   records held; `chunks`, the file bytes read in ranges that the engine
-#'   may hold; `indexes`, the bytes the open files read whole, at least 1 MiB
-#'   each; `adapters`, the files and sequences held open; `assemblies`, the
-#'   assemblies resolved.
+#' Between calls the engine keeps three caches, each under its own bound:
+#'
+#' - The records it decoded, at most `limit` bytes, 256 MiB unless set.
+#' - The file bytes it read in ranges, under the chunk cache's own 256 MiB cap,
+#'   whatever `limit` is.
+#' - The files the last call read stay open, then the most recently read
+#'   others while their indexes fit another `limit`. An index counts an
+#'   estimate of what it holds once parsed, several times its file size.
+#'
+#' A call's own reads and tables come on top, which a wide region of a deep
+#' file takes to gigabytes, as do R's copies of the tables. So does the memory
+#' of the engine's decompressor, which `limit` cannot lower: about 262 MiB
+#' after one window of 1000x long reads. R's process keeps the memory the
+#' engine frees for its next reads.
+#' @param limit The bound in bytes, `Inf` for none. A smaller one evicts at
+#'   once. `NULL` leaves it as it is.
+#' @return A list: `limit`; `decoded`, the bytes of decoded records held;
+#'   `chunks`, the file bytes the chunk cache holds; `indexes`, what the open
+#'   files' indexes weigh, at least 1 MiB each; `adapters`, the files and
+#'   sequences held open; `assemblies`, the assemblies resolved.
 #' @examples
 #' jbrowse_cache()
 #' jbrowse_cache(limit = 512 * 2^20)

@@ -13,6 +13,6 @@ jbrowse_reset()
 The engine caches what it reads, keyed by each file's URL. A local file's
 URL carries its modification time and size, so an overwritten file is read
 again; a remote file changed on its server is not, until this is called.
-The engine keeps its budget, which \code{\link[=jbrowse_cache]{jbrowse_cache()}} sets. An engine that
+The engine keeps its limit, which \code{\link[=jbrowse_cache]{jbrowse_cache()}} sets. An engine that
 fails to empty its caches restarts, with a warning.
 }
