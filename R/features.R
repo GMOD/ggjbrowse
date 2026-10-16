@@ -173,8 +173,7 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
   args$display <- display_config(display)
   if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
   t <- call_engine("features", args)
-  key <- structure(as_frame(t$legend), title = t$legendTitle,
-    complete = TRUE)
+  key <- structure(as_frame(t$legend), title = t$legendTitle)
   features <- as_frame(t$features)
   features <- cbind(feature = match(features$id, unique(features$id)),
     features)
@@ -194,7 +193,6 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
   on_feature <- function(table) {
     d <- as_frame(table)
     d$feature <- features$feature[d$feature + 1L]
-    if (!is.null(d$color)) d$color <- jbrowse_color(d$color)
     if (!is.null(d$subfeature)) {
       at <- as.integer(d$subfeature) + 1L
       at[at < 1L] <- NA
@@ -330,8 +328,9 @@ for_geom <- function(mapping, geom) {
 #' feature's `name`, `type` and `strand` beside the display's `color`, and a
 #' mark with no span of its own (a chevron, an arrow, a label) its feature's
 #' `start` and `end`, so `aes(fill = type)` colors the boxes by feature type
-#' through ggplot's own scales. A `fill` mapping reaches the boxes and arrowheads, and a `colour`
-#' mapping every part that has a stroke, the boxes' outlines included.
+#' through ggplot's own scales, beside the display's colors on the rest. A
+#' `fill` mapping reaches the boxes and arrowheads, and a `colour` mapping
+#' every part that has a stroke, the boxes' outlines included.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_features()] result, `NULL` for the plot's,
 #'   or a data frame in place of the table the geom draws from the plot's
@@ -349,24 +348,23 @@ geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
   list(
     jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$lines,
       for_geom(mapping, ggplot2::GeomSegment),
-      ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = color),
-      list(linewidth = 0.3, ...), keyed = FALSE),
+      ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = I(color)),
+      list(linewidth = 0.3, ...)),
     jbrowse_layer(ggplot2::GeomSegment, data, chevron_arms,
       for_geom(mapping, ggplot2::GeomSegment),
-      ggplot2::aes(x = x, xend = xend, y = y0, yend = yend, colour = color),
-      list(linewidth = 0.3, ...), keyed = FALSE),
+      ggplot2::aes(x = x, xend = xend, y = y0, yend = yend, colour = I(color)),
+      list(linewidth = 0.3, ...)),
     jbrowse_layer(ggplot2::GeomRect, data, boxes,
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = top, ymax = top + height,
-        fill = color), list(...), keyed = "complete"),
+        fill = I(color)), list(...)),
     jbrowse_layer(ggplot2::GeomRect, data, arrow_stems,
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
-        fill = color), list(...), keyed = FALSE),
+        fill = I(color)), list(...)),
     jbrowse_layer(ggplot2::GeomPolygon, data, arrow_heads,
       for_geom(mapping, ggplot2::GeomPolygon),
-      ggplot2::aes(x = x, y = y, group = id, fill = color), list(...),
-      keyed = FALSE))
+      ggplot2::aes(x = x, y = y, group = id, fill = I(color)), list(...)))
 }
 
 #' @rdname geom_jbrowse_glyphs
@@ -384,10 +382,10 @@ geom_jbrowse_amino_acids <- function(mapping = NULL, data = NULL, ...) {
     d
   }
   jbrowse_layer(GeomDisplayText, data, lettered, mapping,
-    ggplot2::aes(x = position, y = y, label = text, colour = color,
+    ggplot2::aes(x = position, y = y, label = text, colour = I(color),
       size = I(font_size), px_wide = I(px_wide), px_tall = I(px_tall),
       halo = I(halo)),
-    list(hjust = 0.5, vjust = 0, family = "mono", ...), keyed = FALSE)
+    list(hjust = 0.5, vjust = 0, family = "mono", ...))
 }
 
 #' @rdname geom_jbrowse_glyphs
@@ -404,9 +402,9 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
     d
   }
   jbrowse_layer(GeomDisplayText, data, labels, mapping,
-    ggplot2::aes(x = position, y = y, label = text, colour = color,
+    ggplot2::aes(x = position, y = y, label = text, colour = I(color),
       size = I(size), px_wide = I(px_wide), px_tall = I(px_tall)),
-    list(hjust = 0, vjust = 1, ...), keyed = FALSE)
+    list(hjust = 0, vjust = 1, ...))
 }
 
 #' Draw features as JBrowse's feature track
@@ -442,7 +440,6 @@ autoplot.jbrowse_features <- function(object, width = NULL, ...) {
   p +
     geom_jbrowse_glyphs() +
     geom_jbrowse_amino_acids() +
-    scale_fill_jbrowse(object) +
     guides_jbrowse(object) +
     geom_jbrowse_labels() +
     ggplot2::scale_y_reverse() +

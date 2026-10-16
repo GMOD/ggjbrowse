@@ -45,8 +45,8 @@ test_that("insertions and clips sit on their reads, in the track's layers", {
   faded <- p$data[[7]]$alpha
   expect_true(any(faded < 1))
   expect_true(all(faded >= (1200 / 19000)^2 - 1e-9))
-  opaque <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup",
-    fade_low_frequency = FALSE))$data[[7]]$alpha
+  l$mismatches$fade <- 1
+  opaque <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup"))$data[[7]]$alpha
   expect_true(all(opaque == 1))
 })
 
@@ -58,14 +58,15 @@ test_that("the coverage band stacks each position's alleles as the display does"
   cov <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage"))
   alleles <- cov$data[[2]]
   expect_equal(nrow(alleles), nrow(a))
-  expect_true(all(alleles$y >= 0 & alleles$yend > alleles$y))
-  depth <- bam$coverage$depth[findInterval(alleles$x, bam$coverage$start)]
-  expect_true(all(alleles$yend <= depth + 1e-6))
-  strict <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage",
-    min_allele_frequency = 0.5))$data[[2]]
+  expect_true(all(alleles$ymin >= 0 & alleles$ymax > alleles$ymin))
+  depth <- bam$coverage$depth[findInterval(alleles$xmin, bam$coverage$start)]
+  expect_true(all(alleles$ymax <= depth + 1e-6))
+  strict <- bam
+  strict$allele_coverage$shown <- with(strict$allele_coverage, to - from >= 0.5)
+  strict <- ggplot2::ggplot_build(ggplot2::autoplot(strict, "coverage"))$data[[2]]
   expect_lt(nrow(strict), nrow(alleles))
-  expect_true(all((strict$yend - strict$y) /
-    bam$coverage$depth[findInterval(strict$x, bam$coverage$start)] >= 0.5))
+  expect_true(all((strict$ymax - strict$ymin) /
+    bam$coverage$depth[findInterval(strict$xmin, bam$coverage$start)] >= 0.5))
 })
 
 sv <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000")
@@ -185,8 +186,8 @@ test_that("splice junctions arc over the coverage, counted and stranded", {
   expect_equal(nrow(s$junctions), 2)
   expect_equal(sum(s$junctions$count), sum(s$gaps$type == "skip"))
   expect_true(all(s$junctions$strand %in% c(1, -1, 0)))
-  arcs <- ggplot2::ggplot_build(ggplot2::autoplot(s, "junctions",
-    min_reads = 1))
+  s$junctions$shown <- s$junctions$count >= 1
+  arcs <- ggplot2::ggplot_build(ggplot2::autoplot(s, "junctions"))
   expect_equal(length(unique(arcs$data[[1]]$group)), 2)
   expect_equal(nrow(arcs$data[[2]]), 2)
   track <- ggplot2::autoplot(s)
@@ -379,7 +380,7 @@ test_that("every mark takes the engine's color, and every key the browser's word
     "chr12:6,534,201-6,538,700")
   for (table in c("mismatches", "gaps", "insertions", "clips", "coverage",
     "allele_coverage", "interbase_coverage", "indicators", "junctions")) {
-    expect_s3_class(a[[table]]$color, "jbrowse_color")
+    expect_type(a[[table]]$color, "character")
     expect_false(anyNA(a[[table]]$color))
   }
   expect_false(identical(unique(a$gaps$color[a$gaps$type == "skip"]),
@@ -607,10 +608,8 @@ test_that("every section keys the track's read colors, insertions and clips", {
       color = list(field = "pairOrientation"), facet = list(field = "split")))
   flat <- function(p) c(if (inherits(p, "patchwork"))
     unlist(lapply(p$patches$plots, flat), recursive = FALSE), list(p))
-  keyed <- lapply(flat(autoplot(a)), function(p) {
-    scale <- ggplot2::ggplot_build(p)$plot$scales$get_scales("fill")
-    if (is.null(scale)) character(0) else as.character(scale$get_limits())
-  })
+  keyed <- lapply(flat(autoplot(a)), function(p)
+    unlist(lapply(drawn_guides(p), `[[`, "color")))
   for (key in a$keys[c("reads", "interbase")]) {
     sections <- Filter(function(k) any(k %in% key$color), keyed)
     expect_length(sections, 2)
@@ -639,8 +638,7 @@ test_that("a stack draws a key two tracks share once, with every entry either ho
     }
     text
   }
-  for (fig in list(jbrowse_stack(tumor, normal), jbrowse_stack(normal, tumor),
-    autoplot(normal, above = tumor))) {
+  for (fig in list(jbrowse_stack(tumor, normal), jbrowse_stack(normal, tumor))) {
     text <- collected(fig)
     expect_equal(sum(text == "Insertions and clips"), 1)
     expect_equal(sum(text == "Hard clip"), 1)
@@ -653,8 +651,7 @@ test_that("a stack draws a key two tracks share once, with every entry either ho
   expect_equal(unique(forward$junctions$strand), 1)
   reverse <- forward
   reverse$junctions$strand <- -1
-  reverse$junctions$color <- jbrowse_color(rep("#8f8fd8",
-    nrow(reverse$junctions)))
+  reverse$junctions$color <- "#8f8fd8"
   reverse$keys$junctions <- key_frame("Reverse transcript strand", "#8f8fd8",
     "Splice junctions")
   text <- collected(jbrowse_stack(forward, reverse))
@@ -676,8 +673,8 @@ test_that("the junction band draws the junctions the display shows, at its heigh
   expect_equal(tapply(drawn$linewidth, drawn$group, unique),
     shown$strokeWidth / PX_PER_INCH * 72.27 / ggplot2::.pt,
     ignore_attr = TRUE)
-  every <- ggplot2::layer_data(ggplot2::ggplot(a) +
-    geom_jbrowse_junctions(min_reads = 1))
+  a$junctions$shown <- TRUE
+  every <- ggplot2::layer_data(ggplot2::ggplot(a) + geom_jbrowse_junctions())
   expect_equal(length(unique(every$group)), nrow(j))
 })
 
@@ -688,8 +685,8 @@ test_that("the coverage band stacks the alleles the display shows", {
   expect_gt(sum(!a$allele_coverage$shown), 0)
   drawn <- ggplot2::layer_data(ggplot2::ggplot(a) + geom_jbrowse_alleles())
   expect_equal(nrow(drawn), sum(a$allele_coverage$shown))
-  every <- ggplot2::layer_data(ggplot2::ggplot(a) +
-    geom_jbrowse_alleles(min_allele_frequency = 0))
+  a$allele_coverage$shown <- TRUE
+  every <- ggplot2::layer_data(ggplot2::ggplot(a) + geom_jbrowse_alleles())
   expect_equal(nrow(every), nrow(a$allele_coverage))
 })
 
@@ -704,20 +701,20 @@ test_that("a result carries the display's resolved config and read pitch", {
   expect_equal(read_inset(compact), 0)
   off <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
      display = list(fadeLowFrequencyMismatches = FALSE))
-  expect_false(fades(off, NULL))
-  expect_true(fades(off, TRUE))
+  expect_false(fades(off))
+  expect_true(fades(bam))
 })
 
 test_that("the junction band hides non-canonical junctions where the display does", {
   read <- function(show) jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700", assembly = extdata("gapdh_hg38.fa.gz"),
-    display = list(showNonCanonicalJunctions = show))
+    display = list(showNonCanonicalJunctions = show, minSashimiScore = 1))
   arcs <- function(x) length(unique(ggplot2::layer_data(
-    ggplot2::ggplot(x) + geom_jbrowse_junctions(min_reads = 1), 1)$group))
+    ggplot2::ggplot(x) + geom_jbrowse_junctions(), 1)$group))
   shown <- read(TRUE)
-  expect_gt(sum(shown$junctions$motif == "non-canonical"), 0)
-  expect_equal(arcs(read(FALSE)),
-    arcs(shown) - sum(shown$junctions$motif == "non-canonical"))
+  odd <- shown$junctions$motif == "non-canonical" & shown$junctions$shown
+  expect_gt(sum(odd), 0)
+  expect_equal(arcs(read(FALSE)), arcs(shown) - sum(odd))
 })
 
 test_that("coverage stops at the region's ends, where the reads do not", {

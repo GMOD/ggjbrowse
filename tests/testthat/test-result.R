@@ -85,7 +85,7 @@ test_that("a dplyr tibble assigns and draws as a data frame does", {
   a <- jbrowse_alignments(bam, loci[1])
   kept <- a
   kept$reads <- dplyr::filter(tibble::as_tibble(a$reads), strand == 1)
-  expect_s3_class(kept$reads$color, "jbrowse_color")
+  expect_type(kept$reads$color, "character")
   base <- a
   base$reads <- subset(a$reads, strand == 1)
   expect_equal(nrow(kept$mismatches), nrow(base$mismatches))

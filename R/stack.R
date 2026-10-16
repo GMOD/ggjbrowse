@@ -21,7 +21,9 @@
 #'   element's, titles its first band, as the view labels a track:
 #'   `jbrowse_stack(genes, CHH = reads)`. A comparative result, which lays
 #'   out several axes, stops the stack: `autoplot(<synteny result>, above =,
-#'   below =)` stacks tracks over its rows
+#'   below =)` stacks tracks over its rows. A data frame in your own plot
+#'   with a `chrom` column and `start` and `end`, or `position`, lands in the
+#'   region it falls in
 #' @param width the pixels the stack draws its regions across, which
 #'   [jbrowse_width()] sizes the figure by; `NULL` takes the widest `width`
 #'   its tracks were read at
@@ -85,14 +87,12 @@ listed_tracks <- function(tracks) {
 }
 
 # The tracks with each key title that several results key under one key,
-# listing every entry any of them holds, in the order they first list them,
-# and `complete`, so each track draws all of it: patchwork collects equal
-# guides into one, and two tracks holding different subsets of one key would
-# otherwise show it twice. A junction key lists the strands of the junctions
-# the band shows at `min_reads`.
-with_shared_keys <- function(tracks, min_reads = NULL) {
+# listing every entry any of them holds, in the order they first list them:
+# patchwork collects equal guides into one, and two tracks holding different
+# subsets of one key would otherwise show it twice
+with_shared_keys <- function(tracks) {
   is_result <- vapply(tracks, inherits, NA, "jbrowse_result")
-  keys <- lapply(tracks[is_result], drawn_keys, min_reads)
+  keys <- lapply(tracks[is_result], drawn_keys)
   title_of <- function(k) attr(k, "title") %||% ""
   owner <- rep(seq_along(keys), lengths(keys))
   flat <- unlist(lapply(keys, unname), recursive = FALSE)
@@ -104,10 +104,10 @@ with_shared_keys <- function(tracks, min_reads = NULL) {
       data.frame(label = as.character(k$label),
         color = as.character(k$color))))
     entries <- entries[!duplicated(entries), , drop = FALSE]
-    key <- key_frame(entries$label, entries$color, title, complete = TRUE)
-    override <- Filter(Negate(is.null), lapply(flat[titles == title], attr,
-      "override"))
-    if (length(override)) attr(key, "override") <- override[[1]]
+    key <- key_frame(entries$label, entries$color, title)
+    attr(key, "shared") <- TRUE
+    alpha <- unlist(lapply(flat[titles == title], attr, "alpha"))
+    if (length(alpha)) attr(key, "alpha") <- alpha[[1]]
     key
   })
   tracks[is_result] <- Map(function(track, own) {
@@ -118,19 +118,6 @@ with_shared_keys <- function(tracks, min_reads = NULL) {
     track
   }, tracks[is_result], keys)
   tracks
-}
-
-# A result's keys as its bands draw them: an alignments track's junction key
-# narrowed to the strands of the junctions it shows, unless a
-# stack made it `complete`
-drawn_keys <- function(x, min_reads = NULL) {
-  keys <- x$keys
-  if (inherits(x, "jbrowse_alignments") && !is.null(keys$junctions) &&
-    !isTRUE(attr(keys$junctions, "complete"))) {
-    keys$junctions <- key_shown(keys$junctions,
-      shown_junctions(x, min_reads)$color)
-  }
-  keys
 }
 
 # A track's bands on the axis of `axis`, a result: a ggplot of one's own as
@@ -307,7 +294,7 @@ own_band <- function(p, axis) {
 # them end to end, the plot's own and each layer's, and that axis's scale
 # where the plot sets none
 onto_axis <- function(p, axis) {
-  if (NROW(axis$regions) < 2 || inherits(axis, COMPARATIVE)) return(p)
+  if (is.null(axis$regions) || inherits(axis, COMPARATIVE)) return(p)
   if (is.data.frame(p$data)) p$data <- frame_on_axis(p$data, axis$regions)
   p$layers <- lapply(p$layers, function(layer) {
     if (!is.data.frame(layer$data)) return(layer)
@@ -315,7 +302,9 @@ onto_axis <- function(p, axis) {
     moved$data <- frame_on_axis(layer$data, axis$regions)
     moved
   })
-  if (is.null(p$scales$get_scales("x"))) p <- p + genomic_x(axis)
+  if (nrow(axis$regions) > 1 && is.null(p$scales$get_scales("x"))) {
+    p <- p + genomic_x(axis)
+  }
   p
 }
 

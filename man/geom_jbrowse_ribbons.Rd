@@ -44,5 +44,5 @@ s <- jbrowse_synteny(chain,
   "chr8_PATERNAL:5,250,001-14,250,000",
   "chr8_MATERNAL:5,250,001-14,250,000")
 library(ggplot2)
-ggplot(s) + geom_jbrowse_ribbons(curves = TRUE) + scale_fill_jbrowse(s)
+ggplot(s) + geom_jbrowse_ribbons(curves = TRUE) + guides_jbrowse(s)
 }

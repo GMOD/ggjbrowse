@@ -5,3 +5,9 @@ of <- function(child, parent, key, child_key = key) {
   id <- function(d, k) if (same) paste(d[[k]], d$region) else d[[k]]
   parent[match(id(child, child_key), id(parent, key)), , drop = FALSE]
 }
+
+# The keys and color bars a plot's jbrowse guides draw, by title
+drawn_guides <- function(p) {
+  keys <- lapply(ggplot2::ggplot_build(p)$plot$guides$params, `[[`, "key")
+  stats::setNames(keys, vapply(keys, attr, "", "title"))
+}

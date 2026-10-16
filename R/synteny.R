@@ -30,19 +30,14 @@ keyed_alignments <- function(columns) {
   cbind(alignment = seq_len(nrow(d)), d)
 }
 
+snake_frame <- function(columns) snake(as_frame(columns))
+
 # The engine's camelCase columns as this package's snake_case
 snake <- function(d) {
   names(d) <- gsub("([A-Z])", "_\\L\\1", names(d), perl = TRUE)
   d
 }
 
-colored_frame <- function(columns) {
-  d <- snake(as_frame(columns))
-  for (col in intersect(c("color", "halo"), names(d))) {
-    d[[col]] <- jbrowse_color(d[[col]])
-  }
-  d
-}
 
 comparative_args <- function(file, index, display) {
   args <- list(adapterConfig = adapter_of(file, function()
@@ -326,25 +321,26 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
   regions <- rbind(axis_rows(q, "query", axes$names[1]),
     axis_rows(t, "target", axes$names[2]))
   alignments <- keyed_alignments(r$alignments)
-  alignments$color <- jbrowse_color(alignments$color)
   ribbons <- snake(as_frame(r$ribbons))
   ribbons$alignment <- as.integer(ribbons$alignment) + 1L
   ribbons$query_region <- ribbons$query_region + 1
   ribbons$target_region <- ribbons$target_region + 1 + nrow(q)
-  ribbons$color <- jbrowse_color(ribbons$color)
-  offscreen <- colored_frame(r$offscreen)
+  offscreen <- snake_frame(r$offscreen)
   offscreen$region <- offscreen$region + 1 +
     ifelse(offscreen$axis == "target", nrow(q), 0)
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle, complete = TRUE)
-  attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
+    r$legendTitle)
+  attr(key, "alpha") <- max(r$alpha, 0.45)
+  contigs <- snake_frame(r$offscreenContigs)
   comparative_result("jbrowse_synteny", "ribbons",
     list(alignments = alignments, ribbons = ribbons, offscreen = offscreen,
-      offscreen_contigs = colored_frame(r$offscreenContigs)),
-    regions, width, r$config, list(ribbons = key), ramp_frames(r$ramps),
+      offscreen_contigs = contigs),
+    regions, width, r$config,
+    c(list(ribbons = key), offscreen_keys(offscreen, contigs)),
+    ramp_frames(r$ramps),
     unique(c(axes$warnings, read$warnings)),
-    list(offscreen_strip = list(marks = colored_frame(r$offscreenStrip$marks),
-        labels = colored_frame(r$offscreenStrip$labels),
+    list(offscreen_strip = list(marks = snake_frame(r$offscreenStrip$marks),
+        labels = snake_frame(r$offscreenStrip$labels),
         font_px = r$offscreenStrip$fontPx),
       fade_thin = r$fadeThin, has_cigar = r$hasCigar,
       assemblies = display_names(unlist(r$assemblyNames), labels,
@@ -412,7 +408,7 @@ band_feet <- function(r) {
 ribbon_marks <- function(r, pts) {
   if (!nrow(r)) {
     return(data.frame(x = numeric(0), y = numeric(0), ribbon = integer(0),
-      color = jbrowse_color(character(0)), alpha = numeric(0)))
+      color = character(0), alpha = numeric(0)))
   }
   d <- do.call(rbind, pts)
   for (column in c("color", "alpha", "kind", "alignment")) {
@@ -470,7 +466,7 @@ ribbon_lines <- function(r, curves, feet = band_feet(r)) {
 #'   "chr8_PATERNAL:5,250,001-14,250,000",
 #'   "chr8_MATERNAL:5,250,001-14,250,000")
 #' library(ggplot2)
-#' ggplot(s) + geom_jbrowse_ribbons(curves = TRUE) + scale_fill_jbrowse(s)
+#' ggplot(s) + geom_jbrowse_ribbons(curves = TRUE) + guides_jbrowse(s)
 geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
                                  ...) {
   data <- replacing(data, "ribbons", "geom_jbrowse_ribbons")
@@ -481,12 +477,12 @@ geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
   list(
     jbrowse_layer(ggplot2::GeomPolygon, data, filled,
       for_geom(mapping, ggplot2::GeomPolygon),
-      ggplot2::aes(x = x, y = y, group = ribbon, fill = color,
-        alpha = I(alpha)), list(colour = NA, ...), keyed = "complete"),
+      ggplot2::aes(x = x, y = y, group = ribbon, fill = I(color),
+        alpha = I(alpha)), list(colour = NA, ...)),
     jbrowse_layer(ggplot2::GeomPath, data, lines,
       for_geom(mapping, ggplot2::GeomPath),
-      ggplot2::aes(x = x, y = y, group = ribbon, colour = color,
-        alpha = I(alpha)), list(linewidth = 0.3, ...), keyed = FALSE))
+      ggplot2::aes(x = x, y = y, group = ribbon, colour = I(color),
+        alpha = I(alpha)), list(linewidth = 0.3, ...)))
 }
 
 #' @rdname geom_jbrowse_ribbons
@@ -499,16 +495,16 @@ geom_jbrowse_offscreen_mates <- function(mapping = NULL, data = NULL,
   text <- function(halo) function(x) strip_labels(x, halo)
   text_layer <- function(halo) {
     jbrowse_layer(GeomDisplayText, data, text(halo), NULL,
-      ggplot2::aes(x = x, y = y, label = label, colour = color,
+      ggplot2::aes(x = x, y = y, label = label, colour = I(color),
         alpha = I(alpha), size = I(size), px_wide = I(px_wide),
         px_tall = I(px_tall)),
-      list(hjust = 0, vjust = 0), keyed = FALSE)
+      list(hjust = 0, vjust = 0))
   }
   c(list(jbrowse_layer(ggplot2::GeomRect, data, strip_marks,
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
-        fill = color, alpha = I(alpha)),
-      list(colour = NA, ...), keyed = FALSE)),
+        fill = I(color), alpha = I(alpha)),
+      list(colour = NA, ...))),
     if (labels) list(text_layer(TRUE), text_layer(FALSE)))
 }
 
@@ -553,44 +549,23 @@ OFFSCREEN_KEY_ROWS <- 10
 # A key per row whose strip draws marks: a chip of each contig in the color
 # the strip paints it, beside the line the strip's hover prints for it, the
 # most sequence first
-offscreen_guides <- function(x) {
-  drawn <- x$offscreen[x$offscreen$drawn, , drop = FALSE]
-  if (!nrow(drawn)) return(NULL)
-  contigs <- x$offscreen_contigs
-  guides <- lapply(intersect(c("query", "target"), drawn$axis), function(ax) {
+offscreen_keys <- function(offscreen, contigs) {
+  drawn <- offscreen[offscreen$drawn, , drop = FALSE]
+  axes <- intersect(c("query", "target"), drawn$axis)
+  keys <- lapply(axes, function(ax) {
     on <- contigs[contigs$axis == ax &
       contigs$mate_chrom %in% drawn$mate_chrom[drawn$axis == ax], ]
     on <- on[order(-on$aligned_bp), ]
     labels <- on$label
-    fill <- scales::alpha(as.character(on$color), on$alpha)
+    fill <- scales::alpha(on$color, on$alpha)
     rest <- length(labels) - OFFSCREEN_KEY_ROWS
     if (rest > 0) {
       labels <- c(labels[seq_len(OFFSCREEN_KEY_ROWS)], sprintf("+%d more", rest))
       fill <- c(fill[seq_len(OFFSCREEN_KEY_ROWS)], NA)
     }
-    chip_guide(labels, fill, sprintf("Off-screen mates, %s row", ax))
+    key_frame(labels, fill, sprintf("Off-screen mates, %s row", ax))
   })
-  names(guides) <- sprintf("jbrowse_offscreen_%d", seq_along(guides))
-  do.call(ggplot2::guides, guides)
-}
-
-# Chips and their labels, a row each, as a guide of its own
-chip_guide <- function(labels, fill, title) {
-  row_in <- 0.18
-  chip_in <- 0.14
-  n <- length(labels)
-  y <- grid::unit(1, "npc") - grid::unit((seq_len(n) - 0.5) * row_in, "in")
-  text <- grid::gpar(fontsize = 8, col = "grey30")
-  grob <- grid::gTree(children = grid::gList(
-    grid::rectGrob(x = 0, y = y, width = grid::unit(chip_in, "in"),
-      height = grid::unit(chip_in, "in"), hjust = 0,
-      gp = grid::gpar(fill = fill, col = NA)),
-    grid::textGrob(labels, x = grid::unit(chip_in + 0.06, "in"), y = y,
-      hjust = 0, gp = text)))
-  widest <- grid::textGrob(labels[which.max(nchar(labels))], gp = text)
-  ggplot2::guide_custom(grob, title = title,
-    width = grid::unit(chip_in + 0.06, "in") + grid::grobWidth(widest),
-    height = grid::unit(n * row_in, "in"))
+  stats::setNames(keys, sprintf("offscreen_%s", axes))
 }
 
 # Whether an axis names its contigs rather than numbering positions, as
@@ -670,9 +645,7 @@ synteny_band <- function(x, curves) {
   ggplot2::ggplot(x) +
     geom_jbrowse_ribbons(curves = curves) +
     geom_jbrowse_offscreen_mates() +
-    scale_fill_jbrowse(x) +
     guides_jbrowse(x) +
-    offscreen_guides(x) +
     ggplot2::coord_cartesian(xlim = c(0, x$width), ylim = c(0, 1),
       expand = FALSE) +
     synteny_x(x) +
@@ -817,15 +790,13 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
   read <- warned_call("dotplot", args)
   r <- read$value
   alignments <- keyed_alignments(r$alignments)
-  alignments$color <- jbrowse_color(alignments$color)
   segments <- snake(as_frame(r$segments))
   segments$alignment <- as.integer(segments$alignment) + 1L
   segments$x_region <- segments$x_region + 1
   segments$y_region <- segments$y_region + 1 + nrow(xr)
-  segments$color <- jbrowse_color(segments$color)
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle, complete = TRUE)
-  attr(key, "override") <- list(alpha = max(r$alpha, 0.45))
+    r$legendTitle)
+  attr(key, "alpha") <- max(r$alpha, 0.45)
   comparative_result("jbrowse_dotplot", "segments",
     list(alignments = alignments, segments = segments),
     rbind(axis_rows(xr, "x", axes$names[1]), axis_rows(yr, "y", axes$names[2])),
@@ -885,9 +856,9 @@ geom_jbrowse_dotplot <- function(mapping = NULL, data = NULL, ...) {
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$segments,
     for_geom(mapping, ggplot2::GeomSegment),
     ggplot2::aes(x = x_start, xend = x_end, y = y_start, yend = y_end,
-      colour = color, alpha = I(alpha)),
+      colour = I(color), alpha = I(alpha)),
     with_defaults(list(...), list(linewidth = px_to_mm(2.5),
-      lineend = "round")), keyed = "complete")
+      lineend = "round")))
 }
 
 # An axis of regions laid end to end: breaks at round positions in each,
@@ -930,7 +901,6 @@ autoplot.jbrowse_dotplot <- function(object, ...) {
     ggplot2::geom_hline(data = rows, ggplot2::aes(yintercept = y),
       colour = "grey70") +
     geom_jbrowse_dotplot(linewidth = px_to_mm(x$display$lineWidth)) +
-    scale_colour_jbrowse(x) +
     guides_jbrowse(x) +
     layout_scale(ggplot2::scale_x_continuous, h, x$width) +
     layout_scale(ggplot2::scale_y_continuous, v, x$height) +

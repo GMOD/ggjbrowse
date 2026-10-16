@@ -146,17 +146,15 @@ band <- function(p, x, rows = FALSE, ylim = NULL, expand = FALSE) {
 # labels, the triangles sitting in the top one
 coverage_plot <- function(x, o) {
   scale <- x$y_scale
+  interbase <- !isFALSE(x$display$showInterbaseIndicators)
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_coverage() +
-    geom_jbrowse_alleles(min_allele_frequency = o$min_allele_frequency,
-      width = o$width) +
-    geom_jbrowse_modification_coverage(width = o$width)
-  if (!isFALSE(x$display$showInterbaseIndicators)) {
-    p <- p + geom_jbrowse_interbase() + geom_jbrowse_indicators() +
-      scale_fill_jbrowse(x, "interbase")
-  }
+    geom_jbrowse_alleles(width = o$width) +
+    geom_jbrowse_modification_coverage(width = o$width) +
+    guides_jbrowse(x, c("bases", if (interbase) "interbase"), ramps = FALSE)
+  if (interbase) p <- p + geom_jbrowse_interbase() + geom_jbrowse_indicators()
   inset <- x$glyph$coverageInset
-  band(p + scale_colour_jbrowse(x, "bases"), x, ylim = scale$domain,
+  band(p, x, ylim = scale$domain,
     expand = c(top = TRUE, right = FALSE, bottom = TRUE, left = FALSE)) +
     ggplot2::scale_y_continuous(breaks = scale$ticks,
       transform = depth_transform(scale),
@@ -193,8 +191,7 @@ sequence_plot <- function(x, o) {
   bases$tint <- ggplot2::alpha(base_colors()[bases$base], 0.35)
   ggplot2::ggplot(bases) +
     ggplot2::geom_rect(ggplot2::aes(xmin = position, xmax = position + cell,
-      ymin = 0, ymax = 1, fill = tint)) +
-    ggplot2::scale_fill_identity() +
+      ymin = 0, ymax = 1, fill = I(tint))) +
     ggplot2::geom_text(ggplot2::aes(x = position + 0.5, y = 0.5, label = base),
       size = 2.6) +
     ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1), expand = FALSE) +
@@ -208,39 +205,32 @@ pileup_plot <- function(x, o) {
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_reads() +
     geom_jbrowse_overlaps() +
-    scale_fill_jbrowse(x, "reads") +
-    guides_jbrowse(x) +
+    guides_jbrowse(x, c("reads", "bases")) +
     geom_jbrowse_qualities(width = px) +
     geom_jbrowse_skips() +
-    geom_jbrowse_deletions(fade = o$fade, width = px) +
+    geom_jbrowse_deletions(width = px) +
     geom_jbrowse_modifications(width = px) +
-    geom_jbrowse_mismatches(fade = o$fade, width = px) +
-    scale_colour_jbrowse(x, "bases") +
-    geom_jbrowse_insertions(fade = o$fade, width = px) +
-    geom_jbrowse_clips(fade = o$fade, width = px) +
+    geom_jbrowse_mismatches(width = px) +
+    geom_jbrowse_insertions(width = px) +
+    geom_jbrowse_clips(width = px) +
     geom_jbrowse_chains() +
     geom_jbrowse_deletion_lengths(width = px)
   if (o$letters) p <- p + geom_jbrowse_letters()
   band(p + ggplot2::scale_y_reverse(), x, rows = TRUE) + no_y
 }
 
-# The junctions the sashimi band draws: those the engine shows, or with
-# `min_reads` or more, less the non-canonical ones the display hides
-shown_junctions <- function(x, min_reads = NULL) {
+shown <- function(d) d$shown %||% rep(TRUE, nrow(d))
+
+shown_junctions <- function(x) {
   j <- summary_table(x, "junctions")
-  keep <- if (is.null(min_reads)) j$shown else j$count >= min_reads &
-    !(isFALSE(x$display$showNonCanonicalJunctions) &
-      j$motif == "non-canonical")
-  j[keep, , drop = FALSE]
+  j[shown(j), , drop = FALSE]
 }
 
 junctions_plot <- function(x, o) {
-  key <- drawn_keys(x, o$min_reads)$junctions
   band(ggplot2::ggplot(x) +
-    geom_jbrowse_junctions(min_reads = o$min_reads) +
-    key_scale(ggplot2::scale_colour_identity, key, attr(key, "title")) +
-    geom_jbrowse_junction_counts(min_reads = o$min_reads), x,
-    ylim = c(0, 1.08)) +
+    geom_jbrowse_junctions() +
+    guides_jbrowse(x, "junctions", ramps = FALSE) +
+    geom_jbrowse_junction_counts(), x, ylim = c(0, 1.08)) +
     no_y
 }
 
@@ -251,7 +241,7 @@ arcs_plot <- function(x, o) {
   p <- band(ggplot2::ggplot(x) +
     geom_jbrowse_arc_ticks(width = o$width) +
     geom_jbrowse_arcs(width = o$width) +
-    scale_colour_jbrowse(x, "arcs") +
+    guides_jbrowse(x, "arcs", ramps = FALSE) +
     if (cloud) ggplot2::scale_y_log10() else ggplot2::scale_y_reverse(),
     x, ylim = c(if (cloud) 1 else 0, arc_top(x, o$width)))
   if (cloud) p + ggplot2::labs(y = "insert size (bp)") else p + no_y
@@ -262,11 +252,18 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 
 #' Draw alignments as JBrowse's alignments track, or one band of it
 #'
+#' Each band draws what the result says: the junctions whose `shown` is
+#' true, the allele segments whose `shown` is true, and each mark faded by
+#' its `fade` under the display's `fadeLowFrequencyMismatches`. Edit those
+#' columns to draw otherwise, as in
+#' `a$junctions$shown <- a$junctions$count >= 5`. [jbrowse_stack()] stacks
+#' other tracks over the track.
+#'
 #' @param object a [jbrowse_alignments()] result
-#' @param what `"track"`: the display's stack, any `above` on top,
-#'   then splice-junction arcs where the reads splice, the coverage band,
-#'   the read-connection band under `display$readConnections` and the
-#'   pileup, one above the other, then any `below`, all on a shared axis, each band split into the `facet`'s sections, and each
+#' @param what `"track"`: the display's stack, splice-junction arcs where
+#'   the reads splice, the coverage band, the read-connection band under
+#'   `display$readConnections` and the pileup, one above the other on a
+#'   shared axis, each band split into the `facet`'s sections, and each
 #'   drawn where the display's `showCoverage`, `showPileup` and
 #'   `showSashimiArcs` draw it; `"pileup"`: each read on its row, split at
 #'   its splice gaps, filled as the display's `color` object paints it and
@@ -276,24 +273,12 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   `"junctions"`: the arcs alone; `"arcs"`: the read-connection band
 #'   alone, mate-pair and split-read arcs or the read cloud on a log
 #'   insert-size axis; `"sequence"`: the reference's bases alone
-#' @param min_allele_frequency hide a coverage-band allele segment whose share
-#'   of the depth there is below this; `NULL` draws the segments the display
-#'   shows, by its `coverageSnpMinFrequency`
-#' @param min_reads hide a junction arc with fewer supporting reads;
-#'   `NULL` draws the junctions the display shows, by its `minSashimiScore`
-#'   and `showNonCanonicalJunctions`
 #' @param letters write each mismatch's base and each insertion's length on
 #'   the pileup; `NULL` does so where the region is at most 300 bp, where a
 #'   base is wide enough to read
-#' @param fade_low_frequency fade a mismatch, indel or clip narrower than a
-#'   pixel by its site's share of the depth, so sequencing errors recede on a
-#'   deep pileup; `NULL` takes the display's `fadeLowFrequencyMismatches`
-#' @param width the pixels the figure spans across its region, which that
-#'   fade and the read-connection band's reach read; `NULL` takes the widest
-#'   `width` this track and those above and below it were read at
-#' @param above,below tracks to draw above and below a `"track"`, each a
-#'   ggjbrowse result over the same regions or a ggplot, or a list of them, as
-#'   [jbrowse_stack()] stacks them
+#' @param width the pixels the figure spans across its region, which the
+#'   sub-pixel fade and the read-connection band's reach read; `NULL` takes
+#'   the `width` the track was read at
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot, to extend with layers, scales and themes or to stack with
 #'   patchwork; a `"track"` is a patchwork of its bands
@@ -308,45 +293,20 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 autoplot.jbrowse_alignments <- function(object,
                                         what = c("track", "pileup", "coverage",
                                           "junctions", "arcs", "sequence"),
-                                        min_allele_frequency = NULL,
-                                        min_reads = NULL,
-                                        letters = NULL,
-                                        fade_low_frequency = NULL,
-                                        width = NULL, above = NULL,
-                                        below = NULL, ...) {
+                                        letters = NULL, width = NULL, ...) {
   rlang::check_dots_empty()
   what <- match.arg(what)
-  above <- listed_tracks(above)
-  below <- listed_tracks(below)
-  results <- Filter(function(t) inherits(t, "jbrowse_result"),
-    c(above, list(object), below))
-  if (what == "track") {
-    width <- width %||% stack_px(results)
-  }
   object <- on_axis(drawn_at(object, width))
-  o <- alignment_options(object, min_allele_frequency, min_reads,
-    letters, fade_low_frequency)
+  o <- alignment_options(object, letters)
   if (what != "track") return(BAND_PLOTS[[what]](object, o))
-  same_regions(results)
-  shared <- with_shared_keys(c(above, list(object), below), o$min_reads)
-  above <- shared[seq_along(above)]
-  object <- shared[[length(above) + 1]]
-  below <- shared[-seq_len(length(above) + 1)]
-  stack_bands(c(lapply(above, band_of, object, o$width),
-    list(alignment_bands(object, o)), lapply(below, band_of, object, o$width)))
+  stack_bands(list(alignment_bands(object, o)))
 }
 
-# What the alignments bands draw: the caller's settings, else the display's
-alignment_options <- function(object, min_allele_frequency = NULL,
-                              min_reads = NULL, letters = NULL,
-                              fade_low_frequency = NULL) {
+alignment_options <- function(object, letters = NULL) {
   s <- object$display
   xlim <- xlim_of(object)
   list(
-    min_allele_frequency = min_allele_frequency,
-    min_reads = min_reads,
     letters = letters %||% (xlim[2] - xlim[1] <= 300),
-    fade = fades(object, fade_low_frequency),
     width = object$width,
     coverage = !isFALSE(s$showCoverage),
     pileup = !isFALSE(s$showPileup),
@@ -364,7 +324,7 @@ alignment_px <- function(object, o) {
     function(r) if (length(r)) max(r) + 1 else 0, 0))
   shown <- c(
     junctions = o$coverage && o$junctions &&
-      nrow(shown_junctions(object, o$min_reads)) > 0,
+      nrow(shown_junctions(object)) > 0,
     coverage = o$coverage,
     arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
     pileup = o$pileup)

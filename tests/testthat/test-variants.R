@@ -74,8 +74,11 @@ test_that("zoomed out, records sharing a pixel fade as the display fades them", 
   expect_lt(min(far), 1)
   expect_gt(min(far), 0)
   expect_gt(mean(alpha(1e5)), mean(far))
-  expect_true(all(alpha(300, fade = FALSE) == 1))
   expect_true(all(alpha(300, layout = "columns") == 1))
+  opaque <- read_people(width = 300)
+  opaque$variants$opacity <- 1
+  expect_true(all(ggplot2::layer_data(ggplot2::ggplot(opaque) +
+    geom_jbrowse_genotypes())$alpha == 1))
   v <- read_people()
   v$variants <- v$variants[c(1, 1), ]
   v$variants$end[1] <- v$variants$start[1] + 30000

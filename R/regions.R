@@ -204,6 +204,20 @@ on_axis <- function(x) {
 
 is_on_axis <- function(d) isTRUE(attr(d, "on_axis"))
 
+in_regions <- function(d, regions) {
+  bare <- function(x) sub("^chr", "", as.character(x), ignore.case = TRUE)
+  lo <- d[["start"]] %||% d[["position"]]
+  hi <- d[["end"]] %||% (d[["position"]] + 1)
+  at <- lapply(seq_len(nrow(regions)), function(i) which(
+    bare(d[["chrom"]]) == bare(regions$chrom[i]) & hi > regions$start[i] &
+      lo < regions$end[i]))
+  rows <- unlist(at)
+  out <- d[rows, , drop = FALSE]
+  out$region <- rep(seq_len(nrow(regions)), lengths(at))
+  rownames(out) <- NULL
+  out
+}
+
 # Whether `d` names its rows' regions of `regions` in a `region` column
 has_regions <- function(d, regions) {
   is.numeric(d$region) && all(d$region %in% seq_len(nrow(regions)))
@@ -236,9 +250,16 @@ arcs_on_axis <- function(d, regions) {
 
 # A table's rows on the axis `regions` lays end to end: each moved by its
 # region's offset, a span cut to its region and a mark outside it dropped, so
-# nothing draws over the gap into the next region
+# nothing draws over the gap into the next region. A frame naming no region
+# but a `chrom` takes each region its rows overlap.
 frame_on_axis <- function(d, regions) {
-  if (is_on_axis(d) || !has_regions(d, regions)) return(d)
+  if (is_on_axis(d)) return(d)
+  if (!has_regions(d, regions)) {
+    if (is.null(d[["chrom"]]) || is.null(d[["start"]] %||% d[["position"]])) {
+      return(d)
+    }
+    d <- in_regions(d, regions)
+  }
   if (nrow(regions) == 1) return(structure(d, on_axis = TRUE))
   r <- regions
   if (!is.null(d$start)) {

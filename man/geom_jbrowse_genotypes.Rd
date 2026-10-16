@@ -9,7 +9,6 @@ geom_jbrowse_genotypes(
   data = NULL,
   layout = c("genomic", "columns"),
   width = NULL,
-  fade = TRUE,
   ...
 )
 }
@@ -24,9 +23,6 @@ result, such as a filtered copy of it}
 
 \item{width}{the pixels the figure spans across its region at genomic
 positions; \code{NULL} takes the result's \code{width}}
-
-\item{fade}{\code{FALSE} draws every cell opaque at genomic positions, where by
-default records sharing a pixel fade as the display fades them}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 }
@@ -45,7 +41,9 @@ any other column of the cells table to draw it your own way.
 Zoomed out, records too short to see share pixels, and the display fades
 each by how many share its pixels, so a row shades by the share of its
 records that are alt rather than filling wherever any is. The reader
-gives each record that fade as its \code{opacity}, at the \code{width} it read at.
+gives each record that fade as its \code{opacity}, at the \code{width} it read at,
+which the cells take at genomic positions; set \code{v$variants$opacity <- 1}
+to draw every cell opaque.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")

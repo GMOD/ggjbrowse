@@ -65,10 +65,8 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
   args$display <- display_config(display)
   t <- call_engine("wiggle", args)
   marks <- as_frame(t$marks)
-  marks$color <- jbrowse_color(marks$color)
   bins <- as_frame(t$bins)
   rules <- as_frame(t$rules)
-  rules$color <- jbrowse_color(rules$color)
   in_one_call(structure(
     list(bins = bins, marks = marks, sources = as_frame(t$sources),
       rules = rules, display = t$config, keys = list(),
@@ -261,27 +259,27 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
     jbrowse_layer(ggplot2::GeomRect, data, band,
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
-        fill = color, alpha = I(opacity)), list(...), keyed = FALSE),
+        fill = I(color), alpha = I(opacity)), list(...)),
     jbrowse_layer(ggplot2::GeomRect, data, of("xyplot", marks),
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
-        fill = color), list(...), keyed = FALSE),
+        fill = I(color)), list(...)),
     jbrowse_layer(ggplot2::GeomRect, data, of("density", marks),
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = base, ymax = base + 1,
-        fill = color), list(...), keyed = FALSE),
+        fill = I(color)), list(...)),
     jbrowse_layer(ggplot2::GeomPoint, data, of("scatter", marks),
       for_geom(mapping, ggplot2::GeomPoint),
-      ggplot2::aes(x = (start + end) / 2, y = score, colour = color),
-      list(size = 0.6, ...), keyed = FALSE),
+      ggplot2::aes(x = (start + end) / 2, y = score, colour = I(color)),
+      list(size = 0.6, ...)),
     jbrowse_layer(ggplot2::GeomPath, data, of("line", steps),
       for_geom(mapping, ggplot2::GeomPath),
-      ggplot2::aes(x = x, y = score, colour = color, group = run),
-      list(...), keyed = FALSE),
+      ggplot2::aes(x = x, y = score, colour = I(color), group = run),
+      list(...)),
     jbrowse_layer(ggplot2::GeomPath, data, of("linecenter", centers),
       for_geom(mapping, ggplot2::GeomPath),
-      ggplot2::aes(x = x, y = score, colour = color, group = run),
-      list(...), keyed = FALSE))
+      ggplot2::aes(x = x, y = score, colour = I(color), group = run),
+      list(...)))
 }
 
 #' @rdname geom_jbrowse_wiggle
@@ -297,16 +295,16 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
   list(
     jbrowse_layer(ggplot2::GeomHline, data, rules,
       for_geom(mapping, ggplot2::GeomHline),
-      ggplot2::aes(yintercept = value, colour = color),
-      list(linetype = "dashed", ...), keyed = FALSE),
+      ggplot2::aes(yintercept = value, colour = I(color)),
+      list(linetype = "dashed", ...)),
     jbrowse_layer(ggplot2::GeomText, data,
       function(x) {
         r <- rules(x)
         r[r$label != "", , drop = FALSE]
       },
       for_geom(mapping, ggplot2::GeomText),
-      ggplot2::aes(x = x, y = value, label = label, colour = color),
-      list(hjust = 0, vjust = -0.4, size = 2.6, ...), keyed = FALSE))
+      ggplot2::aes(x = x, y = value, label = label, colour = I(color)),
+      list(hjust = 0, vjust = -0.4, size = 2.6, ...)))
 }
 
 #' Draw a BigWig as JBrowse's quantitative track

@@ -18,25 +18,23 @@ test_that("autoplot refuses an argument it does not take", {
     "ctgA:1,001-3,000"), layout = "columns"), "layout")
 })
 
-test_that("a display color column takes an identity scale, any other column its own", {
+test_that("the display's colors paint as they are, and a mapped column takes its own scale", {
   default <- ggplot_build(ggplot(bam) + geom_jbrowse_reads())
-  expect_s3_class(default$plot$scales$get_scales("fill"),
-    "ScaleDiscreteIdentity")
-  expect_setequal(default$data[[1]]$fill, unique(as.character(bam$reads$color)))
+  expect_null(default$plot$scales$get_scales("fill"))
+  expect_setequal(default$data[[1]]$fill, unique(bam$reads$color))
   mapped <- ggplot_build(ggplot(bam) + geom_jbrowse_reads(aes(fill = mapq)))
   expect_s3_class(mapped$plot$scales$get_scales("fill"), "ScaleContinuous")
   expect_gt(length(unique(mapped$data[[1]]$fill)), 1)
   recolored <- bam
   recolored$reads$color <- ifelse(bam$reads$strand == 1, "#ff0000", "navy")
-  expect_false(inherits(recolored$reads$color, "jbrowse_color"))
   b <- ggplot_build(ggplot(recolored) + geom_jbrowse_reads())
-  expect_s3_class(b$plot$scales$get_scales("fill"), "ScaleDiscreteIdentity")
   expect_setequal(b$data[[1]]$fill, c("#ff0000", "navy"))
-  labelled <- bam
-  labelled$reads$color <- ifelse(bam$reads$strand == 1, "fwd", "rev")
-  b <- ggplot_build(ggplot(labelled) + geom_jbrowse_reads())
-  expect_false(inherits(b$plot$scales$get_scales("fill"),
-    "ScaleDiscreteIdentity"))
+  mixed <- ggplot(bam) + geom_jbrowse_reads(aes(fill = mapq)) +
+    geom_jbrowse_mismatches() + geom_jbrowse_deletions() +
+    scale_fill_viridis_c()
+  expect_s3_class(ggplotGrob(mixed), "gtable")
+  expect_equal(layer_data(mixed, 2)$fill, bam$mismatches$color,
+    ignore_attr = TRUE)
 })
 
 test_that("a geom reads its table from the plot's result or from its own data", {
@@ -72,38 +70,53 @@ test_that("a data frame as a geom's data stands in for the table it draws", {
     "replaces one of the plot's result's tables")
 })
 
-test_that("a mismatch is a base-wide rect painted by its colour, not the reads' fill", {
+test_that("a mismatch is a base-wide rect, filled as the display paints it", {
   d <- layer_data(ggplot(bam) + geom_jbrowse_mismatches(), 1)
   expect_equal(d$xmax - d$xmin, rep(max(1, 1 / px_of(bam, NULL)), nrow(d)))
-  expect_false("fill" %in% names(ggplot(bam) +
-    geom_jbrowse_mismatches())$layers[[1]]$computed_mapping)
-  own <- layer_data(ggplot(bam) + geom_jbrowse_mismatches(aes(colour = base)) +
-    scale_colour_manual(values = c(A = "black", C = "black", G = "black",
+  own <- layer_data(ggplot(bam) + geom_jbrowse_mismatches(aes(fill = base)) +
+    scale_fill_manual(values = c(A = "black", C = "black", G = "black",
       T = "black")), 1)
-  expect_equal(unique(own$colour), "black")
-  grob <- ggplot2::ggplotGrob(ggplot(bam) +
-    geom_jbrowse_mismatches(aes(colour = base)) +
-    scale_colour_manual(values = c(A = "black", C = "black", G = "black",
-      T = "black")))
-  expect_s3_class(grob, "gtable")
+  expect_equal(unique(own$fill), "black")
 })
 
-test_that("the display's keys are scales, each listing what was painted", {
-  p <- ggplot(bam) + geom_jbrowse_mismatches() + scale_colour_jbrowse(bam, "bases")
-  scale <- ggplot_build(p)$plot$scales$get_scales("colour")
-  expect_equal(scale$name, "Base")
-  renamed <- scale_colour_jbrowse(bam, "bases", name = "Mismatch")
-  expect_equal(renamed$name, "Mismatch")
-  expect_equal(renamed$breaks, scale_colour_jbrowse(bam, "bases")$breaks)
-  expect_error(scale_fill_jbrowse(bam, "nope"), "keys reads, bases")
+test_that("the display's keys are guides, which an edit to the key relabels", {
+  p <- ggplot(bam) + geom_jbrowse_mismatches() + guides_jbrowse(bam, "bases")
+  expect_equal(names(drawn_guides(p)), "Base")
+  expect_equal(drawn_guides(p)$Base$label, bam$keys$bases$label)
+  renamed <- bam
+  renamed$keys$bases$label[1] <- "Adenine"
+  expect_equal(drawn_guides(ggplot(renamed) + geom_jbrowse_mismatches() +
+    guides_jbrowse(renamed, "bases"))$Base$label[1], "Adenine")
+  expect_length(drawn_guides(ggplot(bam) + geom_jbrowse_mismatches() +
+    guides_jbrowse(bam, "nope")), 0)
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-3,000",
     display = list(color = list(field = "strand",
       range = c("#FF0000", "#0000FF"))))
-  expect_setequal(as.character(unique(s$reads$color)), c("#ff0000", "#0000ff"))
-  key <- get_guide_data(ggplot(s) + geom_jbrowse_reads() +
-    scale_fill_jbrowse(s), "fill")
+  expect_setequal(unique(s$reads$color), c("#ff0000", "#0000ff"))
+  key <- drawn_guides(ggplot(s) + geom_jbrowse_reads() +
+    guides_jbrowse(s, "reads"))[[1]]
   expect_equal(nrow(key), 2)
-  expect_setequal(key$fill, c("#ff0000", "#0000ff"))
+  expect_setequal(key$color, c("#ff0000", "#0000ff"))
+})
+
+test_that("a key takes the plot's theme", {
+  p <- ggplot(bam) + geom_jbrowse_mismatches() + guides_jbrowse(bam, "bases")
+  label_size <- function(p) {
+    grob <- ggplotGrob(p)
+    box <- grob$grobs[[which(startsWith(grob$layout$name, "guide-box"))[1]]]
+    sizes <- numeric(0)
+    walk <- function(g) {
+      if (inherits(g, "text") && identical(g$label, bam$keys$bases$label)) {
+        sizes <<- c(sizes, g$gp$fontsize)
+      }
+      for (child in c(g$children, g$grobs)) walk(child)
+    }
+    walk(box)
+    sizes
+  }
+  expect_equal(label_size(p + theme(legend.text = element_text(size = 13))),
+    13)
+  expect_false(identical(label_size(p), 13))
 })
 
 test_that("a feature track's boxes take any feature column", {
@@ -159,18 +172,14 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
   expect_equal(nrow(haplotypes$rows), 78)
 })
 
-test_that("a key row names every label its color stands for", {
+test_that("a key lists every label, several of one color included", {
   paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA:18,001-32,000",
      display = list(readConnections = "arc"))
   legend <- paired$keys$arcs
   expect_true(anyDuplicated(legend$color) > 0)
-  key <- get_guide_data(ggplot(paired) + geom_jbrowse_arcs() +
-    scale_colour_jbrowse(paired, "arcs"), "colour")
-  expect_equal(nrow(key), length(unique(legend$color)))
-  for (label in legend$label) {
-    expect_true(any(grepl(label, key$.label, fixed = TRUE)))
-  }
-  expect_equal(as.character(jbrowse_color("#FF00AA")), "#ff00aa")
+  key <- drawn_guides(ggplot(paired) + geom_jbrowse_arcs() +
+    guides_jbrowse(paired, "arcs"))[[1]]
+  expect_equal(key$label, legend$label)
 })
 
 test_that("the multi-layer geoms take any column of their tables", {
@@ -194,9 +203,11 @@ test_that("the multi-layer geoms take any column of their tables", {
 
 test_that("the junction band keys the strands its arcs are drawn in", {
   spliced <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300")
-  key <- get_guide_data(autoplot(spliced, "junctions", min_reads = 1),
-    "colour")
-  expect_equal(key$.label, "Forward transcript strand")
+  spliced$junctions$shown <- TRUE
+  key <- drawn_guides(autoplot(spliced, "junctions"))[["Splice junctions"]]
+  expect_equal(key$label, "Forward transcript strand")
+  spliced$junctions$shown <- FALSE
+  expect_length(drawn_guides(autoplot(spliced, "junctions")), 0)
 })
 
 test_that("rows take their samples file's colors under rowColor, keyed by the attribute", {

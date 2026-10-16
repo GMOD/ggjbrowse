@@ -242,41 +242,35 @@ alignments_result <- function(t, assembly) {
     d$section <- NULL
     d
   }
-  painted <- function(d) {
-    d$color <- jbrowse_color(d$color)
-    d
-  }
-  reads <- painted(reads)
-  mismatches <- painted(on_read(t$mismatches))
-  chains <- painted(frame(t$chains))
-  overlaps <- painted(frame(t$overlaps))
-  gaps <- painted(on_read(t$gaps))
-  insertions <- painted(on_read(t$insertions))
-  clips <- painted(on_read(t$clips))
-  modifications <- painted(on_read(t$modifications))
-  qualities <- painted(on_read(t$qualities))
-  coverage <- painted(frame(t$coverage))
-  alleles <- painted(frame(t$alleleCoverage))
-  modification_coverage <- painted(frame(t$modificationCoverage))
-  interbase_coverage <- painted(frame(t$interbaseCoverage))
-  indicators <- painted(frame(t$indicators))
-  junctions <- painted(frame(t$junctions))
-  arcs <- painted(frame(t$arcs))
-  arc_ticks <- painted(frame(t$arcTicks))
+  mismatches <- on_read(t$mismatches)
+  chains <- frame(t$chains)
+  overlaps <- frame(t$overlaps)
+  gaps <- on_read(t$gaps)
+  insertions <- on_read(t$insertions)
+  clips <- on_read(t$clips)
+  modifications <- on_read(t$modifications)
+  qualities <- on_read(t$qualities)
+  coverage <- frame(t$coverage)
+  alleles <- frame(t$alleleCoverage)
+  modification_coverage <- frame(t$modificationCoverage)
+  interbase_coverage <- frame(t$interbaseCoverage)
+  indicators <- frame(t$indicators)
+  junctions <- frame(t$junctions)
+  arcs <- frame(t$arcs)
+  arc_ticks <- frame(t$arcTicks)
   read_key <- frame(t$legend)
   if (nrow(overlaps)) {
     read_key <- rbind(read_key, data.frame(
       label = "Pair/chain reads overlap here", color = overlaps$color[1]))
   }
-  read_key <- structure(read_key, title = t$legendTitle, complete = TRUE)
+  read_key <- structure(read_key, title = t$legendTitle)
   arc_key <- structure(frame(t$arcLegend), title = t$arcLegendTitle)
-  engine_key <- function(key, title, complete = FALSE) {
+  engine_key <- function(key, title) {
     key_frame(unlist(key$label) %||% character(0),
-      unlist(key$color) %||% character(0), title, complete)
+      unlist(key$color) %||% character(0), title)
   }
-  base_key <- engine_key(t$baseLegend, t$baseLegendTitle, complete = TRUE)
-  interbase_key <- engine_key(t$interbaseLegend, t$interbaseLegendTitle,
-    complete = TRUE)
+  base_key <- engine_key(t$baseLegend, t$baseLegendTitle)
+  interbase_key <- engine_key(t$interbaseLegend, t$interbaseLegendTitle)
   junction_key <- engine_key(t$junctionLegend, t$junctionLegendTitle)
   structure(
     list(reads = reads, mismatches = mismatches, gaps = gaps, chains = chains,

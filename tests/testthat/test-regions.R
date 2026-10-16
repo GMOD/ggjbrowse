@@ -203,9 +203,39 @@ test_that("a result's table handed to a geom or stacked in a plot of one's own d
   expect_null(attr(own$data, "on_axis"))
 })
 
-test_that("an alignments track refuses tracks above it over other regions", {
-  expect_error(ggplot2::autoplot(jbrowse_alignments(bam, "ctgA:1,001-2,000"),
-    above = jbrowse_features(gff, "ctgA:20,001-30,000")), "same regions")
+test_that("an alignments track refuses tracks stacked with it over other regions", {
+  expect_error(jbrowse_stack(jbrowse_features(gff, "ctgA:20,001-30,000"),
+    jbrowse_alignments(bam, "ctgA:1,001-2,000")), "same regions")
+})
+
+test_that("a frame of one's own lands in the region its chrom and positions fall in", {
+  loci <- c("ctgA:1,001-4,000", "ctgA:6,001-9,000")
+  genes <- jbrowse_features(gff, loci)
+  r <- genes$regions
+  peaks <- data.frame(chrom = c("ctgA", "ctgA", "ctgA", "ctgB"),
+    start = c(1500, 6500, 4500, 1500), end = c(1600, 6600, 4600, 1600),
+    y = 1:4)
+  p <- ggplot2::ggplot(genes) + ggplot2::geom_rect(ggplot2::aes(
+    xmin = start, xmax = end, ymin = y, ymax = y + 1), data = peaks)
+  drawn <- ggplot2::layer_data(p, 1)
+  expect_equal(drawn$ymin, 1:2)
+  expect_equal(drawn$xmin, c(1500, 6500 - r$start[2] + r$offset[2]))
+  sites <- data.frame(chrom = "ctgA", position = c(2000, 7000), y = 1)
+  own <- ggplot2::ggplot(sites, ggplot2::aes(position, y)) +
+    ggplot2::geom_point()
+  band <- jbrowse_stack(genes, own)[[2]]
+  expect_equal(ggplot2::layer_data(band, 1)$x,
+    c(2000, 7000 - r$start[2] + r$offset[2]))
+  one <- jbrowse_features(gff, "ctgA:1,001-9,000")
+  expect_equal(ggplot2::layer_data(ggplot2::ggplot(one) +
+    ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = y,
+      ymax = y + 1), data = peaks), 1)$ymin, 1:3)
+})
+
+test_that("a result's $ matches names exactly, so $region is not $regions", {
+  g <- jbrowse_features(gff, "ctgA:1-1,000")
+  expect_null(g$region)
+  expect_s3_class(g$regions, "data.frame")
 })
 
 test_that("an arc between two contigs rises half as high as its feet lie apart", {

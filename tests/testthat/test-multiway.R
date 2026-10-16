@@ -11,7 +11,7 @@ test_that("an all-vs-all PAF reads as the multi-way display stacks it", {
   expect_true(all(m$ribbons$upper_lane < m$ribbons$lower_lane))
   expect_setequal(unique(m$ribbons$gutter), 1:2)
   expect_true(all(m$ribbons$alignment %in% seq_len(nrow(m$alignments))))
-  expect_s3_class(m$ribbons$color, "jbrowse_color")
+  expect_type(m$ribbons$color, "character")
   expect_true(all(m$segments$x2 >= m$segments$x1))
   expect_true(all(m$segments$x1 >= 0 & m$segments$x2 <= m$width))
   expect_match(m$lanes$locus[1], "^ctgA:1-50,001$")

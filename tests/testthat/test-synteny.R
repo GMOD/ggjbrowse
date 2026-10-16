@@ -18,7 +18,7 @@ test_that("a PAF reads as the synteny band lays out and colors it", {
   expect_equal(unique(as.character(match$color)), "#ff0000")
   expect_equal(s$keys$ribbons$label, c("match", "insertion", "deletion"))
   expect_true("deletion" %in% s$ribbons$kind)
-  expect_s3_class(s$ribbons$color, "jbrowse_color")
+  expect_type(s$ribbons$color, "character")
   expect_equal(nrow(s$offscreen), 0)
 })
 
@@ -289,8 +289,12 @@ test_that("the off-screen strip draws as the band paints it and keys its contigs
   expect_equal(rects$ymax, 1)
   expect_equal(rects$ymin, 1 - 6 / t$display$height)
   expect_equal(as.character(rects$fill), as.character(t$offscreen$color))
-  expect_false(is.null(offscreen_guides(t)))
-  expect_null(offscreen_guides(s))
+  expect_equal(names(t$keys), c("ribbons", "offscreen_query"))
+  expect_equal(t$keys$offscreen_query$label, t$offscreen_contigs$label[
+    t$offscreen_contigs$axis == "query"])
+  expect_true("Off-screen mates, query row" %in%
+    names(drawn_guides(autoplot(t))))
+  expect_equal(names(s$keys), "ribbons")
 })
 
 test_that("a file's contigs list with their lengths, and an axis with no regions shows them all", {
@@ -364,12 +368,6 @@ test_that("a binned key lists every bin, present in the data or not", {
     display = list(color = list(field = "mapq")))
   expect_equal(nrow(mapq$keys$ribbons), 4)
   expect_equal(length(unique(mapq$alignments$color)), 1)
-  built <- ggplot2::ggplot_build(autoplot(mapq))
-  fill <- built$plot$scales$get_scales("fill")
-  expect_setequal(fill$get_breaks(), as.character(mapq$keys$ribbons$color))
-  expect_true(all(as.character(mapq$keys$ribbons$color) %in% fill$get_limits()))
-  reads <- jbrowse_alignments(system.file("extdata", "spliced.bam",
-    package = "ggjbrowse"), "ctgA:401-1,300")
-  fill <- ggplot2::ggplot_build(autoplot(reads, "pileup"))$plot$scales$get_scales("fill")
-  expect_true(all(fill$get_limits() %in% as.character(reads$reads$color)))
+  key <- drawn_guides(autoplot(mapq))[[attr(mapq$keys$ribbons, "title")]]
+  expect_equal(key$color, mapq$keys$ribbons$color)
 })

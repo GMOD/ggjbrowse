@@ -7,23 +7,18 @@
 \method{autoplot}{jbrowse_alignments}(
   object,
   what = c("track", "pileup", "coverage", "junctions", "arcs", "sequence"),
-  min_allele_frequency = NULL,
-  min_reads = NULL,
   letters = NULL,
-  fade_low_frequency = NULL,
   width = NULL,
-  above = NULL,
-  below = NULL,
   ...
 )
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result}
 
-\item{what}{\code{"track"}: the display's stack, any \code{above} on top,
-then splice-junction arcs where the reads splice, the coverage band,
-the read-connection band under \code{display$readConnections} and the
-pileup, one above the other, then any \code{below}, all on a shared axis, each band split into the \code{facet}'s sections, and each
+\item{what}{\code{"track"}: the display's stack, splice-junction arcs where
+the reads splice, the coverage band, the read-connection band under
+\code{display$readConnections} and the pileup, one above the other on a
+shared axis, each band split into the \code{facet}'s sections, and each
 drawn where the display's \code{showCoverage}, \code{showPileup} and
 \code{showSashimiArcs} draw it; \code{"pileup"}: each read on its row, split at
 its splice gaps, filled as the display's \code{color} object paints it and
@@ -34,29 +29,13 @@ mismatch position's alleles stacked in its bases' colors;
 alone, mate-pair and split-read arcs or the read cloud on a log
 insert-size axis; \code{"sequence"}: the reference's bases alone}
 
-\item{min_allele_frequency}{hide a coverage-band allele segment whose share
-of the depth there is below this; \code{NULL} draws the segments the display
-shows, by its \code{coverageSnpMinFrequency}}
-
-\item{min_reads}{hide a junction arc with fewer supporting reads;
-\code{NULL} draws the junctions the display shows, by its \code{minSashimiScore}
-and \code{showNonCanonicalJunctions}}
-
 \item{letters}{write each mismatch's base and each insertion's length on
 the pileup; \code{NULL} does so where the region is at most 300 bp, where a
 base is wide enough to read}
 
-\item{fade_low_frequency}{fade a mismatch, indel or clip narrower than a
-pixel by its site's share of the depth, so sequencing errors recede on a
-deep pileup; \code{NULL} takes the display's \code{fadeLowFrequencyMismatches}}
-
-\item{width}{the pixels the figure spans across its region, which that
-fade and the read-connection band's reach read; \code{NULL} takes the widest
-\code{width} this track and those above and below it were read at}
-
-\item{above, below}{tracks to draw above and below a \code{"track"}, each a
-ggjbrowse result over the same regions or a ggplot, or a list of them, as
-\code{\link[=jbrowse_stack]{jbrowse_stack()}} stacks them}
+\item{width}{the pixels the figure spans across its region, which the
+sub-pixel fade and the read-connection band's reach read; \code{NULL} takes
+the \code{width} the track was read at}
 
 \item{...}{must be empty, so a misspelt argument errors}
 }
@@ -65,7 +44,12 @@ a ggplot, to extend with layers, scales and themes or to stack with
 patchwork; a \code{"track"} is a patchwork of its bands
 }
 \description{
-Draw alignments as JBrowse's alignments track, or one band of it
+Each band draws what the result says: the junctions whose \code{shown} is
+true, the allele segments whose \code{shown} is true, and each mark faded by
+its \code{fade} under the display's \code{fadeLowFrequencyMismatches}. Edit those
+columns to draw otherwise, as in
+\code{a$junctions$shown <- a$junctions$count >= 5}. \code{\link[=jbrowse_stack]{jbrowse_stack()}} stacks
+other tracks over the track.
 }
 \examples{
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")

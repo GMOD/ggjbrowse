@@ -250,7 +250,7 @@ geom_jbrowse_tree <- function(mapping = NULL, data = NULL, gap = 2,
   }
   jbrowse_layer(GeomTree, data, segments, mapping,
     ggplot2::aes(y = y, yend = yend, h = h, hend = hend),
-    list(gap = gap, span = span, ...), keyed = FALSE)
+    list(gap = gap, span = span, ...))
 }
 
 # The points a tree spans beside a matrix's rows

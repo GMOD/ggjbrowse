@@ -14,7 +14,9 @@ genomic positions over one region, and over several the axis that
 \verb{ggplot(<result>)} draws on. A track's name, as an argument's or a list
 element's, titles its first band, as the view labels a track:
 \code{jbrowse_stack(genes, CHH = reads)}. A comparative result, which lays
-out several axes, stops the stack: \verb{autoplot(<synteny result>, above =, below =)} stacks tracks over its rows}
+out several axes, stops the stack: \verb{autoplot(<synteny result>, above =, below =)} stacks tracks over its rows. A data frame in your own plot
+with a \code{chrom} column and \code{start} and \code{end}, or \code{position}, lands in the
+region it falls in}
 
 \item{width}{the pixels the stack draws its regions across, which
 \code{\link[=jbrowse_width]{jbrowse_width()}} sizes the figure by; \code{NULL} takes the widest \code{width}

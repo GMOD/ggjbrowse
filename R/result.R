@@ -17,7 +17,7 @@
 #' * `display`: the display's config as JBrowse resolves it, every slot
 #'   under JBrowse's own name, the schema's defaults filled in
 #' * `keys`: the display's color keys, each a data frame of `label` and
-#'   `color` titled by its `"title"` attribute, as [scale_fill_jbrowse()]
+#'   `color` titled by its `"title"` attribute, as [guides_jbrowse()]
 #'   draws them
 #' * `ramps`: the display's color bars, as [guides_jbrowse()] draws them
 #' * `y_scale`: the score axis of a [jbrowse_wiggle()] result, or the
@@ -145,6 +145,9 @@ joined <- function(x, families) {
   }
   x
 }
+
+#' @export
+`$.jbrowse_result` <- function(x, name) .subset2(x, name, exact = TRUE)
 
 #' @export
 `$<-.jbrowse_result` <- function(x, name, value) {

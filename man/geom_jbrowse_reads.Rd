@@ -34,47 +34,23 @@ geom_jbrowse_chains(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_skips(mapping = NULL, data = NULL, ...)
 
-geom_jbrowse_deletions(
-  mapping = NULL,
-  data = NULL,
-  fade = NULL,
-  width = NULL,
-  ...
-)
+geom_jbrowse_deletions(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_modifications(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_qualities(mapping = NULL, data = NULL, width = NULL, ...)
 
-geom_jbrowse_mismatches(
-  mapping = NULL,
-  data = NULL,
-  fade = NULL,
-  width = NULL,
-  ...
-)
+geom_jbrowse_mismatches(mapping = NULL, data = NULL, width = NULL, ...)
 
-geom_jbrowse_insertions(
-  mapping = NULL,
-  data = NULL,
-  fade = NULL,
-  width = NULL,
-  ...
-)
+geom_jbrowse_insertions(mapping = NULL, data = NULL, width = NULL, ...)
 
-geom_jbrowse_clips(mapping = NULL, data = NULL, fade = NULL, width = NULL, ...)
+geom_jbrowse_clips(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_letters(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_coverage(mapping = NULL, data = NULL, ...)
 
-geom_jbrowse_alleles(
-  mapping = NULL,
-  data = NULL,
-  min_allele_frequency = NULL,
-  width = NULL,
-  ...
-)
+geom_jbrowse_alleles(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_interbase(mapping = NULL, data = NULL, ...)
 
@@ -87,14 +63,9 @@ geom_jbrowse_modification_coverage(
   ...
 )
 
-geom_jbrowse_junctions(mapping = NULL, data = NULL, min_reads = NULL, ...)
+geom_jbrowse_junctions(mapping = NULL, data = NULL, ...)
 
-geom_jbrowse_junction_counts(
-  mapping = NULL,
-  data = NULL,
-  min_reads = NULL,
-  ...
-)
+geom_jbrowse_junction_counts(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_arcs(mapping = NULL, data = NULL, width = NULL, ...)
 
@@ -113,31 +84,28 @@ assign the filtered reads into the result, which drops their marks too}
 \item{width}{the pixels the figure spans across its region, which decide
 the fade, whether a one-base mark reaches a pixel and how high the
 read-connection band reaches; \code{NULL} takes the result's \code{width}}
-
-\item{fade}{fade a mark narrower than a pixel by its site's share of the
-depth, as the display does; \code{NULL} follows the display's
-\code{fadeLowFrequencyMismatches}}
-
-\item{min_allele_frequency}{leave out an allele segment whose share of the
-depth is below this; \code{NULL} draws the segments the display shows, by its
-\code{coverageSnpMinFrequency}}
-
-\item{min_reads}{leave out a junction with fewer supporting reads; \code{NULL}
-draws the junctions the display shows, by its \code{minSashimiScore} and
-\code{showNonCanonicalJunctions}}
 }
 \value{
 a ggplot layer
 }
 \description{
 One geom per table of a \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result. Each draws the
-marks as the display does, in the display's colors (the table's \code{color}
-column, an identity scale), and takes any column of its table in
-\code{mapping}: \code{aes(fill = mapq)} fills the reads by mapping quality through
-ggplot's own scales. With \code{data = NULL} a layer reads the result its plot
-was made from, \verb{ggplot(<jbrowse_alignments>)}.
+marks as the display does, in the display's colors, the table's \code{color}
+column painted as it is (\code{I(color)}), so it trains no scale. Map any
+column of the table and ggplot's own scales take it: \code{aes(fill = mapq)}
+fills the reads by mapping quality, beside the other geoms' display
+colors. \code{\link[=guides_jbrowse]{guides_jbrowse()}} adds the display's keys. With \code{data = NULL} a
+layer reads the result its plot was made from,
+\verb{ggplot(<jbrowse_alignments>)}.
 }
 \details{
+Each geom draws what its table says: \code{geom_jbrowse_junctions()} the
+junctions whose \code{shown} is true, \code{geom_jbrowse_alleles()} the allele
+segments whose \code{shown} is true, and the mismatches, deletions,
+insertions and clips each faded by its \code{fade} while the display's
+\code{fadeLowFrequencyMismatches} is on. Edit the table to draw otherwise:
+\code{a$junctions$shown <- a$junctions$count >= 5}, or
+\code{a$mismatches$fade <- 1} for no fade.
 \itemize{
 \item \code{geom_jbrowse_reads()}: each read on its pileup row, split at its splice
 gaps

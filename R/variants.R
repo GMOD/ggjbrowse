@@ -130,7 +130,6 @@ variants_result <- function(t) {
   variants <- as_frame(t$variants)
   variants <- cbind(variant = variants$key + 1L,
     variants[names(variants) != "key"])
-  variants$color <- jbrowse_color(variants$color)
   variants$filter <- as.character(variants$filter)
   info <- typed_columns(t$info, t$infoFields, nrow(variants), names(variants),
     "info")
@@ -138,14 +137,11 @@ variants_result <- function(t) {
   info_fields <- info$fields
   annotations <- annotation_frame(t$annotations, "variant", variants$variant)
   rows <- as_frame(t$rows)
-  rows$color <- jbrowse_color(rows$color)
   bands <- as_frame(t$bands)[c("key", "label")]
   cells <- as_frame(t$cells)
   cells$variant <- variants$variant[cells$variant + 1L]
   cells$row <- factor(cells$row, levels = rows$name)
-  cells$color <- jbrowse_color(cells$color)
   genotypes <- as_frame(t$legend)
-  genotypes$color <- jbrowse_color(genotypes$color)
   attr(genotypes, "title") <- c(genotypes$section[genotypes$section != ""],
     "Genotypes")[1]
   structure(
@@ -249,7 +245,9 @@ print.jbrowse_variants <- function(x, ...) {
 #' Zoomed out, records too short to see share pixels, and the display fades
 #' each by how many share its pixels, so a row shades by the share of its
 #' records that are alt rather than filling wherever any is. The reader
-#' gives each record that fade as its `opacity`, at the `width` it read at.
+#' gives each record that fade as its `opacity`, at the `width` it read at,
+#' which the cells take at genomic positions; set `v$variants$opacity <- 1`
+#' to draw every cell opaque.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_variants()] result, `NULL` for the plot's,
 #'   or a data frame in place of the table the geom draws from the plot's
@@ -257,8 +255,6 @@ print.jbrowse_variants <- function(x, ...) {
 #' @param layout `"genomic"` or `"columns"`
 #' @param width the pixels the figure spans across its region at genomic
 #'   positions; `NULL` takes the result's `width`
-#' @param fade `FALSE` draws every cell opaque at genomic positions, where by
-#'   default records sharing a pixel fade as the display fades them
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a ggplot layer
 #' @export
@@ -269,7 +265,7 @@ print.jbrowse_variants <- function(x, ...) {
 #' ggplot(v) + geom_jbrowse_genotypes(aes(fill = genotype), layout = "columns")
 geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
                                    layout = c("genomic", "columns"),
-                                   width = NULL, fade = TRUE, ...) {
+                                   width = NULL, ...) {
   data <- replacing(data, "cells", "geom_jbrowse_genotypes")
   layout <- match.arg(layout)
   cells <- function(x) {
@@ -285,14 +281,14 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
       half <- pmax(d$end - d$start, floor_bp) / 2
       d$xmin <- mid - half
       d$xmax <- mid + half
-      if (fade) d$alpha <- d$opacity %||% d$alpha
+      d$alpha <- d$opacity %||% d$alpha
     }
     d$y <- match(as.character(d$row), x$rows$name)
     d[!is.na(d$y), , drop = FALSE]
   }
   jbrowse_layer(ggplot2::GeomRect, data, cells, mapping,
     ggplot2::aes(xmin = xmin, xmax = xmax, ymin = y - 0.5, ymax = y + 0.5,
-      fill = color, alpha = I(alpha)), list(...))
+      fill = I(color), alpha = I(alpha)), list(...))
 }
 
 # Each record's fade where records share pixels at `bp_per_px`, region by
@@ -315,7 +311,7 @@ reference_rows <- function(x) {
   background <- data.frame(xmin = -Inf, xmax = Inf, ymin = 0.5,
     ymax = nrow(x$rows) + 0.5, color = x$keys$genotypes$color[1])
   ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin,
-    ymax = ymax, fill = color), data = background, inherit.aes = FALSE)
+    ymax = ymax, fill = I(color)), data = background, inherit.aes = FALSE)
 }
 
 #' Draw a multi-sample VCF as JBrowse's variant matrix
@@ -353,7 +349,6 @@ autoplot.jbrowse_variants <- function(object,
   ggplot2::ggplot(object) +
     reference_rows(object) +
     geom_jbrowse_genotypes(layout = layout) +
-    scale_fill_jbrowse(object) +
     guides_jbrowse(object) +
     row_bars(object, xlim) +
     (if (!is.null(tree)) geom_jbrowse_tree(gap = inner + 1, span = TREE_PT)) +
@@ -425,9 +420,8 @@ row_bars <- function(x, xlim) {
   bars <- data.frame(y = which(colored), color = x$rows$color[colored],
     x = xlim[1] - 0.006 * diff(xlim))
   list(ggplot2::geom_segment(ggplot2::aes(x = x, xend = x, y = y - 0.5,
-      yend = y + 0.5, colour = color), data = bars, inherit.aes = FALSE,
-      linewidth = 2.5, lineend = "butt", key_glyph = "rect"),
-    scale_colour_jbrowse(x, "rows"))
+      yend = y + 0.5, colour = I(color)), data = bars, inherit.aes = FALSE,
+      linewidth = 2.5, lineend = "butt"))
 }
 
 # A matrix row's height in display pixels: the display's rowHeight, or for

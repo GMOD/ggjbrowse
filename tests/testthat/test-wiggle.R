@@ -109,8 +109,7 @@ test_that("a stepped line joins its bins, and a rule is labelled in its color", 
 test_that("a BigWig stacks over reads as one of the track's tracks", {
   bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
   reads <- jbrowse_alignments(bam, "ctgA:1,001-6,000")
-  track <- ggplot2::autoplot(reads,
-    above = jbrowse_wiggle(bw, "ctgA:1,001-6,000"))
+  track <- jbrowse_stack(jbrowse_wiggle(bw, "ctgA:1,001-6,000"), reads)
   expect_equal(length(track$patches$plots) + 1, 3)
 })
 

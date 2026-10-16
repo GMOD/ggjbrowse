@@ -16,11 +16,7 @@ read_inset <- function(x) {
   (1 - p$featureHeight / (p$featureHeight + p$featureSpacing)) / 2
 }
 
-# Whether the marks fade: as the caller says, else as the display's
-# fadeLowFrequencyMismatches does
-fades <- function(x, fade) {
-  fade %||% !isFALSE(x$display$fadeLowFrequencyMismatches)
-}
+fades <- function(x) !isFALSE(x$display$fadeLowFrequencyMismatches)
 
 with_inset <- function(d, model) {
   d$inset <- rep(read_inset(model), nrow(d))
@@ -30,11 +26,21 @@ with_inset <- function(d, model) {
 #' The alignments track's marks as ggplot layers
 #'
 #' One geom per table of a [jbrowse_alignments()] result. Each draws the
-#' marks as the display does, in the display's colors (the table's `color`
-#' column, an identity scale), and takes any column of its table in
-#' `mapping`: `aes(fill = mapq)` fills the reads by mapping quality through
-#' ggplot's own scales. With `data = NULL` a layer reads the result its plot
-#' was made from, `ggplot(<jbrowse_alignments>)`.
+#' marks as the display does, in the display's colors, the table's `color`
+#' column painted as it is (`I(color)`), so it trains no scale. Map any
+#' column of the table and ggplot's own scales take it: `aes(fill = mapq)`
+#' fills the reads by mapping quality, beside the other geoms' display
+#' colors. [guides_jbrowse()] adds the display's keys. With `data = NULL` a
+#' layer reads the result its plot was made from,
+#' `ggplot(<jbrowse_alignments>)`.
+#'
+#' Each geom draws what its table says: `geom_jbrowse_junctions()` the
+#' junctions whose `shown` is true, `geom_jbrowse_alleles()` the allele
+#' segments whose `shown` is true, and the mismatches, deletions,
+#' insertions and clips each faded by its `fade` while the display's
+#' `fadeLowFrequencyMismatches` is on. Edit the table to draw otherwise:
+#' `a$junctions$shown <- a$junctions$count >= 5`, or
+#' `a$mismatches$fade <- 1` for no fade.
 #'
 #' * `geom_jbrowse_reads()`: each read on its pileup row, split at its splice
 #'   gaps
@@ -74,18 +80,9 @@ with_inset <- function(d, model) {
 #'   or a data frame in place of the table the geom draws from the plot's
 #'   result, such as a filtered copy of it. `reads` takes no data frame:
 #'   assign the filtered reads into the result, which drops their marks too
-#' @param fade fade a mark narrower than a pixel by its site's share of the
-#'   depth, as the display does; `NULL` follows the display's
-#'   `fadeLowFrequencyMismatches`
 #' @param width the pixels the figure spans across its region, which decide
 #'   the fade, whether a one-base mark reaches a pixel and how high the
 #'   read-connection band reaches; `NULL` takes the result's `width`
-#' @param min_allele_frequency leave out an allele segment whose share of the
-#'   depth is below this; `NULL` draws the segments the display shows, by its
-#'   `coverageSnpMinFrequency`
-#' @param min_reads leave out a junction with fewer supporting reads; `NULL`
-#'   draws the junctions the display shows, by its `minSashimiScore` and
-#'   `showNonCanonicalJunctions`
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a ggplot layer
 #' @name geom_jbrowse_reads
@@ -108,7 +105,7 @@ geom_jbrowse_reads <- function(mapping = NULL, data = NULL, ...) {
   jbrowse_layer(ggplot2::GeomRect, data, read_blocks, mapping,
     ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
       ymax = row + 1 - inset,
-      fill = color), list(...), keyed = "complete", rows = TRUE)
+      fill = I(color)), list(...), rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -127,8 +124,7 @@ geom_jbrowse_deletion_lengths <- function(mapping = NULL, data = NULL,
     d[d$alpha > 0, , drop = FALSE]
   }, mapping, ggplot2::aes(x = (start + end) / 2, y = row + 0.5,
     label = length, alpha = I(alpha)),
-    list(size = 1.7, colour = "white", fontface = "bold", ...),
-    keyed = FALSE)
+    list(size = 1.7, colour = "white", fontface = "bold", ...))
 }
 
 # A size label's opacity from the pixels its feature spans and the pixels its
@@ -149,7 +145,7 @@ geom_jbrowse_overlaps <- function(mapping = NULL, data = NULL, ...) {
   jbrowse_layer(ggplot2::GeomRect, data,
     function(x) summary_table(x, "overlaps"), mapping,
     ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
-      ymax = row + 1 - inset, fill = color), list(...), keyed = FALSE,
+      ymax = row + 1 - inset, fill = I(color)), list(...),
     rows = TRUE)
 }
 
@@ -160,8 +156,7 @@ geom_jbrowse_chains <- function(mapping = NULL, data = NULL, ...) {
   jbrowse_layer(ggplot2::GeomSegment, data,
     function(x) summary_table(x, "chains"), mapping,
     ggplot2::aes(x = start, xend = end, y = row + 0.5, yend = row + 0.5,
-      colour = color, alpha = I(opacity)), list(linewidth = 0.3, ...),
-    keyed = FALSE)
+      colour = I(color), alpha = I(opacity)), list(linewidth = 0.3, ...))
 }
 
 #' @rdname geom_jbrowse_reads
@@ -173,42 +168,40 @@ geom_jbrowse_skips <- function(mapping = NULL, data = NULL, ...) {
     d$alpha <- rep(x$glyph$intronAlpha %||% 1, nrow(d))
     d
   }, mapping, ggplot2::aes(x = start, xend = end, y = row + 0.5,
-    yend = row + 0.5, colour = color, alpha = I(alpha)),
-    list(linewidth = 0.3, ...), keyed = FALSE)
+    yend = row + 0.5, colour = I(color), alpha = I(alpha)),
+    list(linewidth = 0.3, ...))
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_deletions <- function(mapping = NULL, data = NULL, fade = NULL,
+geom_jbrowse_deletions <- function(mapping = NULL, data = NULL,
                                    width = NULL, ...) {
   data <- replacing(data, "gaps", "geom_jbrowse_deletions")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
     d$alpha <- mark_alpha(((d$end - d$start) * px_of(x, width))^2,
-      d$fade, fades(x, fade))
+      d$fade, fades(x))
     d
   }, mapping, ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
-    ymax = row + 1 - inset, fill = color, alpha = I(alpha)), list(...),
-    keyed = FALSE, rows = TRUE)
+    ymax = row + 1 - inset, fill = I(color), alpha = I(alpha)), list(...), rows = TRUE)
 }
 
 # A per-position table drawn as rects one base wide, a pixel at least, over
-# the read's row unless `defaults` says otherwise, painted by `rect`; `prep`
-# adjusts the table first, and where `faded` the rects fade by the pixels per
-# base as `fade` or the display says
+# the read's row unless `defaults` says otherwise; `prep` adjusts the table
+# first, and where `faded` the rects fade by the pixels per base
 position_rects <- function(table, geom, data, mapping, width, params,
-                           defaults, rect = ggplot2::GeomRect, prep = NULL,
-                           faded = FALSE, fade = NULL, ..., rows = TRUE) {
+                           defaults, prep = NULL, faded = FALSE,
+                           rows = TRUE) {
   data <- replacing(data, table, geom)
   defaults <- with_defaults(defaults, ggplot2::aes(xmin = position,
     xmax = xmax, ymin = row + inset, ymax = row + 1 - inset))
-  jbrowse_layer(rect, data, function(x) {
+  jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- if (table %in% SUMMARIES) summary_table(x, table) else x[[table]]
     if (!is.null(prep)) d <- prep(d, x)
     d$xmax <- d$position + max(1, 1 / px_of(x, width))
-    if (faded) d$alpha <- mark_alpha(px_of(x, width), d$fade, fades(x, fade))
+    if (faded) d$alpha <- mark_alpha(px_of(x, width), d$fade, fades(x))
     d
-  }, mapping, defaults, params, ..., rows = rows)
+  }, mapping, defaults, params, rows = rows)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -216,7 +209,7 @@ position_rects <- function(table, geom, data, mapping, width, params,
 geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
                                        width = NULL, ...) {
   position_rects("modifications", "geom_jbrowse_modifications", data, mapping,
-    width, list(...), ggplot2::aes(fill = color, alpha = I(opacity)))
+    width, list(...), ggplot2::aes(fill = I(color), alpha = I(opacity)))
 }
 
 #' @rdname geom_jbrowse_reads
@@ -224,45 +217,45 @@ geom_jbrowse_modifications <- function(mapping = NULL, data = NULL,
 geom_jbrowse_qualities <- function(mapping = NULL, data = NULL,
                                    width = NULL, ...) {
   position_rects("qualities", "geom_jbrowse_qualities", data, mapping, width,
-    list(...), ggplot2::aes(fill = color), keyed = FALSE)
+    list(...), ggplot2::aes(fill = I(color)))
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL, fade = NULL,
+geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL,
                                     width = NULL, ...) {
   position_rects("mismatches", "geom_jbrowse_mismatches", data, mapping,
-    width, list(...), ggplot2::aes(colour = color, alpha = I(alpha)),
-    rect = GeomSwatch, faded = TRUE, fade = fade, keyed = "complete")
+    width, list(...), ggplot2::aes(fill = I(color), alpha = I(alpha)),
+    faded = TRUE)
 }
 
 # A per-position table drawn as vertical ticks, faded as the pixels per base
 # raised to `power` shrink
-position_ticks <- function(table, geom, data, mapping, fade, width, params,
+position_ticks <- function(table, geom, data, mapping, width, params,
                            power) {
   data <- replacing(data, table, geom)
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     d <- x[[table]]
-    d$alpha <- mark_alpha(px_of(x, width)^power, d$fade, fades(x, fade))
+    d$alpha <- mark_alpha(px_of(x, width)^power, d$fade, fades(x))
     d
   }, mapping, ggplot2::aes(x = position, xend = position,
-    y = row + inset / 2, yend = row + 1 - inset / 2, colour = color,
-    alpha = I(alpha)), params, keyed = FALSE, rows = TRUE)
+    y = row + inset / 2, yend = row + 1 - inset / 2, colour = I(color),
+    alpha = I(alpha)), params, rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_insertions <- function(mapping = NULL, data = NULL, fade = NULL,
+geom_jbrowse_insertions <- function(mapping = NULL, data = NULL,
                                     width = NULL, ...) {
-  position_ticks("insertions", "geom_jbrowse_insertions", data, mapping, fade,
+  position_ticks("insertions", "geom_jbrowse_insertions", data, mapping,
     width, list(linewidth = 0.4, ...), power = 2)
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_clips <- function(mapping = NULL, data = NULL, fade = NULL,
+geom_jbrowse_clips <- function(mapping = NULL, data = NULL,
                                width = NULL, ...) {
-  position_ticks("clips", "geom_jbrowse_clips", data, mapping, fade, width,
+  position_ticks("clips", "geom_jbrowse_clips", data, mapping, width,
     list(linewidth = 0.7, ...), power = 1)
 }
 
@@ -274,13 +267,12 @@ geom_jbrowse_letters <- function(mapping = NULL, data = NULL, ...) {
     jbrowse_layer(ggplot2::GeomText, data, function(x) x$mismatches,
       for_geom(mapping, ggplot2::GeomText),
       ggplot2::aes(x = position + 0.5, y = row + 0.5, label = base),
-      list(size = 2.6, colour = "black", ...), keyed = FALSE),
+      list(size = 2.6, colour = "black", ...)),
     jbrowse_layer(ggplot2::GeomLabel, data, function(x) x$insertions,
       for_geom(mapping, ggplot2::GeomLabel),
-      ggplot2::aes(x = position, y = row + 0.5, label = length, fill = color),
+      ggplot2::aes(x = position, y = row + 0.5, label = length, fill = I(color)),
       list(size = 2.2, colour = "white",
-        label.padding = grid::unit(0.1, "lines"), linewidth = 0, ...),
-      keyed = FALSE))
+        label.padding = grid::unit(0.1, "lines"), linewidth = 0, ...)))
 }
 
 #' @rdname geom_jbrowse_reads
@@ -292,19 +284,16 @@ geom_jbrowse_coverage <- function(mapping = NULL, data = NULL, ...) {
     d$base <- rep(bar_base(x), nrow(d))
     d[d$depth > d$base, , drop = FALSE]
   }, mapping, ggplot2::aes(xmin = start, xmax = end, ymin = base, ymax = depth,
-      fill = color), list(...), keyed = FALSE)
+      fill = I(color)), list(...))
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_alleles <- function(mapping = NULL, data = NULL,
-                                 min_allele_frequency = NULL, width = NULL,
+geom_jbrowse_alleles <- function(mapping = NULL, data = NULL, width = NULL,
                                  ...) {
   position_rects("allele_coverage", "geom_jbrowse_alleles", data, mapping,
-    width, list(...), with_defaults(ggplot2::aes(colour = color), stack_rect),
-    rect = GeomSwatch, rows = FALSE, keyed = "complete",
-    prep = function(a, x) on_bar(x, a[if (is.null(min_allele_frequency))
-      a$shown else a$to - a$from >= min_allele_frequency, , drop = FALSE]))
+    width, list(...), with_defaults(ggplot2::aes(fill = I(color)), stack_rect),
+    rows = FALSE, prep = function(a, x) on_bar(x, a[shown(a), , drop = FALSE]))
 }
 
 stack_rect <- ggplot2::aes(ymin = low, ymax = high)
@@ -326,23 +315,6 @@ on_bar <- function(x, d) {
   d
 }
 
-# Rects filled with their `colour`, as the segments these marks once were
-# painted, so a pileup's fill scale keys its reads alone
-GeomSwatch <- ggplot2::ggproto("GeomSwatch", ggplot2::GeomRect,
-  default_aes = ggplot2::aes(colour = "grey30", alpha = NA, linewidth = 0,
-    linetype = 1),
-  draw_panel = function(self, data, panel_params, coord, ...) {
-    data$fill <- data$colour
-    data$colour <- NA
-    ggplot2::ggproto_parent(ggplot2::GeomRect, self)$draw_panel(data,
-      panel_params, coord, ...)
-  },
-  draw_key = function(data, params, size) {
-    data$fill <- data$colour
-    data$colour <- NA
-    ggplot2::draw_key_polygon(data, params, size)
-  })
-
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_interbase <- function(mapping = NULL, data = NULL, ...) {
@@ -358,8 +330,8 @@ geom_jbrowse_interbase <- function(mapping = NULL, data = NULL, ...) {
     d$width <- rep(px_to_pt(1), n)
     d
   }, mapping, ggplot2::aes(x = position, hang = hang, hang_end = hang_end,
-    top = I(top), inset = I(inset), width = I(width), fill = color),
-    list(...), keyed = "complete")
+    top = I(top), inset = I(inset), width = I(width), fill = I(color)),
+    list(...))
 }
 
 # Each position's stack as the display hangs it from the band's top, below
@@ -394,8 +366,8 @@ geom_jbrowse_indicators <- function(mapping = NULL, data = NULL, ...) {
     d$width <- rep(px_to_pt(x$glyph$indicatorWidth), nrow(d))
     d$height <- rep(px_to_pt(x$glyph$indicatorHeight), nrow(d))
     d
-  }, mapping, ggplot2::aes(x = position, fill = color, width = I(width),
-    height = I(height)), list(...), keyed = FALSE)
+  }, mapping, ggplot2::aes(x = position, fill = I(color), width = I(width),
+    height = I(height)), list(...))
 }
 
 # A display's px in grid's points, which are 72.27 to the inch
@@ -427,16 +399,16 @@ geom_jbrowse_modification_coverage <- function(mapping = NULL, data = NULL,
                                                width = NULL, ...) {
   position_rects("modification_coverage", "geom_jbrowse_modification_coverage",
     data, mapping, width, list(...),
-    with_defaults(ggplot2::aes(fill = color, alpha = I(opacity)), stack_rect),
-    rows = FALSE, keyed = FALSE, prep = on_bar_of)
+    with_defaults(ggplot2::aes(fill = I(color), alpha = I(opacity)), stack_rect),
+    rows = FALSE, prep = on_bar_of)
 }
 
 on_bar_of <- function(d, x) on_bar(x, d)
 
 # Each junction the band draws as its arc's points, its stroke the engine's
 # px as a linewidth at the figure's PX_PER_INCH
-junction_paths <- function(x, min_reads = NULL) {
-  j <- shown_junctions(x, min_reads)
+junction_paths <- function(x) {
+  j <- shown_junctions(x)
   arcs <- junction_arcs(j)
   arcs$color <- j$color[arcs$id]
   arcs$section <- j$section[arcs$id]
@@ -448,30 +420,28 @@ junction_paths <- function(x, min_reads = NULL) {
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_junctions <- function(mapping = NULL, data = NULL,
-                                   min_reads = NULL, ...) {
+geom_jbrowse_junctions <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "junctions", "geom_jbrowse_junctions")
   jbrowse_layer(ggplot2::GeomPath, data,
-    function(x) junction_paths(x, min_reads), mapping,
-    ggplot2::aes(x = x, y = y, group = id, colour = color,
-      linewidth = I(width)), list(lineend = "round", ...),
-    keyed = "complete")
+    junction_paths, mapping,
+    ggplot2::aes(x = x, y = y, group = id, colour = I(color),
+      linewidth = I(width)), list(lineend = "round", ...))
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_junction_counts <- function(mapping = NULL, data = NULL,
-                                         min_reads = NULL, ...) {
+                                         ...) {
   data <- replacing(data, "junctions", "geom_jbrowse_junction_counts")
   jbrowse_layer(ggplot2::GeomLabel, data, function(x) {
-    arcs <- junction_paths(x, min_reads)
+    arcs <- junction_paths(x)
     xlim <- xlim_of(x)
     shown <- arcs[arcs$x >= xlim[1] & arcs$x <= xlim[2], , drop = FALSE]
     top <- shown[order(shown$id, -shown$y), , drop = FALSE]
     top[!duplicated(top$id), , drop = FALSE]
   }, mapping, ggplot2::aes(x = x, y = y, label = count),
     list(size = 2.6, linewidth = 0,
-      label.padding = grid::unit(0.15, "lines"), ...), keyed = FALSE)
+      label.padding = grid::unit(0.15, "lines"), ...))
 }
 
 # Each connection's arc as points: a dome from foot to foot, its height the
@@ -512,17 +482,17 @@ geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, width = NULL,
   list(
     jbrowse_layer(ggplot2::GeomPath, data, domes,
       for_geom(mapping, ggplot2::GeomPath),
-      ggplot2::aes(x = x, y = y, group = id, colour = color,
+      ggplot2::aes(x = x, y = y, group = id, colour = I(color),
         linewidth = I(width / ggplot2::.pt)), list(...)),
     jbrowse_layer(ggplot2::GeomSegment, data, bars,
       for_geom(mapping, ggplot2::GeomSegment),
-      ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = color,
+      ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = I(color),
         alpha = I(opacity), linewidth = I(width / ggplot2::.pt),
         linetype = I(ifelse(shape == "flatSplit", "22", "solid"))),
       list(...)),
     jbrowse_layer(ggplot2::GeomPoint, data, feet,
       for_geom(mapping, ggplot2::GeomPoint),
-      ggplot2::aes(x = x, y = y, colour = color),
+      ggplot2::aes(x = x, y = y, colour = I(color)),
       list(shape = 15, size = 1.3, ...)))
 }
 
@@ -537,7 +507,7 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
     t$top <- rep(arc_top(x, width), nrow(t))
     t
   }, mapping, ggplot2::aes(x = position, xend = position, y = bottom,
-    yend = top, colour = color, linewidth = I(width / ggplot2::.pt)),
+    yend = top, colour = I(color), linewidth = I(width / ggplot2::.pt)),
     list(...))
 }
 

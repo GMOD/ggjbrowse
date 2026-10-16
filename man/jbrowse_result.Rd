@@ -23,7 +23,7 @@ contig
 \item \code{display}: the display's config as JBrowse resolves it, every slot
 under JBrowse's own name, the schema's defaults filled in
 \item \code{keys}: the display's color keys, each a data frame of \code{label} and
-\code{color} titled by its \code{"title"} attribute, as \code{\link[=scale_fill_jbrowse]{scale_fill_jbrowse()}}
+\code{color} titled by its \code{"title"} attribute, as \code{\link[=guides_jbrowse]{guides_jbrowse()}}
 draws them
 \item \code{ramps}: the display's color bars, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws them
 \item \code{y_scale}: the score axis of a \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result, or the

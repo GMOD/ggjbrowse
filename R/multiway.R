@@ -165,10 +165,9 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     ribbons$upper_chrom, mid(ribbons, "upper_"))
   ribbons$lower_region <- region_at(layout, axis(ribbons$lower_lane),
     ribbons$lower_chrom, mid(ribbons, "lower_"))
-  ribbons$color <- jbrowse_color(ribbons$color)
   key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle, complete = TRUE)
-  attr(key, "override") <- list(alpha = 0.6)
+    r$legendTitle)
+  attr(key, "alpha") <- 0.6
   comparative_result("jbrowse_multiway", "ribbons",
     list(lanes = lane_frame, segments = segments, blocks = blocks,
       ribbons = ribbons, alignments = keyed_alignments(r$alignments)),
@@ -329,12 +328,12 @@ geom_jbrowse_lane_ribbons <- function(mapping = NULL, data = NULL,
   list(
     jbrowse_layer(ggplot2::GeomPolygon, data, filled,
       for_geom(mapping, ggplot2::GeomPolygon),
-      ggplot2::aes(x = x, y = y, group = ribbon, fill = color,
-        alpha = I(alpha)), list(colour = NA, ...), keyed = "complete"),
+      ggplot2::aes(x = x, y = y, group = ribbon, fill = I(color),
+        alpha = I(alpha)), list(colour = NA, ...)),
     jbrowse_layer(ggplot2::GeomPath, data, lines,
       for_geom(mapping, ggplot2::GeomPath),
-      ggplot2::aes(x = x, y = y, group = ribbon, colour = color,
-        alpha = I(alpha)), list(linewidth = 0.3, ...), keyed = FALSE))
+      ggplot2::aes(x = x, y = y, group = ribbon, colour = I(color),
+        alpha = I(alpha)), list(linewidth = 0.3, ...)))
 }
 
 #' @rdname geom_jbrowse_lane_ribbons
@@ -347,18 +346,17 @@ geom_jbrowse_lanes <- function(data = NULL, ...) {
     jbrowse_layer(ggplot2::GeomRect, data, named, NULL,
       ggplot2::aes(xmin = pmin(x1, x2), xmax = pmax(x1, x2),
         ymin = y - LANE_BOX_PX, ymax = y + LANE_BOX_PX),
-      list(fill = "grey60", colour = "grey30", linewidth = 0.2, ...),
-      keyed = FALSE),
+      list(fill = "grey60", colour = "grey30", linewidth = 0.2, ...)),
     jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$segments, NULL,
       ggplot2::aes(x = x1, xend = x2, y = y, yend = y),
-      list(colour = "grey35", linewidth = 0.4, ...), keyed = FALSE),
+      list(colour = "grey35", linewidth = 0.4, ...)),
     jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$ticks, NULL,
       ggplot2::aes(x = x, xend = x, y = y, yend = y + tick_px),
-      list(colour = "grey35", linewidth = 0.3, ...), keyed = FALSE),
+      list(colour = "grey35", linewidth = 0.3, ...)),
     jbrowse_layer(ggplot2::GeomText, data, function(x) x$ticks, NULL,
       ggplot2::aes(x = x, y = y + tick_px + 2,
         label = scales::label_number(scale_cut = scales::cut_si("bp"))(bp)),
-      list(size = 2.2, vjust = 0, colour = "grey30", ...), keyed = FALSE))
+      list(size = 2.2, vjust = 0, colour = "grey30", ...)))
 }
 
 # Each lane's name on the y axis: its assembly, and the contig it shows
@@ -374,7 +372,7 @@ multiway_stack <- function(x, curves) {
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_lane_ribbons(curves = curves) +
     geom_jbrowse_lanes() +
-    scale_fill_jbrowse(x) +
+    guides_jbrowse(x) +
     ggplot2::scale_y_continuous(breaks = x$lane_y, labels = lane_names(x)) +
     ggplot2::coord_cartesian(xlim = c(0, x$width),
       ylim = c(-LANE_BOX_PX, max(x$lane_y) + LANE_RULER_PX), expand = FALSE) +
