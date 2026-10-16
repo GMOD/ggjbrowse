@@ -97,19 +97,20 @@ text_pt <- function(labels, gp) {
 
 chips <- function(key, theme) {
   gp <- legend_text(theme)
-  chip <- in_pt(ggplot2::calc_element("legend.key.height", theme))
-  row <- max(chip, 1.2 * gp$fontsize)
+  row <- max(in_pt(ggplot2::calc_element("legend.key.height", theme)),
+    1.2 * gp$fontsize)
+  chip <- 0.8 * row
   gap <- 5.5
   n <- nrow(key)
   y <- grid::unit(1, "npc") - grid::unit((seq_len(n) - 0.5) * row, "pt")
   fill <- scales::alpha(key$color, attr(key, "alpha") %||% NA)
   list(grob = grid::gTree(children = grid::gList(
-      grid::rectGrob(x = 0, y = y, width = grid::unit(chip, "pt"),
-        height = grid::unit(chip, "pt"), hjust = 0,
+      grid::rectGrob(x = grid::unit(row / 2, "pt"), y = y,
+        width = grid::unit(chip, "pt"), height = grid::unit(chip, "pt"),
         gp = grid::gpar(fill = fill, col = NA)),
-      grid::textGrob(key$label, x = grid::unit(chip + gap, "pt"), y = y,
+      grid::textGrob(key$label, x = grid::unit(row + gap, "pt"), y = y,
         hjust = 0, gp = gp))),
-    width = grid::unit(chip + gap + text_pt(key$label, gp), "pt"),
+    width = grid::unit(row + gap + text_pt(key$label, gp), "pt"),
     height = grid::unit(n * row, "pt"))
 }
 
