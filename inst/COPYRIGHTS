@@ -58,22 +58,22 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/bbi 11.3.2
   License: MIT
   Copyright: Copyright (c) 2019 Colin Diesh
-- @gmod/bed 2.3.2
+- @gmod/bed 2.3.3
   License: MIT
   Copyright: Copyright (c) 2026 Colin Diesh
 - @gmod/bgzf-filehandle 6.8.0
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
-- @gmod/cram 14.3.1
+- @gmod/cram 14.3.2
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
-- @gmod/gff-nostream 5.6.1
+- @gmod/gff-nostream 5.6.2
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels
 - @gmod/indexedfasta 5.0.13
   License: MIT
   Copyright: Copyright (c) 2018 Colin Diesh
-- @gmod/range-cache-filehandle 1.5.1
+- @gmod/range-cache-filehandle 1.5.2
   License: MIT
   Copyright: Copyright (c) 2021 Colin Diesh
 - @gmod/shared-read-cache 2.1.0
@@ -82,13 +82,13 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/tabix 3.11.0
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels
-- @gmod/trix 3.0.22
+- @gmod/trix 3.1.0
   License: Apache-2.0
   Copyright: Matt Morgan
 - @gmod/twobit 6.0.14
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels
-- @gmod/vcf 7.3.0
+- @gmod/vcf 7.4.0
   License: MIT
   Copyright: Copyright (c) 2017 Garrett Stevens
 - @jbrowse/add-track-core 5.0.0-beta.13
@@ -112,7 +112,7 @@ the JBrowse authors) with the packages below, minified.
 - @jbrowse/jexl 6.0.0
   License: MIT
   Copyright: Copyright (c) 2025 Colin Diesh; Copyright (c) 2020 Tom Shawver
-- @jbrowse/mobx-state-tree 6.8.1
+- @jbrowse/mobx-state-tree 6.9.0
   License: MIT
   Copyright: Copyright (c) 2016 Michel Weststrate
 - @jbrowse/modifications-utils 5.0.0-beta.13
@@ -217,7 +217,7 @@ the JBrowse authors) with the packages below, minified.
 - crypt 0.0.2
   License: BSD-3-Clause
   Copyright: Copyright (c) 2011, Paul Vorbach. All rights reserved.; Copyright (c) 2009, Jeff Mott. All rights reserved.
-- dompurify 3.4.16
+- dompurify 3.4.17
   License: (MPL-2.0 OR Apache-2.0)
   Copyright: Dr.-Ing. Mario Heiderich, Cure53
 - generic-filehandle2 2.5.1
@@ -244,16 +244,16 @@ the JBrowse authors) with the packages below, minified.
 - pako-esm2 2.0.2
   License: MIT
   Copyright: Copyright (C) 2025 Colin Diesh; Copyright (c) 2020 Progress Software Corporation and/or one of its subsidiaries or; Copyright (C) 2014-2017 by Vitaly Puzrin and Andrei Tuputcyn
-- react 19.3.0
+- react 19.3.1
   License: MIT
   Copyright: Copyright (c) Meta Platforms, Inc. and affiliates.
-- react-dom 19.3.0
+- react-dom 19.3.1
   License: MIT
   Copyright: Copyright (c) Meta Platforms, Inc. and affiliates.
 - react-is 16.13.1
   License: MIT
   Copyright: Copyright (c) Facebook, Inc. and its affiliates.
-- react-is 19.3.0
+- react-is 19.3.1
   License: MIT
   Copyright: Copyright (c) Meta Platforms, Inc. and affiliates.
 - react-transition-group 4.4.5
