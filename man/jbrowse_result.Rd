@@ -11,6 +11,9 @@ fixed set of slots holds what is not a table; every other slot is a table
 of records or of marks, which each reader's page lists, or a class's
 drawing state, listed below.
 }
+\details{
+\code{$} matches a slot's name exactly, so \code{x$region} is \code{NULL}.
+}
 \section{The slots every result holds}{
 
 \itemize{

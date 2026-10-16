@@ -60,8 +60,7 @@
 ## The result
 
 Every reader's result holds these slots, which `?jbrowse_result` documents.
-`$` matches a slot's name exactly, so `g$region` is `NULL`, not
-`g$regions`:
+`$` matches a slot's name exactly, so `g$region` is `NULL`:
 
 | Slot | Holds |
 |---|---|
