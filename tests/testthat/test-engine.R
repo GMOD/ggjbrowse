@@ -174,6 +174,14 @@ test_that("the engine keeps decoded records under the limit, and the files read 
   expect_error(jbrowse_cache(limit = -1), "number of bytes")
 })
 
+test_that("a lower limit keeps the files the last call read open", {
+  limit <- jbrowse_cache()$limit
+  on.exit(jbrowse_cache(limit = limit))
+  jbrowse_reset()
+  jbrowse_alignments(bam, "ctgA:1-2,000")
+  expect_equal(jbrowse_cache(limit = 0)$adapters, 1)
+})
+
 test_that("a limit of Inf is none, and a restarted engine takes it again", {
   limit <- jbrowse_cache()$limit
   on.exit(jbrowse_cache(limit = limit))
@@ -198,7 +206,7 @@ test_that("jbrowse_reset() empties the caches and keeps the limit", {
   expect_gt(jbrowse_cache()$decoded, 0)
   jbrowse_reset()
   expect_equal(jbrowse_cache(), list(limit = 2^30, decoded = 0, chunks = 0,
-    indexes = 0, adapters = 0, assemblies = 0))
+    parsed = 0, adapters = 0, assemblies = 0))
   expect_gt(nrow(jbrowse_alignments(bam, "ctgA:1-5,000")$reads), 0)
 })
 
