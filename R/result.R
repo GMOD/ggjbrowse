@@ -124,7 +124,11 @@ parent_rows <- function(d, family, parent) {
   key <- d[[family$child_key %||% family$key]]
   own <- parent[[family$key]]
   if (is.numeric(d$region) && is.numeric(parent$region)) {
-    match(paste(key, d$region), paste(own, parent$region))
+    if (!is.numeric(key) || !is.numeric(own)) {
+      return(match(paste(key, d$region), paste(own, parent$region)))
+    }
+    n <- max(0, d$region, parent$region) + 1
+    match(key * n + d$region, own * n + parent$region)
   } else {
     match(as.character(key), as.character(own))
   }
