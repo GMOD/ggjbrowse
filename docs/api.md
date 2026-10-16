@@ -59,7 +59,9 @@
 
 ## The result
 
-Every reader's result holds these slots, which `?jbrowse_result` documents:
+Every reader's result holds these slots, which `?jbrowse_result` documents.
+`$` matches a slot's name exactly, so `g$region` is `NULL`, not
+`g$regions`:
 
 | Slot | Holds |
 |---|---|
@@ -162,9 +164,12 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
 - `jbrowse_stack(...)` stacks results, and your own ggplots, on one x axis,
   each named one titled. A comparative result, which lays out several axes,
   stops the stack; `autoplot(s, above = genes)` stacks tracks over a
-  synteny or multi-way result's rows. A key several tracks share is drawn once, listing
-  every entry any of them holds.
-  `jbrowse_height()` and `jbrowse_width()` measure the figure.
+  synteny or multi-way result's rows. A key several tracks share is drawn
+  once, listing every entry any of them holds. `jbrowse_height()` and
+  `jbrowse_width()` measure the figure.
+- A data frame of your own with `chrom` and `start` and `end`, or
+  `position`, in a `ggplot(<result>)` layer or a plot in a stack, lands in
+  the region it falls in, a row over two regions in each.
 - `autoplot()` and `jbrowse_stack()` take `width` to draw at another size.
   A stack otherwise draws at the widest `width` any of its tracks was read
   at. Drawing a feature or quantitative track narrower than it was laid out
@@ -174,10 +179,18 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
   `glyphs`, `amino_acids`, `labels`, `wiggle`, `genotypes`, `ribbons`,
   `dotplot`, `lanes` and the rest. A geom's `width` defaults to the
   result's.
-- `jbrowse_color()` marks a column as the colors the display paints, so
-  `aes(fill = color)` needs no scale. `scale_fill_jbrowse()`,
-  `scale_color_jbrowse()` and `scale_x_jbrowse()` add the display's keys and
-  axes, and `scale_y_jbrowse()` the `y_scale`.
+- Each geom paints its table's `color` as it is, `I(color)`, so the
+  display's colors train no scale and a mapping of your own takes its scale
+  beside them: `geom_jbrowse_reads(aes(fill = mapq)) +
+  scale_fill_viridis_c()`.
+- `guides_jbrowse(x, keys, ramps)` draws `x$keys` and `x$ramps` as guides
+  that take the plot's theme. Edit a key to relabel or recolor an entry.
+- A geom draws the decisions its table holds: `junctions$shown`,
+  `allele_coverage$shown`, each mark's `fade` and `variants$opacity`.
+  Editing the column draws otherwise, with no read:
+  `a$junctions$shown <- a$junctions$count >= 5`.
+- `scale_x_jbrowse()` and `scale_y_jbrowse()` add the regions' axis and the
+  `y_scale`.
 - A saved result draws without its files: the sequence band reads
   `sequence`, and the genotype fade `variants$opacity`.
 
@@ -222,7 +235,7 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
   `fields$attributes` lists each key's type and column.
 - `variants$opacity` is the fade the display paints a record's cells at
   where records share a pixel at the result's `width`, through the engine's
-  `variantDensityAlpha`. `geom_jbrowse_genotypes(fade = FALSE)` turns it
+  `variantDensityAlpha`. `v$variants$opacity <- 1` turns it
   off.
 - `byte_limit` refuses regions whose compressed size, read off the index,
   passes it. The default is 200 MB. `jbrowse_alignments()`'s `span_limit`

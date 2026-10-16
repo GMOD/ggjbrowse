@@ -7,6 +7,9 @@
 #' of records or of marks, which each reader's page lists, or a class's
 #' drawing state, listed below.
 #'
+#' `$` matches a slot's name exactly, so `x$region` is `NULL` rather than
+#' `x$regions`.
+#'
 #' @section The slots every result holds:
 #' * `regions`: a data frame, a row per region read: `chrom`, `start` and
 #'   `end` (0-based, half-open), where the axis lays it (`offset`, the

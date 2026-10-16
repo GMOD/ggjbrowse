@@ -60,5 +60,6 @@ resolved config it decided from:
   at 150 px an inch.
 - `allele_coverage$shown` marks the alleles the coverage band stacks, by
   `coverageSnpMinFrequency`.
-- `min_reads`, `min_allele_frequency` and `fade_low_frequency` override
-  these in `autoplot()` and the geoms.
+- `autoplot()` and the geoms draw what these columns say, so editing them
+  draws otherwise: `a$junctions$shown <- a$junctions$count >= 5`, or
+  `a$mismatches$fade <- 1` to stop a sub-pixel mismatch fading.

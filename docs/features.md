@@ -11,7 +11,7 @@ JBrowse's feature display and returns what it draws:
 `display` takes the display's settings (`color`, `displayMode`,
 `showLabels`, `geneGlyphMode`, `showOnlyGenes`, ...), and `width` is the
 pixel width the display lays the region out across, which decides which
-names fit. `autoplot(reads, above = genes)` draws genes over reads
+names fit. `jbrowse_stack(genes, reads)` draws genes over reads
 ([GENCODE genes](gallery.md#genes_and_reads)).
 
 - Under `facet = "strand"`, or `list(field = "type", domain = ...,

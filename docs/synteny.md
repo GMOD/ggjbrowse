@@ -60,8 +60,8 @@ opacity, with each CIGAR insertion, deletion and skip wider than a pixel
   of the blocks it leaves out.
 - `geom_jbrowse_offscreen_mates()` draws `s$offscreen_strip`, the marks and
   contig names the band hangs off a row's edge for blocks whose mate the other
-  row does not show (`s$offscreen`). `autoplot()` keys each contig from
-  `s$offscreen_contigs`.
+  row does not show (`s$offscreen`). `s$keys$offscreen_query` and
+  `s$keys$offscreen_target` key each contig from `s$offscreen_contigs`.
 
 ## Dotplots
 

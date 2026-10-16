@@ -155,6 +155,9 @@ sequenceDiagram
 - Yes. `autoplot()` returns an ordinary ggplot, so `+` adds layers, scales and
   themes. Each table is also a data frame to plot yourself with
   `geom_jbrowse_*()`.
+- The geoms paint the display's colors as they are, so a scale of your own,
+  such as `scale_fill_viridis_c()` over `aes(fill = mapq)`, sits beside
+  them. The keys take the plot's theme; edit `a$keys` to relabel an entry.
 - `autoplot(a, "pileup")` draws one band, and `jbrowse_stack()` stacks bands
   and tracks on one axis.
 

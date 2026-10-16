@@ -36,4 +36,5 @@ the fill the display paints it, its hue shaded by the alt dosage
   the display does.
 - Zoomed out, records sharing a pixel fade by how many share it, as the
   display fades them, so a row shades by its share of alt records. The fade
-  is `v$variants$opacity`, at the `width` the reader read at.
+  is `v$variants$opacity`, at the `width` the reader read at;
+  `v$variants$opacity <- 1` draws every cell opaque.

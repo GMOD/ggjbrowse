@@ -118,6 +118,11 @@ ggplot(a) +
 - **Files:** a path or a URL. CRAM needs its FASTA as `assembly`.
 - **Filters:** `a$reads <- subset(a$reads, mapq >= 20)` drops the left-out
   reads' mismatches, gaps and clips too, since each names its read by a key.
+- **Colors and keys:** the geoms paint the display's colors as they are, so
+  a scale of your own sits beside them, and `guides_jbrowse(a)` adds the
+  display's keys.
+- **The display's decisions** are columns: `a$junctions$shown <-
+  a$junctions$count >= 5` draws the junctions with five reads or more.
 - **Saved results:** a result saved with `saveRDS()` draws again without its
   files.
 - **The file's own fields:** a GFF3's attributes, a BigBed's autoSql columns
@@ -175,7 +180,7 @@ Whole analyses done in R, each on the data and question of a
 - [docs/stack.md](docs/stack.md): several tracks (`jbrowse_stack()`):
   end-to-end regions, collapsed introns, figure size, the **Export R script**
   JBrowse menu item
-- [docs/grammar.md](docs/grammar.md): the geoms, scales and facets that
+- [docs/grammar.md](docs/grammar.md): the geoms, keys, scales and facets that
   `autoplot()` composes
 - [docs/api.md](docs/api.md): every reader, helper and geom, what each
   returns, and the keys that tie the tables together

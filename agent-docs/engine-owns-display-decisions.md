@@ -12,6 +12,9 @@
   palette: a mark's color, a constant of the display's geometry.
 - R decides anything that depends on the figure: pixels per base, inches,
   label sizes, which ggplot layer draws what.
+- A geom draws the decision a column holds (`shown`, `fade`, `opacity`)
+  and takes no argument to re-decide it. A caller overrides one by editing
+  the column, which needs no read.
 - A value that needs both comes back from the engine as its config-side
   input, and R finishes it. The sub-pixel fade works this way: the engine
   returns each mark's `fade` share, and R's `mark_alpha()` applies it at
@@ -73,7 +76,8 @@ How each piece reaches R:
 - **Alleles:** `shown` under `coverageSnpMinFrequency`.
 - **Read pitch:** `featureHeight` and its spacing, which R's read inset
   takes.
-- **Defaults:** each track's resolved config, as the result's `display`.
+- **Defaults:** each track's resolved config, as the result's `display`,
+  and for the synteny, dotplot and multi-way views their resolved settings.
 
 R keeps `base_colors()`, the engine's palette, for the sequence band's
 reference bases.

@@ -12,13 +12,19 @@ The examples read `a` and `e()` from the
   `geom_jbrowse_arcs()`, `geom_jbrowse_glyphs()`, `geom_jbrowse_wiggle()`,
   `geom_jbrowse_genotypes()` and the rest. Each draws as the display does
   and takes any column of its table in `aes()`.
-- **Scales:** each table's `color` column is the display's color, which
-  ggplot paints through an identity scale. Map another column and ggplot's
-  own scales take over. `scale_fill_jbrowse(a)` adds the display's key,
-  `scale_y_jbrowse(w)` a quantitative display's score axis, and
-  `scale_x_jbrowse(a)` the axis of several regions laid end to end, which
-  `ggplot(a)` adds unasked, moving the result's tables in your own layers
-  onto it.
+- **Colors:** each table's `color` column is the display's color, which
+  each geom paints as it is, `I(color)`, so it trains no scale. Map another
+  column and ggplot's own scales take it, beside the other geoms' display
+  colors.
+- **Keys:** `guides_jbrowse(a)` adds the display's keys and color bars as
+  guides that take the plot's theme. Edit `a$keys` to relabel an entry.
+- **Scales:** `scale_y_jbrowse(w)` adds a quantitative display's score axis,
+  and `scale_x_jbrowse(a)` the axis of several regions laid end to end,
+  which `ggplot(a)` adds unasked, moving the result's tables in your own
+  layers onto it. A frame of your own with `chrom` and `start` and `end`,
+  or `position`, moves to the region it falls in.
+- **Decisions:** a geom draws what its table says, such as
+  `a$junctions$shown`, so editing the column draws otherwise.
 - **Filters:** assign a filtered table into the result, as in
   `a$reads <- subset(a$reads, strand == 1)`, and its marks follow, since
   each names its read by a key. A geom takes a filtered mark table as
@@ -42,7 +48,7 @@ The tables work without the geoms as well:
 ```r
 cram <- jbrowse_alignments(e("gapdh_direct_rna.cram"),
   "chr12:6,534,201-6,535,200", assembly = e("gapdh_hg38.fa.gz"))
-ggplot(cram$mismatches, aes(position, frequency, colour = color)) +
+ggplot(cram$mismatches, aes(position, frequency, colour = I(color))) +
   geom_point() +
-  scale_colour_jbrowse(cram, "bases")
+  guides_jbrowse(cram, "bases", ramps = FALSE)
 ```
