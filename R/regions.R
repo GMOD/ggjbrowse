@@ -207,7 +207,7 @@ is_on_axis <- function(d) isTRUE(attr(d, "on_axis"))
 in_regions <- function(d, regions) {
   bare <- function(x) sub("^chr", "", as.character(x), ignore.case = TRUE)
   lo <- d[["start"]] %||% d[["position"]]
-  hi <- d[["end"]] %||% (d[["position"]] + 1)
+  hi <- d[["end"]] %||% (lo + 1)
   at <- lapply(seq_len(nrow(regions)), function(i) which(
     bare(d[["chrom"]]) == bare(regions$chrom[i]) & hi > regions$start[i] &
       lo < regions$end[i]))
@@ -220,7 +220,7 @@ in_regions <- function(d, regions) {
 
 # Whether `d` names its rows' regions of `regions` in a `region` column
 has_regions <- function(d, regions) {
-  is.numeric(d$region) && all(d$region %in% seq_len(nrow(regions)))
+  is.numeric(d[["region"]]) && all(d[["region"]] %in% seq_len(nrow(regions)))
 }
 
 # A read connection or splice junction with each foot on the axis in the
@@ -262,21 +262,21 @@ frame_on_axis <- function(d, regions) {
   }
   if (nrow(regions) == 1) return(structure(d, on_axis = TRUE))
   r <- regions
-  if (!is.null(d$start)) {
+  span <- !is.null(d[["start"]]) && !is.null(d[["end"]])
+  if (span) {
     d <- d[d$end > r$start[d$region] & d$start < r$end[d$region], ,
       drop = FALSE]
     d$start <- pmax(d$start, r$start[d$region])
     d$end <- pmin(d$end, r$end[d$region])
   }
-  if (!is.null(d$position)) {
-    d <- d[d$position >= r$start[d$region] &
-      d$position < r$end[d$region], , drop = FALSE]
+  for (point in c(if (!span) "start", "position")) {
+    if (is.null(d[[point]])) next
+    d <- d[d[[point]] >= r$start[d$region] &
+      d[[point]] < r$end[d$region], , drop = FALSE]
   }
   shift <- r$offset[d$region] - r$start[d$region]
-  if (!is.null(d$start)) {
-    d$start <- d$start + shift
-    d$end <- d$end + shift
+  for (column in intersect(c("start", "end", "position"), names(d))) {
+    d[[column]] <- d[[column]] + shift
   }
-  if (!is.null(d$position)) d$position <- d$position + shift
   structure(d, on_axis = TRUE)
 }

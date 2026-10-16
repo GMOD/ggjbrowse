@@ -226,6 +226,11 @@ test_that("a frame of one's own lands in the region its chrom and positions fall
   band <- jbrowse_stack(genes, own)[[2]]
   expect_equal(ggplot2::layer_data(band, 1)$x,
     c(2000, 7000 - r$start[2] + r$offset[2]))
+  skip_if_not_installed("tibble")
+  marks <- tibble::tibble(chrom = "ctgA", start = c(2000, 7000), y = 1)
+  expect_no_warning(drawn <- ggplot2::layer_data(ggplot2::ggplot(genes) +
+    ggplot2::geom_point(ggplot2::aes(start, y), data = marks), 1))
+  expect_equal(drawn$x, c(2000, 7000 - r$start[2] + r$offset[2]))
   one <- jbrowse_features(gff, "ctgA:1,001-9,000")
   expect_equal(ggplot2::layer_data(ggplot2::ggplot(one) +
     ggplot2::geom_rect(ggplot2::aes(xmin = start, xmax = end, ymin = y,
