@@ -2,12 +2,16 @@
 % Please edit documentation in R/engine.R
 \name{jbrowse_reset}
 \alias{jbrowse_reset}
-\title{Start the engine afresh}
+\title{Empty the engine's caches}
 \usage{
 jbrowse_reset()
+}
+\value{
+\code{NULL}, invisibly.
 }
 \description{
 The engine caches what it reads, keyed by each file's URL. A local file's
 URL carries its modification time and size, so an overwritten file is read
 again; a remote file changed on its server is not, until this is called.
+The engine keeps its budget, which \code{\link[=jbrowse_cache]{jbrowse_cache()}} sets.
 }

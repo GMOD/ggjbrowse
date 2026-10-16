@@ -89,8 +89,12 @@ test_that("a forked worker refuses to start the engine, and inherits a started o
   in_fork <- function(f) parallel::mccollect(parallel::mcparallel(f()))[[1]]
   started <- read()
   expect_equal(in_fork(read), started)
-  expect_equal(in_fork(function() tryCatch({
+  expect_equal(in_fork(function() {
     jbrowse_reset()
+    read()
+  }), started)
+  expect_equal(in_fork(function() tryCatch({
+    engine(drop = TRUE)
     read()
   }, ggjbrowse_forked = function(e) "refused")), "refused")
 })
@@ -113,4 +117,67 @@ test_that("the engine's warnings warn once a call", {
       invokeRestart("muffleWarning")
     })
   expect_equal(w, "the sort by basePair names no pos, so it is dropped")
+})
+
+# Copies of one BAM under new names, each a file the engine has not read
+bam_copies <- function(n) {
+  dir <- tempfile()
+  dir.create(dir)
+  paths <- file.path(dir, sprintf("copy%03d.bam", seq_len(n)))
+  file.copy(bam, paths)
+  file.copy(paste0(bam, ".bai"), paste0(paths, ".bai"))
+  paths
+}
+
+test_that("the engine holds what it keeps to the budget", {
+  limit <- jbrowse_cache()$limit
+  on.exit(jbrowse_cache(limit = limit))
+  jbrowse_reset()
+  jbrowse_cache(limit = 8 * 2^20)
+  paths <- bam_copies(40)
+  for (path in paths) {
+    jbrowse_alignments(path, "ctgA:1-2,000")
+    held <- jbrowse_cache()
+    expect_lte(held$decoded + held$read, 8 * 2^20)
+  }
+  expect_lt(held$adapters, length(paths))
+  expect_error(jbrowse_cache(limit = -1), "number of bytes")
+})
+
+test_that("jbrowse_reset() empties the caches and keeps the budget", {
+  limit <- jbrowse_cache()$limit
+  on.exit(jbrowse_cache(limit = limit))
+  jbrowse_cache(limit = 2^30)
+  jbrowse_alignments(bam, "ctgA:1-5,000")
+  expect_gt(jbrowse_cache()$decoded, 0)
+  jbrowse_reset()
+  expect_equal(jbrowse_cache(),
+    list(limit = 2^30, decoded = 0, read = 0, adapters = 0))
+  expect_gt(nrow(jbrowse_alignments(bam, "ctgA:1-5,000")$reads), 0)
+})
+
+test_that("memory stays bounded over many files, and a reset frees it for reuse", {
+  skip_on_cran()
+  skip_if_not(file.exists("/proc/self/status"))
+  rss <- function() {
+    s <- readLines("/proc/self/status")
+    as.numeric(sub("\\D+(\\d+).*", "\\1", grep("^VmRSS", s, value = TRUE))) /
+      1024
+  }
+  limit <- jbrowse_cache()$limit
+  on.exit(jbrowse_cache(limit = limit))
+  jbrowse_cache(limit = 32 * 2^20)
+  paths <- bam_copies(160)
+  pass <- function() {
+    for (i in seq_along(paths)) {
+      jbrowse_alignments(paths[i], "ctgA:1-2,000")
+      if (i == 20) warm <<- rss()
+    }
+    rss()
+  }
+  warm <- NA
+  first <- pass()
+  expect_lt(first - warm, 128)
+  jbrowse_reset()
+  expect_lt(pass() - first, 64)
 })
