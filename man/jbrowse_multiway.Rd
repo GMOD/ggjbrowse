@@ -82,10 +82,8 @@ columns the file carries
 
 \code{keys$ribbons} is the ribbons' key. \code{regions} lays out each lane, its \code{axis} the lane's assembly: the
 anchor's regions, spaced as a linear track over them spaces them, and
-the window each other lane shows. \code{display} holds the settings the
-display drew with: those given, \code{rows} as \code{lanes} writes it, the
-display's defaults for the rest, and \code{ribbonColor$field} the field
-painted. \code{width} is the view's pixels, \code{tick_interval} the bp between
+the window each other lane shows. \code{display} is the display's config as
+the engine resolves it, \code{rows} as \code{lanes} writes it. \code{width} is the view's pixels, \code{tick_interval} the bp between
 each lane's ticks, and \code{rows_vs_anchor} whether each lane is stated
 against the anchor alone, as a star of pairwise files states it.
 }

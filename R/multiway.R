@@ -106,10 +106,8 @@ lane_pin <- function(locus) {
 #'
 #'   `keys$ribbons` is the ribbons' key. `regions` lays out each lane, its `axis` the lane's assembly: the
 #'   anchor's regions, spaced as a linear track over them spaces them, and
-#'   the window each other lane shows. `display` holds the settings the
-#'   display drew with: those given, `rows` as `lanes` writes it, the
-#'   display's defaults for the rest, and `ribbonColor$field` the field
-#'   painted. `width` is the view's pixels, `tick_interval` the bp between
+#'   the window each other lane shows. `display` is the display's config as
+#'   the engine resolves it, `rows` as `lanes` writes it. `width` is the view's pixels, `tick_interval` the bp between
 #'   each lane's ticks, and `rows_vs_anchor` whether each lane is stated
 #'   against the anchor alone, as a star of pairwise files states it.
 #' @export
@@ -135,13 +133,9 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   }
   regions <- anchor_regions(region)
   choice <- lane_choice(lanes)
-  given <- display %||% list()
-  if (!is.null(choice$rows)) {
-    given$rows <- lapply(choice$rows, function(lanes) as.vector(lanes))
-  }
-  config <- given
-  config$rows <- choice$rows %||% given$rows
-  config$ribbonColor <- config_color(given$ribbonColor)
+  config <- display %||% list()
+  config$rows <- choice$rows %||% config$rows
+  config$ribbonColor <- config_color(config$ribbonColor)
   args <- list(adapterConfig = adapter_of(file, function()
     multiway_adapter(file, index)),
     anchor = axis_args(regions, anchor, width), display = config)
@@ -178,11 +172,7 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   comparative_result("jbrowse_multiway", "ribbons",
     list(lanes = lane_frame, segments = segments, blocks = blocks,
       ribbons = ribbons, alignments = keyed_alignments(r$alignments)),
-    layout, width,
-    resolved_display(given, MULTIWAY_DEFAULTS,
-      list(ribbonColor = painted(given$ribbonColor, r$field),
-        drawCurves = r$curves, height = r$height)),
-    list(ribbons = key), ramp_frames(r$ramps), read$warnings,
+    layout, width, r$config, list(ribbons = key), ramp_frames(r$ramps), read$warnings,
     list(tick_interval = r$tickInterval, rows_vs_anchor = r$rowsVsAnchor))
 }
 

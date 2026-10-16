@@ -8,7 +8,7 @@ test_that("a PAF reads as the synteny band lays out and colors it", {
   expect_equal(nrow(s$alignments), 7)
   expect_equal(sum(s$alignments$strand == -1), 2)
   expect_equal(s$assemblies, c("query", "target"))
-  expect_equal(s$display$opacity, 0.25)
+  expect_equal(s$display$opacity$value, 0.25)
   expect_true(all(c("match", "insertion") %in% s$ribbons$kind))
   match <- s$ribbons[s$ribbons$kind == "match", ]
   expect_equal(nrow(match), 7)
@@ -28,7 +28,7 @@ test_that("the view's settings color by strand, set the opacity and pick the CIG
       cigarMode = "off"))
   expect_equal(unique(strand$ribbons$kind), "match")
   expect_equal(length(unique(strand$ribbons$color)), 2)
-  expect_equal(strand$display$opacity, 0.6)
+  expect_equal(strand$display$opacity$value, 0.6)
   expect_equal(strand$keys$ribbons$label[1:2], c("forward", "reverse"))
   grey <- jbrowse_synteny(paf, query, target, display = list(color = "grey"))
   expect_equal(unique(as.character(grey$alignments$color)), "#808080")
@@ -67,7 +67,7 @@ test_that("a PAF reads as the dotplot lays out and colors it", {
   expect_gt(nrow(d$segments), 7)
   expect_equal(unique(as.character(d$segments$color)), "#000000")
   expect_equal(d$display$lineWidth, 2.5)
-  expect_equal(d$display$opacity, 1)
+  expect_equal(d$display$opacity$value, 1)
   expect_equal(d$skipped$count, 0)
   built <- ggplot2::ggplot_build(autoplot(d))
   expect_equal(nrow(built$data[[3]]), nrow(d$segments))
@@ -124,28 +124,33 @@ test_that("drawing places tables on the axis once, marked by an attribute", {
   expect_equal(on_axis(once)$segments, once$segments)
 })
 
-test_that("the display slot holds the settings each view drew with", {
-  expect_equal(s$display, list(minAlignmentLength = 0, cigarMode = "full",
-    drawLocationMarkers = FALSE, fadeThinAlignmentsMode = "auto",
-    opacity = 0.25, height = 100))
+test_that("the display slot holds the view's settings as the engine resolves them", {
+  expect_equal(s$display[c("minAlignmentLength", "cigarMode",
+    "drawLocationMarkers", "fadeThinAlignmentsMode", "height")],
+    list(minAlignmentLength = 0L, cigarMode = "full",
+      drawLocationMarkers = FALSE, fadeThinAlignmentsMode = "auto",
+      height = 100L))
+  expect_equal(s$display$color$field, "")
   strand <- jbrowse_synteny(paf, query, target,
     display = list(color = list(field = "strand"), cigarMode = "off"))
-  expect_equal(strand$display$color, list(field = "strand"))
+  expect_equal(strand$display$color$field, "strand")
   expect_equal(strand$display$cigarMode, "off")
   expect_null(strand[["field"]])
   expect_null(strand$alpha)
   expect_null(strand$height)
   ref <- jbrowse_synteny(paf, query, target,
     display = list(color = list(field = "reference")))
-  expect_equal(ref$display$color$field, "query")
+  expect_equal(ref$display$color$field, "reference")
   faded <- jbrowse_synteny(paf, query, target,
     display = list(opacity = list(field = "identity")))
-  expect_equal(faded$display$opacity, list(field = "identity"))
+  expect_equal(faded$display$opacity$field, "identity")
   d <- jbrowse_dotplot(paf, query, target, display = list(color = "grey"))
   expect_equal(d$height, 1500)
   expect_equal(jbrowse_dotplot(paf, query, target, width = 900)$height, 900)
-  expect_equal(d$display, list(minAlignmentLength = 0, minIdentity = 0,
-    drawCigar = TRUE, color = "grey", opacity = 1, lineWidth = 2.5))
+  expect_equal(d$display[c("minAlignmentLength", "minIdentity", "drawCigar",
+    "lineWidth")], list(minAlignmentLength = 0L, minIdentity = 0L,
+    drawCigar = TRUE, lineWidth = 2.5))
+  expect_equal(d$display$color$value, "grey")
   expect_null(d$line_width)
   expect_error(jbrowse_synteny(paf, query, target, view = list()),
     "unused argument")

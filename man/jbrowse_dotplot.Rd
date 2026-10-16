@@ -64,9 +64,8 @@ to (\code{x_end}, \code{y_end}), each \verb{*_region} a row of \code{regions}, \
 Assigning \code{alignments} drops the segments of the blocks it leaves out.
 \code{keys$segments} is the key the view shows, \code{ramps} a continuous field's
 color bar. \code{regions} lays out both axes, its \code{axis} \code{"x"} or \code{"y"}. \code{display}
-holds the settings the view drew with: those given, the view's defaults
-for the rest, \code{color$field} the field painted, \code{opacity} the level every
-line draws at and \code{lineWidth} its pixels. \code{skipped} counts the blocks
+holds the view's settings as the engine resolves them, \code{color} and
+\code{opacity} as config objects and \code{lineWidth} a line's pixels. \code{skipped} counts the blocks
 neither axis places.
 }
 \description{

@@ -16,8 +16,9 @@ JBrowse's synteny displays.
   `list(field = "identity")` as the display's `0%` to `100%` bar. A threshold
   field such as `mapq` keys its bins as chips.
 - `display` takes the view's or display's settings as JBrowse writes them,
-  and the result's `display` holds those it drew with, the defaults filled
-  in: `s$display$color$field` names the field painted.
+  and the result's `display` holds them as the engine resolves them, every
+  default filled in: `s$display$opacity$value` is the level the ribbons
+  draw at.
 - Each reader lays its regions out 1,500 px wide unless given `width`, as
   the linear readers do.
 

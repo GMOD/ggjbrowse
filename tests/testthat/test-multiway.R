@@ -78,17 +78,19 @@ test_that("the display's settings color the ribbons", {
     display = list(ribbonColor = list(field = "strand")))
   expect_equal(strand$keys$ribbons$label[1:2],
     c("Same orientation as lane above", "Inverted vs lane above"))
-  expect_equal(strand$display$ribbonColor, list(field = "strand"))
+  expect_equal(strand$display$ribbonColor$field, "strand")
   grey <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     display = list(ribbonColor = "grey"))
   expect_equal(unique(as.character(grey$ribbons$color)), "#808080")
-  expect_equal(grey$display, list(hideUnlabelled = FALSE,
-    bridgeSkippedLanes = TRUE, splitStrands = TRUE, showGeneLabels = TRUE,
-    inlineLaneNames = FALSE, ribbonColor = "grey", drawCurves = FALSE,
-    height = 240))
+  expect_equal(grey$display[c("hideUnlabelled", "bridgeSkippedLanes",
+    "splitStrands", "showGeneLabels", "inlineLaneNames", "drawCurves",
+    "height")], list(hideUnlabelled = FALSE, bridgeSkippedLanes = TRUE,
+    splitStrands = TRUE, showGeneLabels = TRUE, inlineLaneNames = FALSE,
+    drawCurves = FALSE, height = 240L))
+  expect_equal(grey$display$ribbonColor$value, "grey")
   ordered <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     lanes = c("volvox_del", "volvox_ins"))
-  expect_equal(ordered$display$rows$kept, c("volvox_del", "volvox_ins"))
+  expect_equal(unlist(ordered$display$rows$kept), c("volvox_del", "volvox_ins"))
   expect_null(grey[["field"]])
   expect_null(grey$curves)
 })

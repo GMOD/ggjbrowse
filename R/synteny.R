@@ -54,15 +54,6 @@ comparative_args <- function(file, index, display) {
   args
 }
 
-# The settings a view or display reads where none is given, as JBrowse
-# states them
-SYNTENY_DEFAULTS <- list(minAlignmentLength = 0, cigarMode = "full",
-  drawLocationMarkers = FALSE, fadeThinAlignmentsMode = "auto")
-DOTPLOT_DEFAULTS <- list(minAlignmentLength = 0, minIdentity = 0,
-  drawCigar = TRUE)
-MULTIWAY_DEFAULTS <- list(hideUnlabelled = FALSE, bridgeSkippedLanes = TRUE,
-  splitStrands = TRUE, showGeneLabels = TRUE, inlineLaneNames = FALSE)
-
 # The values a view's enumerated settings take
 SYNTENY_CHOICES <- list(cigarMode = c("full", "matches", "off"),
   fadeThinAlignmentsMode = c("auto", "on", "off"))
@@ -78,23 +69,6 @@ check_choices <- function(display, choices) {
         choices[[slot]], quote = "\""), collapse = ", ")),
       class = "ggjbrowse_bad_display")
   }
-}
-
-# The settings the engine drew with: those given over the defaults, and over
-# both the values the engine resolved
-resolved_display <- function(given, defaults, engine) {
-  out <- defaults
-  out[names(given)] <- given
-  out[names(engine)] <- engine
-  Filter(Negate(is.null), out)
-}
-
-# A color setting naming the field the engine painted, `""` for none
-painted <- function(color, field) {
-  if (!nzchar(field %||% "")) return(color)
-  if (!is.list(color)) return(list(field = field))
-  color$field <- field
-  color
 }
 
 # The engine's tables and the warnings it raised reading them, each also
@@ -115,10 +89,6 @@ comparative_result <- function(cls, primary, tables, regions, width, display,
       fields = list(), warnings = warnings), state),
     primary = primary, class = c(cls, "jbrowse_result"))
 }
-
-# An opacity setting as the engine drew it: an opacity object as given, and
-# a number, or none, as the level every alignment drew at
-drawn_opacity <- function(opacity, level) if (is.list(opacity)) opacity else level
 
 # The names an axis title shows: each assembly name `labels` renames, as the
 # named vector `c(query = "peach", target = "grape")` gives it, or an unnamed
@@ -330,10 +300,9 @@ on_axis_of <- function(regions, axis) {
 #'   the off-screen tables summarize the band's edges as read, and stay.
 #'   `keys$ribbons` is the key the view shows, `ramps` a continuous field's
 #'   color bar, as [guides_jbrowse()] draws it. `regions` lays out both rows, its `axis` `"query"` for the top row and
-#'   `"target"` for the bottom. `display` holds the settings the view drew
-#'   with: those given, the view's defaults for the rest, `color$field` the
-#'   field painted, `opacity` the level every ribbon draws at, and `height`
-#'   the band's pixels.
+#'   `"target"` for the bottom. `display` holds the view's settings as the
+#'   engine resolves them, `color` and `opacity` as config objects and
+#'   `height` the band's pixels.
 #' @export
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
@@ -372,12 +341,7 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
   comparative_result("jbrowse_synteny", "ribbons",
     list(alignments = alignments, ribbons = ribbons, offscreen = offscreen,
       offscreen_contigs = colored_frame(r$offscreenContigs)),
-    regions, width,
-    resolved_display(display, SYNTENY_DEFAULTS,
-      list(color = painted(display$color, r$field),
-        opacity = drawn_opacity(display$opacity, r$alpha),
-        height = r$height)),
-    list(ribbons = key), ramp_frames(r$ramps),
+    regions, width, r$config, list(ribbons = key), ramp_frames(r$ramps),
     unique(c(axes$warnings, read$warnings)),
     list(offscreen_strip = list(marks = colored_frame(r$offscreenStrip$marks),
         labels = colored_frame(r$offscreenStrip$labels),
@@ -830,9 +794,8 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   Assigning `alignments` drops the segments of the blocks it leaves out.
 #'   `keys$segments` is the key the view shows, `ramps` a continuous field's
 #'   color bar. `regions` lays out both axes, its `axis` `"x"` or `"y"`. `display`
-#'   holds the settings the view drew with: those given, the view's defaults
-#'   for the rest, `color$field` the field painted, `opacity` the level every
-#'   line draws at and `lineWidth` its pixels. `skipped` counts the blocks
+#'   holds the view's settings as the engine resolves them, `color` and
+#'   `opacity` as config objects and `lineWidth` a line's pixels. `skipped` counts the blocks
 #'   neither axis places.
 #' @export
 #' @examples
@@ -866,12 +829,7 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
   comparative_result("jbrowse_dotplot", "segments",
     list(alignments = alignments, segments = segments),
     rbind(axis_rows(xr, "x", axes$names[1]), axis_rows(yr, "y", axes$names[2])),
-    width,
-    resolved_display(display, DOTPLOT_DEFAULTS,
-      list(color = painted(display$color, r$field),
-        opacity = drawn_opacity(display$opacity, r$alpha),
-        lineWidth = r$lineWidth)),
-    list(segments = key), ramp_frames(r$ramps),
+    width, r$config, list(segments = key), ramp_frames(r$ramps),
     unique(c(axes$warnings, read$warnings)),
     list(height = height,
       assemblies = display_names(unlist(r$assemblyNames), labels,

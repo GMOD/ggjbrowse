@@ -89,11 +89,9 @@ A comparative result lays out several axes in its one `regions` frame:
 - `axis` names the axis a row lays out on: `"query"` (the top row) or
   `"target"` for synteny, `"x"` or `"y"` for a dotplot, and the lane's
   assembly for multiway. `assembly` names the assembly the region is on.
-- `display` holds the settings given, the view's defaults for the rest,
-  and what the engine resolved: `color$field` the field painted (multiway's
-  `ribbonColor$field`), `opacity` the level every alignment draws at.
-- The engine returns no resolved config for these views, so R fills the
-  defaults JBrowse states.
+- `display` holds the view's settings, or for multiway the display's
+  config, as the engine resolves them, `color` and `opacity` as config
+  objects.
 
 ## Records and their keys
 

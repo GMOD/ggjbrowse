@@ -103,10 +103,9 @@ Assigning \code{alignments} drops the ribbons of the blocks it leaves out;
 the off-screen tables summarize the band's edges as read, and stay.
 \code{keys$ribbons} is the key the view shows, \code{ramps} a continuous field's
 color bar, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws it. \code{regions} lays out both rows, its \code{axis} \code{"query"} for the top row and
-\code{"target"} for the bottom. \code{display} holds the settings the view drew
-with: those given, the view's defaults for the rest, \code{color$field} the
-field painted, \code{opacity} the level every ribbon draws at, and \code{height}
-the band's pixels.
+\code{"target"} for the bottom. \code{display} holds the view's settings as the
+engine resolves them, \code{color} and \code{opacity} as config objects and
+\code{height} the band's pixels.
 }
 \description{
 Runs JBrowse's own synteny display in V8 over two rows, the query assembly
