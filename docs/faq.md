@@ -10,7 +10,7 @@
 - `engine()` in `R/engine.R` starts one [V8](https://CRAN.R-project.org/package=V8)
   context per R session and sources the bundle into it. The context stays
   alive between calls, so the engine's caches do too.
-- `jbrowse_reset()` drops the context, which clears the caches.
+- `jbrowse_reset()` empties the caches and keeps the context.
 
 ## What happens in one call?
 
@@ -95,6 +95,19 @@ sequenceDiagram
 - The engine caches every read by URL. A local file's modification time and
   size are part of its URL, so an overwritten local file rereads.
 - A remote file has no such key. `jbrowse_reset()` clears the caches.
+
+## How much memory does the engine keep?
+
+- Between calls the engine keeps up to 256 MiB of decoded records and file
+  bytes, and the files it read most recently open with their parsed indexes.
+- `jbrowse_cache()` reports what it holds. `jbrowse_cache(limit = 64 * 2^20)`
+  sets a smaller budget, which evicts at once; a larger one keeps more reads
+  of a deep file for a second call.
+- `jbrowse_reset()` empties the caches. R's process keeps the freed memory
+  and reuses it for the next reads, so its size seen from the system stays
+  where it was.
+- Over 60 reads of a remote long-read CRAM, the R process levelled at about
+  680 MB under the default budget.
 
 ## Can it read a file without an index?
 
