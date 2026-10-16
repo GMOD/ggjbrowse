@@ -1,3 +1,4 @@
+extdata <- function(f) system.file("extdata", f, package = "ggjbrowse")
 bam <- system.file("extdata", "volvox-sorted.bam", package = "ggjbrowse")
 
 test_that("a handler that catches an engine warning leaves the engine working", {
@@ -129,22 +130,51 @@ bam_copies <- function(n) {
   paths
 }
 
-test_that("the engine holds what it keeps to the budget", {
+# The URLs the engine reads whole while `code` runs, each as often as read
+whole_reads <- function(code) {
+  reads <- character(0)
+  real <- read_range
+  local_mocked_bindings(read_range = function(url, start, end) {
+    if (start == 0 && end < 0) reads <<- c(reads, url)
+    real(url, start, end)
+  }, .env = asNamespace("ggjbrowse"))
+  force(code)
+  table(sub("\\?.*$", "", basename(reads)))
+}
+
+test_that("a read through an assembly opens each file once", {
+  fa <- extdata("gapdh_hg38.fa.gz")
+  for (file in extdata(c("gapdh_direct_rna.bam", "gapdh_direct_rna.cram"))) {
+    jbrowse_reset()
+    reads <- whole_reads(jbrowse_alignments(file, "chr12:6,534,201-6,538,700",
+      assembly = fa))
+    expect_gt(length(reads), 1)
+    expect_true(all(reads == 1))
+    expect_equal(jbrowse_cache()$adapters, 2)
+  }
+})
+
+test_that("the engine keeps decoded records under the limit, and the files read last open", {
   limit <- jbrowse_cache()$limit
   on.exit(jbrowse_cache(limit = limit))
   jbrowse_reset()
-  jbrowse_cache(limit = 8 * 2^20)
-  paths <- bam_copies(40)
+  jbrowse_cache(limit = 4 * 2^20)
+  paths <- bam_copies(12)
   for (path in paths) {
     jbrowse_alignments(path, "ctgA:1-2,000")
     held <- jbrowse_cache()
-    expect_lte(held$decoded + held$chunks + held$indexes, 8 * 2^20)
+    expect_lte(held$decoded, 4 * 2^20)
+    expect_lte(held$chunks, 256 * 2^20)
   }
   expect_lt(held$adapters, length(paths))
+  indexes <- function(path) whole_reads(jbrowse_alignments(path,
+    "ctgA:1-2,000"))[paste0(basename(path), ".bai")]
+  expect_true(is.na(indexes(paths[11])))
+  expect_equal(unname(indexes(paths[1])), 1)
   expect_error(jbrowse_cache(limit = -1), "number of bytes")
 })
 
-test_that("a budget of Inf is none, and a restarted engine takes it again", {
+test_that("a limit of Inf is none, and a restarted engine takes it again", {
   limit <- jbrowse_cache()$limit
   on.exit(jbrowse_cache(limit = limit))
   expect_equal(jbrowse_cache(limit = Inf)$limit, Inf)
@@ -160,7 +190,7 @@ test_that("an engine that cannot empty its caches restarts, and says so", {
   expect_null(engine(start = FALSE))
 })
 
-test_that("jbrowse_reset() empties the caches and keeps the budget", {
+test_that("jbrowse_reset() empties the caches and keeps the limit", {
   limit <- jbrowse_cache()$limit
   on.exit(jbrowse_cache(limit = limit))
   jbrowse_cache(limit = 2^30)
