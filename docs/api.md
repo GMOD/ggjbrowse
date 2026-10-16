@@ -155,7 +155,8 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
 - `jbrowse_sequence(assembly, region)`: each region's reference bases as a
   string
 - `jbrowse_cache(limit)`: what the engine's caches hold, and the bound in
-  bytes on its decoded records and on its open files' indexes, `Inf` for none
+  bytes on its decoded records and on what its open files parsed, `Inf` for
+  none
 - `jbrowse_reset()`: empties the engine's caches
 
 ## Drawing
