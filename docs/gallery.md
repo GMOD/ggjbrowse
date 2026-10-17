@@ -13,7 +13,8 @@ ggjbrowse and by JBrowse.
 - **JBrowse:** each shell recipe runs `jb2export` from `@jbrowse/img`,
   JBrowse's own renderer, from the root of a checkout of this repo.
   It needs 5.0.0-beta or later, since 4.3.0 cannot draw most of these, and
-  the clustered rows need jbrowse-components commit `c50aaedcda`, in no
+  the clustered rows and the alignments' band settings, such as
+  `coverage.height=`, need jbrowse-components commit `586faa2bd3`, in no
   release yet.
 - `scripts/gallery.R` draws both and writes this page, so edit an example
   there.
@@ -61,7 +62,7 @@ Coverage halves at the first breakpoint, and each read's segments share a row, o
 ```r
 autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
   "chr3:25,358,500-25,359,800",
-  display = list(unit = "chain", readConnections = "arc",
+  display = list(unit = "chain", readConnections = list(show = TRUE),
     color = list(field = "strand"), filter = list(split = "only"))))
 ```
 
@@ -112,7 +113,7 @@ Sorted by the base at the center, at 3 pixels a row the pileup takes far less he
 ```r
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,831,700-122,840,800",
-  display = list(featureHeight = 3,
+  display = list(pileup = list(readHeight = 3),
     sort = list(type = "basePair", pos = 122836300))))
 ```
 
@@ -163,13 +164,13 @@ The split reads, in their own section above the unsplit ones, are colored invert
 ```r
 autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
   "chr1:197,786,900-197,789,700",
-  display = list(unit = "chain", readConnections = "arc",
+  display = list(unit = "chain", readConnections = list(show = TRUE),
     color = list(field = "pairOrientation"), facet = list(field = "split"))))
 ```
 
 ```sh
 jb2export --hub hg38 \
-  --bam inst/extdata/hg00151_chr1_inversion.bam showLegend=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain color.field=pairOrientation facet=split coverageHeight=80 \
+  --bam inst/extdata/hg00151_chr1_inversion.bam showLegend=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain color.field=pairOrientation facet=split coverage.height=80 \
   --loc chr1:197,786,900-197,789,700 \
   --width 1200 --out inversion.png
 ```
