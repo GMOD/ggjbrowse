@@ -36,6 +36,9 @@ the files it read whole: four times an index's uncompressed size, ten times
 any other file's, such as a plain or gzipped VCF, which the engine parses
 whole.
 
+A call whose reads exceed \code{limit} can read a chunk again inside itself, and
+\code{Inf} leaves the chunk cache unbounded.
+
 A call's own reads and tables come on top, which a wide region of a deep
 file takes to gigabytes, as do R's copies of the tables. So does the memory
 of the engine's decompressor, about 20 MiB. R's process keeps the memory the

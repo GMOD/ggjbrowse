@@ -109,7 +109,8 @@ sequenceDiagram
   any other file's, such as a plain or gzipped VCF.
 - `jbrowse_cache()` reports what each holds. `jbrowse_cache(limit = 64 * 2^20)`
   lowers all three bounds to 64 MiB, and evicts at once;
-  `jbrowse_cache(limit = Inf)` keeps everything.
+  `jbrowse_cache(limit = Inf)` keeps everything, the file bytes included.
+- A call whose reads exceed the limit can read a chunk again inside itself.
 - A call's own reads and tables come on top: one read of 1 Mb of a 100x BAM
   took R to 2.2 GB. So do R's copies of the tables, and the engine's
   decompressor memory, about 20 MiB.
