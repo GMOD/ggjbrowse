@@ -222,9 +222,9 @@ fig
 ```
 
 The motif is the other filter. The sashimi band's `nonCanonical = "exclude"`
-drops every arc whose intron does not begin and end with GT-AG, GC-AG or AT-AC on either
-strand, and keeps one whose motif the reference cannot read. The junction
-table still lists every junction:
+drops every arc whose intron does not begin and end with GT-AG, GC-AG or
+AT-AC on either strand, and keeps one whose motif the reference cannot read.
+The junction table still lists every junction:
 
 ```{r canonical}
 all_junctions <- jbrowse_alignments(bam, actb, assembly = hg19,
