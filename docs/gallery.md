@@ -165,7 +165,8 @@ The split reads, in their own section above the unsplit ones, are colored invert
 autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
   "chr1:197,786,900-197,789,700",
   display = list(unit = "chain", readConnections = list(show = TRUE),
-    color = list(field = "pairOrientation"), facet = list(field = "split"))))
+    color = list(field = "pairOrientation"), facet = list(field = "split"),
+    coverage = list(height = 80))))
 ```
 
 ```sh
