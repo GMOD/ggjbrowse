@@ -69,10 +69,10 @@ How each piece reaches R:
   or bisulfite layer come along.
 - **Keys:** the base key (empty while muted), the junction key and the
   interbase key, in the browser's own wording.
-- **Junctions:** `shown` under `sashimi.filter`, `arcHeight` from
+- **Junctions:** `shown` under `filter.junctions`, `arcHeight` from
   `sashimiArcHeightFraction()` and `strokeWidth` from
   `sashimiStrokeWidth()`, in px, which R draws at 150 px an inch.
-- **Alleles:** `shown` under `coverage.filter.minAlleleFraction`.
+- **Alleles:** `shown` under `coverage.minAlleleFraction`.
 - **Read pitch:** `pileup.readHeight` and its spacing, which R's read inset
   takes.
 - **Defaults:** each track's resolved config, as the result's `display`,

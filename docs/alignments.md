@@ -21,7 +21,10 @@ JBrowse does:
 - `color = list(field = "mapq")`, or
   `list(field = "insertSize", domain = c(200, 600))`. A bare string such as
   `color = "purple"` is one constant color.
-- `filter = list(flagExclude = 1796, tagFilters = list(list(tag = "HP", value = "1")))`
+- `filter = list(flagExclude = 1796, tags = list(list(tag = "HP", value = "1")))`
+  keeps reads by their flags and tags; its `junctions` and `connections`
+  pick the splice junctions and read connections drawn:
+  `filter = list(junctions = list(minReads = 5, nonCanonical = "exclude"))`.
 - `sort = list(type = "basePair", pos = 122836300)` sorts by the base at a
   position ([a somatic deletion](gallery.md#deletion)).
 - `pileup = list(readHeight = 3)` packs reads compact
@@ -41,9 +44,9 @@ JBrowse does:
   sections, each packed separately
   ([an inversion](gallery.md#inversion)).
 - `coverage`, `pileup`, `sashimi` and `readConnections` each take the
-  band's own `show`, height and `filter`, as a track config writes them:
+  band's own `show` and height, as a track config writes them:
   `coverage = list(show = FALSE)`,
-  `sashimi = list(filter = list(minReads = 5, nonCanonical = "exclude"))`,
+  `sashimi = list(placement = "down")`,
   `readConnections = list(show = TRUE, showOrdinaryPairs = FALSE)`.
 
 Each read comes back on the row the display lays it on, with the fill the
@@ -59,10 +62,10 @@ resolved config it decided from:
 - Every mark comes back with the `color` the display paints it, and
   `a$keys` with the browser's keys and titles, such as "Splice junctions".
 - `junctions$shown` marks the arcs the sashimi band draws, by
-  `sashimi$filter`. Each arc rises to its `arcHeight` share of the band and
+  `filter$junctions`. Each arc rises to its `arcHeight` share of the band and
   strokes `strokeWidth` px, which R draws at 150 px an inch.
 - `allele_coverage$shown` marks the alleles the coverage band stacks, by
-  `coverage$filter$minAlleleFraction`.
+  `coverage$minAlleleFraction`.
 - `autoplot()` and the geoms draw what these columns say, so editing them
   draws otherwise: `a$junctions$shown <- a$junctions$count >= 5`, or
   `a$mismatches$fade <- 1` to stop a sub-pixel mismatch fading.

@@ -44,10 +44,13 @@ alignments_adapter <- function(file, index) {
 #'     `list(field = "insertSize", domain = c(200, 600))`; a bare string is
 #'     one constant color, as in a track config; unset fills every read plain
 #'   * `filter`: which reads are kept: any of `flagInclude`, `flagExclude`
-#'     (1540 by default), `readName`, `tagFilters` (a list of
+#'     (1540 by default), `readName`, `tags` (a list of
 #'     `list(tag = , value = )`), `spliced`, `svSignal` (SV evidence: a split
 #'     read, an insertion or deletion of 50 bp or more, or a discordant pair),
-#'     `singletons` and `split` (each `"only"` or `"exclude"`)
+#'     `singletons` and `split` (each `"only"` or `"exclude"`); and which
+#'     junctions and connections draw:
+#'     `junctions = list(minReads = , nonCanonical = "exclude")`,
+#'     `connections = list(interchrom = , offscreenMates = , minInterchromReads = )`
 #'   * `baseColor`: the per-base layer painted over the reads:
 #'     `list(field = "modifications")` for the reads' MM/ML base
 #'     modifications, `list(field = "bisulfite")` for the methylation a
@@ -74,18 +77,15 @@ alignments_adapter <- function(file, index) {
 #'   * `unit`: what one row stands for, `"read"`, or `"chain"` for a read
 #'     with its mate and split segments on one row, a hairline across it, and
 #'     the strand colors framed against the chain's own
-#'   * the four bands, each a list with its own `show` and, where it filters
-#'     its rows, `filter`:
-#'     `coverage` (`height`, `showInterbaseIndicators`,
-#'     `filter = list(minAlleleFraction = )`);
+#'   * the four bands, each a list with its own `show`:
+#'     `coverage` (`height`, `showInterbaseIndicators`, `minAlleleFraction`,
+#'     the share of the depth an allele needs to be colored);
 #'     `pileup` (`readHeight`, 7, or 3 and 1 for compact and super-compact,
 #'     `showMismatches`, `showSoftClipping`, `fadeLowFrequency`, ...);
-#'     `sashimi` (`height`, `placement`,
-#'     `filter = list(minReads = , nonCanonical = "exclude")`);
+#'     `sashimi` (`height`, `placement`, `showCounts`);
 #'     `readConnections` (`show = TRUE` for each mate pair's and split
 #'     read's arc, `mark = "cloud"` for the read cloud, `height`,
-#'     `showOrdinaryPairs`, `color = list(field = )`,
-#'     `filter = list(interchrom = , offscreenMates = , minInterchromReads = )`),
+#'     `showOrdinaryPairs`, `color = list(field = )`),
 #'     e.g. `list(coverage = list(show = FALSE), pileup = list(readHeight = 3))`.
 #'     A band or layer set not to show (`coverage`, `pileup` or `sashimi`'s
 #'     `show`, `pileup$showMismatches`, `coverage$showInterbaseIndicators`)

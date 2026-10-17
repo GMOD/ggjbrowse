@@ -307,7 +307,7 @@ fig
 
 ![ACTB's spliced reads alone: the pileup keeps the reads whose CIGAR has a skip, and the coverage histogram above it follows](figures/rnaseq-spliced-figure-1.png)
 
-The motif is the other filter. The sashimi band's `nonCanonical = "exclude"`
+The motif is the other filter. The junction filter's `nonCanonical = "exclude"`
 drops every arc whose intron does not begin and end with GT-AG, GC-AG or
 AT-AC on either strand, and keeps one whose motif the reference cannot read.
 The junction table still lists every junction:
@@ -318,7 +318,7 @@ all_junctions <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(pileup = list(show = FALSE)))
 canonical <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(pileup = list(show = FALSE),
-    sashimi = list(filter = list(nonCanonical = "exclude"))))
+    filter = list(junctions = list(nonCanonical = "exclude"))))
 fig <- jbrowse_stack("All junctions" = all_junctions,
   "Canonical only" = canonical)
 ```

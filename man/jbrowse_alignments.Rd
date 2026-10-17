@@ -39,10 +39,13 @@ writes it for a \code{LinearAlignmentsDisplay}, which is what JBrowse's
 \code{list(field = "insertSize", domain = c(200, 600))}; a bare string is
 one constant color, as in a track config; unset fills every read plain
 \item \code{filter}: which reads are kept: any of \code{flagInclude}, \code{flagExclude}
-(1540 by default), \code{readName}, \code{tagFilters} (a list of
+(1540 by default), \code{readName}, \code{tags} (a list of
 \code{list(tag = , value = )}), \code{spliced}, \code{svSignal} (SV evidence: a split
 read, an insertion or deletion of 50 bp or more, or a discordant pair),
-\code{singletons} and \code{split} (each \code{"only"} or \code{"exclude"})
+\code{singletons} and \code{split} (each \code{"only"} or \code{"exclude"}); and which
+junctions and connections draw:
+\code{junctions = list(minReads = , nonCanonical = "exclude")},
+\code{connections = list(interchrom = , offscreenMates = , minInterchromReads = )}
 \item \code{baseColor}: the per-base layer painted over the reads:
 \code{list(field = "modifications")} for the reads' MM/ML base
 modifications, \code{list(field = "bisulfite")} for the methylation a
@@ -69,18 +72,15 @@ order) and \code{hidden} (keys left out)
 \item \code{unit}: what one row stands for, \code{"read"}, or \code{"chain"} for a read
 with its mate and split segments on one row, a hairline across it, and
 the strand colors framed against the chain's own
-\item the four bands, each a list with its own \code{show} and, where it filters
-its rows, \code{filter}:
-\code{coverage} (\code{height}, \code{showInterbaseIndicators},
-\code{filter = list(minAlleleFraction = )});
+\item the four bands, each a list with its own \code{show}:
+\code{coverage} (\code{height}, \code{showInterbaseIndicators}, \code{minAlleleFraction},
+the share of the depth an allele needs to be colored);
 \code{pileup} (\code{readHeight}, 7, or 3 and 1 for compact and super-compact,
 \code{showMismatches}, \code{showSoftClipping}, \code{fadeLowFrequency}, ...);
-\code{sashimi} (\code{height}, \code{placement},
-\code{filter = list(minReads = , nonCanonical = "exclude")});
+\code{sashimi} (\code{height}, \code{placement}, \code{showCounts});
 \code{readConnections} (\code{show = TRUE} for each mate pair's and split
 read's arc, \code{mark = "cloud"} for the read cloud, \code{height},
-\code{showOrdinaryPairs}, \code{color = list(field = )},
-\code{filter = list(interchrom = , offscreenMates = , minInterchromReads = )}),
+\code{showOrdinaryPairs}, \code{color = list(field = )}),
 e.g. \code{list(coverage = list(show = FALSE), pileup = list(readHeight = 3))}.
 A band or layer set not to show (\code{coverage}, \code{pileup} or \code{sashimi}'s
 \code{show}, \code{pileup$showMismatches}, \code{coverage$showInterbaseIndicators})

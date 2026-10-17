@@ -682,7 +682,7 @@ test_that("the junction band draws the junctions the display shows, at its heigh
 test_that("the coverage band stacks the alleles the display shows", {
   a <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700",
-    display = list(coverage = list(filter = list(minAlleleFraction = 0.2))))
+    display = list(coverage = list(minAlleleFraction = 0.2)))
   expect_gt(sum(!a$allele_coverage$shown), 0)
   drawn <- ggplot2::layer_data(ggplot2::ggplot(a) + geom_jbrowse_alleles())
   expect_equal(nrow(drawn), sum(a$allele_coverage$shown))
@@ -693,7 +693,7 @@ test_that("the coverage band stacks the alleles the display shows", {
 
 test_that("a result carries the display's resolved config and read pitch", {
   expect_equal(bam$display$type, "LinearAlignmentsDisplay")
-  expect_equal(bam$display$sashimi$filter$minReads, 2)
+  expect_equal(bam$display$filter$junctions$minReads, 2)
   expect_false(bam$display$readConnections$show)
   expect_equal(bam$read_pitch, list(featureHeight = 7L, featureSpacing = 1L))
   compact <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
@@ -709,7 +709,7 @@ test_that("a result carries the display's resolved config and read pitch", {
 test_that("the junction band hides non-canonical junctions where the display does", {
   read <- function(...) jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700", assembly = extdata("gapdh_hg38.fa.gz"),
-    display = list(sashimi = list(filter = list(minReads = 1, ...))))
+    display = list(filter = list(junctions = list(minReads = 1, ...))))
   arcs <- function(x) length(unique(ggplot2::layer_data(
     ggplot2::ggplot(x) + geom_jbrowse_junctions(), 1)$group))
   shown <- read()
