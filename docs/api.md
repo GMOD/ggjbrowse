@@ -204,8 +204,8 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
   as one view, with one pileup layout, one set of variant rows and one depth
   axis.
 - `coverage` and the band's other tables stop at the region's ends, though
-  the reads reach past them. A band the `display` hides (`showCoverage =
-  FALSE`, ...) reads as empty tables.
+  the reads reach past them. A band the `display` hides
+  (`coverage = list(show = FALSE)`, ...) reads as empty tables.
 - Under `display$facet`, an alignments or feature result lists its
   `sections` in stacking order, and `section` names the one a row sits in.
 - `fade` is the share of the depth a mark's site holds, zero under the

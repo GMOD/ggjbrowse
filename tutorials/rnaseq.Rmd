@@ -83,8 +83,8 @@ replace:
     to: "We'll read `chr7:5,567,000-5,570,000`, _ACTB_, a compact gene with deep read coverage.\n\nEach arc below marks spliced alignments"
 -->
 
-`showPileup = FALSE` leaves the coverage histogram and the splice arcs, which
-the engine computes from the reads' skips:
+`pileup = list(show = FALSE)` leaves the coverage histogram and the splice
+arcs, which the engine computes from the reads' skips:
 
 ```{r actb}
 actb <- "chr7:5,567,000-5,570,000"
@@ -92,7 +92,7 @@ genes <- list(showOnlyGenes = TRUE)
 actb_genes <- jbrowse_features(gff, actb, assembly = hg19, display = genes,
   width = 1200)
 actb_reads <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = list(showPileup = FALSE))
+  display = list(pileup = list(show = FALSE)))
 fig <- jbrowse_stack(RefSeq = actb_genes, Reads = actb_reads, width = 1200)
 ```
 
@@ -145,9 +145,9 @@ replace:
     to: "The junction table's `motif` column holds the motif beside the read count."
 -->
 
-The skips in the engine's `gaps` table are the `N` operations. `showPileup =
-FALSE` leaves the pileup's tables empty as well as undrawn, so the reads come
-from a read of the same region that shows them. A read whose only gap is one
+The skips in the engine's `gaps` table are the `N` operations. A hidden pileup
+leaves its tables empty as well as undrawn, so the reads come from a read of
+the same region that shows them. A read whose only gap is one
 skip rebuilds its CIGAR from the read's start and end:
 
 ```{r cigar}
@@ -191,7 +191,8 @@ file_order <- jbrowse_alignments(bam, actb, assembly = hg19)
 spliced_first <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(sort = list(type = "spliced")))
 only_spliced <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = list(featureHeight = 1, filter = list(spliced = "only")))
+  display = list(pileup = list(readHeight = 1),
+    filter = list(spliced = "only")))
 
 spliced_rows <- function(r) {
   rows <- r$reads$row[is_spliced(r)]
@@ -220,16 +221,17 @@ fig <- jbrowse_stack(RefSeq = actb_genes, "Only spliced reads" = only_spliced,
 fig
 ```
 
-The motif is the other filter. `showNonCanonicalJunctions = FALSE` drops every
-arc whose intron does not begin and end with GT-AG, GC-AG or AT-AC on either
+The motif is the other filter. The sashimi band's `nonCanonical = "exclude"`
+drops every arc whose intron does not begin and end with GT-AG, GC-AG or AT-AC on either
 strand, and keeps one whose motif the reference cannot read. The junction
 table still lists every junction:
 
 ```{r canonical}
 all_junctions <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = list(showPileup = FALSE))
+  display = list(pileup = list(show = FALSE)))
 canonical <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = list(showPileup = FALSE, showNonCanonicalJunctions = FALSE))
+  display = list(pileup = list(show = FALSE),
+    sashimi = list(filter = list(nonCanonical = "exclude"))))
 fig <- jbrowse_stack("All junctions" = all_junctions,
   "Canonical only" = canonical)
 ```
@@ -262,14 +264,14 @@ replace:
   - from: "Type `chr9:136,214,000-136,229,000` into the\nlocation box, then pick this path from the track menu:"
     to: "We'll read `chr9:136,214,000-136,229,000`."
   - from: "**Group by... → First-of-pair strand** applies a `facet`, one section per group,\neach with a coverage histogram from only that group's reads, forward and reverse\non one autoscaled axis. Turning off **Show... → Pileup** leaves the two\nhistograms alone."
-    to: "`facet = list(field = \"firstOfPairStrand\")` makes one section per group, each with a coverage histogram from only that group's reads, forward and reverse on one autoscaled axis. `showPileup = FALSE` leaves the two histograms alone."
+    to: "`facet = list(field = \"firstOfPairStrand\")` makes one section per group, each with a coverage histogram from only that group's reads, forward and reverse on one autoscaled axis. `pileup = list(show = FALSE)` leaves the two histograms alone."
 -->
 
 ```{r surfeit}
 surfeit <- "chr9:136,214,000-136,229,000"
 surfeit_genes <- jbrowse_features(gff, surfeit, assembly = hg19,
   display = genes, width = 1200)
-by_strand <- list(showPileup = FALSE,
+by_strand <- list(pileup = list(show = FALSE),
   facet = list(field = "firstOfPairStrand"))
 surfeit_reads <- jbrowse_alignments(bam, surfeit, assembly = hg19,
   display = by_strand)
@@ -353,7 +355,7 @@ replace:
 
 ```{r isoseq}
 iso_reads <- jbrowse_alignments(isoseq, actb, assembly = hg19,
-  display = list(showPileup = FALSE))
+  display = list(pileup = list(show = FALSE)))
 fig <- jbrowse_stack(RefSeq = actb_genes, IsoSeq = iso_reads, width = 1200)
 ```
 
@@ -504,7 +506,7 @@ from_table <- in_window |>
   group_by(start = chromStart, end = chromEnd) |>
   summarise(table = sum(score), .groups = "drop")
 from_reads <- jbrowse_alignments(bam, folh1, assembly = hg19,
-  display = list(showPileup = FALSE))$junctions |>
+  display = list(pileup = list(show = FALSE)))$junctions |>
   select(start, end, reads = count)
 both <- inner_join(from_table, from_reads, by = c("start", "end"))
 c(in_table = nrow(from_table), in_reads = nrow(from_reads),

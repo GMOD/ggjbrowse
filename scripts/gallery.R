@@ -24,7 +24,8 @@ width <- 1200
 dir <- "gallery"
 jb2export_version <- c(
   "It needs 5.0.0-beta or later, since 4.3.0 cannot draw most of these, and",
-  "the clustered rows need jbrowse-components commit `c50aaedcda`, in no",
+  "the clustered rows and the alignments' band settings, such as",
+  "`coverage.height=`, need jbrowse-components commit `586faa2bd3`, in no",
   "release yet.")
 
 # jb2export reads the checkout's copy of the data, and configs committed beside
@@ -209,7 +210,7 @@ jbrowse_stack(genes, reads)
     r = r"-(
 autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
   "chr3:25,358,500-25,359,800",
-  display = list(unit = "chain", readConnections = "arc",
+  display = list(unit = "chain", readConnections = list(show = TRUE),
     color = list(field = "strand"), filter = list(split = "only"))))
 )-"),
   deletion = list(
@@ -232,7 +233,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
     r = r"-(
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,831,700-122,840,800",
-  display = list(featureHeight = 3,
+  display = list(pileup = list(readHeight = 3),
     sort = list(type = "basePair", pos = 122836300))))
 )-"),
   base_zoom = list(
@@ -253,12 +254,12 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
     jbrowse = c(hg38, "--bam", inst("hg00151_chr1_inversion.bam"),
       "showLegend=true", grow,
       "arcs:down", "unit=chain", "color.field=pairOrientation",
-      "facet=split", "coverageHeight=80", "--loc",
+      "facet=split", "coverage.height=80", "--loc",
       "chr1:197,786,900-197,789,700"),
     r = r"-(
 autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
   "chr1:197,786,900-197,789,700",
-  display = list(unit = "chain", readConnections = "arc",
+  display = list(unit = "chain", readConnections = list(show = TRUE),
     color = list(field = "pairOrientation"), facet = list(field = "split"))))
 )-"),
   methylation = list(

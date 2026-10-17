@@ -24,7 +24,7 @@ JBrowse does:
 - `filter = list(flagExclude = 1796, tagFilters = list(list(tag = "HP", value = "1")))`
 - `sort = list(type = "basePair", pos = 122836300)` sorts by the base at a
   position ([a somatic deletion](gallery.md#deletion)).
-- `featureHeight = 3` packs reads compact
+- `pileup = list(readHeight = 3)` packs reads compact
   ([compact reads](gallery.md#compact_reads)).
 - `baseColor = list(field = "modifications")` paints MM/ML modification calls
   ([CpG methylation](gallery.md#methylation)).
@@ -32,15 +32,19 @@ JBrowse does:
   EM-seq reads show against `assembly`, in the context
   `modifications = list(cytosineContext = "CHH")` names
   ([CHH methylation](gallery.md#bisulfite)).
-- `readConnections = "arc"` adds the read-pair band, an arc per mate pair and
-  split read colored by insert size and pair orientation. `"cloud"`
-  plots each abnormal pair at its insert size instead.
+- `readConnections = list(show = TRUE)` adds the read-pair band, an arc per
+  mate pair and split read colored by insert size and pair orientation.
+  `mark = "cloud"` plots each abnormal pair at its insert size instead.
 - `unit = "chain"` puts a read's mate or split segments on one row, joined by
   a hairline ([COLO829 split reads](gallery.md#long_reads_sv)).
 - `facet = list(field = "split")` splits the reads into the display's stacked
   sections, each packed separately
   ([an inversion](gallery.md#inversion)).
-- Any other slot, such as `showOrdinaryPairs = FALSE`.
+- `coverage`, `pileup`, `sashimi` and `readConnections` each take the
+  band's own `show`, height and `filter`, as a track config writes them:
+  `coverage = list(show = FALSE)`,
+  `sashimi = list(filter = list(minReads = 5, nonCanonical = "exclude"))`,
+  `readConnections = list(show = TRUE, showOrdinaryPairs = FALSE)`.
 
 Each read comes back on the row the display lays it on, with the fill the
 display paints it, and `a$keys$reads` is the display's key. A mismatch,
@@ -55,11 +59,10 @@ resolved config it decided from:
 - Every mark comes back with the `color` the display paints it, and
   `a$keys` with the browser's keys and titles, such as "Splice junctions".
 - `junctions$shown` marks the arcs the sashimi band draws, by
-  `minSashimiScore` and `showNonCanonicalJunctions`. Each arc rises to its
-  `arcHeight` share of the band and strokes `strokeWidth` px, which R draws
-  at 150 px an inch.
+  `sashimi$filter`. Each arc rises to its `arcHeight` share of the band and
+  strokes `strokeWidth` px, which R draws at 150 px an inch.
 - `allele_coverage$shown` marks the alleles the coverage band stacks, by
-  `coverageSnpMinFrequency`.
+  `coverage$filter$minAlleleFraction`.
 - `autoplot()` and the geoms draw what these columns say, so editing them
   draws otherwise: `a$junctions$shown <- a$junctions$count >= 5`, or
   `a$mismatches$fade <- 1` to stop a sub-pixel mismatch fading.
