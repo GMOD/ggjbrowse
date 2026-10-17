@@ -174,7 +174,7 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
 
 test_that("a key lists every label, several of one color included", {
   paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA:18,001-32,000",
-     display = list(readConnections = "arc"))
+     display = list(readConnections = list(show = TRUE)))
   legend <- paired$keys$arcs
   expect_true(anyDuplicated(legend$color) > 0)
   key <- drawn_guides(ggplot(paired) + geom_jbrowse_arcs() +
@@ -184,7 +184,7 @@ test_that("a key lists every label, several of one color included", {
 
 test_that("the multi-layer geoms take any column of their tables", {
   paired <- jbrowse_alignments(extdata("volvox-simple-inv-paired.bam"), "ctgA:18,001-32,000",
-     display = list(readConnections = "arc"))
+     display = list(readConnections = list(show = TRUE)))
   domes <- layer_data(ggplot(paired) + geom_jbrowse_arcs(aes(alpha = span)), 1)
   expect_equal(length(unique(domes$group)), nrow(paired$arcs))
   expect_gt(length(unique(domes$alpha)), 1)

@@ -69,13 +69,22 @@ order) and \code{hidden} (keys left out)
 \item \code{unit}: what one row stands for, \code{"read"}, or \code{"chain"} for a read
 with its mate and split segments on one row, a hairline across it, and
 the strand colors framed against the chain's own
-\item \code{readConnections}: the read-connection band, \code{"arc"} for each mate
-pair's and split read's arc or \code{"cloud"} for the read cloud; unset
-reads none
-\item \code{showCoverage}, \code{showPileup}, \code{showSashimiArcs}, and any other slot
-such as \code{showOrdinaryPairs}, \code{arcColor} or \code{minSashimiScore}. A band
-set not to show (\code{showCoverage}, \code{showPileup}, \code{showMismatches},
-\code{showInterbaseIndicators}, \code{showSashimiArcs}) reads as empty tables
+\item the four bands, each a list with its own \code{show} and, where it filters
+its rows, \code{filter}:
+\code{coverage} (\code{height}, \code{showInterbaseIndicators},
+\code{filter = list(minAlleleFraction = )});
+\code{pileup} (\code{readHeight}, 7, or 3 and 1 for compact and super-compact,
+\code{showMismatches}, \code{showSoftClipping}, \code{fadeLowFrequency}, ...);
+\code{sashimi} (\code{height}, \code{placement},
+\code{filter = list(minReads = , nonCanonical = "exclude")});
+\code{readConnections} (\code{show = TRUE} for each mate pair's and split
+read's arc, \code{mark = "cloud"} for the read cloud, \code{height},
+\code{showOrdinaryPairs}, \code{color = list(field = )},
+\code{filter = list(interchrom = , offscreenMates = , minInterchromReads = )}),
+e.g. \code{list(coverage = list(show = FALSE), pileup = list(readHeight = 3))}.
+A band or layer set not to show (\code{coverage}, \code{pileup} or \code{sashimi}'s
+\code{show}, \code{pileup$showMismatches}, \code{coverage$showInterbaseIndicators})
+reads as empty tables
 }}
 
 \item{width}{the pixels the figure spans across the regions, which the

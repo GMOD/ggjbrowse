@@ -16,7 +16,7 @@ read_inset <- function(x) {
   (1 - p$featureHeight / (p$featureHeight + p$featureSpacing)) / 2
 }
 
-fades <- function(x) !isFALSE(x$display$fadeLowFrequencyMismatches)
+fades <- function(x) !isFALSE(x$display$pileup$fadeLowFrequency)
 
 with_inset <- function(d, model) {
   d$inset <- rep(read_inset(model), nrow(d))
@@ -38,7 +38,7 @@ with_inset <- function(d, model) {
 #' junctions whose `shown` is true, `geom_jbrowse_alleles()` the allele
 #' segments whose `shown` is true, and the mismatches, deletions,
 #' insertions and clips each faded by its `fade` while the display's
-#' `fadeLowFrequencyMismatches` is on. Edit the table to draw otherwise:
+#' `pileup$fadeLowFrequency` is on. Edit the table to draw otherwise:
 #' `a$junctions$shown <- a$junctions$count >= 5`, or
 #' `a$mismatches$fade <- 1` for no fade.
 #'
@@ -458,7 +458,10 @@ connection_domes <- function(arcs, top, points = 48) {
   d
 }
 
-is_cloud <- function(x) identical(x$display$readConnections, "cloud")
+is_cloud <- function(x) {
+  band <- x$display$readConnections
+  isTRUE(band$show) && identical(band$mark, "cloud")
+}
 
 #' @rdname geom_jbrowse_reads
 #' @export
@@ -517,5 +520,5 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
 # draws it
 arc_top <- function(x, width = NULL) {
   if (is_cloud(x)) max(2, x$arc_span_max)
-  else x$display$readConnectionsHeight / px_of(x, width)
+  else x$display$readConnections$height / px_of(x, width)
 }

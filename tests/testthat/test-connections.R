@@ -29,19 +29,19 @@ test_that("a facet splits the reads into sections, each packed on its own", {
 
 test_that("read connections come back as the display's band draws them", {
   expect_equal(nrow(read()$arcs), 0)
-  a <- read(display = list(readConnections = "arc"))
+  a <- read(display = list(readConnections = list(show = TRUE)))
   expect_gt(nrow(a$arcs), 100)
   expect_setequal(unique(a$arcs$shape), "arc")
   expect_true(all(c("pairLL", "pairRR") %in% a$arcs$category))
   expect_setequal(unique(a$arcs$color), unique(a$keys$arcs$color))
   expect_equal(attr(a$keys$arcs, "title"), "Arc colors")
-  abnormal <- read(display = list(readConnections = "arc",
-    showOrdinaryPairs = FALSE))
+  abnormal <- read(display = list(readConnections = list(show = TRUE,
+    showOrdinaryPairs = FALSE)))
   expect_false("normalInsert" %in% abnormal$arcs$category)
   domes <- ggplot2::ggplot_build(ggplot2::autoplot(a, "arcs"))$data[[2]]
   expect_equal(length(unique(domes$group)), nrow(a$arcs))
 
-  cloud <- read(display = list(readConnections = "cloud",
+  cloud <- read(display = list(readConnections = list(show = TRUE, mark = "cloud"),
     facet = list(field = "strand")))
   expect_true(all(cloud$arcs$shape %in% c("flat", "flatSplit")))
   expect_equal(cloud$arc_span_max, max(cloud$arcs$span))
@@ -55,9 +55,9 @@ test_that("read connections come back as the display's band draws them", {
 })
 
 test_that("an arc rises as high as it is wide, the band reaching its pixels at the figure's scale", {
-  a <- read(display = list(readConnections = "arc"))
+  a <- read(display = list(readConnections = list(show = TRUE)))
   span <- 32000 - 18000
-  expect_equal(arc_top(a), a$display$readConnectionsHeight / (1500 / span))
+  expect_equal(arc_top(a), a$display$readConnections$height / (1500 / span))
   expect_lt(median(a$arcs$y), arc_top(a))
   expect_gt(max(a$arcs$y), arc_top(a))
   reach <- function(width) {

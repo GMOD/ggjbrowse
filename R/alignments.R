@@ -74,13 +74,22 @@ alignments_adapter <- function(file, index) {
 #'   * `unit`: what one row stands for, `"read"`, or `"chain"` for a read
 #'     with its mate and split segments on one row, a hairline across it, and
 #'     the strand colors framed against the chain's own
-#'   * `readConnections`: the read-connection band, `"arc"` for each mate
-#'     pair's and split read's arc or `"cloud"` for the read cloud; unset
-#'     reads none
-#'   * `showCoverage`, `showPileup`, `showSashimiArcs`, and any other slot
-#'     such as `showOrdinaryPairs`, `arcColor` or `minSashimiScore`. A band
-#'     set not to show (`showCoverage`, `showPileup`, `showMismatches`,
-#'     `showInterbaseIndicators`, `showSashimiArcs`) reads as empty tables
+#'   * the four bands, each a list with its own `show` and, where it filters
+#'     its rows, `filter`:
+#'     `coverage` (`height`, `showInterbaseIndicators`,
+#'     `filter = list(minAlleleFraction = )`);
+#'     `pileup` (`readHeight`, 7, or 3 and 1 for compact and super-compact,
+#'     `showMismatches`, `showSoftClipping`, `fadeLowFrequency`, ...);
+#'     `sashimi` (`height`, `placement`,
+#'     `filter = list(minReads = , nonCanonical = "exclude")`);
+#'     `readConnections` (`show = TRUE` for each mate pair's and split
+#'     read's arc, `mark = "cloud"` for the read cloud, `height`,
+#'     `showOrdinaryPairs`, `color = list(field = )`,
+#'     `filter = list(interchrom = , offscreenMates = , minInterchromReads = )`),
+#'     e.g. `list(coverage = list(show = FALSE), pileup = list(readHeight = 3))`.
+#'     A band or layer set not to show (`coverage`, `pileup` or `sashimi`'s
+#'     `show`, `pileup$showMismatches`, `coverage$showInterbaseIndicators`)
+#'     reads as empty tables
 #' @param byte_limit the most compressed bytes the regions may need, refused
 #'   off the index before any read is fetched; the whole table is held in
 #'   memory

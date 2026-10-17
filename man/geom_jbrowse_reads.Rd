@@ -103,7 +103,7 @@ Each geom draws what its table says: \code{geom_jbrowse_junctions()} the
 junctions whose \code{shown} is true, \code{geom_jbrowse_alleles()} the allele
 segments whose \code{shown} is true, and the mismatches, deletions,
 insertions and clips each faded by its \code{fade} while the display's
-\code{fadeLowFrequencyMismatches} is on. Edit the table to draw otherwise:
+\code{pileup$fadeLowFrequency} is on. Edit the table to draw otherwise:
 \code{a$junctions$shown <- a$junctions$count >= 5}, or
 \code{a$mismatches$fade <- 1} for no fade.
 \itemize{

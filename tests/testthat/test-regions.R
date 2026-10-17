@@ -90,7 +90,7 @@ test_that("jbrowse_stack stacks each track's bands as the display shows them", {
   reads <- jbrowse_alignments(bam, locus)
   expect_length(jbrowse_stack(genes, reads), 3)
   hidden <- jbrowse_alignments(bam, locus,
-    display = list(showCoverage = FALSE))
+    display = list(coverage = list(show = FALSE)))
   expect_length(jbrowse_stack(list(genes, hidden)), 2)
 })
 
@@ -258,7 +258,7 @@ test_that("a split read across two regions arcs over the gap, listed once", {
   r <- jbrowse_alignments(
     system.file("extdata", "volvox-long-reads-sv.bam", package = "ggjbrowse"),
     c("ctgA:1,800-3,000", "ctgA:33,900-35,100"),
-    display = list(readConnections = "arc"))
+    display = list(readConnections = list(show = TRUE)))
   drawn <- on_axis(r)$arcs
   axis <- r$regions
   feet <- cbind(pmin(drawn$start, drawn$end), pmax(drawn$start, drawn$end))

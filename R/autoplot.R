@@ -122,7 +122,7 @@ makeContent.ggjbrowse_row_labels <- function(x) {
 # its own width up to opaque by the share of the depth its site holds, which
 # the engine zeroes under the display's threshold (the shaders'
 # frequencyAlpha); a mark a pixel or wider never fades, nor does anything
-# while the display's fadeLowFrequencyMismatches is off.
+# while the display's pileup$fadeLowFrequency is off.
 mark_alpha <- function(px, fade, on) {
   if (!on) return(rep(1, length(fade)))
   px <- rep_len(px, length(fade))
@@ -146,7 +146,7 @@ band <- function(p, x, rows = FALSE, ylim = NULL, expand = FALSE) {
 # labels, the triangles sitting in the top one
 coverage_plot <- function(x, o) {
   scale <- x$y_scale
-  interbase <- !isFALSE(x$display$showInterbaseIndicators)
+  interbase <- !isFALSE(x$display$coverage$showInterbaseIndicators)
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_coverage() +
     geom_jbrowse_alleles(width = o$width) +
@@ -159,7 +159,7 @@ coverage_plot <- function(x, o) {
     ggplot2::scale_y_continuous(breaks = scale$ticks,
       transform = depth_transform(scale),
       expand = ggplot2::expansion(mult = inset /
-        (x$display$coverageHeight - 2 * inset))) +
+        (x$display$coverage$height - 2 * inset))) +
     ggplot2::labs(y = "depth")
 }
 
@@ -254,7 +254,7 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'
 #' Each band draws what the result says: the junctions whose `shown` is
 #' true, the allele segments whose `shown` is true, and each mark faded by
-#' its `fade` under the display's `fadeLowFrequencyMismatches`. Edit those
+#' its `fade` under the display's `pileup$fadeLowFrequency`. Edit those
 #' columns to draw otherwise, as in
 #' `a$junctions$shown <- a$junctions$count >= 5`. [jbrowse_stack()] stacks
 #' other tracks over the track.
@@ -264,8 +264,8 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   the reads splice, the coverage band, the read-connection band under
 #'   `display$readConnections` and the pileup, one above the other on a
 #'   shared axis, each band split into the `facet`'s sections, and each
-#'   drawn where the display's `showCoverage`, `showPileup` and
-#'   `showSashimiArcs` draw it; `"pileup"`: each read on its row, split at
+#'   drawn where the display's `coverage`, `pileup` and `sashimi` bands
+#'   `show`; `"pileup"`: each read on its row, split at
 #'   its splice gaps, filled as the display's `color` object paints it and
 #'   keyed as the display keys it, with its mismatches, deletions,
 #'   insertions, clips and base modifications; `"coverage"`: the depth, each
@@ -308,9 +308,9 @@ alignment_options <- function(object, letters = NULL) {
   list(
     letters = letters %||% (xlim[2] - xlim[1] <= 300),
     width = object$width,
-    coverage = !isFALSE(s$showCoverage),
-    pileup = !isFALSE(s$showPileup),
-    junctions = !isFALSE(s$showSashimiArcs))
+    coverage = !isFALSE(s$coverage$show),
+    pileup = !isFALSE(s$pileup$show),
+    junctions = !isFALSE(s$sashimi$show))
 }
 
 # Each band an alignments track draws, top to bottom, by its height in the
@@ -328,9 +328,9 @@ alignment_px <- function(object, o) {
     coverage = o$coverage,
     arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
     pileup = o$pileup)
-  c(junctions = s$sashimiArcsHeight * sections,
-    coverage = s$coverageHeight * sections,
-    arcs = s$readConnectionsHeight * sections,
+  c(junctions = s$sashimi$height * sections,
+    coverage = s$coverage$height * sections,
+    arcs = s$readConnections$height * sections,
     pileup = max(30, rows * pitch))[shown]
 }
 

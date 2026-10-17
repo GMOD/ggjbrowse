@@ -141,7 +141,7 @@ band_of <- function(track, axis, px = NULL) {
 #' bam <- system.file("extdata", "gapdh_direct_rna.bam",
 #'   package = "ggjbrowse")
 #' reads <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
-#'   display = list(featureHeight = 3))
+#'   display = list(pileup = list(readHeight = 3)))
 #' jbrowse_height(jbrowse_stack(reads))
 jbrowse_height <- function(fig) {
   heights <- fig$patches$layout$heights

@@ -23,6 +23,6 @@ shorter figure than a normal one. Pass it as \code{ggsave()}'s \code{height}.
 bam <- system.file("extdata", "gapdh_direct_rna.bam",
   package = "ggjbrowse")
 reads <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
-  display = list(featureHeight = 3))
+  display = list(pileup = list(readHeight = 3)))
 jbrowse_height(jbrowse_stack(reads))
 }

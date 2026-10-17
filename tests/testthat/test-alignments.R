@@ -89,14 +89,14 @@ test_that("the coverage band draws on the display's depth axis, inset as the dis
   built <- ggplot2::ggplot_build(ggplot2::autoplot(sv, "coverage"))
   y <- built$layout$panel_params[[1]]$y
   expect_equal(y$breaks[!is.na(y$breaks)], scale$ticks)
-  inset <- sv$glyph$coverageInset / (sv$display$coverageHeight -
+  inset <- sv$glyph$coverageInset / (sv$display$coverage$height -
     2 * sv$glyph$coverageInset)
   span <- diff(scale$domain)
   expect_equal(y$continuous_range,
     scale$domain + c(-1, 1) * inset * span)
 
   hidden <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000",
-     display = list(showInterbaseIndicators = FALSE))
+     display = list(coverage = list(showInterbaseIndicators = FALSE)))
   expect_length(ggplot2::ggplot_build(ggplot2::autoplot(hidden,
     "coverage"))$data, 3)
 })
@@ -527,10 +527,10 @@ test_that("regions spanning past span_limit in all are refused", {
 test_that("reads draw at the display's read height, and the pileup band is as tall as its rows", {
   bam <- extdata("volvox-sorted.bam")
   read_at <- function(h) jbrowse_alignments(bam, "ctgA:1,001-9,000",
-    display = list(featureHeight = h))
+    display = list(pileup = list(readHeight = h)))
   normal <- read_at(7)
   compact <- read_at(3)
-  expect_equal(compact$display$featureHeight, 3)
+  expect_equal(compact$display$pileup$readHeight, 3)
   body <- function(x) {
     d <- ggplot2::layer_data(ggplot2::ggplot(x) + geom_jbrowse_reads(), 1)
     unique(round(d$ymax - d$ymin, 6))
@@ -547,7 +547,8 @@ test_that("reads draw at the display's read height, and the pileup band is as ta
 
 test_that("a short pileup's figure is still tall enough for its keys", {
   r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-1,400",
-    display = list(featureHeight = 1, color = list(field = "strand")))
+    display = list(pileup = list(readHeight = 1),
+      color = list(field = "strand")))
   fig <- jbrowse_stack(r)
   bands <- sum(fig$patches$layout$heights) / 150 + 0.86
   expect_lt(bands, 2)
@@ -647,7 +648,7 @@ test_that("a stack draws a key two tracks share once, with every entry either ho
 
   locus <- "chr12:6,534,201-6,538,700"
   forward <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"), locus,
-    display = list(showPileup = FALSE))
+    display = list(pileup = list(show = FALSE)))
   expect_equal(unique(forward$junctions$strand), 1)
   reverse <- forward
   reverse$junctions$strand <- -1
@@ -681,7 +682,7 @@ test_that("the junction band draws the junctions the display shows, at its heigh
 test_that("the coverage band stacks the alleles the display shows", {
   a <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700",
-    display = list(coverageSnpMinFrequency = 0.2))
+    display = list(coverage = list(filter = list(minAlleleFraction = 0.2))))
   expect_gt(sum(!a$allele_coverage$shown), 0)
   drawn <- ggplot2::layer_data(ggplot2::ggplot(a) + geom_jbrowse_alleles())
   expect_equal(nrow(drawn), sum(a$allele_coverage$shown))
@@ -692,29 +693,30 @@ test_that("the coverage band stacks the alleles the display shows", {
 
 test_that("a result carries the display's resolved config and read pitch", {
   expect_equal(bam$display$type, "LinearAlignmentsDisplay")
-  expect_equal(bam$display$minSashimiScore, 2)
-  expect_equal(bam$display$readConnections, "off")
+  expect_equal(bam$display$sashimi$filter$minReads, 2)
+  expect_false(bam$display$readConnections$show)
   expect_equal(bam$read_pitch, list(featureHeight = 7L, featureSpacing = 1L))
   compact <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
-     display = list(featureHeight = 3))
+     display = list(pileup = list(readHeight = 3)))
   expect_equal(compact$read_pitch$featureSpacing, 0)
   expect_equal(read_inset(compact), 0)
   off <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
-     display = list(fadeLowFrequencyMismatches = FALSE))
+     display = list(pileup = list(fadeLowFrequency = FALSE)))
   expect_false(fades(off))
   expect_true(fades(bam))
 })
 
 test_that("the junction band hides non-canonical junctions where the display does", {
-  read <- function(show) jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+  read <- function(...) jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700", assembly = extdata("gapdh_hg38.fa.gz"),
-    display = list(showNonCanonicalJunctions = show, minSashimiScore = 1))
+    display = list(sashimi = list(filter = list(minReads = 1, ...))))
   arcs <- function(x) length(unique(ggplot2::layer_data(
     ggplot2::ggplot(x) + geom_jbrowse_junctions(), 1)$group))
-  shown <- read(TRUE)
+  shown <- read()
   odd <- shown$junctions$motif == "non-canonical" & shown$junctions$shown
   expect_gt(sum(odd), 0)
-  expect_equal(arcs(read(FALSE)), arcs(shown) - sum(odd))
+  expect_equal(arcs(read(nonCanonical = "exclude")), arcs(shown) - sum(odd))
+  expect_equal(arcs(read(nonCanonical = "only")), sum(odd))
 })
 
 test_that("coverage stops at the region's ends, where the reads do not", {
@@ -726,7 +728,7 @@ test_that("coverage stops at the region's ends, where the reads do not", {
 
 test_that("a band the display hides reads as an empty table", {
   hidden <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
-     display = list(showCoverage = FALSE))
+     display = list(coverage = list(show = FALSE)))
   expect_equal(nrow(hidden$coverage), 0)
   expect_equal(nrow(hidden$allele_coverage), 0)
   expect_equal(hidden$reads$start, bam$reads$start)

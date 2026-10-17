@@ -19,8 +19,8 @@
 the reads splice, the coverage band, the read-connection band under
 \code{display$readConnections} and the pileup, one above the other on a
 shared axis, each band split into the \code{facet}'s sections, and each
-drawn where the display's \code{showCoverage}, \code{showPileup} and
-\code{showSashimiArcs} draw it; \code{"pileup"}: each read on its row, split at
+drawn where the display's \code{coverage}, \code{pileup} and \code{sashimi} bands
+\code{show}; \code{"pileup"}: each read on its row, split at
 its splice gaps, filled as the display's \code{color} object paints it and
 keyed as the display keys it, with its mismatches, deletions,
 insertions, clips and base modifications; \code{"coverage"}: the depth, each
@@ -46,7 +46,7 @@ patchwork; a \code{"track"} is a patchwork of its bands
 \description{
 Each band draws what the result says: the junctions whose \code{shown} is
 true, the allele segments whose \code{shown} is true, and each mark faded by
-its \code{fade} under the display's \code{fadeLowFrequencyMismatches}. Edit those
+its \code{fade} under the display's \code{pileup$fadeLowFrequency}. Edit those
 columns to draw otherwise, as in
 \code{a$junctions$shown <- a$junctions$count >= 5}. \code{\link[=jbrowse_stack]{jbrowse_stack()}} stacks
 other tracks over the track.
