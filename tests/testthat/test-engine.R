@@ -154,7 +154,7 @@ test_that("a read through an assembly opens each file once", {
   }
 })
 
-test_that("the engine keeps decoded records under the limit, and the files read last open", {
+test_that("the engine keeps decoded records and chunks under the limit, and the files read last open", {
   limit <- jbrowse_cache()$limit
   on.exit(jbrowse_cache(limit = limit))
   jbrowse_reset()
@@ -164,7 +164,7 @@ test_that("the engine keeps decoded records under the limit, and the files read 
     jbrowse_alignments(path, "ctgA:1-2,000")
     held <- jbrowse_cache()
     expect_lte(held$decoded, 4 * 2^20)
-    expect_lte(held$chunks, 256 * 2^20)
+    expect_lte(held$chunks, 4 * 2^20)
   }
   expect_lt(held$adapters, length(paths))
   indexes <- function(path) whole_reads(jbrowse_alignments(path,
@@ -180,6 +180,19 @@ test_that("a lower limit keeps the files the last call read open", {
   jbrowse_reset()
   jbrowse_alignments(bam, "ctgA:1-2,000")
   expect_equal(jbrowse_cache(limit = 0)$adapters, 1)
+})
+
+test_that("a limit of 0 keeps no chunks, and a higher one keeps them", {
+  limit <- jbrowse_cache()$limit
+  on.exit(jbrowse_cache(limit = limit))
+  jbrowse_reset()
+  jbrowse_cache(limit = 0)
+  jbrowse_alignments(bam, "ctgA:1-2,000")
+  expect_equal(jbrowse_cache()$chunks, 0)
+  jbrowse_reset()
+  jbrowse_cache(limit = 2^30)
+  jbrowse_alignments(bam, "ctgA:1-2,000")
+  expect_gt(jbrowse_cache()$chunks, 0)
 })
 
 test_that("a limit of Inf is none, and a restarted engine takes it again", {

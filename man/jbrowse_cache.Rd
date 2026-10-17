@@ -12,20 +12,20 @@ once. \code{NULL} leaves it as it is.}
 }
 \value{
 A list: \code{limit}; \code{decoded}, the bytes of decoded records held;
-\code{chunks}, at most the file bytes the chunk cache holds; \code{parsed}, the
+\code{chunks}, the file bytes the chunk cache holds; \code{parsed}, the
 estimated weight of the open files; \code{adapters}, the files and sequences
 held open; \code{assemblies}, the assemblies resolved.
 }
 \description{
-Sets or reports \code{limit}, which bounds the decoded records the engine keeps
-between calls and, separately, what the files it keeps open parsed.
+Sets or reports \code{limit}, which bounds each of the three caches the engine
+keeps between calls.
 }
 \details{
-Between calls the engine keeps three caches, each under its own bound:
+Between calls the engine keeps three caches, each bounded by \code{limit} bytes,
+256 MiB unless set:
 \itemize{
-\item The records it decoded, at most \code{limit} bytes, 256 MiB unless set.
-\item The file bytes it read in ranges, under the chunk cache's own 256 MiB cap,
-whatever \code{limit} is.
+\item The records it decoded.
+\item The file bytes it read in ranges.
 \item The files the last call read stay open. Then each other open file, most
 recently read first, stays if its weight still fits under \code{limit} beside
 those kept.
@@ -38,8 +38,7 @@ whole.
 
 A call's own reads and tables come on top, which a wide region of a deep
 file takes to gigabytes, as do R's copies of the tables. So does the memory
-of the engine's decompressor, which \code{limit} cannot lower: about 262 MiB
-after one window of 1000x long reads. R's process keeps the memory the
+of the engine's decompressor, about 20 MiB. R's process keeps the memory the
 engine frees for its next reads.
 
 The engine's V8 stops at a heap of about 1.4 GB, which files parsed whole
