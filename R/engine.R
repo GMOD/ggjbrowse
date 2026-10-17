@@ -100,9 +100,9 @@ jbrowse_reset <- function() {
 #'   those kept.
 #'
 #' A file weighs at least 1 MiB, or an estimate of what the engine parsed from
-#' the files it read whole: four times an index's uncompressed size, ten times
-#' any other file's, such as a plain or gzipped VCF, which the engine parses
-#' whole.
+#' the files it read whole, which is four times an index's uncompressed size
+#' and ten times any other file's, such as a plain or gzipped VCF, which the
+#' engine parses whole.
 #'
 #' A call whose reads exceed `limit` can read a chunk again inside itself, and
 #' `Inf` leaves the chunk cache unbounded.
@@ -113,7 +113,7 @@ jbrowse_reset <- function() {
 #' engine frees for its next reads.
 #'
 #' The engine's V8 stops at a heap of about 1.4 GB, which files parsed whole
-#' reach first: a 24 MB plain VCF parses to about 220 MiB.
+#' reach first, since a 24 MB plain VCF parses to about 220 MiB.
 #' @param limit The bound in bytes, `Inf` for none. A smaller one evicts at
 #'   once. `NULL` leaves it as it is.
 #' @return A list: `limit`; `decoded`, the bytes of decoded records held;

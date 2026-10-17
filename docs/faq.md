@@ -105,17 +105,17 @@ sequenceDiagram
     open file, most recently read first, while its weight still fits under
     256 MiB beside those kept.
 - A file weighs at least 1 MiB, or an estimate of what the engine parsed from
-  the files it read whole: four times an index's uncompressed size, ten times
-  any other file's, such as a plain or gzipped VCF.
+  the files it read whole, which is four times an index's uncompressed size and
+  ten times any other file's, such as a plain or gzipped VCF.
 - `jbrowse_cache()` reports what each holds. `jbrowse_cache(limit = 64 * 2^20)`
   lowers all three bounds to 64 MiB, and evicts at once;
   `jbrowse_cache(limit = Inf)` keeps everything, the file bytes included.
 - A call whose reads exceed the limit can read a chunk again inside itself.
-- A call's own reads and tables come on top: one read of 1 Mb of a 100x BAM
+- A call's own reads and tables come on top, and one read of 1 Mb of a 100x BAM
   took R to 2.2 GB. So do R's copies of the tables, and the engine's
   decompressor memory, about 20 MiB.
 - The engine's V8 stops at a heap of about 1.4 GB, which files parsed whole
-  reach first: a 24 MB plain VCF parses to about 220 MiB, so read a large VCF
+  reach first, since a 24 MB plain VCF parses to about 220 MiB. Read a large VCF
   through its tabix index.
 - `jbrowse_reset()` empties the caches. R's process keeps the freed memory
   and reuses it for the next reads, so its size seen from the system stays
