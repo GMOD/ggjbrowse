@@ -61,7 +61,7 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/bed 2.3.3
   License: MIT
   Copyright: Copyright (c) 2026 Colin Diesh
-- @gmod/bgzf-filehandle 6.8.1
+- @gmod/bgzf-filehandle 6.8.2
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
 - @gmod/cram 14.3.2
