@@ -43,17 +43,13 @@ drop_lines:
 replace:
   - from: "to index the VCF built\n  in the per-sample section"
     to: "to index a VCF"
-  - from: "covers everything\nbut `node` and `bedGraphToBigWig`, a\n[single static binary from UCSC](https://hgdownload.soe.ucsc.edu/admin/exe/)."
-    to: "covers everything\nbut `bedGraphToBigWig`, a\n[single static binary from UCSC](https://hgdownload.soe.ucsc.edu/admin/exe/)."
 -->
 
 <!-- jbrowse
-section: Where the data comes from
+section: The data
 replace:
-  - from: "The [build script](#reproduce-it-end-to-end) fetches these files,\nso there is nothing to download by hand."
-    to: "The code below reads the scans' outputs by URL, so there is nothing\nto download by hand."
-  - from: "The dm6 assembly and gene track come from the hosted UCSC\n[hub](/docs/user_guides/hub_url)."
-    to: "The gene track is UCSC's RefSeq annotation of dm6, hosted on jbrowse.org."
+  - from: "the track configs\nbelow read the hosted results."
+    to: "the code\nbelow reads the scans' outputs by URL."
 -->
 
 ## The two signals

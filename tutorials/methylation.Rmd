@@ -40,7 +40,7 @@ replace:
 -->
 
 <!-- jbrowse
-section: Where the data comes from
+section: The data
 replace:
   - from: "Nothing to download: the track configs below load region slices we host, cut\nfrom these files."
     to: "Nothing to download: every chunk below reads region slices we host, cut from\nthese files, by URL."

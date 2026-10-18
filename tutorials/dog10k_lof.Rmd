@@ -33,12 +33,11 @@ remotes::install_github("GMOD/ggjbrowse")
 ```
 
 <!-- jbrowse
-section: Where the data comes from
+section: The data
 drop_lines:
   - "15 published CRAMs"
-  - "cram-share/"
 replace:
-  - from: "The [build scripts](#reproduce-it-end-to-end) take these files from their URLs,\nso there is nothing to download by hand."
+  - from: "The tracks below read local files that the\n[build script](#reproduce-it-end-to-end) writes from these, so run it first, or\nrun the slicing steps on any tabix-indexed VCF of your own. The script fetches\neverything itself."
     to: "The code below reads each of these files by URL, so there is nothing to\ndownload by hand."
 -->
 

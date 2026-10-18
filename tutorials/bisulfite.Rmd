@@ -43,10 +43,10 @@ replace:
 -->
 
 <!-- jbrowse
-section: Where the data comes from
+section: The data
 replace:
-  - from: "The [build script](#reproduce-it-end-to-end) fetches these files, so there is\nnothing to download by hand."
-    to: "The [build script](#reproduce-it-end-to-end) fetches these files. This page\nreads the aligned reads over one 14 kb window from a clip on jbrowse.org, so\nevery chunk runs without the alignment step."
+  - from: "The page's commands build local files from these, and the tracks over those read\nthem from disk; every other track reads a hosted copy."
+    to: "This page reads the aligned reads over one 14 kb window from a clip on\njbrowse.org, so every chunk runs without the alignment step."
 -->
 
 <!-- jbrowse

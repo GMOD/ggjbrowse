@@ -38,10 +38,10 @@ remotes::install_github("GMOD/ggjbrowse")
 htslib's `bgzip` and `tabix` index the GFF3 the analysis writes.
 
 <!-- jbrowse
-section: Where the data comes from
+section: The data
 replace:
-  - from: "The [build script](#reproduce-it-end-to-end) fetches these files, so there is\nnothing to download by hand."
-    to: "The code below reads each of these files by URL."
+  - from: "the track configs below read the\nhosted results."
+    to: "the code below reads the\nhosted results by URL."
 -->
 
 ## Building the matrices
