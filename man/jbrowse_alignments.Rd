@@ -42,7 +42,7 @@ one constant color, as in a track config; unset fills every read plain
 (1540 by default), \code{readName}, \code{tags} (a list of
 \code{list(tag = , value = )}), \code{spliced}, \code{svSignal} (SV evidence: a split
 read, an insertion or deletion of 50 bp or more, or a discordant pair),
-\code{singletons} and \code{split} (each \code{"only"} or \code{"exclude"}); and which
+\code{alone} and \code{split} (each \code{"only"} or \code{"exclude"}); and which
 junctions and connections draw:
 \code{junctions = list(minReads = , nonCanonical = "exclude")},
 \code{connections = list(interchrom = , offscreenMates = , minInterchromReads = )}

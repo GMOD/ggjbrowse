@@ -88,7 +88,7 @@ arcs, which the engine computes from the reads' skips:
 
 ```{r actb}
 actb <- "chr7:5,567,000-5,570,000"
-genes <- list(showOnlyGenes = TRUE)
+genes <- list(filter = list(genes = "only"))
 actb_genes <- jbrowse_features(gff, actb, assembly = hg19, display = genes,
   width = 1200)
 actb_reads <- jbrowse_alignments(bam, actb, assembly = hg19,

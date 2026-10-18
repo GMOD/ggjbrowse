@@ -6,7 +6,7 @@ the fill the display paints it, its hue shaded by the alt dosage
 ([by superpopulation](gallery.md#variants_by_population)).
 
 - `display` takes the display's settings: `unit = "haplotype"` for a row per
-  haplotype, `color`, `filter`, `minorAlleleFrequencyFilter`, ...
+  haplotype, `color`, `filter` (with `minMinorAlleleFrequency`), ...
 - `samples` is a table of the samples' attributes, which `rowColor` marks the
   rows by.
 - `v$variants` gives each record's `filter`, its FILTER column, and a column

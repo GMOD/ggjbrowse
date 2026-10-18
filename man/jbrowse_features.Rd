@@ -38,8 +38,9 @@ such as \code{list(field = "type")}), \code{displayMode} (\code{"normal"}, \code
 \code{"superCompact"}, \code{"collapsed"}), \code{showLabels} (\code{"auto"}, \code{"name"},
 \code{"nameAndDescription"}, \code{"description"}, \code{"none"}), \code{geneGlyphMode}
 (\code{"auto"}, \code{"all"}, \code{"longestCoding"}), \code{subfeatureLabels} (\code{"none"},
-\code{"below"}, \code{"overlay"}), \code{featureHeight}, \code{showOnlyGenes}, \code{filter} (jexl
-expressions), \code{displayDirectionalChevrons}, \code{facet} (a field such as
+\code{"below"}, \code{"overlay"}), \code{featureHeight}, \code{filter} (jexl
+expressions under \code{expressions}, \code{genes = "only"} or \code{"exclude"}),
+\code{showChevrons}, \code{facet} (a field such as
 \code{"strand"} or \code{"type"}, or \code{list(field = , domain = , hidden = )}, which
 packs a section per value, as alignments' \code{facet} does), and \code{heightMode}
 with \code{height}. A figure has no track height to fit, so \code{heightMode}

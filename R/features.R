@@ -45,8 +45,9 @@ features_adapter <- function(file, index) {
 #'   `"superCompact"`, `"collapsed"`), `showLabels` (`"auto"`, `"name"`,
 #'   `"nameAndDescription"`, `"description"`, `"none"`), `geneGlyphMode`
 #'   (`"auto"`, `"all"`, `"longestCoding"`), `subfeatureLabels` (`"none"`,
-#'   `"below"`, `"overlay"`), `featureHeight`, `showOnlyGenes`, `filter` (jexl
-#'   expressions), `displayDirectionalChevrons`, `facet` (a field such as
+#'   `"below"`, `"overlay"`), `featureHeight`, `filter` (jexl
+#'   expressions under `expressions`, `genes = "only"` or `"exclude"`),
+#'   `showChevrons`, `facet` (a field such as
 #'   `"strand"` or `"type"`, or `list(field = , domain = , hidden = )`, which
 #'   packs a section per value, as alignments' `facet` does), and `heightMode`
 #'   with `height`. A figure has no track height to fit, so `heightMode`

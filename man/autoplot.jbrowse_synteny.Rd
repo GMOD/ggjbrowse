@@ -38,6 +38,6 @@ s <- jbrowse_synteny(e("hg002_chr8.chain"), "chr8_PATERNAL:5,250,001-14,250,000"
   labels = c(query = "paternal", target = "maternal"))
 autoplot(s)
 genes <- jbrowse_features(e("hg002_mat_genes.gff3.gz"), "chr8_MATERNAL:5,250,001-14,250,000",
-  display = list(showOnlyGenes = TRUE))
+  display = list(filter = list(genes = "only")))
 autoplot(s, below = genes)
 }

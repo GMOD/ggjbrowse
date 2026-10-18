@@ -33,8 +33,9 @@ variants_adapter <- function(file, index, samples) {
 #'   entry writes them for a `LinearMultiSampleVariantDisplay`: a list with
 #'   any of `unit` (`"sample"` for a row per sample, `"haplotype"` for a row
 #'   per haplotype), `color` (a field such as `"svType"` or `"impact"`, or a
-#'   list of the color object's slots), `filter` (jexl expressions),
-#'   `minorAlleleFrequencyFilter`, `maxMissingnessFilter`,
+#'   list of the color object's slots), `filter` (a list of any of
+#'   `expressions`, jexl expressions, `minMinorAlleleFrequency` and
+#'   `maxMissingness`),
 #'   `referenceDrawingMode` (`"skip"` or `"draw"`), `shadeByDosage`, `rows`
 #'   (the arrangement a session saves: `domain`, the rows listed first in
 #'   order, `labels`, a label by row name, and `kept`, the rows shown) and

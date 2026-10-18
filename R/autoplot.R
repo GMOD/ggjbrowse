@@ -323,8 +323,7 @@ alignment_px <- function(object, o) {
   rows <- sum(vapply(split(object$reads$row, object$reads$section),
     function(r) if (length(r)) max(r) + 1 else 0, 0))
   shown <- c(
-    junctions = o$coverage && o$junctions &&
-      nrow(shown_junctions(object)) > 0,
+    junctions = o$junctions && nrow(shown_junctions(object)) > 0,
     coverage = o$coverage,
     arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
     pileup = o$pileup)

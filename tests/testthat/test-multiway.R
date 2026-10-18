@@ -102,7 +102,7 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   polygons <- ggplot2::layer_data(p, 1)
   expect_equal(length(unique(polygons$group)), sum(!m$ribbons$thin))
   genes <- jbrowse_features(gff, m$lanes$locus[1],
-    display = list(showOnlyGenes = TRUE))
+    display = list(filter = list(genes = "only")))
   fig <- autoplot(m, above = genes)
   expect_equal(length(fig$patches$plots) + 1, 2)
   expect_s3_class(fig$theme$axis.text.x, "element_blank")

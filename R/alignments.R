@@ -47,7 +47,7 @@ alignments_adapter <- function(file, index) {
 #'     (1540 by default), `readName`, `tags` (a list of
 #'     `list(tag = , value = )`), `spliced`, `svSignal` (SV evidence: a split
 #'     read, an insertion or deletion of 50 bp or more, or a discordant pair),
-#'     `singletons` and `split` (each `"only"` or `"exclude"`); and which
+#'     `alone` and `split` (each `"only"` or `"exclude"`); and which
 #'     junctions and connections draw:
 #'     `junctions = list(minReads = , nonCanonical = "exclude")`,
 #'     `connections = list(interchrom = , offscreenMates = , minInterchromReads = )`

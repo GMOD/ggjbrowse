@@ -667,7 +667,7 @@ s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
 gene_track <- function(file, contig) jbrowse_features(e(file),
   paste0(contig, ":", r),
   display = list(displayMode = "compact", showLabels = FALSE,
-    showOnlyGenes = TRUE))
+    filter = list(genes = "only")))
 autoplot(s, above = gene_track("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
   below = gene_track("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
 ```
