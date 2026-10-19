@@ -12,14 +12,17 @@ multiway_adapter <- function(file, index) {
 
 # `lanes` as the display's `rows` and the lane picker's pins: unnamed, the
 # lanes drawn in order; named, each value a contig, or a position on it, the
-# lane is pinned to ("" pins nothing)
+# lane is pinned to ("" pins nothing). An unnamed entry among named ones is a
+# lane, pinned nowhere.
 lane_choice <- function(lanes) {
   if (is.null(lanes)) return(list())
-  names_of <- names(lanes) %||% as.character(unlist(lanes))
-  pins <- if (is.null(names(lanes))) list() else
-    Filter(Negate(is.null), stats::setNames(lapply(as.character(lanes),
-      lane_pin), names_of))
-  list(rows = list(domain = I(names_of), kept = I(names_of)), pins = pins)
+  values <- as.character(unlist(lanes))
+  named <- nzchar(names(lanes) %||% rep("", length(values)))
+  names_of <- ifelse(named, names(lanes) %||% "", values)
+  pins <- stats::setNames(lapply(ifelse(named, values, ""), lane_pin),
+    names_of)
+  list(rows = list(domain = I(names_of), kept = I(names_of)),
+    pins = Filter(Negate(is.null), pins))
 }
 
 lane_pin <- function(locus) {
@@ -385,24 +388,37 @@ multiway_stack <- function(x, curves) {
 }
 
 # A track over a lane's window drawn on the stack's pixels: each genomic
-# position moved to its pixel on the lane, through the lane's segments
+# position moved to its pixel on the lane, through the lane's segments, and
+# past the lane's ends at its bp per px, where the lane leaves the view
+# empty
 lane_band <- function(track, x, lane, where) {
   s <- x$segments[x$segments$lane == lane, , drop = FALSE]
   read <- track$regions
+  a <- on_axis_of(x$regions, x$lanes$assembly[lane])
+  anchor <- lane == 1 && nrow(a) > 1
   if (!nrow(s) || !all(read$chrom %in% s$chrom) ||
-    min(read$start) > min(s$start) || max(read$end) < max(s$end)) {
+    min(read$start) > min(s$start) || max(read$end) < max(s$end) ||
+    (anchor && !identical(paste(read$start, read$end),
+      paste(a$start, a$end)))) {
     stop("a track ", where, " the stack draws over ", x$lanes$locus[lane],
       ", but one reads ", paste(loci_of(track), collapse = ", "),
       call. = FALSE)
   }
   bp <- c(rbind(s$start, s$end))
   px <- c(rbind(s$x1, s$x2))
-  a <- on_axis_of(x$regions, x$lanes$assembly[lane])
-  if (lane == 1 && nrow(a) > 1) bp <- c(rbind(a$cum_start, a$cum_end))
+  if (anchor) bp <- c(rbind(a$cum_start, a$cum_end))
   if (is.unsorted(bp)) {
     stop("a track ", where, " the stack draws over one region only",
       call. = FALSE)
   }
+  if (is.unsorted(px)) {
+    stop("a track ", where, " the stack draws over a lane laid out left to ",
+      "right, but ", x$lanes$locus[lane], " runs flipped", call. = FALSE)
+  }
+  per_px <- x$lanes$bp_per_px[lane]
+  bp <- c(bp[1] - px[1] * per_px, bp,
+    bp[length(bp)] + (x$width - px[length(px)]) * per_px)
+  px <- c(0, px, x$width)
   to_px <- function(v) stats::approx(bp, px, v, rule = 2, ties = "ordered")$y
   from_px <- function(v) stats::approx(px, bp, v, rule = 2,
     ties = "ordered")$y

@@ -71,6 +71,11 @@ test_that("lanes draw in the order given, and a named lane pins its contig", {
   pinned <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     lanes = c(volvox_del = "ctgA"))
   expect_equal(pinned$lanes$chrom[2], "ctgA")
+  mixed <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
+    lanes = c(volvox_del = "ctgA", "volvox_ins"))
+  expect_equal(mixed$lanes$assembly, c("volvox", "volvox_del", "volvox_ins"))
+  expect_equal(names(lane_choice(c(volvox_del = "ctgA", "volvox_ins"))$pins),
+    "volvox_del")
 })
 
 test_that("the display's settings color the ribbons", {
@@ -108,6 +113,13 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   expect_s3_class(fig$theme$axis.text.x, "element_blank")
   expect_s3_class(fig$patches$plots[[1]]$theme$axis.text.x, "element_blank")
   expect_gt(jbrowse_height(fig), 1)
+  bottom <- nrow(m$lanes)
+  expect_gt(min(m$segments$x1[m$segments$lane == bottom]), 1)
+  under <- jbrowse_features(gff, m$lanes$locus[bottom],
+    display = list(filter = list(genes = "only")))
+  band <- lane_band(under, m, bottom, "below")$plots[[1]]
+  xlim <- ggplot2::ggplot_build(band)$layout$panel_params[[1]]$x.range
+  expect_equal(xlim, c(0, m$width), tolerance = 1e-6)
   curved <- ggplot2::layer_data(autoplot(m, curves = TRUE), 1)
   expect_gt(nrow(curved), nrow(polygons))
 })
