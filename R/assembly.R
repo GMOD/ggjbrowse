@@ -149,9 +149,8 @@ linear_adapter <- function(file, index) {
 # sequence's path or URL alone as jbrowse_assembly() writes it, the sequence
 # and alias files a config names by `uri` as the adapters sequence_adapter()
 # and alias_adapter() make of them, each location carrying its file's
-# modification time so a rewritten file reads anew, and any other `uri` a
-# path or URL made readable, as a shorthand the engine expands as JBrowse's
-# config does
+# modification time so a rewritten file reads anew, and every other location
+# made readable as a track adapter's are
 assembly_config <- function(assembly) {
   if (is.null(assembly)) return(NULL)
   if (is.character(assembly) && length(assembly) == 1) {
@@ -173,16 +172,16 @@ assembly_config <- function(assembly) {
   if (is.character(aliases$uri) && is.null(aliases$adapter)) {
     assembly$refNameAliases <- list(adapter = alias_adapter(aliases$uri))
   }
-  readable <- function(x) {
-    if (!is.list(x)) return(x)
-    x <- lapply(unclass(x), readable)
-    if (is.character(x$uri) && length(x$uri) == 1) {
-      x$uri <- shorthand_uri(x$uri)
-    }
-    if (is.character(x[["aliases"]])) x$aliases <- I(x[["aliases"]])
-    x
-  }
-  readable(assembly)
+  assembly[] <- lapply(assembly, readable)
+  alias_arrays(assembly)
+}
+
+# A config with each `aliases` an array, even of one alias
+alias_arrays <- function(x) {
+  if (!is.list(x) || inherits(x, "AsIs")) return(x)
+  x[] <- lapply(x, alias_arrays)
+  if (is.character(x[["aliases"]])) x$aliases <- I(x[["aliases"]])
+  x
 }
 
 # The adapter an alias file is read with, by its name as the engine's

@@ -58,6 +58,20 @@ test_that("an assembly config as a JBrowse config writes it serves as one", {
     "12:6,534,201-6,538,700", assembly = config)$reads), 73)
 })
 
+test_that("an assembly's locations read as a track adapter's do", {
+  local <- function(f) list(localPath = extdata(f),
+    locationType = "LocalPathLocation")
+  config <- list(name = "hg38", sequence = list(
+    type = "ReferenceSequenceTrack", trackId = "hg38-seq",
+    adapter = list(type = "BgzipFastaAdapter",
+      fastaLocation = local("gapdh_hg38.fa.gz"),
+      faiLocation = local("gapdh_hg38.fa.gz.fai"),
+      gziLocation = local("gapdh_hg38.fa.gz.gzi"))))
+  expect_equal(jbrowse_contigs(config)$end, 6570000)
+  location <- assembly_config(config)$sequence$adapter$fastaLocation
+  expect_match(location$uri, "^file://.*\\?v=")
+})
+
 test_that("an alias file rewritten in place reads anew", {
   rewritten <- tempfile(fileext = ".txt")
   writeLines("chr12\t12", rewritten)

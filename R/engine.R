@@ -367,16 +367,19 @@ bare_name <- function(file) {
 # the one `guess` makes of a path or URL
 adapter_of <- function(file, guess) {
   if (!is.list(file)) return(guess())
-  readable <- function(x) {
-    if (!is.list(x)) return(x)
-    path <- x[["uri"]] %||% x[["localPath"]]
-    single <- is.character(path) && length(path) == 1
-    if (single && is.null(x[["type"]])) return(location(path))
-    x <- lapply(x, readable)
-    if (single && !is.null(x[["uri"]])) x$uri <- shorthand_uri(path)
-    x
-  }
   readable(file)
+}
+
+# A config with each location in it, a `uri` or `localPath`, a path or URL
+# the engine reads, and an adapter's own `uri` the shorthand it expands
+readable <- function(x) {
+  if (!is.list(x)) return(x)
+  path <- x[["uri"]] %||% x[["localPath"]]
+  single <- is.character(path) && length(path) == 1
+  if (single && is.null(x[["type"]])) return(location(path))
+  x <- lapply(x, readable)
+  if (single && !is.null(x[["uri"]])) x$uri <- shorthand_uri(path)
+  x
 }
 
 # An adapter's own `uri`, the shorthand the engine expands into its file and
