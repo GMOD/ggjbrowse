@@ -30,8 +30,8 @@ alone, mate-pair and split-read arcs or the read cloud on a log
 insert-size axis; \code{"sequence"}: the reference's bases alone}
 
 \item{letters}{write each mismatch's base and each insertion's length on
-the pileup; \code{NULL} does so where the region is at most 300 bp, where a
-base is wide enough to read}
+the pileup; \code{NULL} does so where the display does, at 6.5 px a base or
+more on reads tall enough for text}
 
 \item{width}{the pixels the figure spans across its region, which the
 sub-pixel fade and the read-connection band's reach read; \code{NULL} takes

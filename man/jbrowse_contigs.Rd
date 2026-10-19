@@ -21,8 +21,8 @@ stand where the file states none}
 a data frame of \code{assembly} (the assembly's name, the side's for a
 pairwise file, which a file read from its path names \code{"query"} or
 \code{"target"}, and \code{NA} for a linear file read with no \code{assembly}),
-\code{chrom}, \code{start} and \code{end}, 0-based half-open, \code{end} \code{NA} where a
-pairwise file does not state the length; a linear file adds \code{has_data},
+\code{chrom}, \code{start} and \code{end}, 0-based half-open, \code{end} \code{NA} where neither
+the file nor \code{assembly} states the length; a linear file adds \code{has_data},
 \code{FALSE} where its index shows no records and \code{NA} where it cannot tell
 }
 \description{

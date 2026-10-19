@@ -86,8 +86,8 @@ sequence_adapter <- function(reference) {
 #' @return a data frame of `assembly` (the assembly's name, the side's for a
 #'   pairwise file, which a file read from its path names `"query"` or
 #'   `"target"`, and `NA` for a linear file read with no `assembly`),
-#'   `chrom`, `start` and `end`, 0-based half-open, `end` `NA` where a
-#'   pairwise file does not state the length; a linear file adds `has_data`,
+#'   `chrom`, `start` and `end`, 0-based half-open, `end` `NA` where neither
+#'   the file nor `assembly` states the length; a linear file adds `has_data`,
 #'   `FALSE` where its index shows no records and `NA` where it cannot tell
 #' @export
 #' @examples
@@ -111,6 +111,8 @@ jbrowse_contigs <- function(x, assembly = NULL, index = NULL) {
   config <- assembly_config(assembly)
   contigs <- file_contigs(adapter_of(x, function() linear_adapter(x, index)),
     config)
+  contigs$end[!contigs$length_known] <- NA
+  contigs$length_known <- NULL
   cbind(assembly = rep(config$name %||% NA_character_, nrow(contigs)),
     contigs)
 }

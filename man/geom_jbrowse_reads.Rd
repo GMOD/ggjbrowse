@@ -103,7 +103,9 @@ Each geom draws what its table says: \code{geom_jbrowse_junctions()} the
 junctions whose \code{shown} is true, \code{geom_jbrowse_alleles()} the allele
 segments whose \code{shown} is true, and the mismatches, deletions,
 insertions and clips each faded by its \code{fade} while the display's
-\code{pileup$fadeLowFrequency} is on. Edit the table to draw otherwise:
+\code{pileup$fadeLowFrequency} is on. An indel also fades as it shrinks below a
+pixel, and an insertion of 10 bp or more draws as the display's wider bar,
+never faded by its \code{fade}. Edit the table to draw otherwise:
 \code{a$junctions$shown <- a$junctions$count >= 5}, or
 \code{a$mismatches$fade <- 1} for no fade.
 \itemize{

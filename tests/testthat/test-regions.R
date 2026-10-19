@@ -23,6 +23,29 @@ test_that("a contig named alone reads whole, at the length the file states", {
   expect_error(jbrowse_alignments(bam, "ctgZ"), "whose contigs are ctgA")
 })
 
+test_that("a contig whose length no file states reads to its records' end", {
+  contigs <- jbrowse_contigs(gff)
+  expect_true(all(is.na(contigs$end)))
+  whole <- jbrowse_features(gff, "ctgA")
+  expect_equal(whole$regions$end, max(whole$features$end))
+  file <- jbrowse_features(gff)
+  expect_equal(file$regions$end[file$regions$chrom == "ctgA"],
+    whole$regions$end)
+  expect_lt(max(file$regions$cum_end), 1e6)
+  framed <- jbrowse_features(gff, contigs[1, ])
+  expect_equal(framed$regions$end, whole$regions$end)
+})
+
+test_that("an empty, reversed or 0-based locus is refused", {
+  for (bad in c("ctgA:0-100", "ctgA:2,000-1,000", "ctgA:500-499")) {
+    expect_error(regions_of(bad), class = "ggjbrowse_bad_region")
+  }
+  expect_error(regions_of("ctgA:2,000-1,000"), "ctgA:2,000-1,000 is empty")
+  expect_error(regions_of(data.frame(chrom = character(0), start = numeric(0),
+    end = numeric(0))), "no rows", class = "ggjbrowse_bad_region")
+  expect_equal(regions_of("ctgA:500-500")$end, 500)
+})
+
 test_that("a GRanges reads as its 1-based ranges, a 1-based frame refused", {
   skip_if_not_installed("GenomicRanges")
   gr <- GenomicRanges::GRanges("ctgA",

@@ -15,7 +15,27 @@ file_contigs <- function(adapter, assembly = NULL) {
   r <- call_engine("fileRegions", args)
   d <- region_frame(r)
   d$has_data <- as.logical(unlist(r$hasData) %||% logical(0))
+  d$length_known <- as.logical(unlist(r$lengthKnown) %||% logical(0))
   d
+}
+
+# The end the engine gives a contig whose length neither the file nor the
+# assembly states
+WHOLE_CONTIG_END <- 2^31 - 1
+
+# Each region read to WHOLE_CONTIG_END cut where its records end, so a contig
+# of unknown length lays out over what it holds rather than over 2 Gbp
+to_record_ends <- function(regions, adapter, assembly) {
+  open <- which(regions$end >= WHOLE_CONTIG_END)
+  if (!length(open)) return(regions)
+  args <- list(adapterConfig = adapter,
+    regions = engine_regions(regions[open, , drop = FALSE]), bpPerPx = 1,
+    rowLimit = WHOLE_FILE_ROWS)
+  args$assembly <- assembly
+  f <- as_frame(call_engine("features", args)$features)
+  ends <- tapply(f$end, factor(f$region, levels = seq_along(open) - 1), max)
+  regions$end[open] <- pmax(regions$start[open] + 1, ends, na.rm = TRUE)
+  regions
 }
 
 # The engine's regions as `chrom`, `start` and `end`
@@ -27,21 +47,25 @@ region_frame <- function(r) {
 # The regions a reader reads, 0-based half-open: those `region` names, or
 # each contig the file lists but those its index shows empty where it names
 # none. A whole contig, or the whole file, is marked `whole`, which the
-# engine caps at WHOLE_FILE_ROWS rows.
+# engine caps at WHOLE_FILE_ROWS rows. An end of unknown length, `NA` in a
+# frame or unstated by the file, is where the region's records end.
 reader_regions <- function(adapter, region, assembly = NULL) {
   contigs <- memo(function() file_contigs(adapter, assembly))
-  if (is.null(region)) {
+  regions <- if (is.null(region)) {
     all <- contigs()
     all <- all[!all$has_data %in% FALSE, c("chrom", "start", "end")]
     rownames(all) <- NULL
-    return(structure(all, whole = TRUE))
+    structure(all, whole = TRUE)
+  } else {
+    regions_of(region, function() {
+      file <- contigs()[c("chrom", "start", "end")]
+      if (is.null(assembly)) return(file)
+      rbind(file, region_frame(call_engine("regions",
+        list(assembly = assembly))))
+    })
   }
-  regions_of(region, function() {
-    file <- contigs()
-    if (is.null(assembly)) return(file)
-    rbind(file[c("chrom", "start", "end")], region_frame(call_engine("regions",
-      list(assembly = assembly))))
-  })
+  regions$end[is.na(regions$end)] <- WHOLE_CONTIG_END
+  to_record_ends(regions, adapter, assembly)
 }
 
 # Regions as the engine's `regions` argument names them
@@ -52,8 +76,25 @@ engine_regions <- function(regions) {
 # Regions as 0-based half-open `chrom`, `start` and `end`, from loci as
 # JBrowse's location box writes them ("ctgA:1,001-9,000", 1-based and
 # inclusive), contig names alone for the whole contig at the length
-# `contigs()` lists, a data frame of `chrom`, `start` and `end`, or a GRanges
+# `contigs()` lists, a data frame of `chrom`, `start` and `end`, or a GRanges;
+# refused where none is given, or one is empty, reversed or starts before the
+# contig. An end left `NA`, which a pairwise file's unstated length leaves, is
+# its reader's to refuse.
 regions_of <- function(region, contigs = NULL) {
+  regions <- parsed_regions(region, contigs)
+  bad <- which(regions$start < 0 | regions$end <= regions$start)
+  if (!nrow(regions) || length(bad)) {
+    rlang::abort(if (!nrow(regions)) "the region frame has no rows" else
+      sprintf("the region %s:%s-%s is %s", regions$chrom[bad[1]],
+        format(regions$start[bad[1]] + 1, big.mark = ",", scientific = FALSE),
+        format(regions$end[bad[1]], big.mark = ",", scientific = FALSE),
+        if (regions$start[bad[1]] < 0) "before the contig's first base, 1"
+        else "empty or reversed"), class = "ggjbrowse_bad_region")
+  }
+  regions
+}
+
+parsed_regions <- function(region, contigs = NULL) {
   if (inherits(region, "GRanges")) {
     d <- as.data.frame(region)
     return(data.frame(chrom = as.character(d$seqnames), start = d$start - 1,
