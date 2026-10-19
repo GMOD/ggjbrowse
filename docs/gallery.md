@@ -26,10 +26,10 @@ ggjbrowse and by JBrowse.
 `chr12:6,534,201-6,538,700`
 
 <table>
-<tr><td width="50%"><img src="../gallery/genes_and_reads-jbrowse.webp" alt="GENCODE genes over direct RNA reads in JBrowse. Junction arcs count each splice, from 31 to 68 reads, over the coverage band and the reads split at every intron." width="100%"></td><td width="50%"><img src="../gallery/genes_and_reads-r.webp" alt="GENCODE genes over direct RNA reads drawn by ggjbrowse. Junction arcs count each splice, from 31 to 68 reads, over the coverage band and the reads split at every intron." width="100%"></td></tr>
+<tr><td width="50%"><img src="../gallery/genes_and_reads-jbrowse.webp" alt="GENCODE genes over direct RNA reads in JBrowse. Junction arcs join each splice over the coverage band, and the reads split at every intron." width="100%"></td><td width="50%"><img src="../gallery/genes_and_reads-r.webp" alt="GENCODE genes over direct RNA reads drawn by ggjbrowse. Junction arcs join each splice over the coverage band, and the reads split at every intron." width="100%"></td></tr>
 </table>
 
-Junction arcs count each splice, from 31 to 68 reads, over the coverage band and the reads split at every intron.
+Junction arcs join each splice over the coverage band, and the reads split at every intron.
 
 ```r
 reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"),
@@ -480,10 +480,10 @@ jb2export --hub hg19 \
 `ENST00000229239.10's exons, each padded by 20 bp`
 
 <table>
-<tr><td width="50%"><img src="../gallery/collapsed_introns-jbrowse.webp" alt="GAPDH's nine exons side by side, with the junctions between them as arcs in JBrowse. Each junction's read count sits over the arc joining its two exons, and the direct RNA reads run across." width="100%"></td><td width="50%"><img src="../gallery/collapsed_introns-r.webp" alt="GAPDH's nine exons side by side, with the junctions between them as arcs drawn by ggjbrowse. Each junction's read count sits over the arc joining its two exons, and the direct RNA reads run across." width="100%"></td></tr>
+<tr><td width="50%"><img src="../gallery/collapsed_introns-jbrowse.webp" alt="GAPDH's nine exons side by side, with the junctions between them as arcs in JBrowse. An arc over the coverage joins each pair of exons, and the direct RNA reads run across." width="100%"></td><td width="50%"><img src="../gallery/collapsed_introns-r.webp" alt="GAPDH's nine exons side by side, with the junctions between them as arcs drawn by ggjbrowse. An arc over the coverage joins each pair of exons, and the direct RNA reads run across." width="100%"></td></tr>
 </table>
 
-Each junction's read count sits over the arc joining its two exons, and the direct RNA reads run across.
+An arc over the coverage joins each pair of exons, and the direct RNA reads run across.
 
 ```r
 gff <- read.delim(gzfile(e("gapdh_gencode.gff3.gz")), header = FALSE,
