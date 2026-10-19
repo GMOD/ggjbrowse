@@ -83,8 +83,9 @@ read's arc, \code{mark = "cloud"} for the read cloud, \code{height},
 \code{showOrdinaryPairs}, \code{color = list(field = )}),
 e.g. \code{list(coverage = list(show = FALSE), pileup = list(readHeight = 3))}.
 A band or layer set not to show (\code{coverage}, \code{pileup} or \code{sashimi}'s
-\code{show}, \code{pileup$showMismatches}, \code{coverage$showInterbaseIndicators})
-reads as empty tables
+\code{show}, \code{coverage$showInterbaseIndicators}) reads as empty tables.
+\code{pileup$showMismatches = FALSE} empties \code{mismatches} and \code{insertions}
+and leaves only the skips in \code{gaps}, as the display drops those marks
 }}
 
 \item{width}{the pixels the figure spans across the regions, which the
@@ -126,9 +127,11 @@ carry that base there, over the depth), \code{quality}, \code{fade}
 \item \code{chains}: under \code{unit = "chain"}, each chain of more than one read:
 \code{start}, \code{end}, \code{row}, and the \code{color} and \code{opacity} of the hairline
 across it; empty otherwise
-\item \code{overlaps}: under \code{unit = "chain"}, each span where two reads of one row
-both align: \code{start}, \code{end}, \code{row} and the neutral \code{color} the display
-fills it with, which is neither read's color; empty otherwise
+\item \code{overlaps}: under \code{unit = "chain"} and a \code{readHeight} of 3 or more,
+each span where two reads of one row both align: \code{start}, \code{end}, \code{row}
+and the neutral \code{color} the display fills it with, which is neither
+read's color, and the reads' key ends with the display's row for it;
+empty otherwise, as the display draws none
 \item \code{insertions}: \code{position}, \code{length}, \code{sequence}, \code{read}, \code{fade}
 \item \code{clips}: \code{position}, \code{length}, \code{type} (\code{"soft"} or \code{"hard"}), \code{read},
 \code{fade}

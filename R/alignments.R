@@ -88,8 +88,9 @@ alignments_adapter <- function(file, index) {
 #'     `showOrdinaryPairs`, `color = list(field = )`),
 #'     e.g. `list(coverage = list(show = FALSE), pileup = list(readHeight = 3))`.
 #'     A band or layer set not to show (`coverage`, `pileup` or `sashimi`'s
-#'     `show`, `pileup$showMismatches`, `coverage$showInterbaseIndicators`)
-#'     reads as empty tables
+#'     `show`, `coverage$showInterbaseIndicators`) reads as empty tables.
+#'     `pileup$showMismatches = FALSE` empties `mismatches` and `insertions`
+#'     and leaves only the skips in `gaps`, as the display drops those marks
 #' @param byte_limit the most compressed bytes the regions may need, refused
 #'   off the index before any read is fetched; the whole table is held in
 #'   memory
@@ -114,9 +115,11 @@ alignments_adapter <- function(file, index) {
 #'   * `chains`: under `unit = "chain"`, each chain of more than one read:
 #'     `start`, `end`, `row`, and the `color` and `opacity` of the hairline
 #'     across it; empty otherwise
-#'   * `overlaps`: under `unit = "chain"`, each span where two reads of one row
-#'     both align: `start`, `end`, `row` and the neutral `color` the display
-#'     fills it with, which is neither read's color; empty otherwise
+#'   * `overlaps`: under `unit = "chain"` and a `readHeight` of 3 or more,
+#'     each span where two reads of one row both align: `start`, `end`, `row`
+#'     and the neutral `color` the display fills it with, which is neither
+#'     read's color, and the reads' key ends with the display's row for it;
+#'     empty otherwise, as the display draws none
 #'   * `insertions`: `position`, `length`, `sequence`, `read`, `fade`
 #'   * `clips`: `position`, `length`, `type` (`"soft"` or `"hard"`), `read`,
 #'     `fade`
@@ -267,12 +270,7 @@ alignments_result <- function(t, assembly) {
   junctions <- frame(t$junctions)
   arcs <- frame(t$arcs)
   arc_ticks <- frame(t$arcTicks)
-  read_key <- frame(t$legend)
-  if (nrow(overlaps)) {
-    read_key <- rbind(read_key, data.frame(
-      label = "Pair/chain reads overlap here", color = overlaps$color[1]))
-  }
-  read_key <- structure(read_key, title = t$legendTitle)
+  read_key <- structure(frame(t$legend), title = t$legendTitle)
   arc_key <- structure(frame(t$arcLegend), title = t$arcLegendTitle)
   engine_key <- function(key, title) {
     key_frame(unlist(key$label) %||% character(0),
@@ -317,8 +315,8 @@ alignments_result <- function(t, assembly) {
 #' jbrowse_sequence(fa, "chr12:6,534,501-6,534,520")
 jbrowse_sequence <- function(assembly, region) {
   assembly <- assembly_config(assembly)
-  regions <- regions_of(region, function()
-    assembly_contigs(assembly))
+  regions <- regions_of(region, function() assembly_contigs(assembly),
+    canonical_of(assembly))
   vapply(seq_len(nrow(regions)), function(i) {
     args <- list(region = list(refName = regions$chrom[i],
       start = regions$start[i], end = regions$end[i]), assembly = assembly)

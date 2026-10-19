@@ -7,13 +7,14 @@ LOCUS <- "^(.+):([0-9,]+)(-|\\.\\.)([0-9,]+)$"
 WHOLE_FILE_ROWS <- 5e6
 
 # Each contig a file lists, from 0 to the length the file or `assembly`
-# states, and whether the file's index shows records there: `NA` where it
-# cannot tell
+# states, its `canonical` name in the assembly, and whether the file's index
+# shows records there: `NA` where it cannot tell
 file_contigs <- function(adapter, assembly = NULL) {
   args <- list(adapterConfig = adapter)
   args$assembly <- assembly
   r <- call_engine("fileRegions", args)
   d <- region_frame(r)
+  d$canonical <- as.character(r$canonical)
   d$has_data <- as.logical(unlist(r$hasData) %||% logical(0))
   d$length_known <- as.logical(unlist(r$lengthKnown) %||% logical(0))
   d
@@ -46,9 +47,26 @@ region_frame <- function(r) {
     end = as.numeric(r$end))
 }
 
-# Each contig an assembly config's sequence names, from 0 to its length
+# Each contig an assembly config's sequence names, from 0 to its length, and
+# its `canonical` name
 assembly_contigs <- function(config) {
-  region_frame(call_engine("regions", list(assembly = config)))
+  r <- call_engine("regions", list(assembly = config))
+  d <- region_frame(r)
+  d$canonical <- as.character(r$canonical)
+  d
+}
+
+# Each of `names` as the assembly's canonical name for its contig, through
+# its alias file and in any case, as the location box reads it; a name the
+# assembly does not know as given
+canonical_names <- function(assembly, names) {
+  as.character(call_engine("canonicalNames", list(assembly = assembly,
+    refNames = I(names)))$canonical)
+}
+
+# The canonical_names() of `assembly`, NULL for none
+canonical_of <- function(assembly) {
+  if (!is.null(assembly)) function(names) canonical_names(assembly, names)
 }
 
 # The regions a reader reads, 0-based half-open: those `region` names, or
@@ -65,10 +83,10 @@ reader_regions <- function(adapter, region, assembly = NULL) {
     structure(all, whole = TRUE)
   } else {
     regions_of(region, function() {
-      file <- contigs()[c("chrom", "start", "end")]
+      file <- contigs()[c("chrom", "start", "end", "canonical")]
       if (is.null(assembly)) return(file)
       rbind(file, assembly_contigs(assembly))
-    })
+    }, canonical_of(assembly))
   }
   open <- is.na(regions$end)
   if (any(open)) {
@@ -89,9 +107,12 @@ engine_regions <- function(regions) {
 # inclusive), contig names alone for the whole contig at the length
 # `contigs()` lists, a data frame of `chrom`, `start` and `end`, or a GRanges;
 # refused where none is given, or one is reversed or starts before the
-# contig. An end left `NA` is its reader's to resolve or refuse.
-regions_of <- function(region, contigs = NULL) {
-  regions <- parsed_regions(region, contigs)
+# contig. A contig name `contigs()` lacks matches its `canonical` column
+# through `canonical()`, so "12" reads a file's chr12 under an assembly
+# aliasing them, and keeps the name it was given. An end left `NA` is its
+# reader's to resolve or refuse.
+regions_of <- function(region, contigs = NULL, canonical = NULL) {
+  regions <- parsed_regions(region, contigs, canonical)
   bad <- which(regions$start < 0 | regions$end < regions$start)
   if (!nrow(regions) || length(bad)) {
     rlang::abort(if (!nrow(regions)) "the region frame has no rows" else
@@ -104,7 +125,7 @@ regions_of <- function(region, contigs = NULL) {
   regions
 }
 
-parsed_regions <- function(region, contigs = NULL) {
+parsed_regions <- function(region, contigs = NULL, canonical = NULL) {
   if (inherits(region, "GRanges")) {
     d <- as.data.frame(region)
     return(data.frame(chrom = as.character(d$seqnames), start = d$start - 1,
@@ -127,6 +148,10 @@ parsed_regions <- function(region, contigs = NULL) {
   if (all(locus)) return(out)
   known <- if (is.null(contigs)) NULL else contigs()
   at <- match(region[!locus], known$chrom)
+  if (anyNA(at) && !is.null(canonical)) {
+    alias <- is.na(at)
+    at[alias] <- match(canonical(region[!locus][alias]), known$canonical)
+  }
   if (anyNA(at)) {
     rlang::abort(sprintf(paste("\"%s\" is neither a locus such as",
       "\"ctgA:1,001-9,000\" nor a contig of the file%s"),

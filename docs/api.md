@@ -52,8 +52,9 @@
   its `width` unless given.
 - `assembly` takes a `jbrowse_assembly()`, an assembly as a JBrowse config's
   `assemblies` entry writes it, or a FASTA or 2bit path alone. Its sequence
-  is the reference every reader reads against. A region may name a contig by
-  any alias in the assembly's alias table. The engine reads each file under
+  is the reference every reader reads against. A locus or a contig name
+  alone may name its contig by any alias in the assembly's alias table, so
+  `"12"` reads a file's `chr12` whole. The engine reads each file under
   the file's own alias, and the reader names the contig in its tables as the
   region does.
 

@@ -100,6 +100,7 @@ jbrowse_contigs <- function(x, assembly = NULL, index = NULL) {
   if (kind == "assembly") {
     config <- assembly_config(x)
     contigs <- assembly_contigs(config)
+    contigs$canonical <- NULL
     return(cbind(assembly = rep(config$name %||% NA_character_,
       nrow(contigs)), contigs))
   }
@@ -113,6 +114,7 @@ jbrowse_contigs <- function(x, assembly = NULL, index = NULL) {
     config)
   contigs$end[!contigs$length_known] <- NA
   contigs$length_known <- NULL
+  contigs$canonical <- NULL
   cbind(assembly = rep(config$name %||% NA_character_, nrow(contigs)),
     contigs)
 }

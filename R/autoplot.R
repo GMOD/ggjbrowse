@@ -118,17 +118,6 @@ makeContent.ggjbrowse_row_labels <- function(x) {
   grid::setChildren(x, grid::gList(text))
 }
 
-# The display's fade of a sub-pixel mark: at `px` pixels wide it blends from
-# its own width up to opaque by the share of the depth its site holds, which
-# the engine zeroes under the display's threshold (the shaders'
-# frequencyAlpha); a mark a pixel or wider never fades, nor does anything
-# while the display's pileup$fadeLowFrequency is off.
-mark_alpha <- function(px, fade, on) {
-  if (!on) return(rep(1, length(fade)))
-  px <- rep_len(px, length(fade))
-  ifelse(px < 1, px + fade * (1 - px), 1)
-}
-
 # Each band is the geoms of its tables, the display's keys as scales, its y
 # axis, and its sections as facets
 band <- function(p, x, rows = FALSE, ylim = NULL, expand = FALSE) {

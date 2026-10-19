@@ -18,6 +18,20 @@ read_inset <- function(x) {
 
 fades <- function(x) !isFALSE(x$display$pileup$fadeLowFrequency)
 
+# Each mark of one `kind` (insertions, deletions, mismatches or clips) as the
+# pileup draws it at the figure's px per bp: the engine's alignmentMarkAlpha
+# of the `marks` columns, its `alpha` and, for an insertion, `widthPx`
+mark_alpha <- function(x, width, kind, marks) {
+  if (!nrow(marks)) return(list(alpha = numeric(), widthPx = numeric()))
+  pileup <- x$display$pileup
+  args <- list(pxPerBp = px_of(x, width),
+    featureHeight = x$read_pitch$featureHeight %||% 0,
+    fadeLowFrequency = fades(x),
+    fadeLowBaseQuality = isTRUE(pileup$fadeLowBaseQuality))
+  args[[kind]] <- lapply(marks, I)
+  lapply(call_engine("alignmentMarkAlpha", args)[[kind]], as.numeric)
+}
+
 with_inset <- function(d, model) {
   d$inset <- rep(read_inset(model), nrow(d))
   d
@@ -39,8 +53,11 @@ with_inset <- function(d, model) {
 #' segments whose `shown` is true, and the mismatches, deletions,
 #' insertions and clips each faded by its `fade` while the display's
 #' `pileup$fadeLowFrequency` is on. An indel also fades as it shrinks below a
-#' pixel, and an insertion of 10 bp or more draws as the display's wider bar,
-#' never faded by its `fade`. Edit the table to draw otherwise:
+#' pixel, an insertion of 10 bp or more draws as the display's wider bar,
+#' never faded by its `fade`, and a mismatch fades by its `quality` while
+#' `pileup$fadeLowBaseQuality` is on. The engine's `alignmentMarkAlpha`
+#' decides each width and opacity at the figure's pixels per base. Edit the
+#' table to draw otherwise:
 #' `a$junctions$shown <- a$junctions$count >= 5`, or
 #' `a$mismatches$fade <- 1` for no fade.
 #'
@@ -181,10 +198,9 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL,
   data <- replacing(data, "gaps", "geom_jbrowse_deletions")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
-    px <- px_of(x, width)
-    span <- (d$end - d$start) * px
-    d$alpha <- mark_alpha(span^2, d$fade, fades(x)) * size_alpha(span)
-    widen <- pmax(0, 1 / px - (d$end - d$start)) / 2
+    d$alpha <- mark_alpha(x, width, "deletions",
+      data.frame(length = d$end - d$start, fade = d$fade))$alpha
+    widen <- pmax(0, 1 / px_of(x, width) - (d$end - d$start)) / 2
     d$xmin <- d$start - widen
     d$xmax <- d$end + widen
     d
@@ -194,10 +210,9 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL,
 
 # A per-position table drawn as rects one base wide, a pixel at least, over
 # the read's row unless `defaults` says otherwise; `prep` adjusts the table
-# first, and where `faded` the rects fade by the pixels per base
+# first
 position_rects <- function(table, geom, data, mapping, width, params,
-                           defaults, prep = NULL, faded = FALSE,
-                           rows = TRUE) {
+                           defaults, prep = NULL, rows = TRUE) {
   data <- replacing(data, table, geom)
   defaults <- with_defaults(defaults, ggplot2::aes(xmin = position,
     xmax = xmax, ymin = row + inset, ymax = row + 1 - inset))
@@ -205,7 +220,6 @@ position_rects <- function(table, geom, data, mapping, width, params,
     d <- if (table %in% SUMMARIES) summary_table(x, table) else x[[table]]
     if (!is.null(prep)) d <- prep(d, x)
     d$xmax <- d$position + max(1, 1 / px_of(x, width))
-    if (faded) d$alpha <- mark_alpha(px_of(x, width), d$fade, fades(x))
     d
   }, mapping, defaults, params, rows = rows)
 }
@@ -232,29 +246,11 @@ geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL,
                                     width = NULL, ...) {
   position_rects("mismatches", "geom_jbrowse_mismatches", data, mapping,
     width, list(...), ggplot2::aes(fill = I(color), alpha = I(alpha)),
-    faded = TRUE)
-}
-
-# An indel's share of a pixel, which fades it on top of the frequency fade,
-# none below one 8-bit alpha step: the shaders' sizeAlpha
-size_alpha <- function(span_px) {
-  a <- pmin(1, pmax(0, span_px))
-  ifelse(a <= 1 / 255, 0, a)
-}
-
-LONG_INSERTION_BP <- 10
-BOXED_INSERTION_PX <- 15
-
-# An insertion marker's width in px, as insertionGlyph.slang sizes it: a 1 px
-# tick, a long one's bar a third of its span (1 to 5 px), or a box for its
-# length once that span reaches BOXED_INSERTION_PX in a row tall enough for
-# text
-insertion_px <- function(length, px, height, text_height) {
-  long <- length >= LONG_INSERTION_BP
-  boxed <- long & length * px >= BOXED_INSERTION_PX & height >= text_height
-  digits <- pmin(5, floor(log10(pmax(1, length))) + 1)
-  ifelse(boxed, 6 * digits + 10,
-    ifelse(long, pmin(5, pmax(1, length * px / 3)), 1))
+    prep = function(d, x) {
+      d$alpha <- mark_alpha(x, width, "mismatches",
+        d[c("fade", "quality")])$alpha
+      d
+    })
 }
 
 #' @rdname geom_jbrowse_reads
@@ -264,12 +260,9 @@ geom_jbrowse_insertions <- function(mapping = NULL, data = NULL,
   data <- replacing(data, "insertions", "geom_jbrowse_insertions")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x$insertions
-    px <- px_of(x, width)
-    long <- d$length >= LONG_INSERTION_BP
-    d$alpha <- ifelse(long, 1, mark_alpha(px^2, d$fade, fades(x))) *
-      size_alpha(d$length * px)
-    half <- insertion_px(d$length, px, x$read_pitch$featureHeight %||% 0,
-      x$glyph$label$minHeight %||% Inf) / px / 2
+    mark <- mark_alpha(x, width, "insertions", d[c("length", "fade")])
+    d$alpha <- mark$alpha
+    half <- mark$widthPx / px_of(x, width) / 2
     d$xmin <- d$position - half
     d$xmax <- d$position + half
     d
@@ -285,7 +278,7 @@ geom_jbrowse_clips <- function(mapping = NULL, data = NULL,
   data <- replacing(data, "clips", "geom_jbrowse_clips")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     d <- x$clips
-    d$alpha <- mark_alpha(px_of(x, width), d$fade, fades(x))
+    d$alpha <- mark_alpha(x, width, "clips", d["fade"])$alpha
     d
   }, mapping, ggplot2::aes(x = position, xend = position, y = row + inset,
     yend = row + 1 - inset, colour = I(color), alpha = I(alpha)),

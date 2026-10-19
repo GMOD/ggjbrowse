@@ -1,8 +1,9 @@
 # Handoff: the engine owns the display's decisions
 
-- **Status:** done (2026-10-15). Since 2026-10-19 R copies three shader rules
-  for the insertion glyph and the indel fade, listed below, and still draws
-  some insertion details differently.
+- **Status:** done (2026-10-15). Since 2026-10-19 the engine's
+  `alignmentMarkAlpha` sizes and fades the pileup's marks, so R copies two
+  small rules, listed below, and still draws some insertion details
+  differently.
   jbrowse-components 42060cf6cf returns the colors, keys, junction flags and
   read pitch; ggjbrowse's step-2 branch reads them and deletes its copies.
 - **Payoff:** R stops copying rules JBrowse writes once, so a change there
@@ -17,10 +18,11 @@
 - A geom draws the decision a column holds (`shown`, `fade`, `opacity`)
   and takes no argument to re-decide it. A caller overrides one by editing
   the column, which needs no read.
-- A value that needs both comes back from the engine as its config-side
-  input, and R finishes it. The sub-pixel fade works this way: the engine
-  returns each mark's `fade` share, and R's `mark_alpha()` applies it at
-  the figure's pixels per base.
+- A value that needs both comes from an engine call that takes the
+  figure's side as an argument. `variantDensityAlpha` takes bp per px.
+  `alignmentMarkAlpha` takes px per bp and each mark's `fade`, `length` and
+  `quality` columns, and R's `mark_alpha()` calls it once per geom build, so
+  a caller who edits `fade` changes the draw.
 
 ## What the file's fields are: nobody's decision
 
@@ -83,21 +85,13 @@ How each piece reaches R:
 R keeps `base_colors()`, the engine's palette, for the sequence band's
 reference bases.
 
-## Rules R copies from the shaders
+## Rules R still copies
 
-R needs px per bp for these, which only the figure knows, and the bundle
-exports no function for them:
-
-- `size_alpha()`: alignmentsUniforms.slang's `sizeAlpha`, which fades an
-  indel below a pixel on top of the frequency fade.
-- `insertion_px()`: insertionGlyph.slang's `insertionBarWidthPx`. An
-  insertion of 10 bp or more is a bar a third of its span, 1 to 5 px, never
-  frequency-faded, or a box sized for its length label once it spans 15 px
-  at a feature height of 5 or more.
-- `mark_alpha()`: `frequencyFadeGate`.
-
-An engine call like `variantDensityAlpha` taking px per bp would let R drop
-all three.
+- **A one-pixel floor.** `geom_jbrowse_deletions()` widens a deletion to a
+  pixel, as gap.slang does, and `position_rects()` draws a one-base mark a
+  pixel wide at least.
+- **`label_fade()`:** `labelFadeOpacity`, the ramp that fades a deletion's
+  length label, at the thresholds the engine returns in `glyph$label`.
 
 ## Where R still draws differently from JBrowse
 

@@ -57,9 +57,37 @@ test_that("insertions fade and widen as the display's insertion shader draws the
   short <- l$insertions$length < 10
   expect_true(all(ins$alpha[short] <= px * l$insertions$length[short] + 1e-9))
   expect_equal(ins$alpha[!short], pmin(1, l$insertions$length[!short] * px))
-  expect_equal(insertion_px(c(1, 9, 12, 30, 200), 1, 7, 5), c(1, 1, 4, 22, 28))
-  expect_equal(insertion_px(200, 1, 4, 5), 5)
-  expect_equal(size_alpha(c(0.001, 0.5, 3)), c(0, 0.5, 1))
+  bp <- diff(xlim_of(l))
+  widths <- function(x) mark_alpha(x, bp, "insertions",
+    data.frame(length = c(1, 9, 12, 30, 200), fade = 1))$widthPx
+  expect_equal(widths(l), c(1, 1, 4, 22, 28))
+  l$read_pitch$featureHeight <- 4
+  expect_equal(widths(l)[5], 5)
+  expect_equal(mark_alpha(l, bp, "deletions",
+    data.frame(length = c(0.001, 0.5, 3), fade = 1))$alpha, c(0, 0.5, 1))
+  expect_equal(mark_alpha(l, bp, "clips", data.frame(fade = numeric()))$alpha,
+    numeric())
+})
+
+test_that("mismatches fade by base quality where the display does", {
+  q <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "chr12:6,534,201-6,538,700",
+    display = list(pileup = list(fadeLowBaseQuality = TRUE)))
+  q$mismatches$fade <- 1
+  drawn <- ggplot2::layer_data(ggplot2::ggplot(q) + geom_jbrowse_mismatches())
+  expect_equal(drawn$alpha, pmin(1, q$mismatches$quality / 50))
+  expect_lt(min(drawn$alpha), 1)
+})
+
+test_that("showMismatches off drops the mismatches and indels and keeps the skips", {
+  off <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "chr12:6,534,201-6,538,700",
+    display = list(pileup = list(showMismatches = FALSE)))
+  expect_equal(nrow(off$mismatches), 0)
+  expect_equal(nrow(off$insertions), 0)
+  expect_gt(nrow(off$gaps), 0)
+  expect_equal(unique(off$gaps$type), "skip")
+  expect_gt(nrow(off$clips), 0)
 })
 
 test_that("the coverage band stacks each position's alleles as the display does", {
@@ -590,7 +618,14 @@ test_that("a chain's overlapping segments come back as overlap spans", {
     display = list(unit = "chain", filter = list(split = "only")))
   expect_gt(nrow(chained$overlaps), 0)
   expect_true(all(chained$overlaps$end > chained$overlaps$start))
+  key <- chained$keys$reads
+  expect_equal(key$label[nrow(key)], "Pair/chain reads overlap here")
+  expect_equal(key$color[nrow(key)], chained$overlaps$color[1])
   expect_equal(nrow(jbrowse_alignments(colo, locus)$overlaps), 0)
+  thin <- jbrowse_alignments(colo, locus, display = list(unit = "chain",
+    filter = list(split = "only"), pileup = list(readHeight = 2)))
+  expect_equal(nrow(thin$overlaps), 0)
+  expect_false("Pair/chain reads overlap here" %in% thin$keys$reads$label)
 })
 
 test_that("a stacked pileup draws at the width its stack's tracks were read at", {

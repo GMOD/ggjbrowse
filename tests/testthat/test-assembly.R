@@ -27,6 +27,19 @@ test_that("an assembly reads each file under its own name and the tables under t
     signal, by_alias))
 })
 
+test_that("a contig's alias alone reads the file's contig whole", {
+  gff <- extdata("gapdh_gencode.gff3.gz")
+  whole <- jbrowse_features(gff, "chr12", assembly = hg38)
+  by_alias <- jbrowse_features(gff, "12", assembly = hg38)
+  expect_equal(by_alias$regions[c("chrom", "start", "end")],
+    data.frame(chrom = "12", start = 0, end = 6570000))
+  expect_equal(by_alias$features$start, whole$features$start)
+  expect_equal(unique(by_alias$features$chrom), "12")
+  expect_equal(nchar(jbrowse_sequence(hg38, "NC_000012.12")), 6570000)
+  expect_error(jbrowse_features(gff, "12"), "nor a contig of the file",
+    class = "ggjbrowse_bad_region")
+})
+
 test_that("a CRAM decodes against the assembly's sequence, and the sequence band reads it", {
   cram <- jbrowse_alignments(extdata("gapdh_direct_rna.cram"),
     "NC_000012.12:6,534,201-6,534,500", assembly = hg38)
