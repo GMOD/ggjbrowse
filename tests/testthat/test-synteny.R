@@ -371,3 +371,10 @@ test_that("a binned key lists every bin, present in the data or not", {
   key <- drawn_guides(autoplot(mapq))[[attr(mapq$keys$ribbons, "title")]]
   expect_equal(key$color, mapq$keys$ribbons$color)
 })
+
+test_that("a curved edge traces the display's Bezier, control points at mid height", {
+  e <- edge_points(0, 100, 0, 1, curves = TRUE, n = 5)
+  t <- c(0, 0.25, 0.5, 0.75, 1)
+  expect_equal(e$x, 100 * (3 * t^2 - 2 * t^3))
+  expect_equal(e$y, 1.5 * t * (1 - t) + t^3)
+})

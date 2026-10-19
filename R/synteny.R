@@ -391,8 +391,8 @@ synteny_on_axis <- function(x) {
 edge_points <- function(x0, x1, y0, y1, curves, n = 16) {
   if (!curves) return(list(x = c(x0, x1), y = c(y0, y1)))
   t <- seq(0, 1, length.out = n)
-  s <- t * t * (3 - 2 * t)
-  list(x = x0 + (x1 - x0) * s, y = y0 + (y1 - y0) * t)
+  list(x = x0 + (x1 - x0) * t * t * (3 - 2 * t),
+    y = y0 + (y1 - y0) * (1.5 * t * (1 - t) + t^3))
 }
 
 # Where each ribbon's feet sit: px along its upper and lower edges, and the
