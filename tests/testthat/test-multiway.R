@@ -124,3 +124,20 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   curved <- ggplot2::layer_data(autoplot(m, curves = TRUE), 1)
   expect_gt(nrow(curved), nrow(polygons))
 })
+
+test_that("an inversion draws as its records state it, its ribbons crossed", {
+  inv <- jbrowse_multiway(
+    system.file("extdata", "hprc_amylase.paf", package = "ggjbrowse"),
+    "chr1:103,500,001-103,900,000", "GRCh38",
+    display = list(ribbonColor = list(field = "strand")))
+  expect_true(any(inv$blocks$strand == -1))
+  expect_false(any(inv$lanes$flipped))
+  expect_true(all(inv$segments$x2 >= inv$segments$x1))
+  r <- inv$ribbons[inv$ribbons$kind == "match", ]
+  crossed <- sign(r$upper_x2 - r$upper_x1) != sign(r$lower_x2 - r$lower_x1)
+  inverted <- inv$keys$ribbons$color[
+    inv$keys$ribbons$label == "Inverted vs lane above"]
+  expect_true(any(crossed))
+  expect_equal(crossed, r$color == inverted)
+  expect_s3_class(ggplot2::ggplot_build(autoplot(inv)), "ggplot_built")
+})
