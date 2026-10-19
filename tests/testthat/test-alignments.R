@@ -41,13 +41,25 @@ test_that("insertions and clips sit on their reads, in the track's layers", {
   layers <- vapply(p$data, nrow, 1L)
   expect_equal(layers[8], nrow(l$insertions))
   expect_equal(layers[9], nrow(l$clips))
-  # sequencing-error insertions on 20 long reads fade toward the floor
   faded <- p$data[[7]]$alpha
+  expect_equal(length(faded), nrow(l$mismatches))
   expect_true(any(faded < 1))
-  expect_true(all(faded >= (1200 / 19000)^2 - 1e-9))
+  expect_true(all(faded >= 1200 / 19000 - 1e-9))
   l$mismatches$fade <- 1
   opaque <- ggplot2::ggplot_build(ggplot2::autoplot(l, "pileup"))$data[[7]]$alpha
   expect_true(all(opaque == 1))
+})
+
+test_that("insertions fade and widen as the display's insertion shader draws them", {
+  l <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000")
+  px <- 1500 / 19000
+  ins <- ggplot2::layer_data(ggplot2::autoplot(l, "pileup"), 8)
+  short <- l$insertions$length < 10
+  expect_true(all(ins$alpha[short] <= px * l$insertions$length[short] + 1e-9))
+  expect_equal(ins$alpha[!short], pmin(1, l$insertions$length[!short] * px))
+  expect_equal(insertion_px(c(1, 9, 12, 30, 200), 1, 7, 5), c(1, 1, 4, 22, 28))
+  expect_equal(insertion_px(200, 1, 4, 5), 5)
+  expect_equal(size_alpha(c(0.001, 0.5, 3)), c(0, 0.5, 1))
 })
 
 test_that("the coverage band stacks each position's alleles as the display does", {

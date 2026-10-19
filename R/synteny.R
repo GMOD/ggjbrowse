@@ -831,9 +831,6 @@ dotplot_on_axis <- function(x) {
   x
 }
 
-# Pixels at the figure's 150 an inch as ggplot's linewidth, in mm
-px_to_mm <- function(px) px / PX_PER_INCH * 25.4
-
 #' A dotplot's lines as a ggplot layer
 #'
 #' Draws each segment from its start to its end in its color at its

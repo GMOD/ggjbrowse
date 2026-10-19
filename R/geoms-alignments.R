@@ -38,7 +38,9 @@ with_inset <- function(d, model) {
 #' junctions whose `shown` is true, `geom_jbrowse_alleles()` the allele
 #' segments whose `shown` is true, and the mismatches, deletions,
 #' insertions and clips each faded by its `fade` while the display's
-#' `pileup$fadeLowFrequency` is on. Edit the table to draw otherwise:
+#' `pileup$fadeLowFrequency` is on. An indel also fades as it shrinks below a
+#' pixel, and an insertion of 10 bp or more draws as the display's wider bar,
+#' never faded by its `fade`. Edit the table to draw otherwise:
 #' `a$junctions$shown <- a$junctions$count >= 5`, or
 #' `a$mismatches$fade <- 1` for no fade.
 #'
@@ -156,7 +158,7 @@ geom_jbrowse_chains <- function(mapping = NULL, data = NULL, ...) {
   jbrowse_layer(ggplot2::GeomSegment, data,
     function(x) summary_table(x, "chains"), mapping,
     ggplot2::aes(x = start, xend = end, y = row + 0.5, yend = row + 0.5,
-      colour = I(color), alpha = I(opacity)), list(linewidth = 0.3, ...))
+      colour = I(color), alpha = I(opacity)), list(linewidth = px_to_mm(1), ...))
 }
 
 #' @rdname geom_jbrowse_reads
@@ -169,7 +171,7 @@ geom_jbrowse_skips <- function(mapping = NULL, data = NULL, ...) {
     d
   }, mapping, ggplot2::aes(x = start, xend = end, y = row + 0.5,
     yend = row + 0.5, colour = I(color), alpha = I(alpha)),
-    list(linewidth = 0.3, ...))
+    list(linewidth = px_to_mm(1), ...))
 }
 
 #' @rdname geom_jbrowse_reads
@@ -179,10 +181,14 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL,
   data <- replacing(data, "gaps", "geom_jbrowse_deletions")
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
-    d$alpha <- mark_alpha(((d$end - d$start) * px_of(x, width))^2,
-      d$fade, fades(x))
+    px <- px_of(x, width)
+    span <- (d$end - d$start) * px
+    d$alpha <- mark_alpha(span^2, d$fade, fades(x)) * size_alpha(span)
+    widen <- pmax(0, 1 / px - (d$end - d$start)) / 2
+    d$xmin <- d$start - widen
+    d$xmax <- d$end + widen
     d
-  }, mapping, ggplot2::aes(xmin = start, xmax = end, ymin = row + inset,
+  }, mapping, ggplot2::aes(xmin = xmin, xmax = xmax, ymin = row + inset,
     ymax = row + 1 - inset, fill = I(color), alpha = I(alpha)), list(...), rows = TRUE)
 }
 
@@ -229,34 +235,61 @@ geom_jbrowse_mismatches <- function(mapping = NULL, data = NULL,
     faded = TRUE)
 }
 
-# A per-position table drawn as vertical ticks, faded as the pixels per base
-# raised to `power` shrink
-position_ticks <- function(table, geom, data, mapping, width, params,
-                           power) {
-  data <- replacing(data, table, geom)
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
-    d <- x[[table]]
-    d$alpha <- mark_alpha(px_of(x, width)^power, d$fade, fades(x))
-    d
-  }, mapping, ggplot2::aes(x = position, xend = position,
-    y = row + inset / 2, yend = row + 1 - inset / 2, colour = I(color),
-    alpha = I(alpha)), params, rows = TRUE)
+# An indel's share of a pixel, which fades it on top of the frequency fade,
+# none below one 8-bit alpha step: the shaders' sizeAlpha
+size_alpha <- function(span_px) {
+  a <- pmin(1, pmax(0, span_px))
+  ifelse(a <= 1 / 255, 0, a)
+}
+
+LONG_INSERTION_BP <- 10
+BOXED_INSERTION_PX <- 15
+
+# An insertion marker's width in px, as insertionGlyph.slang sizes it: a 1 px
+# tick, a long one's bar a third of its span (1 to 5 px), or a box for its
+# length once that span reaches BOXED_INSERTION_PX in a row tall enough for
+# text
+insertion_px <- function(length, px, height, text_height) {
+  long <- length >= LONG_INSERTION_BP
+  boxed <- long & length * px >= BOXED_INSERTION_PX & height >= text_height
+  digits <- pmin(5, floor(log10(pmax(1, length))) + 1)
+  ifelse(boxed, 6 * digits + 10,
+    ifelse(long, pmin(5, pmax(1, length * px / 3)), 1))
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_insertions <- function(mapping = NULL, data = NULL,
                                     width = NULL, ...) {
-  position_ticks("insertions", "geom_jbrowse_insertions", data, mapping,
-    width, list(linewidth = 0.4, ...), power = 2)
+  data <- replacing(data, "insertions", "geom_jbrowse_insertions")
+  jbrowse_layer(ggplot2::GeomRect, data, function(x) {
+    d <- x$insertions
+    px <- px_of(x, width)
+    long <- d$length >= LONG_INSERTION_BP
+    d$alpha <- ifelse(long, 1, mark_alpha(px^2, d$fade, fades(x))) *
+      size_alpha(d$length * px)
+    half <- insertion_px(d$length, px, x$read_pitch$featureHeight %||% 0,
+      x$glyph$label$minHeight %||% Inf) / px / 2
+    d$xmin <- d$position - half
+    d$xmax <- d$position + half
+    d
+  }, mapping, ggplot2::aes(xmin = xmin, xmax = xmax, ymin = row + inset,
+    ymax = row + 1 - inset, fill = I(color), alpha = I(alpha)), list(...),
+    rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_clips <- function(mapping = NULL, data = NULL,
                                width = NULL, ...) {
-  position_ticks("clips", "geom_jbrowse_clips", data, mapping, width,
-    list(linewidth = 0.7, ...), power = 1)
+  data <- replacing(data, "clips", "geom_jbrowse_clips")
+  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
+    d <- x$clips
+    d$alpha <- mark_alpha(px_of(x, width), d$fade, fades(x))
+    d
+  }, mapping, ggplot2::aes(x = position, xend = position, y = row + inset,
+    yend = row + 1 - inset, colour = I(color), alpha = I(alpha)),
+    list(linewidth = px_to_mm(1), ...), rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -373,6 +406,9 @@ geom_jbrowse_indicators <- function(mapping = NULL, data = NULL, ...) {
 # A display's px in grid's points, which are 72.27 to the inch
 px_to_pt <- function(px) px / PX_PER_INCH * 72.27
 
+# Pixels at the figure's 150 an inch as ggplot's linewidth, in mm
+px_to_mm <- function(px) px / PX_PER_INCH * 25.4
+
 # A triangle `width` by `height` points at each `x`, its apex pointing down
 # from the panel's top edge, whatever the y scale
 GeomIndicator <- ggplot2::ggproto("GeomIndicator", ggplot2::Geom,
@@ -414,7 +450,7 @@ junction_paths <- function(x) {
   arcs$section <- j$section[arcs$id]
   arcs$count <- j$count[arcs$id]
   arcs$strand <- j$strand[arcs$id]
-  arcs$width <- px_to_pt(j$strokeWidth[arcs$id]) / ggplot2::.pt
+  arcs$width <- px_to_mm(j$strokeWidth[arcs$id])
   arcs
 }
 
@@ -486,11 +522,11 @@ geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, width = NULL,
     jbrowse_layer(ggplot2::GeomPath, data, domes,
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = y, group = id, colour = I(color),
-        linewidth = I(width / ggplot2::.pt)), list(...)),
+        linewidth = I(px_to_mm(width))), list(...)),
     jbrowse_layer(ggplot2::GeomSegment, data, bars,
       for_geom(mapping, ggplot2::GeomSegment),
       ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = I(color),
-        alpha = I(opacity), linewidth = I(width / ggplot2::.pt),
+        alpha = I(opacity), linewidth = I(px_to_mm(width)),
         linetype = I(ifelse(shape == "flatSplit", "22", "solid"))),
       list(...)),
     jbrowse_layer(ggplot2::GeomPoint, data, feet,
@@ -510,7 +546,7 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
     t$top <- rep(arc_top(x, width), nrow(t))
     t
   }, mapping, ggplot2::aes(x = position, xend = position, y = bottom,
-    yend = top, colour = I(color), linewidth = I(width / ggplot2::.pt)),
+    yend = top, colour = I(color), linewidth = I(px_to_mm(width))),
     list(...))
 }
 

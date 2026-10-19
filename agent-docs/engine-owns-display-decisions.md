@@ -81,10 +81,25 @@ How each piece reaches R:
 R keeps `base_colors()`, the engine's palette, for the sequence band's
 reference bases.
 
+## Rules R copies from the shaders
+
+R needs px per bp for these, which only the figure knows, and the bundle
+exports no function for them:
+
+- `size_alpha()`: alignmentsUniforms.slang's `sizeAlpha`, which fades an
+  indel below a pixel on top of the frequency fade.
+- `insertion_px()`: insertionGlyph.slang's `insertionBarWidthPx`. An
+  insertion of 10 bp or more is a bar a third of its span, 1 to 5 px, never
+  frequency-faded, or a box sized for its length label once it spans 15 px
+  at a feature height of 5 or more.
+- `mark_alpha()`: `frequencyFadeGate`.
+
+An engine call like `variantDensityAlpha` taking px per bp would let R drop
+all three.
+
 ## Where R still draws differently from JBrowse
 
-- **Long insertions.** JBrowse's insertion shader never fades an insertion
-  of 10 bp or more, and widens it to `length × px per bp / 3`, 1 to 5 px,
-  or to a box for its length label once it spans 15 px at a feature height
-  of 5 or more. R's `geom_jbrowse_insertions()` fades every insertion by
-  px per bp squared and draws all of them as one 0.4 linewidth tick.
+- **Insertion details.** R draws no serifs (on an insertion under 10 bp at
+  3 px per bp or more), and `geom_jbrowse_letters()` writes every insertion's
+  length beside it, where JBrowse writes `(N)` beside a small one and `N`
+  inside a boxed one.
