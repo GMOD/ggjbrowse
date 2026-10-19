@@ -124,6 +124,24 @@ test_that("the INFO columns agree with bcftools query", {
   expect_equal(v$POSITIVE_TRAIN_SITE, !is.na(query$flag))
 })
 
+test_that("an INFO key named like a column R adds takes an info_ prefix", {
+  vcf <- tempfile(fileext = ".vcf")
+  writeLines(c("##fileformat=VCFv4.2",
+    '##INFO=<ID=chrom,Number=1,Type=String,Description="A contig">',
+    '##INFO=<ID=opacity,Number=1,Type=Float,Description="A share">',
+    '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
+    paste("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
+      "FORMAT", "s1", sep = "\t"),
+    paste("ctgA", "100", ".", "A", "G", "50", ".", "chrom=x;opacity=0.25",
+      "GT", "0/1", sep = "\t")), vcf)
+  v <- jbrowse_variants(vcf, "ctgA:1-1,000")
+  expect_equal(v$fields$info$column, c("info_chrom", "info_opacity"))
+  expect_equal(v$variants$chrom, "ctgA")
+  expect_equal(v$variants$info_chrom, "x")
+  expect_equal(v$variants$info_opacity, 0.25)
+  expect_equal(v$variants$opacity, 1)
+})
+
 test_that("an INFO key named like a record column takes an info_ prefix", {
   vcf <- tempfile(fileext = ".vcf")
   writeLines(c("##fileformat=VCFv4.2",

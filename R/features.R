@@ -182,8 +182,7 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
   subfeature_key <- match(subfeatures$id, unique(subfeatures$id))
   sections <- as_frame(t$sections)
   vcf <- vcf_columns(t$vcf, features$feature, names(features))
-  taken <- c(names(features), names(subfeatures), "strand", "section",
-    "chrom")
+  taken <- c(names(features), names(subfeatures), "strand", "section")
   attributes <- typed_columns(t$attributes, t$attributeFields,
     nrow(features), taken, "attr")
   subfeature_attributes <- typed_columns(t$subfeatureAttributes,

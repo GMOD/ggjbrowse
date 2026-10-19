@@ -158,13 +158,18 @@ variants_result <- function(t) {
     class = c("jbrowse_variants", "jbrowse_result"))
 }
 
+# The columns R adds to a table after the engine's, which a file's own key
+# never takes
+ADDED_COLUMNS <- c("chrom", "region", "opacity", "feature", "subfeature",
+  "variant")
+
 # A VCF's INFO or FORMAT values as a data frame of `n` rows, a column per
 # key typed by `info_column()`, each named as its key, or `<prefix>_<key>`
-# where the key names one of `taken`; and the keys' `fields` with the
-# `column` each took
+# where the key names one of `taken` or ADDED_COLUMNS; and the keys' `fields`
+# with the `column` each took
 typed_columns <- function(values, fields, n, taken, prefix) {
   fields <- as_frame(fields)
-  fields$column <- ifelse(fields$key %in% taken,
+  fields$column <- ifelse(fields$key %in% c(taken, ADDED_COLUMNS),
     paste0(prefix, "_", fields$key), fields$key)
   frame <- data.frame(row.names = seq_len(n))
   for (i in seq_len(nrow(fields))) {
@@ -186,7 +191,7 @@ vcf_columns <- function(vcf, keys, taken) {
     alt = as.character(vcf$records$alt),
     filter = as.character(vcf$records$filter), row.names = seq_len(n))
   info <- typed_columns(vcf$info, vcf$infoFields, n,
-    c(taken, names(records), "chrom"), "info")
+    c(taken, names(records)), "info")
   samples <- data.frame(feature = keys[as.integer(vcf$samples$feature) + 1L],
     sample = as.character(vcf$samples$sample))
   format <- typed_columns(vcf$format, vcf$formatFields, nrow(samples),
