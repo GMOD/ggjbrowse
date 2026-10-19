@@ -1,6 +1,6 @@
 #!/bin/sh
-# The one command jbrowse-components' downstream canary and this repo's own
-# bundle job both run: rebuild the engine from a jbrowse-components checkout
+# The one command jbrowse-components' downstream canary runs: rebuild the
+# engine from a jbrowse-components checkout
 # ($JBROWSE_COMPONENTS, default ../jbrowse-components, already `pnpm
 # install`ed), install the package with it, and run the tests on it.
 set -eu

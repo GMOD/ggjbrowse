@@ -11,3 +11,4 @@
 ^LICENSE$
 ^\.git$
 ^\.claude$
+^Rplots\.pdf$
