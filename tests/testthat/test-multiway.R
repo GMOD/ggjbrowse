@@ -76,6 +76,7 @@ test_that("lanes draw in the order given, and a named lane pins its contig", {
   expect_equal(mixed$lanes$assembly, c("volvox", "volvox_del", "volvox_ins"))
   expect_equal(names(lane_choice(c(volvox_del = "ctgA", "volvox_ins"))$pins),
     "volvox_del")
+  expect_equal(names(lane_choice(list(a = "ctgA", b = NULL))$pins), "a")
 })
 
 test_that("the display's settings color the ribbons", {

@@ -37,7 +37,8 @@ PAF; for an adapter config naming its assemblies, unset takes its first}
 densest first; a character vector of assemblies, drawn in that order;
 or a named vector of assemblies whose values pin a lane, as the lane
 picker does, to a contig (\code{"Chr2"}) or a position on one
-(\code{"Chr2:1,000,000"}), \code{""} pinning nothing}
+(\code{"Chr2:1,000,000"}), \code{""} pinning nothing; an unnamed entry among
+named ones is a lane pinned nowhere}
 
 \item{display}{the display's settings, as a \code{MultiWaySyntenyDisplay}
 config writes them: a list with any of \code{ribbonColor} (a CSS color, or

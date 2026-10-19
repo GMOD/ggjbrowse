@@ -671,10 +671,9 @@ upright_names <- function(layout, axis) {
 row_tracks <- function(tracks, layout, row) {
   if (is.null(tracks)) return(list())
   if (inherits(tracks, "jbrowse_result")) tracks <- list(tracks)
-  span <- function(r) paste(sub("^chr", "", r$chrom, ignore.case = TRUE),
-    r$start, r$end)
   for (t in tracks) {
-    if (!identical(span(t$regions), span(layout))) {
+    r <- t$regions
+    if (!identical(paste(r$start, r$end), paste(layout$start, layout$end))) {
       stop("a ", row, " track draws over the ", row, " row's regions, ",
         paste(loci_of_layout(layout), collapse = ", "), ", but one reads ",
         paste(loci_of(t), collapse = ", "), call. = FALSE)

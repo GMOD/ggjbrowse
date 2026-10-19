@@ -1,6 +1,8 @@
 # Handoff: the engine owns the display's decisions
 
-- **Status:** done (2026-10-15) except the long-insertion divergence below.
+- **Status:** done (2026-10-15). Since 2026-10-19 R copies three shader rules
+  for the insertion glyph and the indel fade, listed below, and still draws
+  some insertion details differently.
   jbrowse-components 42060cf6cf returns the colors, keys, junction flags and
   read pitch; ggjbrowse's step-2 branch reads them and deletes its copies.
 - **Payoff:** R stops copying rules JBrowse writes once, so a change there

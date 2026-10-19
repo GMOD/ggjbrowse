@@ -23,15 +23,17 @@ file_contigs <- function(adapter, assembly = NULL) {
 # assembly states
 WHOLE_CONTIG_END <- 2^31 - 1
 
-# Each region read to WHOLE_CONTIG_END cut where its records end, so a contig
-# of unknown length lays out over what it holds rather than over 2 Gbp
-to_record_ends <- function(regions, adapter, assembly) {
+# A feature file's regions read to WHOLE_CONTIG_END cut where their records
+# end, so a contig of unknown length lays out over what it holds rather than
+# over 2 Gbp
+to_record_ends <- function(regions, adapter, assembly, byte_limit) {
   open <- which(regions$end >= WHOLE_CONTIG_END)
   if (!length(open)) return(regions)
   args <- list(adapterConfig = adapter,
     regions = engine_regions(regions[open, , drop = FALSE]), bpPerPx = 1,
-    rowLimit = WHOLE_FILE_ROWS)
+    byteLimit = byte_limit)
   args$assembly <- assembly
+  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
   f <- as_frame(call_engine("features", args)$features)
   ends <- tapply(f$end, factor(f$region, levels = seq_along(open) - 1), max)
   regions$end[open] <- pmax(regions$start[open] + 1, ends, na.rm = TRUE)
@@ -52,8 +54,8 @@ assembly_contigs <- function(config) {
 # The regions a reader reads, 0-based half-open: those `region` names, or
 # each contig the file lists but those its index shows empty where it names
 # none. A whole contig, or the whole file, is marked `whole`, which the
-# engine caps at WHOLE_FILE_ROWS rows. An end of unknown length, `NA` in a
-# frame or unstated by the file, is where the region's records end.
+# engine caps at WHOLE_FILE_ROWS rows. An end a frame leaves `NA` is the
+# contig's end, WHOLE_CONTIG_END where no file or assembly states it.
 reader_regions <- function(adapter, region, assembly = NULL) {
   contigs <- memo(function() file_contigs(adapter, assembly))
   regions <- if (is.null(region)) {
@@ -68,8 +70,13 @@ reader_regions <- function(adapter, region, assembly = NULL) {
       rbind(file, assembly_contigs(assembly))
     })
   }
-  regions$end[is.na(regions$end)] <- WHOLE_CONTIG_END
-  to_record_ends(regions, adapter, assembly)
+  open <- is.na(regions$end)
+  if (any(open)) {
+    file <- contigs()
+    regions$end[open] <- file$end[match(regions$chrom[open], file$chrom)]
+    regions$end[is.na(regions$end)] <- WHOLE_CONTIG_END
+  }
+  regions
 }
 
 # Regions as the engine's `regions` argument names them
@@ -81,19 +88,18 @@ engine_regions <- function(regions) {
 # JBrowse's location box writes them ("ctgA:1,001-9,000", 1-based and
 # inclusive), contig names alone for the whole contig at the length
 # `contigs()` lists, a data frame of `chrom`, `start` and `end`, or a GRanges;
-# refused where none is given, or one is empty, reversed or starts before the
-# contig. An end left `NA`, which a pairwise file's unstated length leaves, is
-# its reader's to refuse.
+# refused where none is given, or one is reversed or starts before the
+# contig. An end left `NA` is its reader's to resolve or refuse.
 regions_of <- function(region, contigs = NULL) {
   regions <- parsed_regions(region, contigs)
-  bad <- which(regions$start < 0 | regions$end <= regions$start)
+  bad <- which(regions$start < 0 | regions$end < regions$start)
   if (!nrow(regions) || length(bad)) {
     rlang::abort(if (!nrow(regions)) "the region frame has no rows" else
       sprintf("the region %s:%s-%s is %s", regions$chrom[bad[1]],
         format(regions$start[bad[1]] + 1, big.mark = ",", scientific = FALSE),
         format(regions$end[bad[1]], big.mark = ",", scientific = FALSE),
         if (regions$start[bad[1]] < 0) "before the contig's first base, 1"
-        else "empty or reversed"), class = "ggjbrowse_bad_region")
+        else "reversed"), class = "ggjbrowse_bad_region")
   }
   regions
 }

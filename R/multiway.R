@@ -16,7 +16,8 @@ multiway_adapter <- function(file, index) {
 # lane, pinned nowhere.
 lane_choice <- function(lanes) {
   if (is.null(lanes)) return(list())
-  values <- as.character(unlist(lanes))
+  values <- vapply(as.list(lanes), function(v)
+    if (length(v)) as.character(v)[1] else "", "")
   named <- nzchar(names(lanes) %||% rep("", length(values)))
   names_of <- ifelse(named, names(lanes) %||% "", values)
   pins <- stats::setNames(lapply(ifelse(named, values, ""), lane_pin),
@@ -71,7 +72,8 @@ lane_pin <- function(locus) {
 #'   densest first; a character vector of assemblies, drawn in that order;
 #'   or a named vector of assemblies whose values pin a lane, as the lane
 #'   picker does, to a contig (`"Chr2"`) or a position on one
-#'   (`"Chr2:1,000,000"`), `""` pinning nothing
+#'   (`"Chr2:1,000,000"`), `""` pinning nothing; an unnamed entry among
+#'   named ones is a lane pinned nowhere
 #' @param display the display's settings, as a `MultiWaySyntenyDisplay`
 #'   config writes them: a list with any of `ribbonColor` (a CSS color, or
 #'   the color object's slots, such as `list(field = "strand")`,
@@ -439,7 +441,7 @@ lane_band <- function(track, x, lane, where) {
 #'
 #' @param object a [jbrowse_multiway()] result
 #' @param above,below tracks over the anchor lane and over the bottom lane, a
-#'   result or a list of them
+#'   result or a list of them; a lane drawn flipped takes none
 #' @param curves draw each ribbon edge as a curve, as the display's
 #'   `drawCurves` does; unset, as the result's settings say
 #' @param ... must be empty, so a misspelt argument errors

@@ -158,7 +158,8 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
                              index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() features_adapter(file, index))
   assembly <- assembly_config(assembly)
-  regions <- reader_regions(adapter, region, assembly)
+  regions <- to_record_ends(reader_regions(adapter, region, assembly),
+    adapter, assembly, byte_limit)
   args <- list(
     adapterConfig = adapter,
     regions = engine_regions(regions),

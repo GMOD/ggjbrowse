@@ -10,7 +10,7 @@
 \item{object}{a \code{\link[=jbrowse_multiway]{jbrowse_multiway()}} result}
 
 \item{above, below}{tracks over the anchor lane and over the bottom lane, a
-result or a list of them}
+result or a list of them; a lane drawn flipped takes none}
 
 \item{curves}{draw each ribbon edge as a curve, as the display's
 \code{drawCurves} does; unset, as the result's settings say}

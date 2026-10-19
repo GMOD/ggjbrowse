@@ -36,14 +36,22 @@ test_that("a contig whose length no file states reads to its records' end", {
   expect_equal(framed$regions$end, whole$regions$end)
 })
 
-test_that("an empty, reversed or 0-based locus is refused", {
-  for (bad in c("ctgA:0-100", "ctgA:2,000-1,000", "ctgA:500-499")) {
+test_that("a reversed or 0-based locus is refused, an empty one read", {
+  for (bad in c("ctgA:0-100", "ctgA:2,000-1,000", "ctgA:500-498")) {
     expect_error(regions_of(bad), class = "ggjbrowse_bad_region")
   }
-  expect_error(regions_of("ctgA:2,000-1,000"), "ctgA:2,000-1,000 is empty")
+  expect_error(regions_of("ctgA:2,000-1,000"), "ctgA:2,000-1,000 is reversed")
   expect_error(regions_of(data.frame(chrom = character(0), start = numeric(0),
     end = numeric(0))), "no rows", class = "ggjbrowse_bad_region")
   expect_equal(regions_of("ctgA:500-500")$end, 500)
+  expect_equal(regions_of(data.frame(chrom = "ctgA", start = 5, end = 5))$end,
+    5)
+})
+
+test_that("a frame's NA end is the contig's end where the file states it", {
+  framed <- jbrowse_alignments(bam, data.frame(chrom = "ctgA", start = 0,
+    end = NA))
+  expect_equal(framed$regions$end, 50001)
 })
 
 test_that("a GRanges reads as its 1-based ranges, a 1-based frame refused", {
