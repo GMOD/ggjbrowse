@@ -201,7 +201,13 @@ test_that("splice junctions arc over the coverage, counted and stranded", {
   s$junctions$shown <- s$junctions$count >= 1
   arcs <- ggplot2::ggplot_build(ggplot2::autoplot(s, "junctions"))
   expect_equal(length(unique(arcs$data[[1]]$group)), 2)
-  expect_equal(nrow(arcs$data[[2]]), 2)
+  expect_length(arcs$data, 1)
+  counted <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300",
+    assembly = extdata("volvox.fa"),
+    display = list(sashimi = list(showCounts = TRUE)))
+  counted$junctions$shown <- TRUE
+  counts <- ggplot2::layer_data(ggplot2::autoplot(counted, "junctions"), 2)
+  expect_equal(nrow(counts), 2)
   track <- ggplot2::autoplot(s)
   expect_s3_class(track, "patchwork")
   expect_s3_class(ggplot2::autoplot(bam), "patchwork")

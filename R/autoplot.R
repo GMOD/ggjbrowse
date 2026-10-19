@@ -227,11 +227,13 @@ shown_junctions <- function(x) {
 }
 
 junctions_plot <- function(x, o) {
-  band(ggplot2::ggplot(x) +
+  p <- ggplot2::ggplot(x) +
     geom_jbrowse_junctions() +
-    guides_jbrowse(x, "junctions", ramps = FALSE) +
-    geom_jbrowse_junction_counts(), x, ylim = c(0, 1.08)) +
-    no_y
+    guides_jbrowse(x, "junctions", ramps = FALSE)
+  if (isTRUE(x$display$sashimi$showCounts)) {
+    p <- p + geom_jbrowse_junction_counts()
+  }
+  band(p, x, ylim = c(0, 1.08)) + no_y
 }
 
 # The read-connection band as the display draws it under the coverage: arcs
@@ -274,8 +276,8 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   alone, mate-pair and split-read arcs or the read cloud on a log
 #'   insert-size axis; `"sequence"`: the reference's bases alone
 #' @param letters write each mismatch's base and each insertion's length on
-#'   the pileup; `NULL` does so where the region is at most 300 bp, where a
-#'   base is wide enough to read
+#'   the pileup; `NULL` does so where the display does, at 6.5 px a base or
+#'   more on reads tall enough for text
 #' @param width the pixels the figure spans across its region, which the
 #'   sub-pixel fade and the read-connection band's reach read; `NULL` takes
 #'   the `width` the track was read at
@@ -302,12 +304,14 @@ autoplot.jbrowse_alignments <- function(object,
   stack_bands(list(alignment_bands(object, o)))
 }
 
+MIN_PX_PER_BP_FOR_TEXT <- 6.5
+
 alignment_options <- function(object, letters = NULL) {
   s <- object$display
-  xlim <- xlim_of(object)
+  tall <- (object$read_pitch$featureHeight %||% 0) >=
+    (object$glyph$label$minHeight %||% Inf)
   list(
-    letters = letters %||% (xlim[2] - xlim[1] <= 300),
-    width = object$width,
+    letters = letters %||% (tall && px_of(object, NULL) >= MIN_PX_PER_BP_FOR_TEXT),
     coverage = !isFALSE(s$coverage$show),
     pileup = !isFALSE(s$pileup$show),
     junctions = !isFALSE(s$sashimi$show))
@@ -315,10 +319,9 @@ alignment_options <- function(object, letters = NULL) {
 
 # Each band an alignments track draws, top to bottom, by its height in the
 # display's pixels: the coverage, sashimi and read-connection bands at their
-# configured heights per section, the pileup its rows at the read pitch
+# configured heights, the pileup its rows at the read pitch
 alignment_px <- function(object, o) {
   s <- object$display
-  sections <- nrow(object$sections)
   pitch <- object$read_pitch$featureHeight + object$read_pitch$featureSpacing
   rows <- sum(vapply(split(object$reads$row, object$reads$section),
     function(r) if (length(r)) max(r) + 1 else 0, 0))
@@ -327,9 +330,9 @@ alignment_px <- function(object, o) {
     coverage = o$coverage,
     arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
     pileup = o$pileup)
-  c(junctions = s$sashimi$height * sections,
-    coverage = s$coverage$height * sections,
-    arcs = s$readConnections$height * sections,
+  c(junctions = s$sashimi$height,
+    coverage = s$coverage$height,
+    arcs = s$readConnections$height,
     pileup = max(30, rows * pitch))[shown]
 }
 

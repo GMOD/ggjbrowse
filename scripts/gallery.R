@@ -188,7 +188,7 @@ exon_locs <- function(transcript, window = 20) {
 # a track stack
 examples <- list(
   genes_and_reads = list(
-    caption = "Junction arcs count each splice, from 31 to 68 reads, over the coverage band and the reads split at every intron.",
+    caption = "Junction arcs join each splice over the coverage band, and the reads split at every intron.",
     title = "GENCODE genes over direct RNA reads", locus = gapdh,
     jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "showLegend=true", grow,
       "--loc", gapdh),
@@ -420,7 +420,7 @@ v$tree <- lapply(split(rownames(m), v$rows$band), function(rows)
 autoplot(v)
 )-"),
   collapsed_introns = list(
-    caption = "Each junction's read count sits over the arc joining its two exons, and the direct RNA reads run across.",
+    caption = "An arc over the coverage joins each pair of exons, and the direct RNA reads run across.",
     title = "GAPDH's nine exons side by side, with the junctions between them as arcs",
     locus = "ENST00000229239.10's exons, each padded by 20 bp", height = 7,
     jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "sashimi:auto",

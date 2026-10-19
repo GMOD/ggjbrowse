@@ -93,7 +93,7 @@ a <- jbrowse_alignments(e("gapdh_direct_rna.bam"), "chr12:6,534,201-6,538,700")
 autoplot(a)
 ```
 
-![Nanopore direct RNA reads from NA12878 across GAPDH: junction arcs counting each splice, the coverage band and the reads split at the introns](man/figures/gapdh.png)
+![Nanopore direct RNA reads from NA12878 across GAPDH: junction arcs joining each splice, the coverage band and the reads split at the introns](man/figures/gapdh.png)
 
 `a` is a list of data frames, so the figure is also ordinary ggplot2:
 
