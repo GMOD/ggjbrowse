@@ -318,7 +318,7 @@ alignments_result <- function(t, assembly) {
 jbrowse_sequence <- function(assembly, region) {
   assembly <- assembly_config(assembly)
   regions <- regions_of(region, function()
-    region_frame(call_engine("regions", list(assembly = assembly))))
+    assembly_contigs(assembly))
   vapply(seq_len(nrow(regions)), function(i) {
     args <- list(region = list(refName = regions$chrom[i],
       start = regions$start[i], end = regions$end[i]), assembly = assembly)

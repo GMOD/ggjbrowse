@@ -149,8 +149,8 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     for (column in intersect(columns, names(d))) d[[column]] <- d[[column]] + 1
     d
   }
-  lane_frame <- one_based(snake(as_frame(r$lanes)), "lane")
-  segments <- one_based(snake(as_frame(r$segments)), "lane")
+  lane_frame <- one_based(snake_frame(r$lanes), "lane")
+  segments <- one_based(snake_frame(r$segments), "lane")
   layout <- lane_regions(lane_frame, segments, regions)
   lane_frame$locus <- lane_loci(lane_frame, layout)
   axis <- function(lane) lane_frame$assembly[lane]
@@ -158,23 +158,21 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     d[[paste0(prefix, "end")]]) / 2
   segments$region <- region_at(layout, axis(segments$lane), segments$chrom,
     mid(segments))
-  blocks <- one_based(snake(as_frame(r$blocks)), "lane")
+  blocks <- one_based(snake_frame(r$blocks), "lane")
   blocks$region <- region_at(layout, axis(blocks$lane), blocks$chrom,
     mid(blocks))
-  ribbons <- one_based(snake(as_frame(r$ribbons)),
+  ribbons <- one_based(snake_frame(r$ribbons),
     c("alignment", "gutter", "upper_lane", "lower_lane"))
   ribbons$alignment <- as.integer(ribbons$alignment)
   ribbons$upper_region <- region_at(layout, axis(ribbons$upper_lane),
     ribbons$upper_chrom, mid(ribbons, "upper_"))
   ribbons$lower_region <- region_at(layout, axis(ribbons$lower_lane),
     ribbons$lower_chrom, mid(ribbons, "lower_"))
-  key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle)
-  attr(key, "alpha") <- 0.6
   comparative_result("jbrowse_multiway", "ribbons",
     list(lanes = lane_frame, segments = segments, blocks = blocks,
       ribbons = ribbons, alignments = keyed_alignments(r$alignments)),
-    layout, width, r$config, list(ribbons = key), ramp_frames(r$ramps), read$warnings,
+    layout, width, r$config, list(ribbons = legend_key(r, 0.6)),
+    ramp_frames(r$ramps), read$warnings,
     list(tick_interval = r$tickInterval, rows_vs_anchor = r$rowsVsAnchor))
 }
 

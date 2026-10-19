@@ -107,13 +107,10 @@ in_row_order <- function(x) {
 
 # A quantitative track's sources in the order it draws them: `sources`' own
 # order, or its tree's leaf order, each source's marks on its row, and a
-# source left out of `sources` left out of the marks
+# source left out of `sources` left out of the marks, as assigning `sources`
+# drops them
 in_source_order <- function(x) {
   x$sources <- by_tree(x$sources, x$tree, "x$sources")
-  for (name in c("marks", "bins")) {
-    d <- x[[name]]
-    x[[name]] <- d[d$source %in% x$sources$name, , drop = FALSE]
-  }
   if (isTRUE(x$row_layout)) {
     x$marks$row <- match(x$marks$source, x$sources$name) - 1
   }

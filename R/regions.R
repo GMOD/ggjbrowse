@@ -44,6 +44,11 @@ region_frame <- function(r) {
     end = as.numeric(r$end))
 }
 
+# Each contig an assembly config's sequence names, from 0 to its length
+assembly_contigs <- function(config) {
+  region_frame(call_engine("regions", list(assembly = config)))
+}
+
 # The regions a reader reads, 0-based half-open: those `region` names, or
 # each contig the file lists but those its index shows empty where it names
 # none. A whole contig, or the whole file, is marked `whole`, which the
@@ -60,8 +65,7 @@ reader_regions <- function(adapter, region, assembly = NULL) {
     regions_of(region, function() {
       file <- contigs()[c("chrom", "start", "end")]
       if (is.null(assembly)) return(file)
-      rbind(file, region_frame(call_engine("regions",
-        list(assembly = assembly))))
+      rbind(file, assembly_contigs(assembly))
     })
   }
   regions$end[is.na(regions$end)] <- WHOLE_CONTIG_END

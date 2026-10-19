@@ -99,7 +99,7 @@ jbrowse_contigs <- function(x, assembly = NULL, index = NULL) {
   kind <- contigs_kind(x)
   if (kind == "assembly") {
     config <- assembly_config(x)
-    contigs <- region_frame(call_engine("regions", list(assembly = config)))
+    contigs <- assembly_contigs(config)
     return(cbind(assembly = rep(config$name %||% NA_character_,
       nrow(contigs)), contigs))
   }

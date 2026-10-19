@@ -1,8 +1,12 @@
+VCF_FORMATS <- list(
+  list(pattern = "\\.vcf$", type = "VcfAdapter", slot = "vcfLocation"),
+  list(pattern = "\\.vcf\\.b?gz$", type = "VcfTabixAdapter",
+    slot = "vcfGzLocation", index = "TBI"))
+
+# A VCF's adapter, read off its extension, any other name read as bgzipped
 variants_adapter <- function(file, index, samples) {
-  adapter <- guess_adapter(file, index, list(
-    list(pattern = "\\.vcf$", type = "VcfAdapter", slot = "vcfLocation"),
-    list(pattern = "", type = "VcfTabixAdapter", slot = "vcfGzLocation",
-      index = "TBI")))
+  adapter <- guess_adapter(file, index, c(VCF_FORMATS, list(list(pattern = "",
+    type = "VcfTabixAdapter", slot = "vcfGzLocation", index = "TBI"))))
   if (!is.null(samples)) adapter$samplesTsvLocation <- location(samples)
   adapter
 }

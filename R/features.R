@@ -1,19 +1,17 @@
-# A feature file's adapter, read off its extension: GFF3, GTF and BED plain or
-# bgzipped with a tabix (or CSI) index beside it, or BigBed.
+# A feature file's adapter, read off its extension: GFF3, GTF, BED and VCF
+# plain or bgzipped with a tabix (or CSI) index beside it, or BigBed.
 features_adapter <- function(file, index) {
   entry <- function(pattern, type, slot, index = NULL) {
     list(pattern = pattern, type = type, slot = slot, index = index)
   }
-  guess_adapter(file, index, list(
+  guess_adapter(file, index, c(list(
     entry("\\.(bb|bigbed)$", "BigBedAdapter", "bigBedLocation"),
     entry("\\.gff3?\\.gz$", "Gff3TabixAdapter", "gffGzLocation", "TBI"),
     entry("\\.gff3?$", "Gff3Adapter", "gffLocation"),
     entry("\\.gtf\\.gz$", "GtfTabixAdapter", "gtfGzLocation", "TBI"),
     entry("\\.gtf$", "GtfAdapter", "gtfLocation"),
     entry("\\.bed\\.gz$", "BedTabixAdapter", "bedGzLocation", "TBI"),
-    entry("\\.vcf\\.gz$", "VcfTabixAdapter", "vcfGzLocation", "TBI"),
-    entry("\\.vcf$", "VcfAdapter", "vcfLocation"),
-    entry("\\.bed$", "BedAdapter", "bedLocation")),
+    entry("\\.bed$", "BedAdapter", "bedLocation")), VCF_FORMATS),
     ".gff3, .gtf, .bed or .vcf (each optionally .gz with an index) or .bb")
 }
 

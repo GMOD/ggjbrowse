@@ -6,6 +6,7 @@ read_range <- function(url, start, end) {
   if (startsWith(url, "file://")) {
     path <- utils::URLdecode(sub("\\?.*$", "", sub("^file://", "", url)))
     path <- sub("^/([A-Za-z]:)", "\\1", path)
+    if (!file.exists(path)) stop("cannot read ", path, ": no such file")
     size <- file.size(path)
     last <- if (end < 0) size - 1 else min(end, size - 1)
     con <- file(path, "rb")
@@ -311,12 +312,14 @@ list_column <- function(lengths, values) {
   rows
 }
 
+is_url <- function(path) grepl("^[A-Za-z][A-Za-z0-9+.-]*://", path)
+
 # A file's location for the engine: a URL as given, and a local path as a
 # file:// URL, each segment percent-encoded so a %, ? or # in a name stays in
 # the name, with the file's modification time and size as a query, which
 # read_range() drops, so a file overwritten in place is a new cache key.
 location <- function(path) {
-  uri <- if (grepl("^[a-z]+://", path)) path else {
+  uri <- if (is_url(path)) path else {
     full <- normalizePath(path, winslash = "/", mustWork = TRUE)
     info <- file.info(full)
     encoded <- paste(vapply(strsplit(full, "/", fixed = TRUE)[[1]],
@@ -353,13 +356,13 @@ guess_adapter <- function(file, index, formats, expected = NULL) {
 # fragment kept after it, as a signed URL's index carries the same query; a
 # local path's `?` and `#` are part of its name
 beside <- function(file, suffix) {
-  if (!grepl("^[a-z]+://", file)) return(paste0(file, suffix))
+  if (!is_url(file)) return(paste0(file, suffix))
   sub("^([^?#]*)", paste0("\\1", suffix), file)
 }
 
 # A path or URL as its extension reads, a URL's query and fragment aside
 bare_name <- function(file) {
-  if (grepl("^[a-z]+://", file)) sub("[?#].*$", "", file) else file
+  if (is_url(file)) sub("[?#].*$", "", file) else file
 }
 
 # The adapter config the engine reads `file` through: a track's own adapter
@@ -386,7 +389,7 @@ readable <- function(x) {
 # index locations as JBrowse's config does: a local path as a file URI with no
 # version query, since the engine names the index by appending to it
 shorthand_uri <- function(path) {
-  if (grepl("^[a-z]+://", path)) path
+  if (is_url(path)) path
   else sub("\\?v=.*$", "", location(path)$uri)
 }
 

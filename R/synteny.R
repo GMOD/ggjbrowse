@@ -26,11 +26,18 @@ axis_args <- function(regions, assembly, width) {
 # The engine's alignments, each keyed by `alignment`, the number the tables
 # drawn from it name it by
 keyed_alignments <- function(columns) {
-  d <- snake(as_frame(columns))
+  d <- snake_frame(columns)
   cbind(alignment = seq_len(nrow(d)), d)
 }
 
 snake_frame <- function(columns) snake(as_frame(columns))
+
+# A comparative view's key as the engine titles and colors it, its chips
+# drawn at `alpha`
+legend_key <- function(r, alpha) {
+  structure(key_frame(unlist(r$legend$label), unlist(r$legend$color),
+    r$legendTitle), alpha = alpha)
+}
 
 # The engine's camelCase columns as this package's snake_case
 snake <- function(d) {
@@ -321,16 +328,14 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
   regions <- rbind(axis_rows(q, "query", axes$names[1]),
     axis_rows(t, "target", axes$names[2]))
   alignments <- keyed_alignments(r$alignments)
-  ribbons <- snake(as_frame(r$ribbons))
+  ribbons <- snake_frame(r$ribbons)
   ribbons$alignment <- as.integer(ribbons$alignment) + 1L
   ribbons$query_region <- ribbons$query_region + 1
   ribbons$target_region <- ribbons$target_region + 1 + nrow(q)
   offscreen <- snake_frame(r$offscreen)
   offscreen$region <- offscreen$region + 1 +
     ifelse(offscreen$axis == "target", nrow(q), 0)
-  key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle)
-  attr(key, "alpha") <- max(r$alpha, 0.45)
+  key <- legend_key(r, max(r$alpha, 0.45))
   contigs <- snake_frame(r$offscreenContigs)
   comparative_result("jbrowse_synteny", "ribbons",
     list(alignments = alignments, ribbons = ribbons, offscreen = offscreen,
@@ -367,7 +372,7 @@ band_px <- function(regions, axis, region, coord, width) {
   unname((coord + shift - lo) / (hi - lo) * width)
 }
 
-# The ribbons and off-screen marks with each foot at its pixel on its row
+# The ribbons with each foot at its pixel on its row
 synteny_on_axis <- function(x) {
   r <- x$ribbons
   if (is_on_axis(r)) return(x)
@@ -378,11 +383,7 @@ synteny_on_axis <- function(x) {
   r$target_px_start <- px("target", r$target_region, r$target_start)
   r$target_px_end <- px("target", r$target_region, r$target_end)
   x$ribbons <- structure(r, on_axis = TRUE)
-  o <- x$offscreen
-  o$px_start <- px(o$axis, o$region, o$start)
-  o$px_end <- px(o$axis, o$region, o$end)
-  o$y <- ifelse(o$axis == "query", 1, 0)
-  x$offscreen <- structure(o, on_axis = TRUE)
+  x$offscreen <- structure(x$offscreen, on_axis = TRUE)
   x
 }
 
@@ -791,17 +792,14 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
   read <- warned_call("dotplot", args)
   r <- read$value
   alignments <- keyed_alignments(r$alignments)
-  segments <- snake(as_frame(r$segments))
+  segments <- snake_frame(r$segments)
   segments$alignment <- as.integer(segments$alignment) + 1L
   segments$x_region <- segments$x_region + 1
   segments$y_region <- segments$y_region + 1 + nrow(xr)
-  key <- key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle)
-  attr(key, "alpha") <- max(r$alpha, 0.45)
   comparative_result("jbrowse_dotplot", "segments",
     list(alignments = alignments, segments = segments),
     rbind(axis_rows(xr, "x", axes$names[1]), axis_rows(yr, "y", axes$names[2])),
-    width, r$config, list(segments = key), ramp_frames(r$ramps),
+    width, r$config, list(segments = legend_key(r, max(r$alpha, 0.45))), ramp_frames(r$ramps),
     unique(c(axes$warnings, read$warnings)),
     list(height = height,
       assemblies = display_names(unlist(r$assemblyNames), labels,
