@@ -339,7 +339,7 @@ bar_base <- function(x) x$y_scale$domain[1] %||% 0
 # drawn height from the bar's base, so a share means the same length on a
 # log or symlog axis as on a linear one
 on_bar <- function(x, d) {
-  tr <- scales::as.transform(depth_transform(x$y_scale))
+  tr <- score_transform(x$y_scale)
   base <- tr$transform(bar_base(x))
   at <- function(share) tr$inverse(base + share * (tr$transform(d$depth) -
     base))

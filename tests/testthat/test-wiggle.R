@@ -147,6 +147,10 @@ test_that("a row layout packs its sources into the display's height, a slice eac
   expect_s3_class(p$theme$axis.text.y, "element_blank")
   two <- autoplot(jbrowse_wiggle(multi(2), "ctgA:1-50,000"))
   expect_false(inherits(two$theme$axis.text.y, "element_blank"))
+  lines <- jbrowse_wiggle(multi(3), "ctgA:1-50,000",
+    display = list(mark = "line"))
+  path <- ggplot2::layer_data(autoplot(lines), 5)
+  expect_gt(nrow(path), 2 * nrow(lines$marks))
 })
 
 test_that("several regions share one score axis and color ramp", {

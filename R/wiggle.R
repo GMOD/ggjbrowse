@@ -137,11 +137,16 @@ print.jbrowse_wiggle <- function(x, ...) {
   invisible(x)
 }
 
-# The display's symlog axis, d3's sign(x) log(1 + |x| / c)
-symlog_transform <- function(constant) {
-  scales::trans_new("symlog",
-    function(x) sign(x) * log1p(abs(x) / constant),
-    function(y) sign(y) * constant * expm1(abs(y)))
+# A display's score or depth axis as a transform: log, linear, or d3's symlog,
+# sign(x) log(1 + |x| / c), which scales' asinh-based pseudo-log is not
+score_transform <- function(scale) {
+  c <- scale$symlog_constant
+  switch(scale$type,
+    log = scales::transform_log10(),
+    symlog = scales::new_transform("symlog",
+      function(x) sign(x) * log1p(abs(x) / c),
+      function(y) sign(y) * c * expm1(abs(y))),
+    scales::transform_identity())
 }
 
 #' The display's score axis as a ggplot scale
@@ -160,17 +165,10 @@ symlog_transform <- function(constant) {
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle() + scale_y_jbrowse(w)
 scale_y_jbrowse <- function(object, ...) {
-  s <- object$y_scale
-  switch(s$type,
-    log = ggplot2::scale_y_log10(...),
-    symlog = scale_with(ggplot2::scale_y_continuous,
-      list(transform = symlog_transform(s$symlog_constant)), ...),
-    ggplot2::scale_y_continuous(...))
+  scale_with(ggplot2::scale_y_continuous,
+    list(transform = score_transform(object$y_scale)), ...)
 }
 
-# Marks as the display stacks its rows: under a row layout each source's
-# scores fill its own slice of the axis, first source on top, with no gap
-# between rows, on the display's own scale; `base` is the slice's floor
 # The display draws a mark narrower than a pixel a pixel wide, so a sparse
 # track of 1 bp sites stays visible zoomed out.
 pixel_wide <- function(x, keep) {
@@ -179,13 +177,14 @@ pixel_wide <- function(x, keep) {
   m
 }
 
+# Marks as the display stacks its rows: under a row layout each source's
+# scores fill its own slice of the axis, first source on top, with no gap
+# between rows, on the display's own scale; `base` is the slice's floor
 in_rows <- function(x, d) {
   n <- nrow(x$sources)
   d$base <- if (isTRUE(x$row_layout)) n - 1 - d$row else rep(0, nrow(d))
   if (isTRUE(x$row_layout)) {
-    t <- switch(x$y_scale$type, log = scales::transform_log10(),
-      symlog = symlog_transform(x$y_scale$symlog_constant),
-      scales::transform_identity())
+    t <- score_transform(x$y_scale)
     lim <- t$transform(x$y_scale$domain)
     at <- function(v) {
       d$base + pmin(1, pmax(0, (t$transform(v) - lim[1]) / diff(lim)))
@@ -245,15 +244,15 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
   marks <- function(x) in_rows(x, pixel_wide(x, !x$marks$band))
   band <- function(x) in_rows(x, pixel_wide(x, x$marks$band))
   steps <- function(x) {
-    m <- marks(x)
+    m <- pixel_wide(x, !x$marks$band)
     d <- m[rep(seq_len(nrow(m)), each = 2), , drop = FALSE]
     d$x <- as.vector(rbind(m$start, m$end))
-    cut_at_origin(d, x$origin)
+    in_rows(x, cut_at_origin(d, x$origin))
   }
   centers <- function(x) {
-    d <- marks(x)
+    d <- pixel_wide(x, !x$marks$band)
     d$x <- (d$start + d$end) / 2
-    cut_at_origin(d, x$origin)
+    in_rows(x, cut_at_origin(d, x$origin))
   }
   list(
     jbrowse_layer(ggplot2::GeomRect, data, band,

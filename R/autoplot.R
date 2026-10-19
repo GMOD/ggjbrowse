@@ -157,22 +157,10 @@ coverage_plot <- function(x, o) {
   band(p, x, ylim = scale$domain,
     expand = c(top = TRUE, right = FALSE, bottom = TRUE, left = FALSE)) +
     ggplot2::scale_y_continuous(breaks = scale$ticks,
-      transform = depth_transform(scale),
+      transform = score_transform(scale),
       expand = ggplot2::expansion(mult = inset /
         (x$display$coverage$height - 2 * inset))) +
     ggplot2::labs(y = "depth")
-}
-
-# The display's depth scale: log, linear, or its symlog,
-# sign(x) log(1 + |x| / C), which scales' asinh-based pseudo-log is not
-depth_transform <- function(scale) {
-  c <- scale$symlog_constant
-  switch(scale$type,
-    log = "log10",
-    symlog = scales::new_transform("symlog",
-      function(x) sign(x) * log1p(abs(x) / c),
-      function(y) sign(y) * c * expm1(abs(y))),
-    "identity")
 }
 
 # The reference under the pileup, each base a lettered cell in its color
