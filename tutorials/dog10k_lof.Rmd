@@ -400,7 +400,7 @@ at_gene |> filter(row %in% c("Boxer", "Golden Retriever"))
 section: Reproduce it end to end
 title: Reproducing the files with the build scripts
 replace:
-  - from: "counts quoted above"
+  - from: "counts\n   quoted above"
     to: "counts this page computes in R"
 -->
 

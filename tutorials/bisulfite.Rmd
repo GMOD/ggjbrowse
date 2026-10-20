@@ -99,7 +99,7 @@ cg <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
 section: Loading the TAIR10 hub assembly and the WGBS BAM
 title: false
 only:
-  - "In grammar-of-graphics terms"
+  - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms"
 -->
 
 `autoplot()` draws the result as the browser draws the track: the coverage band

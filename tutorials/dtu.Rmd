@@ -224,7 +224,7 @@ only:
 -->
 
 <!-- jbrowse
-section: satuRn's statistics in the GFF3 attribute column
+section: The statistics in the attribute column
 level: -1
 -->
 
@@ -283,7 +283,7 @@ atp5f1c |>
 section: Coloring each isoform by its usage change
 title: Coloring each isoform by its usage change
 only:
-  - "In grammar-of-graphics terms, `color` is a color scale"
+  - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms, `color` is a\ncolor scale"
   - "- The key lists every interval"
 drop_lines:
   - "Clicking an isoform opens its numbers"
@@ -311,7 +311,7 @@ title: Coverage as the check
 only:
   - "Add the four coverage tracks below"
 replace:
-  - from: "Add the four coverage tracks below and open them with the transcript track at\n`chr10:7,787,600-7,812,400`, the whole of _ATP5F1C_, an ATP synthase subunit."
+  - from: "Add the four coverage tracks below and open them with the transcript track at\n`chr10:7,787,600-7,812,400`, the whole of _ATP5F1C_, an ATP synthase subunit:"
     to: "We'll read each tissue's RNA-seq coverage over the same window,\n`chr10:7,787,600-7,812,400`, the whole of _ATP5F1C_."
 -->
 

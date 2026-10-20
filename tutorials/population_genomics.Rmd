@@ -58,7 +58,7 @@ replace:
 section: intro
 only:
   - "In _Drosophila melanogaster_"
-  - "- Fst, how far apart"
+  - "- compute Fst"
 -->
 
 <!-- jbrowse
@@ -249,8 +249,8 @@ only:
   - "Each arrangement's π swings"
   - "# B: bin width"
 replace:
-  - from: "An `awk` step writes it from the\ntwo π bedGraphs:"
-    to: "We'll write the same step in R from the\ntwo π bigWigs, then compare it with the hosted bigWig:"
+  - from: "An `awk` step writes it from the two π\nbedGraphs:"
+    to: "We'll write the same step in R from the two π\nbigWigs, then compare it with the hosted bigWig:"
 -->
 
 ```{r ratio}
@@ -281,10 +281,10 @@ c(bins = nrow(ratio), hosted = nrow(hosted), both = nrow(compared),
 section: Loading the scans in JBrowse
 title: false
 only:
-  - "In grammar-of-graphics terms, `color` is a color scale"
+  - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms, `color` is a\ncolor scale"
 replace:
-  - from: "pins the y scale to ±1.5:"
-    to: "pins the y scale to ±1.5."
+  - from: "pins the y\nscale to ±1.5:"
+    to: "pins the y\nscale to ±1.5."
 -->
 
 The website's `displayDefaults` for that track are already in `ratio_display`.

@@ -42,8 +42,8 @@ replace:
 <!-- jbrowse
 section: The data
 replace:
-  - from: "Nothing to download: the track configs below load region slices we host, cut\nfrom these files."
-    to: "Nothing to download: every chunk below reads region slices we host, cut from\nthese files, by URL."
+  - from: "The track configs below load region slices we host, cut from these files, so no\ndownload is needed."
+    to: "Every chunk below reads region slices we host, cut from these files, by URL, so\nno download is needed."
 -->
 
 <!-- jbrowse
@@ -107,8 +107,8 @@ title: false
 only:
   - "Each long read is one DNA molecule"
 replace:
-  - from: "In\ngrammar-of-graphics terms, **Group by...** sets a `facet`, which splits the\ndisplay into stacked sections, one per value of a field."
-    to: "In\ngrammar-of-graphics terms, `facet` splits the display into stacked\nsections, one per value of a field, as **Group by...** does in the browser."
+  - from: "In\n[grammar-of-graphics](/docs/config_guides/mark_display) terms, **Group by...**\nsets a `facet`, which splits the display into stacked sections, one per value of\na field."
+    to: "In\n[grammar-of-graphics](/docs/config_guides/mark_display) terms, `facet` splits the display into stacked\nsections, one per value of a field, as **Group by...** does in the browser."
 -->
 
 We'll facet on the `HP` tag, which `tags.HP` names:
@@ -237,8 +237,8 @@ title: false
 only:
   - "A single CpG's fraction rests on the few reads"
 replace:
-  - from: "A\n`window` step averages each CpG with a fixed number of neighbouring CpGs, so a\nCpG island weighs as many sites as it holds. We'll load both haplotypes over 5\nMb of chr15 around _SNRPN_, each in a row with its raw values under a moving\naverage:"
-    to: "A\nmoving average over a fixed number of neighbouring CpGs fixes that, and a CpG\nisland weighs as many sites as it holds. We'll read both haplotypes over 5 Mb\nof chr15 around _SNRPN_ and compute the average in R."
+  - from: "A\n`window` step averages each CpG with a fixed number of neighbouring CpGs, so a\nCpG island weighs as many sites as it holds. We'll load both haplotypes around\n_SNRPN_, each in a row with its raw values under a moving average:"
+    to: "A\nmoving average over a fixed number of neighbouring CpGs fixes that, and a CpG\nisland weighs as many sites as it holds. We'll read both haplotypes around\n_SNRPN_ and compute the average in R."
 -->
 
 `stats::filter()` sums a sliding window, so a coverage-weighted mean over the
