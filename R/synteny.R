@@ -14,11 +14,14 @@ synteny_adapter <- function(file, index) {
 }
 
 # One axis of a comparative view for the engine: its regions, the assembly
-# they are on where the caller names it, and the pixels it spans
+# they are on where the caller names it, the pixels it spans, and its side's
+# contigs in the order a whole-genome axis lays them, which hand out the
+# palette a color by contig paints
 axis_args <- function(regions, assembly, width) {
   a <- list(regions = lapply(seq_len(nrow(regions)), function(i)
     list(refName = regions$chrom[i], start = regions$start[i],
-      end = regions$end[i])), width = width)
+      end = regions$end[i])), width = width,
+    refNames = I(unique(c(attr(regions, "contigs"), regions$chrom))))
   if (!is.null(assembly) && !is.na(assembly)) a$assemblyName <- assembly
   a
 }
@@ -146,8 +149,9 @@ memo <- function(f) {
 # The regions an axis shows, each with its missing-contig message, `""`
 # where the file has its contig: any region a linear reader takes, a data
 # frame's rows narrowed to the axis's assembly where it names an `assembly`,
-# and with none given every contig of the axis's assembly in natural order.
-# `side` picks the file's side where the axis names no assembly the file has.
+# and with none given every contig of the axis's assembly in natural order,
+# which the `contigs` attribute holds either way. `side` picks the file's side
+# where the axis names no assembly the file has.
 axis_regions <- function(given, contigs, assembly, side) {
   all <- contigs()
   named <- length(assembly) && !is.na(assembly) && assembly %in% all$assembly
@@ -157,9 +161,10 @@ axis_regions <- function(given, contigs, assembly, side) {
   where <- if (name %in% c("query", "target")) paste(name, "side")
     else paste("assembly", name)
   bad <- function(...) rlang::abort(paste0(...), class = "ggjbrowse_bad_region")
+  contigs <- own$chrom[natural_order(own$chrom)]
   if (is.null(given)) {
     if (!nrow(own)) bad("the file names no contig on its ", where)
-    given <- own$chrom[natural_order(own$chrom)]
+    given <- contigs
   }
   if (is.data.frame(given) && "assembly" %in% names(given)) {
     mine <- given[as.character(given[["assembly"]]) %in% name, , drop = FALSE]
@@ -179,6 +184,7 @@ axis_regions <- function(given, contigs, assembly, side) {
   regions$missing <- if (!nrow(own)) "" else ifelse(regions$chrom %in%
     own$chrom, "", sprintf("%s is not a contig of the file's %s, whose contigs are %s",
       regions$chrom, where, paste(utils::head(own$chrom, 20), collapse = ", ")))
+  attr(regions, "contigs") <- contigs
   regions
 }
 

@@ -323,6 +323,21 @@ test_that("a file's contigs list with their lengths, and an axis with no regions
   expect_equal(named$regions$axis, c("x", "y"))
 })
 
+test_that("a contig shown alone keeps the color its whole genome gives it", {
+  grape <- system.file("extdata", "peach_grape.paf.gz", package = "ggjbrowse")
+  by_contig <- list(color = list(field = "query"))
+  color_of <- function(r, column) unique(r$alignments$color[
+    r$alignments[[column]] == "Pp02"])
+  whole <- color_of(jbrowse_synteny(grape, display = by_contig), "query_chrom")
+  expect_length(whole, 1)
+  expect_equal(color_of(jbrowse_synteny(grape, "Pp02", display = by_contig),
+    "query_chrom"), whole)
+  expect_equal(color_of(jbrowse_dotplot(grape, display = by_contig),
+    "x_chrom"), whole)
+  expect_equal(color_of(jbrowse_dotplot(grape, "Pp02", display = by_contig),
+    "x_chrom"), whole)
+})
+
 test_that("labels name each axis's assembly in its title", {
   grape <- system.file("extdata", "peach_grape.paf.gz", package = "ggjbrowse")
   named <- c(query = "peach", target = "grape")
