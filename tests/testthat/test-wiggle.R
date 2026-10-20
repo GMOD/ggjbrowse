@@ -216,11 +216,11 @@ test_that("a mark narrower than a pixel draws a pixel wide", {
   expect_equal(wide$xmax - wide$xmin, w$marks$end - w$marks$start)
 })
 
-test_that("the result keeps the display's resolved config and aggregate", {
+test_that("the result keeps the display's resolved config and summary", {
   expect_equal(w$display$type, "LinearWiggleDisplay")
-  expect_equal(w$display$aggregate, "mean")
+  expect_equal(w$display$y, "score")
   expect_equal(jbrowse_wiggle(bw, "ctgA:1-50,000",
-    display = list(aggregate = "max"))$display$aggregate, "max")
+    display = list(y = "maxScore"))$display$y, "maxScore")
 })
 
 test_that("a BigWig with no region reads whole, each contig it lists", {

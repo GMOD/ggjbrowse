@@ -125,10 +125,12 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   expect_gt(nrow(curved), nrow(polygons))
 })
 
+# The PAF is reference-anchored: HG01361 aligns to GRCh38 alone, so a lane
+# under HG00133 has no records, and a read of it fails.
 test_that("an inversion draws as its records state it, its ribbons crossed", {
   inv <- jbrowse_multiway(
     system.file("extdata", "hprc_amylase.paf", package = "ggjbrowse"),
-    "chr1:103,500,001-103,900,000", "GRCh38",
+    "chr1:103,500,001-103,900,000", "GRCh38", lanes = "HG00133",
     display = list(ribbonColor = list(field = "strand")))
   expect_true(any(inv$blocks$strand == -1))
   expect_false(any(inv$lanes$flipped))

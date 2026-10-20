@@ -3,7 +3,7 @@
 `jbrowse_wiggle()` reads a BigWig through JBrowse's quantitative display: the
 bins the file serves at that zoom, the marks the display draws from them, and
 the score axis it autoscales to. `display` takes its settings (`mark`,
-`aggregate`, `extent`, `color`, `scales`, ...), and `width` picks the zoom
+`y`, `extent`, `color`, `scales`, ...), and `width` picks the zoom
 level that answers ([bars, a line and density](gallery.md#conservation)).
 `w$y_scale` is the score axis, which `scale_y_jbrowse(w)` draws.
 

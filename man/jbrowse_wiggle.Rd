@@ -28,7 +28,8 @@ regions share one score axis and color ramp}
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearWiggleDisplay}: a list with any of \code{mark}
 (\code{"bar"}, \code{"line"}, \code{"point"}, or \code{"span"} for density), \code{interpolate}
-(\code{"step"} or \code{"linear"}), \code{aggregate} (\code{"mean"}, \code{"min"}, \code{"max"}),
+(\code{"step"} or \code{"linear"}), \code{y} (\code{"score"}, \code{"minScore"} or \code{"maxScore"},
+which of a zoom bin's stored mean, minimum and maximum is plotted),
 \code{extent} (\code{"min-max"} or \code{"none"}), \code{origin}, \code{color} (a CSS color, or a
 list of the color object's slots) and \code{scales} (\code{list(y = list(type =, domainMin =, domainMax =, domainQuantile =, zero =, rules =))})}
 

@@ -18,7 +18,8 @@
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearWiggleDisplay`: a list with any of `mark`
 #'   (`"bar"`, `"line"`, `"point"`, or `"span"` for density), `interpolate`
-#'   (`"step"` or `"linear"`), `aggregate` (`"mean"`, `"min"`, `"max"`),
+#'   (`"step"` or `"linear"`), `y` (`"score"`, `"minScore"` or `"maxScore"`,
+#'   which of a zoom bin's stored mean, minimum and maximum is plotted),
 #'   `extent` (`"min-max"` or `"none"`), `origin`, `color` (a CSS color, or a
 #'   list of the color object's slots) and `scales` (`list(y = list(type =,
 #'   domainMin =, domainMax =, domainQuantile =, zero =, rules =))`)
@@ -83,8 +84,8 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
 #' The matrix the multi-row quantitative display's "Cluster rows" clusters: a
 #' row per source of `x$sources`, in its order, named by its `name`, and a
 #' column per pixel of the `width` the track was read at, holding the mean of
-#' the display's `aggregate` over the bins covering that pixel, 0 where none
-#' does. `hclust(dist(as.matrix(w)), "average")` is the R script the
+#' the bin summary the display's `y` names over the bins covering that pixel,
+#' 0 where none does. `hclust(dist(as.matrix(w)), "average")` is the R script the
 #' display's clustering dialog writes.
 #' @param x a [jbrowse_wiggle()] result
 #' @param ... unused
@@ -107,7 +108,7 @@ as.matrix.jbrowse_wiggle <- function(x, ...) {
   columns <- pmax(0, floor((r$end - r$start) * per_px))
   offset <- cumsum(c(0, columns))[seq_along(columns)]
   b <- x$bins[x$bins$source %in% x$sources$name, , drop = FALSE]
-  value <- switch(x$display$aggregate, min = b$min, max = b$max,
+  value <- switch(x$display$y, minScore = b$min, maxScore = b$max,
     b$score) %||% b$score
   i <- b$region
   from <- pmax(0, trunc((b$start - r$start[i]) * per_px))
