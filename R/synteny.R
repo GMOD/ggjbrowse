@@ -57,8 +57,7 @@ comparative_args <- function(file, index, display) {
 }
 
 # The values a view's enumerated settings take
-SYNTENY_CHOICES <- list(cigarMode = c("full", "matches", "off"),
-  fadeThinAlignmentsMode = c("auto", "on", "off"))
+SYNTENY_CHOICES <- list(cigarMode = c("full", "matches", "off"))
 
 # Stops where a setting holds a value its view does not take, as the
 # linear displays' config schemas refuse one
@@ -245,11 +244,13 @@ on_axis_of <- function(regions, axis) {
 #'   writes them: a list with any of `color` (a CSS color, or the color object's
 #'   slots, such as `list(field = "strand")`, `list(field = "identity")`,
 #'   `list(field = "query")` or `list(field = "mapq")`), `opacity` (a number,
-#'   or an opacity object with a `field`), `minAlignmentLength`, `cigarMode`
-#'   (`"full"` for colored indels, `"matches"` for the matches alone with the
-#'   indels left clear, `"off"` for the block alone), `drawLocationMarkers`,
-#'   `fadeThinAlignmentsMode` (`"auto"`, `"on"`, `"off"`) and `height`, the
-#'   band's pixels
+#'   or an opacity object with a `field`), `filter` (a list of field
+#'   predicates, such as `list(list(field = "length", gte = 10000))`),
+#'   `cigarMode` (`"full"` for colored indels, `"matches"` for the matches
+#'   alone with the indels left clear, `"off"` for the block alone), `axis`
+#'   (`list(grid = TRUE)` draws the location markers), `render`
+#'   (`list(antialias = FALSE)` stops the fade of sub-pixel ribbons; unset,
+#'   it fades once they dominate) and `height`, the band's pixels
 #' @param width the width in pixels both rows draw their regions across,
 #'   1,500 as for the linear readers, which decides which CIGAR ops are wide
 #'   enough to draw and which ribbons are thin enough to fade
@@ -456,8 +457,9 @@ ribbon_lines <- function(r, curves, feet = band_feet(r)) {
 #' @param data a [jbrowse_synteny()] result, `NULL` for the plot's,
 #'   or a data frame in place of the table the geom draws from the plot's
 #'   result, such as a filtered copy of it
-#' @param curves draw each ribbon edge as the view's `drawCurves` does, a
-#'   cubic curve vertical at both rows
+#' @param curves draw each ribbon edge as the view's
+#'   `mark = list(interpolate = "bump")` does, a cubic curve vertical at both
+#'   rows
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a list of ggplot layers
 #' @export
@@ -699,8 +701,8 @@ row_tracks <- function(tracks, layout, row) {
 #' @param above,below tracks over the top row's regions, drawn above the
 #'   band, and over the bottom row's, drawn below it: each a result or a
 #'   list of them
-#' @param curves draw each ribbon edge as a curve, as the view's `drawCurves`
-#'   does
+#' @param curves draw each ribbon edge as a curve, as the view's
+#'   `mark = list(interpolate = "bump")` does
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot of the band alone, or with tracks a patchwork, whose
 #'   height and width [jbrowse_height()] and [jbrowse_width()] measure
@@ -744,8 +746,9 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   otherwise. Unset, every contig of that axis's assembly, so
 #'   `jbrowse_dotplot(paf)` is the whole genome against the whole genome
 #' @param display the view's settings, as a `DotplotView` snapshot writes
-#'   them: a list with any of `color`, `opacity`, `minAlignmentLength`,
-#'   `minIdentity`, `drawCigar` and `lineWidth`
+#'   them: a list with any of `color`, `opacity`, `filter` (a list of field
+#'   predicates, such as `list(list(field = "identity", gte = 0.9))`),
+#'   `drawCigar` and `lineWidth`
 #' @param width,height the plot's pixels across and up, which decide which
 #'   blocks are wide enough for their CIGAR to show: 1,500 across as for the
 #'   linear readers, and up as many as across

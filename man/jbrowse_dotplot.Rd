@@ -30,8 +30,9 @@ otherwise. Unset, every contig of that axis's assembly, so
 \code{jbrowse_dotplot(paf)} is the whole genome against the whole genome}
 
 \item{display}{the view's settings, as a \code{DotplotView} snapshot writes
-them: a list with any of \code{color}, \code{opacity}, \code{minAlignmentLength},
-\code{minIdentity}, \code{drawCigar} and \code{lineWidth}}
+them: a list with any of \code{color}, \code{opacity}, \code{filter} (a list of field
+predicates, such as \code{list(list(field = "identity", gte = 0.9))}),
+\code{drawCigar} and \code{lineWidth}}
 
 \item{width, height}{the plot's pixels across and up, which decide which
 blocks are wide enough for their CIGAR to show: 1,500 across as for the

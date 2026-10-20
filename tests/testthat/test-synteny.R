@@ -125,11 +125,14 @@ test_that("drawing places tables on the axis once, marked by an attribute", {
 })
 
 test_that("the display slot holds the view's settings as the engine resolves them", {
-  expect_equal(s$display[c("minAlignmentLength", "cigarMode",
-    "drawLocationMarkers", "fadeThinAlignmentsMode", "height")],
-    list(minAlignmentLength = 0L, cigarMode = "full",
-      drawLocationMarkers = FALSE, fadeThinAlignmentsMode = "auto",
+  expect_equal(s$display[c("filter", "cigarMode", "axis", "height")],
+    list(filter = list(), cigarMode = "full", axis = list(grid = FALSE),
       height = 100L))
+  expect_null(s$display$render$antialias)
+  short <- jbrowse_synteny(paf, query, target,
+    display = list(filter = list(list(field = "length", gte = 1e9))))
+  expect_equal(short$display$filter[[1]]$gte, 1e9)
+  expect_equal(nrow(short$ribbons), 0)
   expect_equal(s$display$color$field, "")
   strand <- jbrowse_synteny(paf, query, target,
     display = list(color = list(field = "strand"), cigarMode = "off"))
@@ -147,9 +150,8 @@ test_that("the display slot holds the view's settings as the engine resolves the
   d <- jbrowse_dotplot(paf, query, target, display = list(color = "grey"))
   expect_equal(d$height, 1500)
   expect_equal(jbrowse_dotplot(paf, query, target, width = 900)$height, 900)
-  expect_equal(d$display[c("minAlignmentLength", "minIdentity", "drawCigar",
-    "lineWidth")], list(minAlignmentLength = 0L, minIdentity = 0L,
-    drawCigar = TRUE, lineWidth = 2.5))
+  expect_equal(d$display[c("filter", "drawCigar", "lineWidth")],
+    list(filter = list(), drawCigar = TRUE, lineWidth = 2.5))
   expect_equal(d$display$color$value, "grey")
   expect_null(d$line_width)
   expect_error(jbrowse_synteny(paf, query, target, view = list()),
@@ -246,9 +248,6 @@ test_that("each axis takes every region form a linear reader takes", {
 test_that("a setting the view does not take raises ggjbrowse_bad_display", {
   expect_error(jbrowse_synteny(paf, query, target,
     display = list(cigarMode = "some")), "display\\$cigarMode",
-    class = "ggjbrowse_bad_display")
-  expect_error(jbrowse_synteny(paf, query, target,
-    display = list(fadeThinAlignmentsMode = TRUE)),
     class = "ggjbrowse_bad_display")
 })
 

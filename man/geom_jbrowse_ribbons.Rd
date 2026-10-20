@@ -16,8 +16,9 @@ geom_jbrowse_offscreen_mates(mapping = NULL, data = NULL, labels = TRUE, ...)
 or a data frame in place of the table the geom draws from the plot's
 result, such as a filtered copy of it}
 
-\item{curves}{draw each ribbon edge as the view's \code{drawCurves} does, a
-cubic curve vertical at both rows}
+\item{curves}{draw each ribbon edge as the view's
+\code{mark = list(interpolate = "bump")} does, a cubic curve vertical at both
+rows}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 

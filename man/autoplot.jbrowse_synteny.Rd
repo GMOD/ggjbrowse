@@ -13,8 +13,8 @@
 band, and over the bottom row's, drawn below it: each a result or a
 list of them}
 
-\item{curves}{draw each ribbon edge as a curve, as the view's \code{drawCurves}
-does}
+\item{curves}{draw each ribbon edge as a curve, as the view's
+\code{mark = list(interpolate = "bump")} does}
 
 \item{...}{must be empty, so a misspelt argument errors}
 }

@@ -38,11 +38,13 @@ the file's contigs between them stop}
 writes them: a list with any of \code{color} (a CSS color, or the color object's
 slots, such as \code{list(field = "strand")}, \code{list(field = "identity")},
 \code{list(field = "query")} or \code{list(field = "mapq")}), \code{opacity} (a number,
-or an opacity object with a \code{field}), \code{minAlignmentLength}, \code{cigarMode}
-(\code{"full"} for colored indels, \code{"matches"} for the matches alone with the
-indels left clear, \code{"off"} for the block alone), \code{drawLocationMarkers},
-\code{fadeThinAlignmentsMode} (\code{"auto"}, \code{"on"}, \code{"off"}) and \code{height}, the
-band's pixels}
+or an opacity object with a \code{field}), \code{filter} (a list of field
+predicates, such as \code{list(list(field = "length", gte = 10000))}),
+\code{cigarMode} (\code{"full"} for colored indels, \code{"matches"} for the matches
+alone with the indels left clear, \code{"off"} for the block alone), \code{axis}
+(\code{list(grid = TRUE)} draws the location markers), \code{render}
+(\code{list(antialias = FALSE)} stops the fade of sub-pixel ribbons; unset,
+it fades once they dominate) and \code{height}, the band's pixels}
 
 \item{width}{the width in pixels both rows draw their regions across,
 1,500 as for the linear readers, which decides which CIGAR ops are wide
