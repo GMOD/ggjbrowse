@@ -58,7 +58,9 @@ replace:
 section: intro
 only:
   - "In _Drosophila melanogaster_"
-  - "- compute Fst"
+replace:
+  - from: "From a multi-sample VCF of inbred lines we:"
+    to: "From a multi-sample VCF of inbred lines, vcftools computes Fst (the distance\nbetween two groups' allele frequencies), π (diversity within a group) and\nTajima's D (below zero after a sweep) per window; the code below reads each\nscan and draws it beside the genes."
 -->
 
 <!-- jbrowse
