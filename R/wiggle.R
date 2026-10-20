@@ -17,8 +17,9 @@
 #'   regions share one score axis and color ramp
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearWiggleDisplay`: a list with any of `mark`
-#'   (`"bar"`, `"line"`, `"point"`, or `"span"` for density), `interpolate`
-#'   (`"step"` or `"linear"`), `y` (`"score"`, `"minScore"` or `"maxScore"`,
+#'   (`"bar"`, `"line"`, `"point"`, or `"span"` for density, or
+#'   `list(type =, interpolate =)` with `"step"` or `"linear"` for a line), `y`
+#'   (`"score"`, `"minScore"` or `"maxScore"`,
 #'   which of a zoom bin's stored mean, minimum and maximum is plotted),
 #'   `extent` (`"min-max"` or `"none"`), `origin`, `color` (a CSS color, or a
 #'   list of the color object's slots) and `scales` (`list(y = list(type =,

@@ -55,7 +55,7 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/bam 10.1.0
   License: MIT
   Copyright: Copyright (c) 2018 Colin Diesh
-- @gmod/bbi 11.3.2
+- @gmod/bbi 12.0.0
   License: MIT
   Copyright: Copyright (c) 2019 Colin Diesh
 - @gmod/bed 2.3.3

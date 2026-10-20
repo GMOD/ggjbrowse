@@ -338,7 +338,7 @@ autoplot(w)
     title = "phyloP conservation across GAPDH as bars, a line and density",
     locus = gapdh, height = 6,
     jbrowse = c(fasta, "--bigwig", phylop, "showLegend=true",
-      "--bigwig", phylop, "mark=line", "interpolate=linear",
+      "--bigwig", phylop, "mark.type=line", "mark.interpolate=linear",
       "--bigwig", phylop, "mark=span", "--loc", gapdh),
     r = r"-(
 bw <- e("gapdh_phylop100way.bw")
@@ -346,7 +346,7 @@ gapdh <- "chr12:6,534,201-6,538,700"
 patchwork::wrap_plots(ncol = 1,
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100)),
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
-    display = list(mark = "line", interpolate = "linear"))),
+    display = list(mark = list(type = "line", interpolate = "linear")))),
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
     display = list(mark = "span"))))
 )-"),

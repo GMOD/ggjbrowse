@@ -317,7 +317,7 @@ gapdh <- "chr12:6,534,201-6,538,700"
 patchwork::wrap_plots(ncol = 1,
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100)),
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
-    display = list(mark = "line", interpolate = "linear"))),
+    display = list(mark = list(type = "line", interpolate = "linear")))),
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
     display = list(mark = "span"))))
 ```
@@ -325,7 +325,7 @@ patchwork::wrap_plots(ncol = 1,
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --bigwig inst/extdata/gapdh_phylop100way.bw showLegend=true \
-  --bigwig inst/extdata/gapdh_phylop100way.bw mark=line interpolate=linear \
+  --bigwig inst/extdata/gapdh_phylop100way.bw mark.type=line mark.interpolate=linear \
   --bigwig inst/extdata/gapdh_phylop100way.bw mark=span \
   --loc chr12:6,534,201-6,538,700 \
   --width 1200 --out conservation.png
