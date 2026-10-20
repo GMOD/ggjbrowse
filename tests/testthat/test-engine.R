@@ -112,12 +112,12 @@ test_that("the engine's warnings warn once a call", {
   w <- character(0)
   withCallingHandlers(jbrowse_alignments(bam,
     c("ctgA:1-1,000", "ctgA:2,001-3,000"),
-    display = list(sort = list(type = "basePair"))),
+    display = list(sort = list(field = "base"))),
     warning = function(c) {
       w <<- c(w, conditionMessage(c))
       invokeRestart("muffleWarning")
     })
-  expect_equal(w, "the sort by basePair names no pos, so it is dropped")
+  expect_equal(w, "the sort by base names no pos, so it is dropped")
 })
 
 # Copies of one BAM under new names, each a file the engine has not read

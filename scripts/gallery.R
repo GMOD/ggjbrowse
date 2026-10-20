@@ -222,7 +222,7 @@ autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
     r = r"-(
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,831,700-122,840,800",
-  display = list(sort = list(type = "basePair", pos = 122836300))))
+  display = list(sort = list(field = "base", pos = 122836300))))
 )-"),
   compact_reads = list(
     caption = "Sorted by the base at the center, at 3 pixels a row the pileup takes far less height, the deletion's dark bars banded through it.",
@@ -234,7 +234,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,831,700-122,840,800",
   display = list(pileup = list(readHeight = 3),
-    sort = list(type = "basePair", pos = 122836300))))
+    sort = list(field = "base", pos = 122836300))))
 )-"),
   base_zoom = list(
     caption = "At 120 bp the pileup writes out each mismatch's base, and every read sorted to the top carries a G a few bases before its deletion.",
@@ -245,7 +245,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
     r = r"-(
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,835,300-122,835,420",
-  display = list(sort = list(type = "basePair", pos = 122835344))))
+  display = list(sort = list(field = "base", pos = 122835344))))
 )-"),
   inversion = list(
     caption = "The split reads, in their own section above the unsplit ones, are colored inverted between the two breakpoints, where inversion-type arcs join their segments.",

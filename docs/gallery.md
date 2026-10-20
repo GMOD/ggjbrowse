@@ -88,7 +88,7 @@ Coverage halves across the deletion, and the reads sorted to the top span it wit
 ```r
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,831,700-122,840,800",
-  display = list(sort = list(type = "basePair", pos = 122836300))))
+  display = list(sort = list(field = "base", pos = 122836300))))
 ```
 
 ```sh
@@ -114,7 +114,7 @@ Sorted by the base at the center, at 3 pixels a row the pileup takes far less he
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,831,700-122,840,800",
   display = list(pileup = list(readHeight = 3),
-    sort = list(type = "basePair", pos = 122836300))))
+    sort = list(field = "base", pos = 122836300))))
 ```
 
 ```sh
@@ -139,7 +139,7 @@ At 120 bp the pileup writes out each mismatch's base, and every read sorted to t
 ```r
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,835,300-122,835,420",
-  display = list(sort = list(type = "basePair", pos = 122835344))))
+  display = list(sort = list(field = "base", pos = 122835344))))
 ```
 
 ```sh

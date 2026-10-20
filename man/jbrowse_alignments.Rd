@@ -60,11 +60,13 @@ percent probability under which a call is hidden, 10), \code{unmodified}
 calls under either of the last two), \code{cytosineContext} (\code{"CG"},
 \code{"CHG"}, \code{"CHH"} or \code{"all"}) and \code{shownModifications} (the type codes
 drawn, every one when empty)
-\item \code{sort}: how the rows are laid out: \code{list(type = "position")} (or
-\code{"length"}, \code{"spliced"}, \code{"split"}, \code{"svSignal"}: SV evidence first,
-split reads above SV-size indels above discordant pairs), or a column sort, \code{type}
-(\code{"strand"}, \code{"basePair"}, \code{"tag"}, \code{"insertion"}, \code{"softclip"},
-\code{"hardclip"}) with \code{pos}, the 0-based column ranked over, and \code{tag}
+\item \code{sort}: how the rows are laid out, by one \code{field}:
+\code{list(field = "position")} (or \code{"length"}, \code{"spliced"}, \code{"split"},
+\code{"svSignal"}: SV evidence first, split reads above SV-size indels above
+discordant pairs), or a column sort, \code{field} (\code{"strand"}, \code{"base"},
+\code{"mapq"}, \code{"pairOrientation"}, a tag such as \code{"tags.HP"},
+\code{"insertion"}, \code{"softclip"}, \code{"hardclip"}) with \code{pos}, the 0-based
+column ranked over
 \item \code{facet}: what splits the reads into stacked sections, each laid out on
 its own: \code{list(field = "strand")} (or \code{"pairOrientation"},
 \code{"tags.HP"}, ...), with optional \code{domain} (section keys in stacking

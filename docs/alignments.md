@@ -25,7 +25,7 @@ JBrowse does:
   keeps reads by their flags and tags; its `junctions` and `connections`
   pick the splice junctions and read connections drawn:
   `filter = list(junctions = list(minReads = 5, nonCanonical = "exclude"))`.
-- `sort = list(type = "basePair", pos = 122836300)` sorts by the base at a
+- `sort = list(field = "base", pos = 122836300)` sorts by the base at a
   position ([a somatic deletion](gallery.md#deletion)).
 - `pileup = list(readHeight = 3)` packs reads compact
   ([compact reads](gallery.md#compact_reads)).

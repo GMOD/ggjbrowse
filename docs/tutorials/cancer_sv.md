@@ -368,7 +368,7 @@ packs the pileup compact:
 ``` r
 locus <- "chr3:25,357,600-25,361,000"
 display <- list(pileup = list(showSoftClipping = TRUE, readHeight = 3),
-  sort = list(type = "split"))
+  sort = list(field = "split"))
 fig <- jbrowse_stack(
   `Somatic SVs` = jbrowse_features(calls_vcf, locus, width = 1200,
     assembly = hg38),

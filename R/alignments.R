@@ -65,11 +65,13 @@ alignments_adapter <- function(file, index) {
 #'     calls under either of the last two), `cytosineContext` (`"CG"`,
 #'     `"CHG"`, `"CHH"` or `"all"`) and `shownModifications` (the type codes
 #'     drawn, every one when empty)
-#'   * `sort`: how the rows are laid out: `list(type = "position")` (or
-#'     `"length"`, `"spliced"`, `"split"`, `"svSignal"`: SV evidence first,
-#'     split reads above SV-size indels above discordant pairs), or a column sort, `type`
-#'     (`"strand"`, `"basePair"`, `"tag"`, `"insertion"`, `"softclip"`,
-#'     `"hardclip"`) with `pos`, the 0-based column ranked over, and `tag`
+#'   * `sort`: how the rows are laid out, by one `field`:
+#'     `list(field = "position")` (or `"length"`, `"spliced"`, `"split"`,
+#'     `"svSignal"`: SV evidence first, split reads above SV-size indels above
+#'     discordant pairs), or a column sort, `field` (`"strand"`, `"base"`,
+#'     `"mapq"`, `"pairOrientation"`, a tag such as `"tags.HP"`,
+#'     `"insertion"`, `"softclip"`, `"hardclip"`) with `pos`, the 0-based
+#'     column ranked over
 #'   * `facet`: what splits the reads into stacked sections, each laid out on
 #'     its own: `list(field = "strand")` (or `"pairOrientation"`,
 #'     `"tags.HP"`, ...), with optional `domain` (section keys in stacking

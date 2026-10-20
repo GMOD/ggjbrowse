@@ -181,7 +181,7 @@ skips
 In a deep pileup, reads with a skip sit among many more that have none. Two of
 the display's settings pull the splicing evidence out, and we'll read each:
 
-- `sort = list(type = "spliced")` gives every read with a skip the lowest rows
+- `sort = list(field = "spliced")` gives every read with a skip the lowest rows
 - `filter = list(spliced = "only")` drops every read without a skip, and the
   coverage follows
 
@@ -189,7 +189,7 @@ the display's settings pull the splicing evidence out, and we'll read each:
 is_spliced <- function(r) r$reads$read %in% r$gaps$read[r$gaps$type == "skip"]
 file_order <- jbrowse_alignments(bam, actb, assembly = hg19)
 spliced_first <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = list(sort = list(type = "spliced")))
+  display = list(sort = list(field = "spliced")))
 only_spliced <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(pileup = list(readHeight = 1),
     filter = list(spliced = "only")))
