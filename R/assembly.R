@@ -134,7 +134,8 @@ contigs_kind <- function(x) {
   }
   name <- tolower(bare_name(x))
   if (grepl("\\.(fa|fasta|fna|fas)(\\.gz)?$|\\.2bit$", name)) "assembly"
-  else if (grepl("\\.(paf(\\.gz)?|pif\\.gz|delta|chain|out)$", name)) "pairwise"
+  else if (any(vapply(SYNTENY_FORMATS, function(f) grepl(f$pattern, name),
+    NA))) "pairwise"
   else "linear"
 }
 
