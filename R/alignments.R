@@ -86,7 +86,7 @@ alignments_adapter <- function(file, index) {
 #'     `mismatches`, `softClips`, `fadeLowFrequency`, ...);
 #'     `sashimi` (`height`, `placement`, `labels`);
 #'     `readConnections` (`show = TRUE` for each mate pair's and split
-#'     read's arc, `mark = "cloud"` for the read cloud, `height`,
+#'     read's arc, `mark = "rule"` for the read cloud, `height`,
 #'     `ordinaryPairs`, `color = list(field = )`),
 #'     e.g. `list(coverage = list(show = FALSE), pileup = list(readHeight = 3))`.
 #'     A band or layer set not to show (`coverage`, `pileup` or `sashimi`'s

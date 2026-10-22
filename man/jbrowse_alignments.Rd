@@ -81,7 +81,7 @@ the share of the depth an allele needs to be colored);
 \code{mismatches}, \code{softClips}, \code{fadeLowFrequency}, ...);
 \code{sashimi} (\code{height}, \code{placement}, \code{labels});
 \code{readConnections} (\code{show = TRUE} for each mate pair's and split
-read's arc, \code{mark = "cloud"} for the read cloud, \code{height},
+read's arc, \code{mark = "rule"} for the read cloud, \code{height},
 \code{ordinaryPairs}, \code{color = list(field = )}),
 e.g. \code{list(coverage = list(show = FALSE), pileup = list(readHeight = 3))}.
 A band or layer set not to show (\code{coverage}, \code{pileup} or \code{sashimi}'s

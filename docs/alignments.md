@@ -37,7 +37,7 @@ JBrowse does:
   ([CHH methylation](gallery.md#bisulfite)).
 - `readConnections = list(show = TRUE)` adds the read-pair band, an arc per
   mate pair and split read colored by insert size and pair orientation.
-  `mark = "cloud"` plots each abnormal pair at its insert size instead.
+  `mark = "rule"` plots each abnormal pair at its insert size instead.
 - `unit = "chain"` puts a read's mate or split segments on one row, joined by
   a hairline ([COLO829 split reads](gallery.md#long_reads_sv)).
 - `facet = list(field = "split")` splits the reads into the display's stacked

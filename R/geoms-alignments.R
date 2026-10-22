@@ -487,9 +487,12 @@ connection_domes <- function(arcs, top, points = 48) {
   d
 }
 
+# The read cloud is the band's `rule` mark, written as the bare type or the
+# mark object
 is_cloud <- function(x) {
   band <- x$display$readConnections
-  isTRUE(band$show) && identical(band$mark, "cloud")
+  type <- if (is.list(band$mark)) band$mark$type else band$mark
+  isTRUE(band$show) && identical(type, "rule")
 }
 
 #' @rdname geom_jbrowse_reads

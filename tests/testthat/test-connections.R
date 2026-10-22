@@ -41,7 +41,7 @@ test_that("read connections come back as the display's band draws them", {
   domes <- ggplot2::ggplot_build(ggplot2::autoplot(a, "arcs"))$data[[2]]
   expect_equal(length(unique(domes$group)), nrow(a$arcs))
 
-  cloud <- read(display = list(readConnections = list(show = TRUE, mark = "cloud"),
+  cloud <- read(display = list(readConnections = list(show = TRUE, mark = "rule"),
     facet = list(field = "strand")))
   expect_true(all(cloud$arcs$shape %in% c("flat", "flatSplit")))
   expect_equal(cloud$arc_span_max, max(cloud$arcs$span))
