@@ -74,9 +74,10 @@ test_that("lanes draw in the order given, and a named lane pins its contig", {
   mixed <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     lanes = c(volvox_del = "ctgA", "volvox_ins"))
   expect_equal(mixed$lanes$assembly, c("volvox", "volvox_del", "volvox_ins"))
-  expect_equal(names(lane_choice(c(volvox_del = "ctgA", "volvox_ins"))$pins),
-    "volvox_del")
-  expect_equal(names(lane_choice(list(a = "ctgA", b = NULL))$pins), "a")
+  expect_equal(lane_choice(c(volvox_del = "ctgA", "volvox_ins"))$pins,
+    list(list(lane = "volvox_del", refName = "ctgA")))
+  expect_equal(lane_choice(list(a = "ctgA:11-20", b = NULL))$pins,
+    list(list(lane = "a", refName = "ctgA", at = 15)))
 })
 
 test_that("the display's settings color the ribbons", {

@@ -10,18 +10,20 @@ multiway_adapter <- function(file, index) {
     "an all-vs-all .paf (optionally .gz) or a .pif.gz with its index")
 }
 
-# `lanes` as the display's `rows` and the lane picker's pins: unnamed, the
-# lanes drawn in order; named, each value a contig, or a position on it, the
-# lane is pinned to ("" pins nothing). An unnamed entry among named ones is a
-# lane, pinned nowhere.
+# `lanes` as the display's `rows` and the lane picker's pins, records of
+# `lane`, `refName` and `at`: unnamed, the lanes drawn in order; named, each
+# value a contig, or a position on it, the lane is pinned to ("" pins
+# nothing). An unnamed entry among named ones is a lane, pinned nowhere.
 lane_choice <- function(lanes) {
   if (is.null(lanes)) return(list())
   values <- vapply(as.list(lanes), function(v)
     if (length(v)) as.character(v)[1] else "", "")
   named <- nzchar(names(lanes) %||% rep("", length(values)))
   names_of <- ifelse(named, names(lanes) %||% "", values)
-  pins <- stats::setNames(lapply(ifelse(named, values, ""), lane_pin),
-    names_of)
+  pins <- Map(function(lane, locus) {
+    pin <- lane_pin(locus)
+    if (!is.null(pin)) c(list(lane = lane), pin)
+  }, names_of, ifelse(named, values, ""), USE.NAMES = FALSE)
   list(rows = list(domain = names_of, kept = names_of),
     pins = Filter(Negate(is.null), pins))
 }
