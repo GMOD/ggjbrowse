@@ -226,15 +226,17 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
 
 # Text sized in the display's pixels, scaled to the panel when it draws:
 # `px_wide` and `px_tall` are the display's extent in pixels, and a `halo`
-# color strokes each letter a display pixel wide, as canvas `strokeText` does
+# color strokes each letter `halo_px` display pixels wide, as canvas
+# `strokeText` does
 GeomDisplayText <- ggplot2::ggproto("GeomDisplayText", ggplot2::GeomText,
   default_aes = ggplot2::aes(!!!ggplot2::GeomText$default_aes,
-    px_wide = NA, px_tall = NA, halo = NA),
+    px_wide = NA, px_tall = NA, halo = NA, halo_px = 1),
   draw_panel = function(self, data, panel_params, coord, ...) {
     text <- ggplot2::ggproto_parent(ggplot2::GeomText, self)$draw_panel(data,
       panel_params, coord, ...)
     grid::gTree(children = grid::gList(text), px_wide = data$px_wide[1],
-      px_tall = data$px_tall[1], halo = data$halo[1],
+      px_tall = data$px_tall[1], halo = as.vector(data$halo),
+      halo_px = data$halo_px[1],
       cl = "ggjbrowse_display_text")
   })
 
@@ -247,9 +249,9 @@ makeContent.ggjbrowse_display_text <- function(x) {
       x$px_tall)
   text <- x$children[[1]]
   text$gp$fontsize <- text$gp$fontsize * mm_per_px
-  if (is.na(x$halo)) return(grid::setChildren(x, grid::gList(text)))
+  if (all(is.na(x$halo))) return(grid::setChildren(x, grid::gList(text)))
   angle <- seq(0, 2 * pi, length.out = 9)[-9]
-  r <- grid::unit(mm_per_px / 2, "mm")
+  r <- grid::unit(x$halo_px * mm_per_px / 2, "mm")
   halos <- lapply(seq_along(angle), function(i) {
     grid::editGrob(text, x = text$x + r * cos(angle[i]),
       y = text$y + r * sin(angle[i]), gp = grid::gpar(col = x$halo),

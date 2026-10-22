@@ -498,20 +498,16 @@ geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
 geom_jbrowse_offscreen_mates <- function(mapping = NULL, data = NULL,
                                          labels = TRUE, ...) {
   data <- replacing(data, NULL, "geom_jbrowse_offscreen_mates")
-  text <- function(halo) function(x) strip_labels(x, halo)
-  text_layer <- function(halo) {
-    jbrowse_layer(GeomDisplayText, data, text(halo), NULL,
-      ggplot2::aes(x = x, y = y, label = label, colour = I(color),
-        alpha = I(alpha), size = I(size), px_wide = I(px_wide),
-        px_tall = I(px_tall)),
-      list(hjust = 0, vjust = 0))
-  }
   c(list(jbrowse_layer(ggplot2::GeomRect, data, strip_marks,
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
         fill = I(color), alpha = I(alpha)),
       list(colour = NA, ...))),
-    if (labels) list(text_layer(TRUE), text_layer(FALSE)))
+    if (labels) list(jbrowse_layer(GeomDisplayText, data, strip_labels, NULL,
+      ggplot2::aes(x = x, y = y, label = label, colour = I(color),
+        alpha = I(alpha), size = I(size), px_wide = I(px_wide),
+        px_tall = I(px_tall), halo = I(halo), halo_px = I(HALO_PX)),
+      list(hjust = 0, vjust = 0))))
 }
 
 # The strip's marks on the band, which runs from the target row (y = 0) up
@@ -528,9 +524,8 @@ strip_marks <- function(x) {
 
 HALO_PX <- 3
 
-# The strip's labels at their baselines, or their halo: each label again in
-# the band's ground, ringed round it half the halo's width out
-strip_labels <- function(x, halo) {
+# The strip's labels at their baselines, each haloed in its `halo` color
+strip_labels <- function(x) {
   l <- x$offscreen_strip$labels
   n <- nrow(l)
   px <- x$display$height
@@ -538,16 +533,7 @@ strip_labels <- function(x, halo) {
   l$size <- rep(x$offscreen_strip$font_px, n)
   l$px_wide <- rep(x$width, n)
   l$px_tall <- rep(px, n)
-  if (!halo) return(l)
-  angles <- seq(0, 2 * pi, length.out = 9)[-9]
-  do.call(rbind, lapply(angles, function(a) {
-    h <- l
-    h$x <- h$x + HALO_PX / 2 * cos(a)
-    h$y <- h$y + HALO_PX / 2 * sin(a) / px
-    h$color <- h$halo
-    h$alpha <- rep(1, n)
-    h
-  }))
+  l
 }
 
 OFFSCREEN_KEY_ROWS <- 10

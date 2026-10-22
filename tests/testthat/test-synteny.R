@@ -294,6 +294,14 @@ test_that("the off-screen strip draws as the band paints it and keys its contigs
   expect_true("Off-screen mates, query row" %in%
     names(drawn_guides(autoplot(t))))
   expect_equal(names(s$keys), "ribbons")
+  text <- ggplot2::layer_grob(ggplot2::ggplot(o) +
+    geom_jbrowse_offscreen_mates(), 2)[[1]]
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off())
+  drawn <- grid::makeContent(text)$children
+  expect_length(drawn, 9)
+  expect_equal(drawn[[1]]$gp$col, o$offscreen_strip$labels$halo)
+  expect_equal(drawn[[9]]$label, "ctgB")
 })
 
 test_that("a file's contigs list with their lengths, and an axis with no regions shows them all", {
