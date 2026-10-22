@@ -229,12 +229,21 @@ jbrowse_alignments <- function(file, region = NULL, display = NULL,
   x
 }
 
-# Each region's reference bases, NA for a region the assembly cannot read,
-# so the sequence band draws from the result alone
+# Each region's reference bases, so the sequence band draws from the result
+# alone: NA for a region the assembly cannot read, which warns, as does one
+# it holds no bases of
 region_bases <- function(assembly, regions) {
-  vapply(seq_len(nrow(regions)), function(i) tryCatch(
-    jbrowse_sequence(assembly, regions[i, c("chrom", "start", "end")]),
+  bases <- vapply(seq_len(nrow(regions)), function(i) tryCatch(
+    suppressWarnings(jbrowse_sequence(assembly,
+      regions[i, c("chrom", "start", "end")])),
     error = function(e) NA_character_), "")
+  blank <- is.na(bases) | !nzchar(bases)
+  if (any(blank)) {
+    warning("the assembly holds no bases of ", paste(loci_of_layout(
+      regions[blank, , drop = FALSE]), collapse = ", "), ", which the ",
+      "sequence band leaves blank", call. = FALSE)
+  }
+  bases
 }
 
 alignments_result <- function(t, assembly) {
@@ -310,7 +319,9 @@ alignments_result <- function(t, assembly) {
 #' @param region the regions, as a reader's `region` takes them: loci such as
 #'   `"chr12:6,534,501-6,534,520"`, contig names for whole contigs, a data
 #'   frame of `chrom`, `start` and `end` (0-based, half-open), or a GRanges
-#' @return a string of each region's bases, `end - start` of them
+#' @return a string of each region's bases, `end - start` of them, or fewer
+#'   where the region runs past its contig's end or names a contig the
+#'   assembly lacks, which warns
 #' @export
 #' @examples
 #' fa <- system.file("extdata", "gapdh_hg38.fa.gz", package = "ggjbrowse")
@@ -319,12 +330,22 @@ jbrowse_sequence <- function(assembly, region) {
   assembly <- assembly_config(assembly)
   regions <- regions_of(region, function() assembly_contigs(assembly),
     canonical_of(assembly))
-  vapply(seq_len(nrow(regions)), function(i) {
+  bases <- vapply(seq_len(nrow(regions)), function(i) {
     args <- list(region = list(refName = regions$chrom[i],
       start = regions$start[i], end = regions$end[i]), assembly = assembly)
     in_engine(function(ctx) ctx$call("jbrowse.sequence",
       as_engine_json(args), await = TRUE))
   }, "")
+  span <- regions$end - regions$start
+  short <- which(nchar(bases) < span)
+  if (length(short)) {
+    warning(paste(sprintf("the assembly holds %s of the %s bases of %s",
+      format(nchar(bases[short]), big.mark = ",", trim = TRUE),
+      format(span[short], big.mark = ",", trim = TRUE, scientific = FALSE),
+      loci_of_layout(regions[short, , drop = FALSE])), collapse = "; "),
+      call. = FALSE)
+  }
+  bases
 }
 
 # The 0-based region a junction draws in: the one holding its start, else its

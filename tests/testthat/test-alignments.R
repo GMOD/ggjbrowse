@@ -391,6 +391,18 @@ test_that("the sequence band reads each region's own bases at its offset", {
   expect_equal(nrow(tail_band), 101)
 })
 
+test_that("a region the assembly holds too few bases of warns", {
+  fa <- extdata("volvox.fa")
+  expect_warning(s <- jbrowse_sequence(fa, "ctgB:6,070-6,090"),
+    "holds 10 of the 21 bases of ctgB:6,070-6,090")
+  expect_equal(nchar(s), 10)
+  expect_warning(other <- jbrowse_alignments(extdata("volvox-sorted.bam"),
+    "ctgA:1,001-1,100", assembly = extdata("gapdh_hg38.fa.gz")),
+    "holds no bases of ctgA:1,001-1,100")
+  band <- ggplot2::ggplot_build(ggplot2::autoplot(other, "sequence"))
+  expect_equal(nrow(band$data[[2]]), 0)
+})
+
 test_that("a spliced read splits into its blocks at its skips", {
   s <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300")
   skips <- s$gaps[s$gaps$type == "skip", ]

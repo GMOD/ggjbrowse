@@ -164,7 +164,7 @@ sequence_plot <- function(x, o) {
     base <- toupper(strsplit(x$sequence[i] %|NA|% "", "")[[1]])
     data.frame(position = r$offset[i] + seq_along(base) - 1, base = base)
   }))
-  bases$cell <- max(1, 1 / px_of(x, o$width))
+  bases$cell <- rep(max(1, 1 / px_of(x, o$width)), nrow(bases))
   bases$tint <- ggplot2::alpha(base_colors()[bases$base], 0.35)
   ggplot2::ggplot(bases) +
     ggplot2::geom_rect(ggplot2::aes(xmin = position, xmax = position + cell,

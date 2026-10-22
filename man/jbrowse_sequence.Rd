@@ -16,7 +16,9 @@ contig by}
 frame of \code{chrom}, \code{start} and \code{end} (0-based, half-open), or a GRanges}
 }
 \value{
-a string of each region's bases, \code{end - start} of them
+a string of each region's bases, \code{end - start} of them, or fewer
+where the region runs past its contig's end or names a contig the
+assembly lacks, which warns
 }
 \description{
 The bases of each region, read through JBrowse's own FASTA or 2bit
