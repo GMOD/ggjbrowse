@@ -92,6 +92,10 @@ reference bases.
   pixel wide at least.
 - **`label_fade()`:** `labelFadeOpacity`, the ramp that fades a deletion's
   length label, at the thresholds the engine returns in `glyph$label`.
+- **A key chip's alpha.** `jbrowse_synteny()` and `jbrowse_dotplot()` draw
+  their key's chips at the ribbons' alpha floored at 0.45, synteny-core's
+  `LEGEND_CHIP_ALPHA_FLOOR`, and `jbrowse_multiway()` at 0.6. The engine
+  could return the chip alpha beside `legend`.
 
 ## Where R still draws differently from JBrowse
 
