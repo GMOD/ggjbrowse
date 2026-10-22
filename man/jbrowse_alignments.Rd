@@ -69,7 +69,7 @@ discordant pairs), or a column sort, \code{field} (\code{"strand"}, \code{"base"
 column ranked over
 \item \code{facet}: what splits the reads into stacked sections, each laid out on
 its own: \code{list(field = "strand")} (or \code{"pairOrientation"},
-\code{"tags.HP"}, ...), with optional \code{domain} (section keys in stacking
+\code{"tags.HP"}, ...), with optional \code{sort} (section keys in stacking
 order) and \code{hidden} (keys left out)
 \item \code{unit}: what one row stands for, \code{"read"}, or \code{"chain"} for a read
 with its mate and split segments on one row, a hairline across it, and

@@ -202,7 +202,7 @@ test_that("the display's facet packs a section per value, each on its own rows",
   expect_false(keys[1] %in% hidden$sections$key)
   expect_lt(nrow(hidden$features), nrow(s$features))
   reordered <- jbrowse_features(gff, "ctgA:1-25,000",
-    display = list(facet = list(field = "strand", domain = rev(keys))))
+    display = list(facet = list(field = "strand", sort = rev(keys))))
   expect_equal(reordered$sections$key, rev(keys))
   expect_equal(g$sections$label, "")
 })

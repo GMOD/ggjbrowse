@@ -46,7 +46,7 @@ features_adapter <- function(file, index) {
 #'   `"below"`, `"overlay"`), `featureHeight`, `filter` (jexl
 #'   expressions under `expressions`, `genes = "only"` or `"exclude"`),
 #'   `showChevrons`, `facet` (a field such as
-#'   `"strand"` or `"type"`, or `list(field = , domain = , hidden = )`, which
+#'   `"strand"` or `"type"`, or `list(field = , sort = , hidden = )`, which
 #'   packs a section per value, as alignments' `facet` does), and `heightMode`
 #'   with `height`. A figure has no track height to fit, so `heightMode`
 #'   defaults to `"grow"`, every feature at full size; `list(heightMode =

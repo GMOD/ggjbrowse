@@ -212,7 +212,7 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
 - `fade` is the share of the depth a mark's site holds, zero under the
   display's threshold. R applies it at the figure's pixels per base.
 - `jbrowse_variants()` returns its `rows` in the display's arrangement, by
-  the `rows` config (`domain`, `labels`, `kept`) and the `facet` bands.
+  the `rows` config (`sort`, `labels`, `kept`) and the `facet` bands.
   `tree` takes an `hclust`, or a list of them, one per band.
 - `jbrowse_variants()` gives each record its `filter` and a column per INFO
   key, named as the key, or `info_<key>` where the key names a record column

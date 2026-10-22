@@ -41,9 +41,9 @@ variants_adapter <- function(file, index, samples) {
 #'   `expressions`, jexl expressions, `minMinorAlleleFrequency` and
 #'   `maxMissingness`),
 #'   `referenceDrawingMode` (`"skip"` or `"draw"`), `shadeByDosage`, `rows`
-#'   (the arrangement a session saves: `domain`, the rows listed first in
+#'   (the arrangement a session saves: `sort`, the rows listed first in
 #'   order, `labels`, a label by row name, and `kept`, the rows shown) and
-#'   `facet` (a samples file attribute, or `list(field, domain)`, whose values
+#'   `facet` (a samples file attribute, or `list(field, sort)`, whose values
 #'   each take a band of rows) and `rowHeight` (pixels a row, where
 #'   [jbrowse_stack()] otherwise fits the rows into the display's height)
 #' @param index the tabix or CSI index, if not beside `file` under its usual

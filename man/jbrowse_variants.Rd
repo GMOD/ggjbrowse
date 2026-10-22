@@ -36,9 +36,9 @@ list of the color object's slots), \code{filter} (a list of any of
 \code{expressions}, jexl expressions, \code{minMinorAlleleFrequency} and
 \code{maxMissingness}),
 \code{referenceDrawingMode} (\code{"skip"} or \code{"draw"}), \code{shadeByDosage}, \code{rows}
-(the arrangement a session saves: \code{domain}, the rows listed first in
+(the arrangement a session saves: \code{sort}, the rows listed first in
 order, \code{labels}, a label by row name, and \code{kept}, the rows shown) and
-\code{facet} (a samples file attribute, or \code{list(field, domain)}, whose values
+\code{facet} (a samples file attribute, or \code{list(field, sort)}, whose values
 each take a band of rows) and \code{rowHeight} (pixels a row, where
 \code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the rows into the display's height)}
 

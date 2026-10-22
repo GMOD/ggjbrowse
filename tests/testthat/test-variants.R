@@ -14,7 +14,7 @@ layer_of <- function(p, geom) {
 test_that("the rows take a saved arrangement: its order, labels and focus", {
   plain <- read_people()
   last <- utils::tail(plain$rows$name, 2)
-  v <- read_people(list(rows = list(domain = rev(last),
+  v <- read_people(list(rows = list(sort = rev(last),
     labels = stats::setNames(list("Proband"), last[2]))))
   expect_equal(v$rows$name[1:2], rev(last))
   expect_equal(v$rows$label[1], "Proband")
@@ -25,13 +25,13 @@ test_that("the rows take a saved arrangement: its order, labels and focus", {
   focused <- read_people(list(rows = list(kept = last)))
   expect_setequal(focused$rows$name, last)
   expect_setequal(as.character(unique(focused$cells$row)), last)
-  one <- read_people(list(rows = list(kept = last[1], domain = last[1])))
+  one <- read_people(list(rows = list(kept = last[1], sort = last[1])))
   expect_equal(one$rows$name, last[1])
 })
 
 test_that("a facet stacks the rows in bands that hold whatever order they take", {
   v <- read_people(list(facet = list(field = "superpopulation",
-    domain = I("European"))))
+    sort = I("European"))))
   expect_equal(v$bands$label[1], "European")
   expect_equal(rle(v$rows$band)$values, v$bands$key)
   expect_true(all(v$rows$band[1:20] == "European"))

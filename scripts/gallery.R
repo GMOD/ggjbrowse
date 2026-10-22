@@ -159,7 +159,7 @@ multiway_args <- function(genomes) {
     assemblyNames = c("hg38", genomes), adapter = adapter,
     displays = list(list(type = "MultiWaySyntenyDisplay",
       displayId = "primates-display", height = 300,
-      rows = list(domain = I(genomes)),
+      rows = list(sort = I(genomes)),
       ribbonColor = list(field = "strand")))))), "multiway.config.json")
   c("--config", config, "--assembly", "hg38", "--track", "primates")
 }

@@ -17,7 +17,7 @@ test_that("a facet splits the reads into sections, each packed on its own", {
   expect_equal(on_axis(s)$mismatches$section,
     of(s$mismatches, s$reads, "read")$section)
   flipped <- read(display = list(facet = list(field = "strand",
-    domain = rev(s$sections$key))))
+    sort = rev(s$sections$key))))
   expect_equal(flipped$sections$label, rev(s$sections$label))
   p <- ggplot2::ggplot_build(ggplot2::autoplot(s, "pileup"))
   expect_equal(nrow(p$layout$layout), 2)

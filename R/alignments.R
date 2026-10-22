@@ -74,7 +74,7 @@ alignments_adapter <- function(file, index) {
 #'     column ranked over
 #'   * `facet`: what splits the reads into stacked sections, each laid out on
 #'     its own: `list(field = "strand")` (or `"pairOrientation"`,
-#'     `"tags.HP"`, ...), with optional `domain` (section keys in stacking
+#'     `"tags.HP"`, ...), with optional `sort` (section keys in stacking
 #'     order) and `hidden` (keys left out)
 #'   * `unit`: what one row stands for, `"read"`, or `"chain"` for a read
 #'     with its mate and split segments on one row, a hairline across it, and
@@ -371,9 +371,9 @@ paints_bisulfite <- function(display) {
 }
 
 # The display config slots the schemas type as arrays, at any depth: a color's
-# or facet's `domain`, a row arrangement's `kept`, a filter's `expressions`, a
-# field predicate's `oneOf`
-ARRAY_SLOTS <- c("domain", "range", "labels", "hidden", "kept", "oneOf",
+# `domain`, a facet's or row arrangement's `sort`, `kept`, a filter's
+# `expressions`, a field predicate's `oneOf`
+ARRAY_SLOTS <- c("domain", "sort", "range", "labels", "hidden", "kept", "oneOf",
   "expressions", "shownModifications", "laneGeneTracks", "tracks")
 
 # A config with each unnamed vector in an ARRAY_SLOTS slot a JSON array

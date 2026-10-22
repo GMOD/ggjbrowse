@@ -178,7 +178,7 @@ display <- list(
   filter = "jexl:feature.start == 38261634",
   rowHeight = 20,
   rowColor = list(field = "group"),
-  rows = list(domain = panel$name,
+  rows = list(sort = panel$name,
     labels = setNames(as.list(panel$label), panel$name)))
 
 samples_file <- tempfile(fileext = ".tsv")

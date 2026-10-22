@@ -24,7 +24,7 @@ lane_choice <- function(lanes) {
     pin <- lane_pin(locus)
     if (!is.null(pin)) c(list(lane = lane), pin)
   }, names_of, ifelse(named, values, ""), USE.NAMES = FALSE)
-  list(rows = list(domain = names_of, kept = names_of),
+  list(rows = list(sort = names_of, kept = names_of),
     pins = Filter(Negate(is.null), pins))
 }
 
