@@ -4,6 +4,12 @@ query <- "ctgA:1-49,186"
 target <- "ctgA:1-50,001"
 s <- jbrowse_synteny(paf, query, target)
 
+test_that("contigs sort in natural order, however long their numbers run", {
+  x <- c("s100000000000000", "chr10", "s9999999999999", "chr2", "chrX")
+  expect_equal(x[natural_order(x)],
+    c("chr2", "chr10", "chrX", "s9999999999999", "s100000000000000"))
+})
+
 test_that("a PAF reads as the synteny band lays out and colors it", {
   expect_equal(nrow(s$alignments), 7)
   expect_equal(sum(s$alignments$strand == -1), 2)

@@ -906,9 +906,11 @@ autoplot.jbrowse_dotplot <- function(object, ...) {
 # Names in the order a reader expects them: chr2 before chr10, each run of
 # digits compared as a number
 natural_order <- function(x) {
-  parts <- regmatches(x, gregexpr("[0-9]+|[^0-9]+", x))
-  key <- vapply(parts, function(p) paste(vapply(p, function(s)
-    if (grepl("^[0-9]", s)) formatC(as.numeric(s), width = 12, flag = "0",
-      format = "d") else s, ""), collapse = ""), "")
+  at <- gregexpr("[0-9]+", x)
+  runs <- regmatches(x, at)
+  width <- max(0, nchar(unlist(runs)))
+  key <- x
+  regmatches(key, at) <- lapply(runs, function(r)
+    paste0(strrep("0", width - nchar(r)), r))
   order(key, x)
 }
