@@ -79,10 +79,10 @@ test_that("mismatches fade by base quality where the display does", {
   expect_lt(min(drawn$alpha), 1)
 })
 
-test_that("showMismatches off drops the mismatches and indels and keeps the skips", {
+test_that("mismatches$show off drops the mismatches and indels and keeps the skips", {
   off <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700",
-    display = list(pileup = list(showMismatches = FALSE)))
+    display = list(pileup = list(mismatches = list(show = FALSE))))
   expect_equal(nrow(off$mismatches), 0)
   expect_equal(nrow(off$insertions), 0)
   expect_gt(nrow(off$gaps), 0)
@@ -136,7 +136,7 @@ test_that("the coverage band draws on the display's depth axis, inset as the dis
     scale$domain + c(-1, 1) * inset * span)
 
   hidden <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000",
-     display = list(coverage = list(showInterbaseIndicators = FALSE)))
+     display = list(coverage = list(interbase = list(show = FALSE))))
   expect_length(ggplot2::ggplot_build(ggplot2::autoplot(hidden,
     "coverage"))$data, 3)
 })
@@ -232,7 +232,7 @@ test_that("splice junctions arc over the coverage, counted and stranded", {
   expect_length(arcs$data, 1)
   counted <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300",
     assembly = extdata("volvox.fa"),
-    display = list(sashimi = list(showCounts = TRUE)))
+    display = list(sashimi = list(labels = list(show = TRUE))))
   counted$junctions$shown <- TRUE
   counts <- ggplot2::layer_data(ggplot2::autoplot(counted, "junctions"), 2)
   expect_equal(nrow(counts), 2)

@@ -135,7 +135,7 @@ band <- function(p, x, rows = FALSE, ylim = NULL, expand = FALSE) {
 # labels, the triangles sitting in the top one
 coverage_plot <- function(x, o) {
   scale <- x$y_scale
-  interbase <- !isFALSE(x$display$coverage$showInterbaseIndicators)
+  interbase <- !isFALSE(x$display$coverage$interbase$show)
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_coverage() +
     geom_jbrowse_alleles(width = o$width) +
@@ -207,7 +207,7 @@ junctions_plot <- function(x, o) {
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_junctions() +
     guides_jbrowse(x, "junctions", ramps = FALSE)
-  if (isTRUE(x$display$sashimi$showCounts)) {
+  if (isTRUE(x$display$sashimi$labels$show)) {
     p <- p + geom_jbrowse_junction_counts()
   }
   band(p, x, ylim = c(0, 1.08)) + no_y

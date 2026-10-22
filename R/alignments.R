@@ -80,18 +80,18 @@ alignments_adapter <- function(file, index) {
 #'     with its mate and split segments on one row, a hairline across it, and
 #'     the strand colors framed against the chain's own
 #'   * the four bands, each a list with its own `show`:
-#'     `coverage` (`height`, `showInterbaseIndicators`, `minAlleleFraction`,
+#'     `coverage` (`height`, `interbase`, `minAlleleFraction`,
 #'     the share of the depth an allele needs to be colored);
 #'     `pileup` (`readHeight`, 7, or 3 and 1 for compact and super-compact,
-#'     `showMismatches`, `showSoftClipping`, `fadeLowFrequency`, ...);
-#'     `sashimi` (`height`, `placement`, `showCounts`);
+#'     `mismatches`, `softClips`, `fadeLowFrequency`, ...);
+#'     `sashimi` (`height`, `placement`, `labels`);
 #'     `readConnections` (`show = TRUE` for each mate pair's and split
 #'     read's arc, `mark = "cloud"` for the read cloud, `height`,
-#'     `showOrdinaryPairs`, `color = list(field = )`),
+#'     `ordinaryPairs`, `color = list(field = )`),
 #'     e.g. `list(coverage = list(show = FALSE), pileup = list(readHeight = 3))`.
 #'     A band or layer set not to show (`coverage`, `pileup` or `sashimi`'s
-#'     `show`, `coverage$showInterbaseIndicators`) reads as empty tables.
-#'     `pileup$showMismatches = FALSE` empties `mismatches` and `insertions`
+#'     `show`, `coverage$interbase$show`) reads as empty tables.
+#'     `pileup$mismatches$show = FALSE` empties `mismatches` and `insertions`
 #'     and leaves only the skips in `gaps`, as the display drops those marks
 #' @param byte_limit the most compressed bytes the regions may need, refused
 #'   off the index before any read is fetched; the whole table is held in

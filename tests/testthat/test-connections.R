@@ -36,7 +36,7 @@ test_that("read connections come back as the display's band draws them", {
   expect_setequal(unique(a$arcs$color), unique(a$keys$arcs$color))
   expect_equal(attr(a$keys$arcs, "title"), "Arc colors")
   abnormal <- read(display = list(readConnections = list(show = TRUE,
-    showOrdinaryPairs = FALSE)))
+    ordinaryPairs = list(show = FALSE))))
   expect_false("normalInsert" %in% abnormal$arcs$category)
   domes <- ggplot2::ggplot_build(ggplot2::autoplot(a, "arcs"))$data[[2]]
   expect_equal(length(unique(domes$group)), nrow(a$arcs))

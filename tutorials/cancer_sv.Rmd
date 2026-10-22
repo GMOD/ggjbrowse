@@ -279,13 +279,13 @@ replace:
 -->
 
 The track menu's choices are `display` settings. The pileup's
-`showSoftClipping` draws the clipped ends, and a `sort` of `"split"` lifts the
+`softClips` draws the clipped ends, and a `sort` of `"split"` lifts the
 reads that continue on another chromosome to the top. Its `readHeight = 3`
 packs the pileup compact:
 
 ```{r reads}
 locus <- "chr3:25,357,600-25,361,000"
-display <- list(pileup = list(showSoftClipping = TRUE, readHeight = 3),
+display <- list(pileup = list(softClips = list(show = TRUE), readHeight = 3),
   sort = list(field = "split"))
 fig <- jbrowse_stack(
   `Somatic SVs` = jbrowse_features(calls_vcf, locus, width = 1200,

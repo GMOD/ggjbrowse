@@ -75,18 +75,18 @@ order) and \code{hidden} (keys left out)
 with its mate and split segments on one row, a hairline across it, and
 the strand colors framed against the chain's own
 \item the four bands, each a list with its own \code{show}:
-\code{coverage} (\code{height}, \code{showInterbaseIndicators}, \code{minAlleleFraction},
+\code{coverage} (\code{height}, \code{interbase}, \code{minAlleleFraction},
 the share of the depth an allele needs to be colored);
 \code{pileup} (\code{readHeight}, 7, or 3 and 1 for compact and super-compact,
-\code{showMismatches}, \code{showSoftClipping}, \code{fadeLowFrequency}, ...);
-\code{sashimi} (\code{height}, \code{placement}, \code{showCounts});
+\code{mismatches}, \code{softClips}, \code{fadeLowFrequency}, ...);
+\code{sashimi} (\code{height}, \code{placement}, \code{labels});
 \code{readConnections} (\code{show = TRUE} for each mate pair's and split
 read's arc, \code{mark = "cloud"} for the read cloud, \code{height},
-\code{showOrdinaryPairs}, \code{color = list(field = )}),
+\code{ordinaryPairs}, \code{color = list(field = )}),
 e.g. \code{list(coverage = list(show = FALSE), pileup = list(readHeight = 3))}.
 A band or layer set not to show (\code{coverage}, \code{pileup} or \code{sashimi}'s
-\code{show}, \code{coverage$showInterbaseIndicators}) reads as empty tables.
-\code{pileup$showMismatches = FALSE} empties \code{mismatches} and \code{insertions}
+\code{show}, \code{coverage$interbase$show}) reads as empty tables.
+\code{pileup$mismatches$show = FALSE} empties \code{mismatches} and \code{insertions}
 and leaves only the skips in \code{gaps}, as the display drops those marks
 }}
 
