@@ -52,6 +52,13 @@ test_that("an identity key lists every domain color, drawn or not, as the browse
   expect_equal(guide$label, c("Drawn", "Not drawn"))
 })
 
+test_that("one filter expression reads as the list the schema types", {
+  genes <- jbrowse_features(gff, "ctgA:1-25,000", display = list(
+    filter = list(expressions = "jexl:get(feature,'type') == 'gene'")))
+  expect_gt(nrow(genes$features), 0)
+  expect_true(all(genes$features$type == "gene"))
+})
+
 test_that("a fitted track gives up what the browser gives up to fit it", {
   fit <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(heightMode = "fit", height = 100))

@@ -52,10 +52,7 @@ snake <- function(d) {
 comparative_args <- function(file, index, display) {
   args <- list(adapterConfig = adapter_of(file, function()
     synteny_adapter(file, index)))
-  if (length(display)) {
-    display$color <- config_color(display$color)
-    args$view <- display
-  }
+  args$view <- display_config(display)
   args
 }
 

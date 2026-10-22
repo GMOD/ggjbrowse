@@ -349,29 +349,32 @@ paints_bisulfite <- function(display) {
   is.list(display$baseColor) && identical(display$baseColor$field, "bisulfite")
 }
 
-# A config object whose vector slots stay JSON arrays however many values
-# they hold
-in_json <- function(object, slots) {
-  for (slot in intersect(slots, names(object))) {
-    object[[slot]] <- I(object[[slot]])
+# The display config slots the schemas type as arrays, at any depth: a color's
+# or facet's `domain`, a row arrangement's `kept`, a filter's `expressions`, a
+# field predicate's `oneOf`
+ARRAY_SLOTS <- c("domain", "range", "labels", "hidden", "kept", "oneOf",
+  "expressions", "shownModifications", "laneGeneTracks", "tracks")
+
+# A config with each unnamed vector in an ARRAY_SLOTS slot a JSON array
+# however many values it holds, where jsonlite would write one as a scalar
+json_arrays <- function(x) {
+  if (!is.list(x) || inherits(x, "AsIs")) return(x)
+  x[] <- lapply(x, json_arrays)
+  for (slot in intersect(names(x), ARRAY_SLOTS)) {
+    value <- x[[slot]]
+    if (is.atomic(value) && length(value) && is.null(names(value))) {
+      x[[slot]] <- I(value)
+    }
   }
-  object
+  x
 }
 
-# A config's color as it writes it, a bare string its constant, and a list
-# slot staying a list in JSON however many values it holds
-config_color <- function(color) in_json(color, c("domain", "range", "labels"))
-
-# A display config as the engine reads it, each slot that lists values a JSON
-# array however many it holds; NULL for an empty one
+# A display config as the engine reads it, a bare vector `filter` the
+# expressions' shorthand; NULL for an empty one
 display_config <- function(display) {
   if (!length(display)) return(NULL)
-  display$color <- config_color(display$color)
   if (is.character(display$filter)) display$filter <- I(display$filter)
-  display$facet <- in_json(display$facet, c("domain", "hidden"))
-  display$modifications <- in_json(display$modifications,
-    "shownModifications")
-  display
+  json_arrays(display)
 }
 
 #' @export

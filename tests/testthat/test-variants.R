@@ -22,9 +22,11 @@ test_that("the rows take a saved arrangement: its order, labels and focus", {
   p <- ggplot2::autoplot(v, layout = "columns")
   labels <- ggplot2::ggplot_build(p)$data
   expect_equal(labels[[length(labels)]]$label[1], "Proband")
-  focused <- read_people(list(rows = list(kept = I(last))))
+  focused <- read_people(list(rows = list(kept = last)))
   expect_setequal(focused$rows$name, last)
   expect_setequal(as.character(unique(focused$cells$row)), last)
+  one <- read_people(list(rows = list(kept = last[1], domain = last[1])))
+  expect_equal(one$rows$name, last[1])
 })
 
 test_that("a facet stacks the rows in bands that hold whatever order they take", {

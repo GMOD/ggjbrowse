@@ -22,7 +22,7 @@ lane_choice <- function(lanes) {
   names_of <- ifelse(named, names(lanes) %||% "", values)
   pins <- stats::setNames(lapply(ifelse(named, values, ""), lane_pin),
     names_of)
-  list(rows = list(domain = I(names_of), kept = I(names_of)),
+  list(rows = list(domain = names_of, kept = names_of),
     pins = Filter(Negate(is.null), pins))
 }
 
@@ -140,10 +140,10 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   choice <- lane_choice(lanes)
   config <- display %||% list()
   config$rows <- choice$rows %||% config$rows
-  config$ribbonColor <- config_color(config$ribbonColor)
   args <- list(adapterConfig = adapter_of(file, function()
     multiway_adapter(file, index)),
-    anchor = axis_args(regions, anchor, width), display = config)
+    anchor = axis_args(regions, anchor, width),
+    display = display_config(config) %||% list())
   if (length(choice$pins)) args$pins <- choice$pins
   read <- warned_call("multiway", args)
   r <- read$value
