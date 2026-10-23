@@ -110,7 +110,7 @@ gene_track <- function(id, file, assembly) list(type = "FeatureTrack",
       indexType = "TBI")),
   displays = list(list(type = "LinearBasicDisplay",
     displayId = paste0(id, "-display"), displayMode = "compact",
-    showLabels = FALSE, filter = list(genes = "only"))))
+    showLabels = FALSE, filter = "geneLike")))
 
 synteny_genes_args <- function() {
   config <- json_file(list(
@@ -211,7 +211,7 @@ jbrowse_stack(genes, reads)
 autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
   "chr3:25,358,500-25,359,800",
   display = list(unit = "chain", readConnections = list(show = TRUE),
-    color = list(field = "strand"), filter = list(split = "only"))))
+    color = list(field = "strand"), filter = list(list(field = "split", equal = TRUE)))))
 )-"),
   deletion = list(
     caption = "Coverage halves across the deletion, and the reads sorted to the top span it with dark deletion bars, each labelled with its length.",
@@ -527,7 +527,7 @@ s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
 gene_track <- function(file, contig) jbrowse_features(e(file),
   paste0(contig, ":", r),
   display = list(displayMode = "compact", showLabels = FALSE,
-    filter = list(genes = "only")))
+    filter = "geneLike"))
 autoplot(s, above = gene_track("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
   below = gene_track("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
 )-"),

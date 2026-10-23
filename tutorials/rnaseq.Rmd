@@ -88,7 +88,7 @@ arcs, which the engine computes from the reads' skips:
 
 ```{r actb}
 actb <- "chr7:5,567,000-5,570,000"
-genes <- list(filter = list(genes = "only"))
+genes <- list(filter = "geneLike")
 actb_genes <- jbrowse_features(gff, actb, assembly = hg19, display = genes,
   width = 1200)
 actb_reads <- jbrowse_alignments(bam, actb, assembly = hg19,
@@ -182,7 +182,7 @@ In a deep pileup, reads with a skip sit among many more that have none. Two of
 the display's settings pull the splicing evidence out, and we'll read each:
 
 - `sort = list(field = "spliced")` gives every read with a skip the lowest rows
-- `filter = list(spliced = "only")` drops every read without a skip, and the
+- `filter = list(list(field = "spliced", equal = TRUE))` drops every read without a skip, and the
   coverage follows
 
 ```{r spliced}
@@ -192,7 +192,7 @@ spliced_first <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(sort = list(field = "spliced")))
 only_spliced <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(pileup = list(readHeight = 1),
-    filter = list(spliced = "only")))
+    filter = list(list(field = "spliced", equal = TRUE))))
 
 spliced_rows <- function(r) {
   rows <- r$reads$row[is_spliced(r)]
@@ -231,7 +231,7 @@ all_junctions <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(pileup = list(show = FALSE)))
 canonical <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(pileup = list(show = FALSE),
-    filter = list(junctions = list(nonCanonical = "exclude"))))
+    filter = list(list(field = "junction.canonical", equal = TRUE))))
 fig <- jbrowse_stack("All junctions" = all_junctions,
   "Canonical only" = canonical)
 ```

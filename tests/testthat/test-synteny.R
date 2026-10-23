@@ -55,7 +55,7 @@ test_that("the band draws every ribbon between the rows, with both rulers", {
 })
 
 test_that("tracks over each row stack around the band", {
-  genes <- jbrowse_features(gff, target, display = list(filter = list(genes = "only")))
+  genes <- jbrowse_features(gff, target, display = list(filter = "geneLike"))
   fig <- autoplot(s, below = genes)
   expect_equal(length(fig$patches$plots) + 1, 2)
   expect_equal(fig$patches$layout$heights[1], s$display$height)

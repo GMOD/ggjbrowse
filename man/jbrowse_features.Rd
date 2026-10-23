@@ -39,7 +39,7 @@ such as \code{list(field = "type")}), \code{displayMode} (\code{"normal"}, \code
 \code{"nameAndDescription"}, \code{"description"}, \code{"none"}), \code{geneGlyphMode}
 (\code{"auto"}, \code{"all"}, \code{"longestCoding"}), \code{subfeatureLabels} (\code{"none"},
 \code{"below"}, \code{"overlay"}), \code{featureHeight}, \code{filter} (jexl
-expressions under \code{expressions}, \code{genes = "only"} or \code{"exclude"}),
+expressions, and \code{"geneLike"} for the genes alone),
 \code{showChevrons}, \code{facet} (a field such as
 \code{"strand"} or \code{"type"}, or \code{list(field = , sort = , hidden = )}, which
 packs a section per value, as alignments' \code{facet} does), and \code{heightMode}

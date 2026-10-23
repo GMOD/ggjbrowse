@@ -21,10 +21,10 @@ JBrowse does:
 - `color = list(field = "mapq")`, or
   `list(field = "insertSize", domain = c(200, 600))`. A bare string such as
   `color = "purple"` is one constant color.
-- `filter = list(flagExclude = 1796, tags = list(list(tag = "HP", value = "1")))`
+- `filter = list(list(field = "flags.SECONDARY", equal = FALSE), list(field = "tags.HP", equal = "1"))`
   keeps reads by their flags and tags; its `junctions` and `connections`
   pick the splice junctions and read connections drawn:
-  `filter = list(junctions = list(minReads = 5, nonCanonical = "exclude"))`.
+  `filter = list(list(field = "junction.reads", gte = 5), list(field = "junction.canonical", equal = TRUE))`.
 - `sort = list(field = "base", pos = 122836300)` sorts by the base at a
   position ([a somatic deletion](gallery.md#deletion)).
 - `pileup = list(readHeight = 3)` packs reads compact

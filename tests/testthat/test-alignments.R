@@ -475,9 +475,9 @@ test_that("reads fill as the display's color object paints them, with its key", 
   expect_equal(unique(m$reads$category), "mapq")
 })
 
-test_that("the display's filter object keeps the reads it keeps", {
+test_that("the display's filter list keeps the reads it keeps", {
   r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
-    display = list(filter = list(flagInclude = 16)))
+    display = list(filter = list(list(field = "flags.REVERSE", equal = TRUE))))
   expect_true(all(r$reads$strand == -1))
   expect_gt(nrow(r$reads), 0)
   expect_lt(nrow(r$reads), nrow(bam$reads))
@@ -486,11 +486,11 @@ test_that("the display's filter object keeps the reads it keeps", {
 test_that("svSignal only and exclude split the reads between them", {
   locus <- "chr3:25,357,600-25,361,000"
   bam <- extdata("colo829_tumor_chr3.bam")
-  read <- function(level) jbrowse_alignments(bam, locus,
-    display = list(filter = list(svSignal = level)))
+  read <- function(equal) jbrowse_alignments(bam, locus,
+    display = list(filter = list(list(field = "svSignal", equal = equal))))
   all <- jbrowse_alignments(bam, locus)
-  only <- read("only")
-  none <- read("exclude")
+  only <- read(TRUE)
+  none <- read(FALSE)
   expect_gt(nrow(only$reads), 0)
   expect_gt(nrow(none$reads), 0)
   expect_equal(nrow(only$reads) + nrow(none$reads), nrow(all$reads))
@@ -627,7 +627,7 @@ test_that("a chain's overlapping segments come back as overlap spans", {
   colo <- extdata("colo829_tumor_chr3.bam")
   locus <- "chr3:25,358,500-25,359,800"
   chained <- jbrowse_alignments(colo, locus,
-    display = list(unit = "chain", filter = list(split = "only")))
+    display = list(unit = "chain", filter = list(list(field = "split", equal = TRUE))))
   expect_gt(nrow(chained$overlaps), 0)
   expect_true(all(chained$overlaps$end > chained$overlaps$start))
   key <- chained$keys$reads
@@ -635,7 +635,7 @@ test_that("a chain's overlapping segments come back as overlap spans", {
   expect_equal(key$color[nrow(key)], chained$overlaps$color[1])
   expect_equal(nrow(jbrowse_alignments(colo, locus)$overlaps), 0)
   thin <- jbrowse_alignments(colo, locus, display = list(unit = "chain",
-    filter = list(split = "only"), pileup = list(readHeight = 2)))
+    filter = list(list(field = "split", equal = TRUE)), pileup = list(readHeight = 2)))
   expect_equal(nrow(thin$overlaps), 0)
   expect_false("Pair/chain reads overlap here" %in% thin$keys$reads$label)
 })
@@ -687,7 +687,8 @@ test_that("a stack draws a key two tracks share once, with every entry either ho
   locus <- "chr1:197,786,900-197,789,700"
   tumor <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"), locus)
   normal <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"), locus,
-    display = list(filter = list(flagExclude = 3588)))
+    display = list(filter = list(
+      list(field = "flags.SUPPLEMENTARY", equal = FALSE))))
   expect_true("Hard clip" %in% tumor$keys$interbase$label)
   expect_false("Hard clip" %in% normal$keys$interbase$label)
   collected <- function(fig) {
@@ -758,7 +759,9 @@ test_that("the coverage band stacks the alleles the display shows", {
 
 test_that("a result carries the display's resolved config and read pitch", {
   expect_equal(bam$display$type, "LinearAlignmentsDisplay")
-  expect_equal(bam$display$filter$junctions$minReads, 2)
+  floor <- Filter(function(p) identical(p$field, "junction.reads"),
+    bam$display$filter)
+  expect_equal(floor[[1]]$gte, 2)
   expect_false(bam$display$readConnections$show)
   expect_equal(bam$read_pitch, list(featureHeight = 7L, featureSpacing = 1L))
   compact <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
@@ -774,14 +777,15 @@ test_that("a result carries the display's resolved config and read pitch", {
 test_that("the junction band hides non-canonical junctions where the display does", {
   read <- function(...) jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700", assembly = extdata("gapdh_hg38.fa.gz"),
-    display = list(filter = list(junctions = list(minReads = 1, ...))))
+    display = list(filter = list(list(field = "junction.reads", gte = 1), ...)))
   arcs <- function(x) length(unique(ggplot2::layer_data(
     ggplot2::ggplot(x) + geom_jbrowse_junctions(), 1)$group))
   shown <- read()
   odd <- shown$junctions$motif == "non-canonical" & shown$junctions$shown
   expect_gt(sum(odd), 0)
-  expect_equal(arcs(read(nonCanonical = "exclude")), arcs(shown) - sum(odd))
-  expect_equal(arcs(read(nonCanonical = "only")), sum(odd))
+  canonical <- function(equal) list(field = "junction.canonical", equal = equal)
+  expect_equal(arcs(read(canonical(TRUE))), arcs(shown) - sum(odd))
+  expect_equal(arcs(read(canonical(FALSE))), sum(odd))
 })
 
 test_that("coverage stops at the region's ends, where the reads do not", {

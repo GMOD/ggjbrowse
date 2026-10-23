@@ -38,8 +38,8 @@ variants_adapter <- function(file, index, samples) {
 #'   any of `unit` (`"sample"` for a row per sample, `"haplotype"` for a row
 #'   per haplotype), `color` (a field such as `"svType"` or `"impact"`, or a
 #'   list of the color object's slots), `filter` (a list of any of
-#'   `expressions`, jexl expressions, `minMinorAlleleFrequency` and
-#'   `maxMissingness`),
+#'   jexl expressions, and `minorAlleleFrequency` and `missingness` field
+#'   tests),
 #'   `referenceDrawingMode` (`"skip"` or `"draw"`), `shadeByDosage`, `rows`
 #'   (the arrangement a session saves: `sort`, the rows listed first in
 #'   order, `labels`, a label by row name, and `kept`, the rows shown) and

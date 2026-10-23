@@ -30,7 +30,7 @@ test_that("the display's settings reach the tables", {
   expect_equal(nrow(bare$chevrons), 0)
   expect_lt(bare$height, g$height)
   genes <- jbrowse_features(gff, "ctgA:1-25,000",
-    display = list(filter = list(genes = "only")))
+    display = list(filter = "geneLike"))
   expect_true(all(genes$features$gene))
   typed <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(color = list(field = "type")))
@@ -54,7 +54,7 @@ test_that("an identity key lists every domain color, drawn or not, as the browse
 
 test_that("one filter expression reads as the list the schema types", {
   genes <- jbrowse_features(gff, "ctgA:1-25,000", display = list(
-    filter = list(expressions = "jexl:get(feature,'type') == 'gene'")))
+    filter = "jexl:get(feature,'type') == 'gene'"))
   expect_gt(nrow(genes$features), 0)
   expect_true(all(genes$features$type == "gene"))
 })

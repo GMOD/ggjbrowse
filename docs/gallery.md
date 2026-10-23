@@ -63,7 +63,7 @@ Coverage halves at the first breakpoint, and each read's segments share a row, o
 autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
   "chr3:25,358,500-25,359,800",
   display = list(unit = "chain", readConnections = list(show = TRUE),
-    color = list(field = "strand"), filter = list(split = "only"))))
+    color = list(field = "strand"), filter = list(list(field = "split", equal = TRUE)))))
 ```
 
 ```sh
@@ -667,7 +667,7 @@ s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
 gene_track <- function(file, contig) jbrowse_features(e(file),
   paste0(contig, ":", r),
   display = list(displayMode = "compact", showLabels = FALSE,
-    filter = list(genes = "only")))
+    filter = "geneLike"))
 autoplot(s, above = gene_track("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
   below = gene_track("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
 ```

@@ -109,7 +109,7 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   polygons <- ggplot2::layer_data(p, 1)
   expect_equal(length(unique(polygons$group)), sum(!m$ribbons$thin))
   genes <- jbrowse_features(gff, m$lanes$locus[1],
-    display = list(filter = list(genes = "only")))
+    display = list(filter = "geneLike"))
   fig <- autoplot(m, above = genes)
   expect_equal(length(fig$patches$plots) + 1, 2)
   expect_s3_class(fig$theme$axis.text.x, "element_blank")
@@ -118,7 +118,7 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   bottom <- nrow(m$lanes)
   expect_gt(min(m$segments$x1[m$segments$lane == bottom]), 1)
   under <- jbrowse_features(gff, m$lanes$locus[bottom],
-    display = list(filter = list(genes = "only")))
+    display = list(filter = "geneLike"))
   band <- lane_band(under, m, bottom, "below")$plots[[1]]
   xlim <- ggplot2::ggplot_build(band)$layout$panel_params[[1]]$x.range
   expect_equal(xlim, c(0, m$width), tolerance = 1e-6)

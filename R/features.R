@@ -44,7 +44,7 @@ features_adapter <- function(file, index) {
 #'   `"nameAndDescription"`, `"description"`, `"none"`), `geneGlyphMode`
 #'   (`"auto"`, `"all"`, `"longestCoding"`), `subfeatureLabels` (`"none"`,
 #'   `"below"`, `"overlay"`), `featureHeight`, `filter` (jexl
-#'   expressions under `expressions`, `genes = "only"` or `"exclude"`),
+#'   expressions, and `"geneLike"` for the genes alone),
 #'   `showChevrons`, `facet` (a field such as
 #'   `"strand"` or `"type"`, or `list(field = , sort = , hidden = )`, which
 #'   packs a section per value, as alignments' `facet` does), and `heightMode`

@@ -33,8 +33,8 @@ entry writes them for a \code{LinearMultiSampleVariantDisplay}: a list with
 any of \code{unit} (\code{"sample"} for a row per sample, \code{"haplotype"} for a row
 per haplotype), \code{color} (a field such as \code{"svType"} or \code{"impact"}, or a
 list of the color object's slots), \code{filter} (a list of any of
-\code{expressions}, jexl expressions, \code{minMinorAlleleFrequency} and
-\code{maxMissingness}),
+jexl expressions, and \code{minorAlleleFrequency} and \code{missingness} field
+tests),
 \code{referenceDrawingMode} (\code{"skip"} or \code{"draw"}), \code{shadeByDosage}, \code{rows}
 (the arrangement a session saves: \code{sort}, the rows listed first in
 order, \code{labels}, a label by row name, and \code{kept}, the rows shown) and

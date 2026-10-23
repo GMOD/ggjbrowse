@@ -706,7 +706,7 @@ row_tracks <- function(tracks, layout, row) {
 #'   labels = c(query = "paternal", target = "maternal"))
 #' autoplot(s)
 #' genes <- jbrowse_features(e("hg002_mat_genes.gff3.gz"), "chr8_MATERNAL:5,250,001-14,250,000",
-#'   display = list(filter = list(genes = "only")))
+#'   display = list(filter = "geneLike"))
 #' autoplot(s, below = genes)
 autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
                                      curves = FALSE, ...) {

@@ -371,10 +371,10 @@ paints_bisulfite <- function(display) {
 }
 
 # The display config slots the schemas type as arrays, at any depth: a color's
-# `domain`, a facet's or row arrangement's `sort`, `kept`, a filter's
-# `expressions`, a field predicate's `oneOf`
+# `domain`, a facet's or row arrangement's `sort`, `kept`, a field
+# predicate's `oneOf`
 ARRAY_SLOTS <- c("domain", "sort", "range", "labels", "hidden", "kept", "oneOf",
-  "expressions", "shownModifications", "laneGeneTracks", "tracks")
+  "shownModifications", "laneGeneTracks", "tracks")
 
 # A config with each unnamed vector in an ARRAY_SLOTS slot a JSON array
 # however many values it holds, where jsonlite would write one as a scalar
@@ -390,8 +390,8 @@ json_arrays <- function(x) {
   x
 }
 
-# A display config as the engine reads it, a bare vector `filter` the
-# expressions' shorthand; NULL for an empty one
+# A display config as the engine reads it, a bare character `filter` a list
+# of entries however many it holds; NULL for an empty one
 display_config <- function(display) {
   if (!length(display)) return(NULL)
   if (is.character(display$filter)) display$filter <- I(display$filter)

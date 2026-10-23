@@ -446,7 +446,7 @@ arc for each split between chromosomes:
 
 ``` r
 chain_display <- list(unit = "chain", readConnections = list(show = TRUE),
-  color = list(field = "strand"), filter = list(split = "only"),
+  color = list(field = "strand"), filter = list(list(field = "split", equal = TRUE)),
   pileup = list(readHeight = 3))
 fig <- jbrowse_stack(
   `Somatic SVs` = jbrowse_features(calls_vcf, loci, width = 1200,

@@ -70,9 +70,7 @@
           "displayId": "maternal genes-display",
           "displayMode": "compact",
           "showLabels": false,
-          "filter": {
-            "genes": "only"
-          }
+          "filter": ["geneLike"]
         }
       ]
     },
@@ -101,9 +99,7 @@
           "displayId": "paternal genes-display",
           "displayMode": "compact",
           "showLabels": false,
-          "filter": {
-            "genes": "only"
-          }
+          "filter": ["geneLike"]
         }
       ]
     }
