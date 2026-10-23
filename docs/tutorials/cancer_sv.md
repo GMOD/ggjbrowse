@@ -443,15 +443,14 @@ arc for each split between chromosomes:
 
 ``` r
 chain_display <- list(unit = "chain", readConnections = list(show = TRUE),
-  color = list(field = "strand"), filter = list(list(field = "split", equal = TRUE)),
+  encoding = list(color = list(field = "strand")),
+  filter = list(list(field = "split", equal = TRUE)),
   pileup = list(readHeight = 3))
 fig <- jbrowse_stack(
   `Somatic SVs` = jbrowse_features(calls_vcf, loci, width = 1200,
     assembly = hg38),
   Tumor = jbrowse_alignments(tumor, loci, assembly = hg38,
     display = chain_display), width = 1200)
-#> Warning: LinearAlignmentsDisplay "tables" does not declare color: loading
-#> without it
 ```
 
 

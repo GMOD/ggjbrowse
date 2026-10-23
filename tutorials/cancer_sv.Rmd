@@ -348,7 +348,8 @@ arc for each split between chromosomes:
 
 ```{r chain-reads}
 chain_display <- list(unit = "chain", readConnections = list(show = TRUE),
-  color = list(field = "strand"), filter = list(list(field = "split", equal = TRUE)),
+  encoding = list(color = list(field = "strand")),
+  filter = list(list(field = "split", equal = TRUE)),
   pileup = list(readHeight = 3))
 fig <- jbrowse_stack(
   `Somatic SVs` = jbrowse_features(calls_vcf, loci, width = 1200,
