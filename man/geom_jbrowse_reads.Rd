@@ -106,8 +106,9 @@ insertions and clips each faded by its \code{fade} while the display's
 \code{pileup$fadeLowFrequency} is on. An indel also fades as it shrinks below a
 pixel, an insertion of 10 bp or more draws as the display's wider bar,
 never faded by its \code{fade}, and a mismatch fades by its \code{quality} while
-\code{pileup$fadeLowBaseQuality} is on. The engine's \code{alignmentMarkAlpha}
-decides each width and opacity at the figure's pixels per base. Edit the
+\code{pileup$mismatches$encoding$opacity} maps \code{"baseQuality"}. The engine's
+\code{alignmentMarkAlpha} decides each width and opacity at the figure's pixels
+per base. Edit the
 table to draw otherwise:
 \code{a$junctions$shown <- a$junctions$count >= 5}, or
 \code{a$mismatches$fade <- 1} for no fade.

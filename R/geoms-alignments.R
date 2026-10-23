@@ -27,7 +27,7 @@ mark_alpha <- function(x, width, kind, marks) {
   args <- list(pxPerBp = px_of(x, width),
     featureHeight = x$read_pitch$featureHeight %||% 0,
     fadeLowFrequency = fades(x),
-    fadeLowBaseQuality = isTRUE(pileup$fadeLowBaseQuality))
+    mismatchOpacity = pileup$mismatches$encoding$opacity %||% list())
   args[[kind]] <- lapply(marks, I)
   lapply(call_engine("alignmentMarkAlpha", args)[[kind]], as.numeric)
 }
@@ -55,8 +55,9 @@ with_inset <- function(d, model) {
 #' `pileup$fadeLowFrequency` is on. An indel also fades as it shrinks below a
 #' pixel, an insertion of 10 bp or more draws as the display's wider bar,
 #' never faded by its `fade`, and a mismatch fades by its `quality` while
-#' `pileup$fadeLowBaseQuality` is on. The engine's `alignmentMarkAlpha`
-#' decides each width and opacity at the figure's pixels per base. Edit the
+#' `pileup$mismatches$encoding$opacity` maps `"baseQuality"`. The engine's
+#' `alignmentMarkAlpha` decides each width and opacity at the figure's pixels
+#' per base. Edit the
 #' table to draw otherwise:
 #' `a$junctions$shown <- a$junctions$count >= 5`, or
 #' `a$mismatches$fade <- 1` for no fade.

@@ -72,7 +72,8 @@ test_that("insertions fade and widen as the display's insertion shader draws the
 test_that("mismatches fade by base quality where the display does", {
   q <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700",
-    display = list(pileup = list(fadeLowBaseQuality = TRUE)))
+    display = list(pileup = list(mismatches = list(
+      encoding = list(opacity = "baseQuality")))))
   q$mismatches$fade <- 1
   drawn <- ggplot2::layer_data(ggplot2::ggplot(q) + geom_jbrowse_mismatches())
   expect_equal(drawn$alpha, pmin(1, q$mismatches$quality / 50))
