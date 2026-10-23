@@ -89,11 +89,10 @@ test_that("the display's settings color the ribbons", {
   grey <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     display = list(ribbons = list(encoding = list(color = list(value = "grey")))))
   expect_equal(unique(as.character(grey$ribbons$color)), "#808080")
-  expect_equal(grey$display[c("hideUnlabelled", "bridgeSkippedLanes",
-    "splitStrands", "showGeneLabels", "inlineLaneNames", "height")],
-    list(hideUnlabelled = FALSE, bridgeSkippedLanes = TRUE,
-    splitStrands = TRUE, showGeneLabels = TRUE, inlineLaneNames = FALSE,
-    height = 240L))
+  expect_equal(grey$display[c("hideUnlabelled", "splitStrands",
+    "showGeneLabels", "inlineLaneNames", "height")],
+    list(hideUnlabelled = FALSE, splitStrands = TRUE, showGeneLabels = TRUE,
+    inlineLaneNames = FALSE, height = 240L))
   expect_equal(grey$display$ribbons$mark$interpolate, "linear")
   expect_equal(grey$display$ribbons$encoding$color$value, "grey")
   ordered <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
