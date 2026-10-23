@@ -17,7 +17,7 @@ JBrowse's synteny displays.
   field such as `mapq` keys its bins as chips.
 - `display` takes the view's or display's settings as JBrowse writes them,
   and the result's `display` holds them as the engine resolves them, every
-  default filled in: `s$display$opacity$value` is the level the ribbons
+  default filled in: `s$display$encoding$opacity$value` is the level the ribbons
   draw at.
 - Each reader lays its regions out 1,500 px wide unless given `width`, as
   the linear readers do.
@@ -85,7 +85,7 @@ alignments' own coordinates, and the ribbons between adjacent lanes
 ([TP53 in four primates](gallery.md#multiway)).
 
 - `lanes` picks and orders the genomes, or pins a lane to a contig.
-- `display` takes the display's settings (`ribbonColor`, `drawCurves`,
+- `display` takes the display's settings (`ribbons`, `drawCurves`,
   `bridgeSkippedLanes`, ...).
 - `autoplot(m, above = genes)` stacks tracks over the anchor lane.
 - `region` takes the anchor's loci, a frame or a GRanges, but not a bare

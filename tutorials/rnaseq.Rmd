@@ -399,7 +399,7 @@ drop_lines:
 replace:
   - from: "and the BED draws as arcs on a feature track."
     to: "and the BED holds one junction per row."
-  - from: " The color's\n`domain` lists the `known_junction` values as strings because the adapter reads\nextra columns as text."
+  - from: " The color's\n`scale.domain` lists the `known_junction` values as strings because the adapter\nreads extra columns as text."
     to: ""
 -->
 
@@ -414,7 +414,7 @@ assign:
   junction_adapter: rnaseq_junctions_hg19.adapter
   junction_filter: rnaseq_junctions_hg19.displays.1.transform.1.expr
   junction_color: rnaseq_junctions_hg19.displays.1.marks.1.encoding.color
-  junction_size: rnaseq_junctions_hg19.displays.1.marks.1.encoding.size
+  junction_width: rnaseq_junctions_hg19.displays.1.marks.1.encoding.strokeWidth
 -->
 
 The file is a bgzipped BED that `readr` reads whole, 207,000 junctions in
@@ -479,10 +479,10 @@ arc_plot <- ggplot(arcs, aes(x, y, group = name, colour = known,
   geom_text(data = arrange(labels, desc(score)), aes(x, y, label = score),
     colour = "black", size = 3, vjust = -0.4, check_overlap = TRUE,
     inherit.aes = FALSE) +
-  scale_colour_manual(name = junction_color$title,
-    values = setNames(junction_color$range, junction_color$labels)) +
+  scale_colour_manual(name = junction_color$legend$title,
+    values = setNames(junction_color$scale$range, junction_color$scale$names)) +
   scale_linewidth(name = "reads", transform = "log10",
-    range = junction_size$range / 3) +
+    range = junction_width$scale$range / 3) +
   scale_y_continuous(NULL, breaks = NULL, expand = expansion(c(0.02, 0.3))) +
   labs(x = NULL) +
   theme_minimal() +

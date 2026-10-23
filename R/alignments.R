@@ -38,24 +38,30 @@ alignments_adapter <- function(file, index) {
 #' @param display the display's config, as a track's `displays` entry
 #'   writes it for a `LinearAlignmentsDisplay`, which is what JBrowse's
 #'   "Export R script" passes. Its main slots:
-#'   * `color`: what fills each read: `list(field = "strand")` (or `"mapq"`,
-#'     `"insertSize"`, `"pairOrientation"`, `"firstOfPairStrand"`,
-#'     `"tags.XS"`), with optional `domain` and `range`, e.g.
-#'     `list(field = "insertSize", domain = c(200, 600))`; a bare string is
-#'     one constant color, as in a track config; unset fills every read plain
-#'   * `filter`: which reads are kept: any of `flagInclude`, `flagExclude`
-#'     (1540 by default), `readName`, `tags` (a list of
-#'     `list(tag = , value = )`), `spliced`, `svSignal` (SV evidence: a split
-#'     read, an insertion or deletion of 50 bp or more, or a discordant pair),
-#'     `alone` and `split` (each `"only"` or `"exclude"`); and which
-#'     junctions and connections draw:
-#'     `junctions = list(minReads = , nonCanonical = "exclude")`,
-#'     `connections = list(interchrom = , offscreenMates = , minInterchromReads = )`
-#'   * `baseColor`: the per-base layer painted over the reads:
-#'     `list(field = "modifications")` for the reads' MM/ML base
-#'     modifications, `list(field = "bisulfite")` for the methylation a
-#'     bisulfite or EM-seq read shows against `assembly` (a retained C is
-#'     methylated, a C read as T is not), `list(field = "baseQuality")` for
+#'   * `encoding`: what fills each read, its `color`:
+#'     `list(color = list(field = "strand"))` (or `"mapq"`, `"insertSize"`,
+#'     `"pairOrientation"`, `"firstOfPairStrand"`, `"tags.XS"`), with an
+#'     optional `scale` (`domain`, `range`) and `legend` (`title`), e.g.
+#'     `list(color = list(field = "insertSize",
+#'     scale = list(domain = c(200, 600))))`; `list(color = list(value =
+#'     "purple"))` is one constant color; unset fills every read plain
+#'   * `filter`: a list of field tests every read, junction or connection
+#'     drawn passes, merged with the defaults by field: a SAM flag by
+#'     samtools' name, `list(field = "flags.DUP", equal = FALSE)` (unmapped,
+#'     QC-failed and duplicate reads are dropped by default),
+#'     `list(field = "mapq", gte = 20)`, `list(field = "name", equal = )`,
+#'     `list(field = "tags.HP", equal = "1")`, and the read categories
+#'     `spliced`, `svSignal` (SV evidence: a split read, an insertion or
+#'     deletion of 50 bp or more, or a discordant pair), `alone` and `split`
+#'     (`equal = TRUE` keeps only them, `FALSE` drops them); and which
+#'     junctions and connections draw: `junction.reads` (`gte`, 2 by
+#'     default), `junction.canonical`, `connection.interchrom`,
+#'     `connection.offscreen` and `breakpoint.reads`
+#'   * `pileup$bases`: the per-base layer painted over the reads,
+#'     `list(show = TRUE, encoding = list(color = ))` with `"modifications"`
+#'     for the reads' MM/ML base modifications, `"bisulfite"` for the
+#'     methylation a bisulfite or EM-seq read shows against `assembly` (a
+#'     retained C is methylated, a C read as T is not), or `"baseQuality"` for
 #'     each base's Phred score; unset paints none. Under `"modifications"` or
 #'     `"bisulfite"` the display greys every mismatched base so the calls
 #'     stand out
@@ -129,8 +135,8 @@ alignments_adapter <- function(file, index) {
 #'     `position`, `read`, `type` (the code, `m` for 5mC), `name`,
 #'     `probability` (1 for a bisulfite call), `unmodified` (whether the
 #'     call is that the base is not modified), and the `color` and `opacity`
-#'     the display paints it at; empty without `display$baseColor`
-#'   * `qualities`: under `baseColor` `"baseQuality"`, each aligned base:
+#'     the display paints it at; empty without `display$pileup$bases`
+#'   * `qualities`: under `pileup$bases` `"baseQuality"`, each aligned base:
 #'     `position`, `read`, `score` (Phred) and the `color` the display
 #'     paints it
 #'   * `coverage`: `start`, `end`, `depth`, `forward`, `reverse`, over the
@@ -139,7 +145,8 @@ alignments_adapter <- function(file, index) {
 #'     as the display stacks it: `position`, `base`, `from` and `to` (the
 #'     allele's share of the bar, from the bottom) and the `depth` there
 #'   * `modification_coverage`: the band's stack of modification states under
-#'     `display$baseColor`: `position`, `from`, `to`, `depth`, `color`, `opacity`
+#'     `display$pileup$bases`: `position`, `from`, `to`, `depth`, `color`,
+#'     `opacity`
 #'   * `interbase_coverage`: the band's histogram of the reads' insertions,
 #'     soft clips and hard clips at each position, stacked in that order:
 #'     `position`, `type` (`"insertion"`, `"softclip"` or `"hardclip"`),
@@ -188,7 +195,7 @@ alignments_adapter <- function(file, index) {
 #' bam <- system.file("extdata", "gapdh_direct_rna.bam",
 #'   package = "ggjbrowse")
 #' a <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
-#'   display = list(color = list(field = "strand")))
+#'   display = list(encoding = list(color = list(field = "strand"))))
 #' head(a$reads)
 #' a$keys$reads
 jbrowse_alignments <- function(file, region = NULL, display = NULL,
@@ -366,8 +373,12 @@ y_scale <- function(s) {
     symlog_constant = s$symlogConstant, ticks = unlist(s$ticks))
 }
 
+# `pileup$bases` paints bisulfite, its color written bare or as `list(field = )`
 paints_bisulfite <- function(display) {
-  is.list(display$baseColor) && identical(display$baseColor$field, "bisulfite")
+  bases <- display$pileup$bases
+  color <- if (is.list(bases)) bases$encoding$color
+  field <- if (is.list(color)) color$field else color
+  is.list(bases) && isTRUE(bases$show) && identical(field, "bisulfite")
 }
 
 # The display config slots the schemas type as arrays, at any depth: a color's

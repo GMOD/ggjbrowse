@@ -283,10 +283,10 @@ c(bins = nrow(ratio), hosted = nrow(hosted), both = nrow(compared),
 section: Loading the scans in JBrowse
 title: false
 only:
-  - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms, `color` is a\ncolor scale"
+  - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms,\n`encoding.color` is a color scale"
 replace:
-  - from: "pins the y\nscale to ±1.5:"
-    to: "pins the y\nscale to ±1.5."
+  - from: "pins the y scale to ±1.5:"
+    to: "pins the y scale to ±1.5."
 -->
 
 The website's `displayDefaults` for that track are already in `ratio_display`.

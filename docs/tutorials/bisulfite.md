@@ -169,12 +169,12 @@ cram <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_bisulfite.cram"
 locus <- "NC_003070.9:4,398,001-4,412,000"
 
 cg <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
-  display = list(baseColor = list(field = "bisulfite"),
+  display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
     modifications = list(cytosineContext = "CG")))
 ```
 
-In [grammar-of-graphics](https://jbrowse.org/jb2/docs/config_guides/mark_display) terms, `baseColor` is
-a color channel for each base, here set from the `bisulfite` field.
+In [grammar-of-graphics](https://jbrowse.org/jb2/docs/config_guides/mark_display) terms, `pileup.bases`
+is a color channel for each base, here set from the `bisulfite` field.
 [`cytosineContext`](https://jbrowse.org/jb2/docs/config/linearalignmentsdisplay/#slot-modifications)
 takes `CG`, `CHG`, `CHH` or `all`.
 
@@ -244,7 +244,7 @@ subset(repeats$features, end - start > 1000, c(name, start, end))
 contexts <- c("CG", "CHG", "CHH")
 reads <- lapply(contexts, function(context)
   jbrowse_alignments(cram, locus, assembly = tair10_2bit,
-    display = list(baseColor = list(field = "bisulfite"),
+    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
       modifications = list(cytosineContext = context))))
 
 fig <- jbrowse_stack(`RefSeq genes` = genes, RepeatMasker = repeats,
@@ -282,7 +282,7 @@ regions <- data.frame(
 
 calls <- bind_rows(lapply(contexts, function(context) {
   r <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
-    display = list(baseColor = list(field = "bisulfite"),
+    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
       modifications = list(cytosineContext = context, unmodified = "calls")))
   mutate(r$modifications, context = context, region = NULL)
 }))

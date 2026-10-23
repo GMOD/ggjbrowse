@@ -21,6 +21,6 @@ several regions end to end.
 }
 \examples{
 chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
-autoplot(jbrowse_dotplot(chain, display = list(color = list(field = "strand")),
+autoplot(jbrowse_dotplot(chain, display = list(encoding = list(color = list(field = "strand"))),
   labels = c(query = "paternal", target = "maternal")))
 }

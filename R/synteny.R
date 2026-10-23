@@ -702,7 +702,7 @@ row_tracks <- function(tracks, layout, row) {
 #' e <- function(f) system.file("extdata", f, package = "ggjbrowse")
 #' s <- jbrowse_synteny(e("hg002_chr8.chain"), "chr8_PATERNAL:5,250,001-14,250,000",
 #'   "chr8_MATERNAL:5,250,001-14,250,000",
-#'   display = list(color = list(field = "strand")),
+#'   display = list(encoding = list(color = list(field = "strand"))),
 #'   labels = c(query = "paternal", target = "maternal"))
 #' autoplot(s)
 #' genes <- jbrowse_features(e("hg002_mat_genes.gff3.gz"), "chr8_MATERNAL:5,250,001-14,250,000",
@@ -875,7 +875,7 @@ layout_seams <- function(layout) {
 #' @exportS3Method ggplot2::autoplot
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
-#' autoplot(jbrowse_dotplot(chain, display = list(color = list(field = "strand")),
+#' autoplot(jbrowse_dotplot(chain, display = list(encoding = list(color = list(field = "strand"))),
 #'   labels = c(query = "paternal", target = "maternal")))
 autoplot.jbrowse_dotplot <- function(object, ...) {
   rlang::check_dots_empty()

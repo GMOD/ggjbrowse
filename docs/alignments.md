@@ -18,9 +18,9 @@ CRAM region through JBrowse's alignments display.
 it, so `jbrowse_alignments()` colors, filters, sorts and splits reads as
 JBrowse does:
 
-- `color = list(field = "mapq")`, or
-  `list(field = "insertSize", domain = c(200, 600))`. A bare string such as
-  `color = "purple"` is one constant color.
+- `encoding = list(color = list(field = "mapq"))`, or
+  `list(color = list(field = "insertSize", scale = list(domain = c(200, 600))))`.
+  `list(color = list(value = "purple"))` is one constant color.
 - `filter = list(list(field = "flags.SECONDARY", equal = FALSE), list(field = "tags.HP", equal = "1"))`
   keeps reads by their flags and tags; its `junctions` and `connections`
   pick the splice junctions and read connections drawn:
@@ -29,9 +29,9 @@ JBrowse does:
   position ([a somatic deletion](gallery.md#deletion)).
 - `pileup = list(readHeight = 3)` packs reads compact
   ([compact reads](gallery.md#compact_reads)).
-- `baseColor = list(field = "modifications")` paints MM/ML modification calls
+- `pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications")))` paints MM/ML modification calls
   ([CpG methylation](gallery.md#methylation)).
-- `baseColor = list(field = "bisulfite")` paints the methylation bisulfite or
+- `pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite")))` paints the methylation bisulfite or
   EM-seq reads show against `assembly`, in the context
   `modifications = list(cytosineContext = "CHH")` names
   ([CHH methylation](gallery.md#bisulfite)).

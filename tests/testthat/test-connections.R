@@ -84,8 +84,7 @@ test_that("a chain puts a read's mates and split segments on one row, a hairline
 
 test_that("a chain over an inversion frames the split segments' strands against each other", {
   chained <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
-    "chr1:197,786,900-197,789,700", display = list(unit = "chain",
-      color = list(field = "pairOrientation")))
+    "chr1:197,786,900-197,789,700", display = list(unit = "chain", encoding = list(color = list(field = "pairOrientation"))))
   expect_gt(length(unique(chained$reads$color)), 2)
   expect_true(any(grepl("same strand", chained$keys$reads$label)))
   expect_true(any(grepl("inverted", chained$keys$reads$label)))

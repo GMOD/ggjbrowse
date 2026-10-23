@@ -58,7 +58,7 @@ replace:
 We'll start by reading the reads with their 5mC calls. The `display` list
 holds the alignments track's settings, as a JBrowse track config spells them:
 
-- **`baseColor = list(field = "modifications")`** paints each read with the
+- **`pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications")))`** paints each read with the
   calls its `MM`/`ML` tags hold, as **Color by... → Modifications** does in the
   browser.
 - **`unmodified = "all"`** also returns every CpG the tags left implicit as
@@ -78,9 +78,9 @@ demo <- "https://jbrowse.org/demos/methylation/"
 bam <- paste0(demo, "HG002_SNRPN_5mC_haplotagged.bam")
 locus <- "chr15:24,948,000-24,962,000"
 
-modifications <- list(field = "modifications")
+bases <- list(bases = list(show = TRUE, encoding = list(color = "modifications")))
 reads <- jbrowse_alignments(bam, locus,
-  display = list(baseColor = modifications,
+  display = list(pileup = bases,
     modifications = list(unmodified = "all")))
 ```
 
@@ -115,7 +115,7 @@ We'll facet on the `HP` tag, which `tags.HP` names:
 
 ```{r facet}
 by_haplotype <- jbrowse_alignments(bam, locus,
-  display = list(baseColor = modifications,
+  display = list(pileup = bases,
     modifications = list(unmodified = "all"),
     facet = list(field = "tags.HP")))
 by_haplotype$sections

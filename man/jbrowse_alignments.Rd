@@ -33,24 +33,28 @@ file or contig is refused past 5 million rows in any one table or past
 writes it for a \code{LinearAlignmentsDisplay}, which is what JBrowse's
 "Export R script" passes. Its main slots:
 \itemize{
-\item \code{color}: what fills each read: \code{list(field = "strand")} (or \code{"mapq"},
-\code{"insertSize"}, \code{"pairOrientation"}, \code{"firstOfPairStrand"},
-\code{"tags.XS"}), with optional \code{domain} and \code{range}, e.g.
-\code{list(field = "insertSize", domain = c(200, 600))}; a bare string is
-one constant color, as in a track config; unset fills every read plain
-\item \code{filter}: which reads are kept: any of \code{flagInclude}, \code{flagExclude}
-(1540 by default), \code{readName}, \code{tags} (a list of
-\code{list(tag = , value = )}), \code{spliced}, \code{svSignal} (SV evidence: a split
-read, an insertion or deletion of 50 bp or more, or a discordant pair),
-\code{alone} and \code{split} (each \code{"only"} or \code{"exclude"}); and which
-junctions and connections draw:
-\code{junctions = list(minReads = , nonCanonical = "exclude")},
-\code{connections = list(interchrom = , offscreenMates = , minInterchromReads = )}
-\item \code{baseColor}: the per-base layer painted over the reads:
-\code{list(field = "modifications")} for the reads' MM/ML base
-modifications, \code{list(field = "bisulfite")} for the methylation a
-bisulfite or EM-seq read shows against \code{assembly} (a retained C is
-methylated, a C read as T is not), \code{list(field = "baseQuality")} for
+\item \code{encoding}: what fills each read, its \code{color}:
+\code{list(color = list(field = "strand"))} (or \code{"mapq"}, \code{"insertSize"},
+\code{"pairOrientation"}, \code{"firstOfPairStrand"}, \code{"tags.XS"}), with an
+optional \code{scale} (\code{domain}, \code{range}) and \code{legend} (\code{title}), e.g.
+\code{list(color = list(field = "insertSize", scale = list(domain = c(200, 600))))}; \code{list(color = list(value = "purple"))} is one constant color; unset fills every read plain
+\item \code{filter}: a list of field tests every read, junction or connection
+drawn passes, merged with the defaults by field: a SAM flag by
+samtools' name, \code{list(field = "flags.DUP", equal = FALSE)} (unmapped,
+QC-failed and duplicate reads are dropped by default),
+\code{list(field = "mapq", gte = 20)}, \code{list(field = "name", equal = )},
+\code{list(field = "tags.HP", equal = "1")}, and the read categories
+\code{spliced}, \code{svSignal} (SV evidence: a split read, an insertion or
+deletion of 50 bp or more, or a discordant pair), \code{alone} and \code{split}
+(\code{equal = TRUE} keeps only them, \code{FALSE} drops them); and which
+junctions and connections draw: \code{junction.reads} (\code{gte}, 2 by
+default), \code{junction.canonical}, \code{connection.interchrom},
+\code{connection.offscreen} and \code{breakpoint.reads}
+\item \code{pileup$bases}: the per-base layer painted over the reads,
+\code{list(show = TRUE, encoding = list(color = ))} with \code{"modifications"}
+for the reads' MM/ML base modifications, \code{"bisulfite"} for the
+methylation a bisulfite or EM-seq read shows against \code{assembly} (a
+retained C is methylated, a C read as T is not), or \code{"baseQuality"} for
 each base's Phred score; unset paints none. Under \code{"modifications"} or
 \code{"bisulfite"} the display greys every mismatched base so the calls
 stand out
@@ -141,8 +145,8 @@ empty otherwise, as the display draws none
 \code{position}, \code{read}, \code{type} (the code, \code{m} for 5mC), \code{name},
 \code{probability} (1 for a bisulfite call), \code{unmodified} (whether the
 call is that the base is not modified), and the \code{color} and \code{opacity}
-the display paints it at; empty without \code{display$baseColor}
-\item \code{qualities}: under \code{baseColor} \code{"baseQuality"}, each aligned base:
+the display paints it at; empty without \code{display$pileup$bases}
+\item \code{qualities}: under \code{pileup$bases} \code{"baseQuality"}, each aligned base:
 \code{position}, \code{read}, \code{score} (Phred) and the \code{color} the display
 paints it
 \item \code{coverage}: \code{start}, \code{end}, \code{depth}, \code{forward}, \code{reverse}, over the
@@ -151,7 +155,8 @@ region alone, where the reads reach past it
 as the display stacks it: \code{position}, \code{base}, \code{from} and \code{to} (the
 allele's share of the bar, from the bottom) and the \code{depth} there
 \item \code{modification_coverage}: the band's stack of modification states under
-\code{display$baseColor}: \code{position}, \code{from}, \code{to}, \code{depth}, \code{color}, \code{opacity}
+\code{display$pileup$bases}: \code{position}, \code{from}, \code{to}, \code{depth}, \code{color},
+\code{opacity}
 \item \code{interbase_coverage}: the band's histogram of the reads' insertions,
 soft clips and hard clips at each position, stacked in that order:
 \code{position}, \code{type} (\code{"insertion"}, \code{"softclip"} or \code{"hardclip"}),
@@ -205,7 +210,7 @@ are 0-based, half-open, on the reference.
 bam <- system.file("extdata", "gapdh_direct_rna.bam",
   package = "ggjbrowse")
 a <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
-  display = list(color = list(field = "strand")))
+  display = list(encoding = list(color = list(field = "strand"))))
 head(a$reads)
 a$keys$reads
 }

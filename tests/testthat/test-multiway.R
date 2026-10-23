@@ -82,19 +82,19 @@ test_that("lanes draw in the order given, and a named lane pins its contig", {
 
 test_that("the display's settings color the ribbons", {
   strand <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
-    display = list(ribbonColor = list(field = "strand")))
+    display = list(ribbons = list(encoding = list(color = list(field = "strand")))))
   expect_equal(strand$keys$ribbons$label[1:2],
     c("Same orientation as lane above", "Inverted vs lane above"))
-  expect_equal(strand$display$ribbonColor$field, "strand")
+  expect_equal(strand$display$ribbons$encoding$color$field, "strand")
   grey <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
-    display = list(ribbonColor = "grey"))
+    display = list(ribbons = list(encoding = list(color = list(value = "grey")))))
   expect_equal(unique(as.character(grey$ribbons$color)), "#808080")
   expect_equal(grey$display[c("hideUnlabelled", "bridgeSkippedLanes",
     "splitStrands", "showGeneLabels", "inlineLaneNames", "drawCurves",
     "height")], list(hideUnlabelled = FALSE, bridgeSkippedLanes = TRUE,
     splitStrands = TRUE, showGeneLabels = TRUE, inlineLaneNames = FALSE,
     drawCurves = FALSE, height = 240L))
-  expect_equal(grey$display$ribbonColor$value, "grey")
+  expect_equal(grey$display$ribbons$encoding$color$value, "grey")
   ordered <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     lanes = c("volvox_del", "volvox_ins"))
   expect_equal(unlist(ordered$display$rows$kept), c("volvox_del", "volvox_ins"))
@@ -132,7 +132,7 @@ test_that("an inversion draws as its records state it, its ribbons crossed", {
   inv <- jbrowse_multiway(
     system.file("extdata", "hprc_amylase.paf", package = "ggjbrowse"),
     "chr1:103,500,001-103,900,000", "GRCh38", lanes = "HG00133",
-    display = list(ribbonColor = list(field = "strand")))
+    display = list(ribbons = list(encoding = list(color = list(field = "strand")))))
   expect_true(any(inv$blocks$strand == -1))
   expect_false(any(inv$lanes$flipped))
   expect_true(all(inv$segments$x2 >= inv$segments$x1))

@@ -77,9 +77,10 @@ lane_pin <- function(locus) {
 #'   (`"Chr2:1,000,000"`), `""` pinning nothing; an unnamed entry among
 #'   named ones is a lane pinned nowhere
 #' @param display the display's settings, as a `MultiWaySyntenyDisplay`
-#'   config writes them: a list with any of `ribbonColor` (a CSS color, or
-#'   the color object's slots, such as `list(field = "strand")`,
-#'   `list(field = "identity")` or a declared column), `hideUnlabelled`,
+#'   config writes them: a list with any of `ribbons` (its `encoding$color`,
+#'   `list(value = )` for a CSS color, or a field such as
+#'   `list(field = "strand")`, `list(field = "identity")` or a declared
+#'   column), `hideUnlabelled`,
 #'   `drawCurves`, `bridgeSkippedLanes` and `rows`, which `lanes` writes
 #' @param width the view's pixels, 1,500 as for the linear readers, which set
 #'   each lane's zoom and which ribbons are wide enough to draw
@@ -461,7 +462,7 @@ lane_band <- function(track, x, lane, where) {
 #'   liftover("PonAbe3", "ponAbe3")))
 #' m <- jbrowse_multiway(primates, "chr17:7,400,001-7,700,000", "hg38",
 #'   lanes = c("panTro6", "gorGor6", "ponAbe3"),
-#'   display = list(ribbonColor = list(field = "strand")))
+#'   display = list(ribbons = list(encoding = list(color = list(field = "strand")))))
 #' autoplot(m)
 autoplot.jbrowse_multiway <- function(object, above = NULL, below = NULL,
                                       curves = NULL, ...) {

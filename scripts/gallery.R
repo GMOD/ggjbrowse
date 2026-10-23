@@ -160,7 +160,8 @@ multiway_args <- function(genomes) {
     displays = list(list(type = "MultiWaySyntenyDisplay",
       displayId = "primates-display", height = 300,
       rows = list(sort = I(genomes)),
-      ribbonColor = list(field = "strand")))))), "multiway.config.json")
+      ribbons = list(encoding = list(color = list(field = "strand")))))))),
+    "multiway.config.json")
   c("--config", config, "--assembly", "hg38", "--track", "primates")
 }
 
@@ -210,8 +211,7 @@ jbrowse_stack(genes, reads)
     r = r"-(
 autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
   "chr3:25,358,500-25,359,800",
-  display = list(unit = "chain", readConnections = list(show = TRUE),
-    color = list(field = "strand"), filter = list(list(field = "split", equal = TRUE)))))
+  display = list(unit = "chain", readConnections = list(show = TRUE), encoding = list(color = list(field = "strand")), filter = list(list(field = "split", equal = TRUE)))))
 )-"),
   deletion = list(
     caption = "Coverage halves across the deletion, and the reads sorted to the top span it with dark deletion bars, each labelled with its length.",
@@ -259,8 +259,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
     r = r"-(
 autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
   "chr1:197,786,900-197,789,700",
-  display = list(unit = "chain", readConnections = list(show = TRUE),
-    color = list(field = "pairOrientation"), facet = list(field = "split"),
+  display = list(unit = "chain", readConnections = list(show = TRUE), encoding = list(color = list(field = "pairOrientation")), facet = list(field = "split"),
     coverage = list(height = 80))))
 )-"),
   methylation = list(
@@ -272,7 +271,7 @@ autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
     r = r"-(
 autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
   assembly = e("hg38_clip.fa"),
-  display = list(baseColor = list(field = "modifications"),
+  display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications"))),
     modifications = list(unmodified = "all"))))
 )-"),
   bisulfite = list(
@@ -296,7 +295,7 @@ methyldackel <- list(type = "MultiWiggleAdapter",
       uri = e(sprintf("arabidopsis_methyldackel_%s.bw", context))))))
 reads <- jbrowse_alignments(e("arabidopsis_wgbs.bam"), locus,
   assembly = e("arabidopsis_tair10.fa.gz"),
-  display = list(baseColor = list(field = "bisulfite"),
+  display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
     modifications = list(cytosineContext = "CHH")))
 jbrowse_stack(`RefSeq genes` = genes, RepeatMasker = repeats,
   MethylDackel = jbrowse_wiggle(methyldackel, locus), `CHH reads` = reads)
@@ -362,7 +361,7 @@ loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
 genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci)
 signal <- jbrowse_wiggle(e("gapdh_phylop100way.bw"), loci)
 reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
-  display = list(color = list(field = "strand")))
+  display = list(encoding = list(color = list(field = "strand"))))
 jbrowse_stack(genes, signal, reads)
 )-"),
   amino_acids = list(
@@ -436,7 +435,7 @@ exons <- data.frame(chrom = exon$V1, start = exon$V4 - 1 - 20,
   end = exon$V5 + 20)
 genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), exons)
 reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), exons,
-  display = list(color = list(field = "strand")))
+  display = list(encoding = list(color = list(field = "strand"))))
 jbrowse_stack(genes, reads)
 )-"),
   inversion_synteny = list(
@@ -451,7 +450,7 @@ jbrowse_stack(genes, reads)
 r <- "5,250,001-14,250,000"
 autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   paste0("chr8_PATERNAL:", r),
-  display = list(color = list(field = "strand")), swap = TRUE,
+  display = list(encoding = list(color = list(field = "strand"))), swap = TRUE,
   labels = c(query = "paternal", target = "maternal")))
 )-"),
   inversion_dotplot = list(
@@ -463,7 +462,7 @@ autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
       "--colorBy", "strand"),
     r = r"-(
 autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
-  display = list(color = list(field = "strand")), swap = TRUE,
+  display = list(encoding = list(color = list(field = "strand"))), swap = TRUE,
   labels = c(query = "paternal", target = "maternal")))
 )-"),
   whole_genome = list(
@@ -492,7 +491,7 @@ autoplot(jbrowse_dotplot(e("peach_grape.paf.gz"),
 autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,520,894-103,832,637",
   "HG00133#1#CM090045.1:103,669,666-103,981,330",
-  display = list(color = list(field = "strand")),
+  display = list(encoding = list(color = list(field = "strand"))),
   labels = c(query = "GRCh38", target = "HG00133")))
 )-"),
   amylase_zoom = list(
@@ -510,7 +509,7 @@ autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
 autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,619,501-103,622,500",
   "HG00133#1#CM090045.1:103,768,401-103,771,400",
-  display = list(color = list(field = "strand")),
+  display = list(encoding = list(color = list(field = "strand"))),
   labels = c(query = "GRCh38", target = "HG00133")))
 )-"),
   synteny_genes = list(
@@ -522,7 +521,7 @@ autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
 r <- "5,250,001-14,250,000"
 s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   paste0("chr8_PATERNAL:", r),
-  display = list(color = list(field = "strand")), swap = TRUE,
+  display = list(encoding = list(color = list(field = "strand"))), swap = TRUE,
   labels = c(query = "paternal", target = "maternal"))
 gene_track <- function(file, contig) jbrowse_features(e(file),
   paste0(contig, ":", r),

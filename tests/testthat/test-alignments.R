@@ -247,7 +247,7 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   expect_equal(nrow(plain$modifications), 0)
   m <- jbrowse_alignments(bam, "20:10,001-20,000",
     assembly = extdata("hg38_clip.fa"),
-    display = list(baseColor = list(field = "modifications")))
+    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications")))))
   expect_gt(nrow(m$modifications), 100)
   expect_setequal(unique(m$modifications$name), "5mC")
   expect_equal(on_axis(m)$modifications$row,
@@ -262,11 +262,11 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   expect_equal(nrow(p$data[[6]]), nrow(m$modifications))
   expect_true(all(p$data[[6]]$fill %in% m$keys$reads$color))
   calls <- jbrowse_alignments(bam, "20:10,001-20,000",
-    display = list(baseColor = list(field = "modifications"),
+    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications"))),
       modifications = list(unmodified = "calls")))
   expect_gt(sum(calls$modifications$unmodified), 0)
   every <- jbrowse_alignments(bam, "20:10,001-20,000",
-    display = list(baseColor = list(field = "modifications"),
+    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications"))),
       modifications = list(unmodified = "all")))
   expect_gt(sum(every$modifications$unmodified),
     10 * sum(calls$modifications$unmodified))
@@ -281,7 +281,7 @@ test_that("modification coloring greys the mismatched bases and drops their key"
     unique(as.character(c(plain$mismatches$color,
       plain$allele_coverage$color))))
   m <- jbrowse_alignments(bam, "20:10,001-12,000", assembly = fa,
-    display = list(baseColor = list(field = "modifications")))
+    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications")))))
   expect_gt(nrow(m$mismatches), 0)
   expect_setequal(as.character(m$mismatches$color), "#888888")
   expect_setequal(as.character(m$allele_coverage$color), "#888888")
@@ -293,7 +293,7 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   fa <- extdata("arabidopsis_tair10.fa.gz")
   locus <- "NC_003070.9:4,406,001-4,408,000"
   bisulfite <- function(modifications = NULL) jbrowse_alignments(bam, locus,
-    assembly = fa, display = list(baseColor = list(field = "bisulfite"),
+    assembly = fa, display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
       modifications = modifications))
   cg <- bisulfite()
   expect_gt(nrow(cg$modifications), 100)
@@ -320,13 +320,13 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   p <- ggplot2::ggplot_build(ggplot2::autoplot(cg, "pileup"))
   expect_true(any(vapply(p$data, nrow, 0) == nrow(cg$modifications)))
   expect_error(jbrowse_alignments(bam, locus,
-    display = list(baseColor = list(field = "bisulfite"))), "reference")
+    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))))), "reference")
 })
 
 test_that("base quality paints each aligned base on its read, keyed as a bar", {
   bam <- extdata("methylation_clip.bam")
   q <- jbrowse_alignments(bam, "20:10,001-10,300",
-    display = list(baseColor = list(field = "baseQuality")))
+    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "baseQuality")))))
   expect_gt(nrow(q$qualities), 1000)
   expect_equal(on_axis(q)$qualities$row,
     of(q$qualities, q$reads, "read")$row)
@@ -453,7 +453,7 @@ test_that("every mark takes the engine's color, and every key the browser's word
 
 test_that("reads fill as the display's color object paints them, with its key", {
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
-    display = list(color = list(field = "strand")))
+    display = list(encoding = list(color = list(field = "strand"))))
   expect_equal(attr(s$keys$reads, "title"), "Read colors")
   expect_equal(s$keys$reads$label, c("Forward strand", "Reverse strand"))
   expect_equal(unique(s$reads$color[s$reads$strand == 1]), s$keys$reads$color[1])
@@ -463,13 +463,14 @@ test_that("reads fill as the display's color object paints them, with its key", 
   expect_setequal(unique(p$data[[1]]$fill), s$keys$reads$color)
 
   own <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
-    display = list(color = list(field = "strand",
-      range = c("#ff0000", "#0000ff"), title = "Mine")))
+    display = list(encoding = list(color = list(field = "strand",
+      scale = list(range = c("#ff0000", "#0000ff")),
+      legend = list(title = "Mine")))))
   expect_equal(unique(own$reads$color[own$reads$strand == 1]), "#ff0000")
   expect_equal(attr(own$keys$reads, "title"), "Mine")
 
   m <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
-    display = list(color = list(field = "mapq")))
+    display = list(encoding = list(color = list(field = "mapq"))))
   expect_equal(attr(m$keys$reads, "title"), "Mapping quality")
   expect_true(all(m$reads$color %in% m$keys$reads$color))
   expect_equal(unique(m$reads$category), "mapq")
@@ -605,8 +606,7 @@ test_that("reads draw at the display's read height, and the pileup band is as ta
 
 test_that("a short pileup's figure is still tall enough for its keys", {
   r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-1,400",
-    display = list(pileup = list(readHeight = 1),
-      color = list(field = "strand")))
+    display = list(pileup = list(readHeight = 1), encoding = list(color = list(field = "strand"))))
   fig <- jbrowse_stack(r)
   bands <- sum(fig$patches$layout$heights) / 150 + 0.86
   expect_lt(bands, 2)
@@ -618,7 +618,7 @@ test_that("a short pileup's figure is still tall enough for its keys", {
 test_that("a base modification call draws at least a display pixel wide", {
   m <- jbrowse_alignments(extdata("methylation_clip.bam"), "20:10,001-22,000",
     assembly = extdata("hg38_clip.fa"),
-    display = list(baseColor = list(field = "modifications")))
+    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications")))))
   d <- ggplot2::layer_data(ggplot2::ggplot(m) + geom_jbrowse_modifications(), 1)
   expect_true(all(d$xmax - d$xmin >= 12000 / 1500 - 1e-9))
 })
@@ -657,7 +657,7 @@ test_that("an empty display slot reads as the display's defaults", {
   fa <- extdata("arabidopsis_tair10.fa.gz")
   locus <- "NC_003070.9:4,406,001-4,407,000"
   read <- function(modifications) jbrowse_alignments(bam, locus,
-    assembly = fa, display = list(baseColor = list(field = "bisulfite"),
+    assembly = fa, display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
       modifications = modifications))
   expect_equal(read(list())$modifications, read(NULL)$modifications)
 })
@@ -670,8 +670,7 @@ test_that("the sequence band asks for the reference it draws", {
 
 test_that("every section keys the track's read colors, insertions and clips", {
   a <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
-    "chr1:197,786,900-197,789,700", display = list(unit = "chain",
-      color = list(field = "pairOrientation"), facet = list(field = "split")))
+    "chr1:197,786,900-197,789,700", display = list(unit = "chain", encoding = list(color = list(field = "pairOrientation")), facet = list(field = "split")))
   flat <- function(p) c(if (inherits(p, "patchwork"))
     unlist(lapply(p$patches$plots, flat), recursive = FALSE), list(p))
   keyed <- lapply(flat(autoplot(a)), function(p)

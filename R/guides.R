@@ -49,7 +49,7 @@ drawn_keys <- function(x) {
 #' bam <- system.file("extdata", "gapdh_direct_rna.bam",
 #'   package = "ggjbrowse")
 #' a <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700",
-#'   display = list(color = list(field = "strand")))
+#'   display = list(encoding = list(color = list(field = "strand"))))
 #' library(ggplot2)
 #' ggplot(a) + geom_jbrowse_reads() + guides_jbrowse(a, "reads") +
 #'   scale_y_reverse()

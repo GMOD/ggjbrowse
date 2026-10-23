@@ -90,8 +90,8 @@ test_that("the display's keys are guides, which an edit to the key relabels", {
   expect_length(drawn_guides(ggplot(bam) + geom_jbrowse_mismatches() +
     guides_jbrowse(bam, "nope")), 0)
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-3,000",
-    display = list(color = list(field = "strand",
-      range = c("#FF0000", "#0000FF"))))
+    display = list(encoding = list(color = list(field = "strand",
+      scale = list(range = c("#FF0000", "#0000FF"))))))
   expect_setequal(unique(s$reads$color), c("#ff0000", "#0000ff"))
   key <- drawn_guides(ggplot(s) + geom_jbrowse_reads() +
     guides_jbrowse(s, "reads"))[[1]]

@@ -41,9 +41,10 @@ picker does, to a contig (\code{"Chr2"}) or a position on one
 named ones is a lane pinned nowhere}
 
 \item{display}{the display's settings, as a \code{MultiWaySyntenyDisplay}
-config writes them: a list with any of \code{ribbonColor} (a CSS color, or
-the color object's slots, such as \code{list(field = "strand")},
-\code{list(field = "identity")} or a declared column), \code{hideUnlabelled},
+config writes them: a list with any of \code{ribbons} (its \code{encoding$color},
+\code{list(value = )} for a CSS color, or a field such as
+\code{list(field = "strand")}, \code{list(field = "identity")} or a declared
+column), \code{hideUnlabelled},
 \code{drawCurves}, \code{bridgeSkippedLanes} and \code{rows}, which \code{lanes} writes}
 
 \item{width}{the view's pixels, 1,500 as for the linear readers, which set

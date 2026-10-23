@@ -40,6 +40,6 @@ primates <- list(type = "MultiPairwiseSyntenyAdapter", adapters = list(
   liftover("PonAbe3", "ponAbe3")))
 m <- jbrowse_multiway(primates, "chr17:7,400,001-7,700,000", "hg38",
   lanes = c("panTro6", "gorGor6", "ponAbe3"),
-  display = list(ribbonColor = list(field = "strand")))
+  display = list(ribbons = list(encoding = list(color = list(field = "strand")))))
 autoplot(m)
 }

@@ -411,7 +411,7 @@ and the bottom row is the contig:
 sources <- c("chr3:25,326,821-25,359,568", "chr10:58,717,463-58,717,662",
   "chr12:72,273,111-72,273,294")
 allele <- jbrowse_synteny(der3, sources, contig, swap = TRUE, width = 1200,
-  display = list(color = list(field = "strand")),
+  display = list(encoding = list(color = list(field = "strand"))),
   labels = c(query = "der(3) contig", target = "GRCh38"))
 autoplot(allele)
 ```
@@ -423,7 +423,7 @@ own:
 zoom <- jbrowse_synteny(der3, c("chr3:25,358,900-25,359,700",
   "chr10:58,717,300-58,717,720", "chr12:72,273,000-72,273,400"),
   paste0(contig, ":32,300-33,400"), swap = TRUE, width = 1200,
-  display = list(color = list(field = "strand")),
+  display = list(encoding = list(color = list(field = "strand"))),
   labels = c(query = "der(3) contig", target = "GRCh38"))
 autoplot(zoom)
 ```

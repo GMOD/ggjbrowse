@@ -33,9 +33,9 @@ test_that("the display's settings reach the tables", {
     display = list(filter = "geneLike"))
   expect_true(all(genes$features$gene))
   typed <- jbrowse_features(gff, "ctgA:1-25,000",
-    display = list(color = list(field = "type")))
+    display = list(encoding = list(color = list(field = "type"))))
   purple <- jbrowse_features(gff, "ctgA:1-25,000",
-    display = list(color = "purple"))
+    display = list(encoding = list(color = list(value = "purple"))))
   expect_equal(unique(as.character(purple$rects$color)), "#800080")
   expect_gt(nrow(typed$keys$features), 1)
   expect_true(all(typed$keys$features$color %in% typed$rects$color))
@@ -43,9 +43,9 @@ test_that("the display's settings reach the tables", {
 })
 
 test_that("an identity key lists every domain color, drawn or not, as the browser does", {
-  keyed <- jbrowse_features(gff, "ctgA:1-25,000", display = list(color = list(
-    scale = "identity", domain = c("goldenrod", "purple"),
-    labels = c("Drawn", "Not drawn"))))
+  keyed <- jbrowse_features(gff, "ctgA:1-25,000", display = list(encoding = list(color = list(
+    scale = list(type = "identity", domain = c("goldenrod", "purple"),
+      names = c("Drawn", "Not drawn"))))))
   expect_false("#800080" %in% keyed$rects$color)
   expect_equal(keyed$keys$features$label, c("Drawn", "Not drawn"))
   guide <- drawn_guides(ggplot2::autoplot(keyed))[[1]]

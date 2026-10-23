@@ -114,7 +114,7 @@ table to draw otherwise:
 \itemize{
 \item \code{geom_jbrowse_reads()}: each read on its pileup row, split at its splice
 gaps
-\item \code{geom_jbrowse_qualities()}: under \code{baseColor} \code{"baseQuality"}, each
+\item \code{geom_jbrowse_qualities()}: under \code{pileup$bases} \code{"baseQuality"}, each
 aligned base in its quality's color; \code{aes(fill = score)} maps the Phred
 score through a scale of your own
 \item \code{geom_jbrowse_skips()}, \code{geom_jbrowse_deletions()}: the splice gaps'

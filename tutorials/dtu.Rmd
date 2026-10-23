@@ -283,7 +283,7 @@ atp5f1c |>
 section: Coloring each isoform by its usage change
 title: Coloring each isoform by its usage change
 only:
-  - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms, `color` is a\ncolor scale"
+  - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms,\n`encoding.color` is a color scale"
   - "- The key lists every interval"
 drop_lines:
   - "Clicking an isoform opens its numbers"

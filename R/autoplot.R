@@ -266,7 +266,7 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #' e <- function(f) system.file("extdata", f, package = "ggjbrowse")
 #' a <- jbrowse_alignments(e("gapdh_direct_rna.bam"),
 #'   "chr12:6,534,201-6,538,700",
-#'   display = list(color = list(field = "strand")))
+#'   display = list(encoding = list(color = list(field = "strand"))))
 #' autoplot(a)
 #' autoplot(a, "coverage") + ggplot2::theme_classic()
 autoplot.jbrowse_alignments <- function(object,

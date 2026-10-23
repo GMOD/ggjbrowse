@@ -63,7 +63,7 @@ with_inset <- function(d, model) {
 #'
 #' * `geom_jbrowse_reads()`: each read on its pileup row, split at its splice
 #'   gaps
-#' * `geom_jbrowse_qualities()`: under `baseColor` `"baseQuality"`, each
+#' * `geom_jbrowse_qualities()`: under `pileup$bases` `"baseQuality"`, each
 #'   aligned base in its quality's color; `aes(fill = score)` maps the Phred
 #'   score through a scale of your own
 #' * `geom_jbrowse_skips()`, `geom_jbrowse_deletions()`: the splice gaps'
