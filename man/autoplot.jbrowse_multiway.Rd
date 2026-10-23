@@ -13,7 +13,8 @@
 result or a list of them; a lane drawn flipped takes none}
 
 \item{curves}{draw each ribbon edge as a curve, as the display's
-\code{drawCurves} does; unset, as the result's settings say}
+\code{ribbons = list(mark = list(interpolate = "bump"))} does; unset, as the
+result's settings say}
 
 \item{...}{must be empty, so a misspelt argument errors}
 }

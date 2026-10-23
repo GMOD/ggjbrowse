@@ -90,10 +90,11 @@ test_that("the display's settings color the ribbons", {
     display = list(ribbons = list(encoding = list(color = list(value = "grey")))))
   expect_equal(unique(as.character(grey$ribbons$color)), "#808080")
   expect_equal(grey$display[c("hideUnlabelled", "bridgeSkippedLanes",
-    "splitStrands", "showGeneLabels", "inlineLaneNames", "drawCurves",
-    "height")], list(hideUnlabelled = FALSE, bridgeSkippedLanes = TRUE,
+    "splitStrands", "showGeneLabels", "inlineLaneNames", "height")],
+    list(hideUnlabelled = FALSE, bridgeSkippedLanes = TRUE,
     splitStrands = TRUE, showGeneLabels = TRUE, inlineLaneNames = FALSE,
-    drawCurves = FALSE, height = 240L))
+    height = 240L))
+  expect_equal(grey$display$ribbons$mark$interpolate, "linear")
   expect_equal(grey$display$ribbons$encoding$color$value, "grey")
   ordered <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     lanes = c("volvox_del", "volvox_ins"))
@@ -124,6 +125,9 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   expect_equal(xlim, c(0, m$width), tolerance = 1e-6)
   curved <- ggplot2::layer_data(autoplot(m, curves = TRUE), 1)
   expect_gt(nrow(curved), nrow(polygons))
+  bumped <- m
+  bumped$display$ribbons$mark$interpolate <- "bump"
+  expect_equal(nrow(ggplot2::layer_data(autoplot(bumped), 1)), nrow(curved))
 })
 
 # The PAF is reference-anchored: HG01361 aligns to GRCh38 alone, so a lane

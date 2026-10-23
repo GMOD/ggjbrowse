@@ -80,8 +80,8 @@ lane_pin <- function(locus) {
 #'   config writes them: a list with any of `ribbons` (its `encoding$color`,
 #'   `list(value = )` for a CSS color, or a field such as
 #'   `list(field = "strand")`, `list(field = "identity")` or a declared
-#'   column), `hideUnlabelled`,
-#'   `drawCurves`, `bridgeSkippedLanes` and `rows`, which `lanes` writes
+#'   column, and its `mark$interpolate`, `"bump"` for curved sides),
+#'   `hideUnlabelled`, `bridgeSkippedLanes` and `rows`, which `lanes` writes
 #' @param width the view's pixels, 1,500 as for the linear readers, which set
 #'   each lane's zoom and which ribbons are wide enough to draw
 #' @param index the tabix or CSI index of a `.pif.gz`, if not beside it
@@ -301,8 +301,9 @@ multiway_feet <- function(r) {
 #' @param data a [jbrowse_multiway()] result, `NULL` for the plot's,
 #'   or a data frame in place of the table the geom draws from the plot's
 #'   result, such as a filtered copy of it
-#' @param curves draw each ribbon edge as the display's `drawCurves` does,
-#'   unset as the result's settings say
+#' @param curves draw each ribbon edge as the display's
+#'   `ribbons = list(mark = list(interpolate = "bump"))` does, unset as the
+#'   result's settings say
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a list of ggplot layers
 #' @export
@@ -322,7 +323,9 @@ multiway_feet <- function(r) {
 geom_jbrowse_lane_ribbons <- function(mapping = NULL, data = NULL,
                                       curves = NULL, ...) {
   data <- replacing(data, "ribbons", "geom_jbrowse_lane_ribbons")
-  curved <- function(x) curves %||% isTRUE(x$display$drawCurves)
+  curved <- function(x) {
+    curves %||% identical(x$display$ribbons$mark$interpolate, "bump")
+  }
   filled <- function(x) {
     r <- x$ribbons[!x$ribbons$thin, , drop = FALSE]
     ribbon_polygons(r, curved(x), multiway_feet(r))
@@ -446,7 +449,8 @@ lane_band <- function(track, x, lane, where) {
 #' @param above,below tracks over the anchor lane and over the bottom lane, a
 #'   result or a list of them; a lane drawn flipped takes none
 #' @param curves draw each ribbon edge as a curve, as the display's
-#'   `drawCurves` does; unset, as the result's settings say
+#'   `ribbons = list(mark = list(interpolate = "bump"))` does; unset, as the
+#'   result's settings say
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot of the stack alone, or with tracks a patchwork, whose
 #'   height and width [jbrowse_height()] and [jbrowse_width()] measure

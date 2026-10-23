@@ -16,8 +16,9 @@ geom_jbrowse_lanes(data = NULL, ...)
 or a data frame in place of the table the geom draws from the plot's
 result, such as a filtered copy of it}
 
-\item{curves}{draw each ribbon edge as the display's \code{drawCurves} does,
-unset as the result's settings say}
+\item{curves}{draw each ribbon edge as the display's
+\code{ribbons = list(mark = list(interpolate = "bump"))} does, unset as the
+result's settings say}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 }

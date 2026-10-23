@@ -44,8 +44,8 @@ named ones is a lane pinned nowhere}
 config writes them: a list with any of \code{ribbons} (its \code{encoding$color},
 \code{list(value = )} for a CSS color, or a field such as
 \code{list(field = "strand")}, \code{list(field = "identity")} or a declared
-column), \code{hideUnlabelled},
-\code{drawCurves}, \code{bridgeSkippedLanes} and \code{rows}, which \code{lanes} writes}
+column, and its \code{mark$interpolate}, \code{"bump"} for curved sides),
+\code{hideUnlabelled}, \code{bridgeSkippedLanes} and \code{rows}, which \code{lanes} writes}
 
 \item{width}{the view's pixels, 1,500 as for the linear readers, which set
 each lane's zoom and which ribbons are wide enough to draw}
