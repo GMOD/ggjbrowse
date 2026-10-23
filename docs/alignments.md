@@ -60,7 +60,7 @@ The engine decides what each band shows, and `a$display` holds the
 resolved config it decided from:
 
 - Every mark comes back with the `color` the display paints it, and
-  `a$keys` with the browser's keys and titles, such as "Splice junctions".
+  `a$keys` with the browser's keys and titles, such as "Sashimi arcs".
 - `junctions$shown` marks the arcs the sashimi band draws, by
   `filter$junctions`. Each arc rises to its `arcHeight` share of the band and
   strokes `strokeWidth` px, which R draws at 150 px an inch.
