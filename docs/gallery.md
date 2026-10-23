@@ -42,7 +42,7 @@ jbrowse_stack(genes, reads)
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --gffgz inst/extdata/gapdh_gencode.gff3.gz \
-  --bam inst/extdata/gapdh_direct_rna.bam showLegend=true heightMode:grow growMaxHeight=2000 \
+  --bam inst/extdata/gapdh_direct_rna.bam legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc chr12:6,534,201-6,538,700 \
   --width 1200 --out genes_and_reads.png
 ```
@@ -67,7 +67,7 @@ autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
 
 ```sh
 jb2export --hub hg38 \
-  --bam inst/extdata/colo829_tumor_chr3.bam showLegend=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain color.field=strand filter.split=only \
+  --bam inst/extdata/colo829_tumor_chr3.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain encoding.color.field=strand filter.split=only \
   --loc chr3:25,358,500-25,359,800 \
   --width 1200 --out long_reads_sv.png
 ```
@@ -92,7 +92,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 
 ```sh
 jb2export --hub hg38 \
-  --bam inst/extdata/hg008t_cuzd1_deletion.bam showLegend=true heightMode:grow growMaxHeight=2000 sort:base \
+  --bam inst/extdata/hg008t_cuzd1_deletion.bam legend.show=true heightMode:grow growMaxHeight=2000 sort:base \
   --loc chr10:122,831,700-122,840,800 \
   --width 1200 --out deletion.png
 ```
@@ -118,7 +118,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 
 ```sh
 jb2export --hub hg38 \
-  --bam inst/extdata/hg008t_cuzd1_deletion.bam showLegend=true heightMode:grow growMaxHeight=2000 sort:base featureHeight:compact \
+  --bam inst/extdata/hg008t_cuzd1_deletion.bam legend.show=true heightMode:grow growMaxHeight=2000 sort:base featureHeight:compact \
   --loc chr10:122,831,700-122,840,800 \
   --width 1200 --out compact_reads.png
 ```
@@ -143,7 +143,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 
 ```sh
 jb2export --hub hg38 \
-  --bam inst/extdata/hg008t_cuzd1_deletion.bam showLegend=true heightMode:grow growMaxHeight=2000 sort:base \
+  --bam inst/extdata/hg008t_cuzd1_deletion.bam legend.show=true heightMode:grow growMaxHeight=2000 sort:base \
   --loc chr10:122,835,300-122,835,420 \
   --width 1200 --out base_zoom.png
 ```
@@ -169,7 +169,7 @@ autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
 
 ```sh
 jb2export --hub hg38 \
-  --bam inst/extdata/hg00151_chr1_inversion.bam showLegend=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain color.field=pairOrientation facet=split coverage.height=80 \
+  --bam inst/extdata/hg00151_chr1_inversion.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain encoding.color.field=pairOrientation facet=split coverage.height=80 \
   --loc chr1:197,786,900-197,789,700 \
   --width 1200 --out inversion.png
 ```
@@ -195,7 +195,7 @@ autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
 
 ```sh
 jb2export --fasta inst/extdata/hg38_clip.fa \
-  --bam inst/extdata/methylation_clip.bam baseColor:methylation showLegend=true heightMode:grow growMaxHeight=2000 \
+  --bam inst/extdata/methylation_clip.bam baseColor:methylation legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc 20:10,001-22,000 \
   --width 1200 --out methylation.png
 ```
@@ -232,8 +232,8 @@ jbrowse_stack(`RefSeq genes` = genes, RepeatMasker = repeats,
 jb2export --fasta inst/extdata/arabidopsis_tair10.fa.gz \
   --bigbed inst/extdata/arabidopsis_refseq.bb 'name:RefSeq genes' \
   --bigbed inst/extdata/arabidopsis_rmsk.bb name:RepeatMasker \
-  --multiwig gallery/jb2export/methyldackel.json name:MethylDackel showLegend=true \
-  --bam inst/extdata/arabidopsis_wgbs.bam baseColor:bisulfite modifications.cytosineContext=CHH showLegend=true heightMode:grow growMaxHeight=2000 \
+  --multiwig gallery/jb2export/methyldackel.json name:MethylDackel legend.show=true \
+  --bam inst/extdata/arabidopsis_wgbs.bam baseColor:bisulfite modifications.cytosineContext=CHH legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc NC_003070.9:4,398,001-4,412,000 \
   --width 1200 --out bisulfite.png
 ```
@@ -261,7 +261,7 @@ autoplot(jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000"))
 
 ```sh
 jb2export --hub hg38 \
-  --multiwig gallery/jb2export/dnase.json showLegend=true name:DNase \
+  --multiwig gallery/jb2export/dnase.json legend.show=true name:DNase \
   --loc chr11:5,270,001-5,320,000 \
   --width 1200 --out dnase_rows.png
 ```
@@ -292,7 +292,7 @@ autoplot(w)
 
 ```sh
 jb2export --hub hg38 \
-  --multiwig gallery/jb2export/dnase.json showLegend=true name:DNase mark=span runClustering=true \
+  --multiwig gallery/jb2export/dnase.json legend.show=true name:DNase mark=span runClustering=true \
   --loc chr11:5,270,001-5,320,000 \
   --width 1200 --out dnase_clustered.png
 ```
@@ -322,7 +322,7 @@ patchwork::wrap_plots(ncol = 1,
 
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
-  --bigwig inst/extdata/gapdh_phylop100way.bw showLegend=true \
+  --bigwig inst/extdata/gapdh_phylop100way.bw legend.show=true \
   --bigwig inst/extdata/gapdh_phylop100way.bw mark.type=line mark.interpolate=linear \
   --bigwig inst/extdata/gapdh_phylop100way.bw mark=span \
   --loc chr12:6,534,201-6,538,700 \
@@ -353,8 +353,8 @@ jbrowse_stack(genes, signal, reads)
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --gffgz inst/extdata/gapdh_gencode.gff3.gz \
-  --bigwig inst/extdata/gapdh_phylop100way.bw showLegend=true \
-  --bam inst/extdata/gapdh_direct_rna.bam showLegend=true heightMode:grow growMaxHeight=2000 color.field=strand \
+  --bigwig inst/extdata/gapdh_phylop100way.bw legend.show=true \
+  --bam inst/extdata/gapdh_direct_rna.bam legend.show=true heightMode:grow growMaxHeight=2000 encoding.color.field=strand \
   --loc 'chr12:6,534,201-6,535,700 chr12:6,537,201-6,538,700' \
   --width 1200 --out two_regions.png
 ```
@@ -500,7 +500,7 @@ jbrowse_stack(genes, reads)
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --gffgz inst/extdata/gapdh_gencode.gff3.gz \
-  --bam inst/extdata/gapdh_direct_rna.bam sashimi:auto color.field=strand showLegend=true heightMode:grow growMaxHeight=2000 \
+  --bam inst/extdata/gapdh_direct_rna.bam sashimi:auto encoding.color.field=strand legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc 'chr12:6534497-6534589 chr12:6534790-6534881 chr12:6536474-6536613 chr12:6536664-6536810 chr12:6536900-6537030 chr12:6537081-6537236 chr12:6537289-6537410 chr12:6537564-6538016 chr12:6538081-6538391' \
   --width 1200 --out collapsed_introns.png
 ```
@@ -700,7 +700,7 @@ primates <- list(type = "MultiPairwiseSyntenyAdapter", adapters = list(
   liftover("PonAbe3", "ponAbe3")))
 autoplot(jbrowse_multiway(primates, "chr17:7,400,001-7,700,000", "hg38",
   lanes = c("panTro6", "gorGor6", "ponAbe3"),
-  display = list(ribbons = list(encoding = list(color = list(field = "strand")))))))
+  display = list(ribbonColor = list(field = "strand"))))
 ```
 
 ```sh

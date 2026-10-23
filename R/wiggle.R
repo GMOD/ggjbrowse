@@ -18,12 +18,13 @@
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearWiggleDisplay`: a list with any of `mark`
 #'   (`"bar"`, `"line"`, `"point"`, or `"span"` for density, or
-#'   `list(type =, interpolate =)` with `"step"` or `"linear"` for a line), `y`
-#'   (`"score"`, `"minScore"` or `"maxScore"`,
-#'   which of a zoom bin's stored mean, minimum and maximum is plotted),
-#'   `extent` (`"min-max"` or `"none"`), `origin`, `color` (a CSS color, or a
-#'   list of the color object's slots) and `scales` (`list(y = list(type =,
-#'   domainMin =, domainMax =, domainQuantile =, zero =, rules =))`)
+#'   `list(type =, interpolate =)` with `"step"` or `"linear"` for a line),
+#'   `extent` (`"min-max"` or `"none"`), `origin` and `encoding`: its `color`
+#'   (`list(value =)` for one CSS color, or the color object's slots) and its
+#'   `y`, `list(field =, scale = list(type =, domainMin =, domainMax =,
+#'   fenceQuantile =, zero =), rules =)`, whose `field` (`"score"`,
+#'   `"minScore"` or `"maxScore"`) is which of a zoom bin's stored mean,
+#'   minimum and maximum is plotted
 #' @param width the width in pixels the display draws the region across,
 #'   which picks the BigWig zoom level that answers and so each bin's width
 #' @param assembly a [jbrowse_assembly()], an assembly as a JBrowse config's
@@ -42,7 +43,7 @@
 #'   * `sources`: `name`, `label`, `group`, `color`; `bins` and `marks` name
 #'     their source by `name`, and assigning `sources` drops the bins and
 #'     marks of the sources it leaves out
-#'   * `rules`: the reference lines `scales$y$rules` draws
+#'   * `rules`: the reference lines `encoding$y$rules` draws
 #'
 #'   `y_scale` is the score axis the display autoscales to, `ramps` the
 #'   score's color bar where one ramp paints every row (density, or a
@@ -109,8 +110,8 @@ as.matrix.jbrowse_wiggle <- function(x, ...) {
   columns <- pmax(0, floor((r$end - r$start) * per_px))
   offset <- cumsum(c(0, columns))[seq_along(columns)]
   b <- x$bins[x$bins$source %in% x$sources$name, , drop = FALSE]
-  value <- switch(x$display$y, minScore = b$min, maxScore = b$max,
-    b$score) %||% b$score
+  value <- switch(x$display$encoding$y$field, minScore = b$min,
+    maxScore = b$max, b$score) %||% b$score
   i <- b$region
   from <- pmax(0, trunc((b$start - r$start[i]) * per_px))
   to <- pmin(columns[i], pmax(trunc((b$end - r$start[i]) * per_px), from + 1))
@@ -163,7 +164,7 @@ score_transform <- function(scale) {
 #' bw <- system.file("extdata", "gapdh_phylop100way.bw",
 #'   package = "ggjbrowse")
 #' w <- jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700",
-#'   display = list(scales = list(y = list(type = "symlog"))))
+#'   display = list(encoding = list(y = list(scale = list(type = "symlog")))))
 #' library(ggplot2)
 #' ggplot(w) + geom_jbrowse_wiggle() + scale_y_jbrowse(w)
 scale_y_jbrowse <- function(object, ...) {
@@ -221,7 +222,7 @@ cut_at_origin <- function(d, origin) {
 #' whisker band, points, or density, each in the display's color. Map
 #' `score`, `source` or any other column of the marks table to draw it your
 #' own way. A line breaks into the `run`s the display breaks it into.
-#' `geom_jbrowse_rules()` draws the reference lines `scales$y$rules`
+#' `geom_jbrowse_rules()` draws the reference lines `encoding$y$rules`
 #' declares, each labelled above its line as the display labels it.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_wiggle()] result, `NULL` for the plot's,

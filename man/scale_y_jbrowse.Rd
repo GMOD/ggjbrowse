@@ -22,7 +22,7 @@ symlog around the display's constant.
 bw <- system.file("extdata", "gapdh_phylop100way.bw",
   package = "ggjbrowse")
 w <- jbrowse_wiggle(bw, "chr12:6,534,201-6,538,700",
-  display = list(scales = list(y = list(type = "symlog"))))
+  display = list(encoding = list(y = list(scale = list(type = "symlog")))))
 library(ggplot2)
 ggplot(w) + geom_jbrowse_wiggle() + scale_y_jbrowse(w)
 }

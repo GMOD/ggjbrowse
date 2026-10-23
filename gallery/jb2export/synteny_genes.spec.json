@@ -5,8 +5,10 @@
       "tracks": [
         ["hg002"]
       ],
-      "color": {
-        "field": "strand"
+      "encoding": {
+        "color": {
+          "field": "strand"
+        }
       },
       "views": [
         {

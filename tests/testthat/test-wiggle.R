@@ -12,7 +12,8 @@ test_that("a BigWig region reads as the wiggle display scales and colors it", {
   expect_equal(lengths(lapply(sides, unique)), c(`FALSE` = 1, `TRUE` = 1))
   expect_false(identical(sides[[1]][1], sides[[2]][1]))
   pinned <- jbrowse_wiggle(bw, "ctgA:1-50,000",
-    display = list(scales = list(y = list(domainMin = -50, domainMax = 300))))
+    display = list(encoding = list(y = list(scale = list(domainMin = -50,
+      domainMax = 300)))))
   expect_equal(pinned$y_scale$domain, c(-50, 300))
 })
 
@@ -94,7 +95,7 @@ test_that("an empty region draws, whatever the plot type", {
 
 test_that("a stepped line joins its bins, and a rule is labelled in its color", {
   x <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "line",
-    extent = "none", scales = list(y = list(rules = list(
+    extent = "none", encoding = list(y = list(rules = list(
       list(value = 500, label = "gain"), list(value = 0))))))
   expect_equal(x$rules$label, c("gain", ""))
   expect_equal(as.character(x$rules$color), c("#787878", "#787878"))
@@ -116,12 +117,12 @@ test_that("a BigWig stacks over reads as one of the track's tracks", {
 test_that("the score axis takes the display's log or symlog transform", {
   axis <- function(type) {
     w <- jbrowse_wiggle(bw, "ctgA:1-50,000",
-      display = list(scales = list(y = list(type = type))))
+      display = list(encoding = list(y = list(scale = list(type = type)))))
     scale_y_jbrowse(w)$get_transformation()$name
   }
   expect_equal(axis("log"), "log-10")
   w <- jbrowse_wiggle(bw, "ctgA:1-50,000",
-    display = list(scales = list(y = list(type = "symlog"))))
+    display = list(encoding = list(y = list(scale = list(type = "symlog")))))
   expect_equal(scale_y_jbrowse(w, name = "Score")$name, "Score")
   expect_equal(scale_y_jbrowse(w, name = "Score")$get_transformation()$name,
     "symlog")
@@ -218,9 +219,10 @@ test_that("a mark narrower than a pixel draws a pixel wide", {
 
 test_that("the result keeps the display's resolved config and summary", {
   expect_equal(w$display$type, "LinearWiggleDisplay")
-  expect_equal(w$display$y, "score")
+  expect_equal(w$display$encoding$y$field, "score")
   expect_equal(jbrowse_wiggle(bw, "ctgA:1-50,000",
-    display = list(y = "maxScore"))$display$y, "maxScore")
+    display = list(encoding = list(y = list(field = "maxScore"))))$display$
+    encoding$y$field, "maxScore")
 })
 
 test_that("a BigWig with no region reads whole, each contig it lists", {

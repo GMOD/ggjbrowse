@@ -28,11 +28,12 @@ regions share one score axis and color ramp}
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearWiggleDisplay}: a list with any of \code{mark}
 (\code{"bar"}, \code{"line"}, \code{"point"}, or \code{"span"} for density, or
-\code{list(type =, interpolate =)} with \code{"step"} or \code{"linear"} for a line), \code{y}
-(\code{"score"}, \code{"minScore"} or \code{"maxScore"},
-which of a zoom bin's stored mean, minimum and maximum is plotted),
-\code{extent} (\code{"min-max"} or \code{"none"}), \code{origin}, \code{color} (a CSS color, or a
-list of the color object's slots) and \code{scales} (\code{list(y = list(type =, domainMin =, domainMax =, domainQuantile =, zero =, rules =))})}
+\code{list(type =, interpolate =)} with \code{"step"} or \code{"linear"} for a line),
+\code{extent} (\code{"min-max"} or \code{"none"}), \code{origin} and \code{encoding}: its \code{color}
+(\code{list(value =)} for one CSS color, or the color object's slots) and its
+\code{y}, \code{list(field =, scale = list(type =, domainMin =, domainMax =, fenceQuantile =, zero =), rules =)}, whose \code{field} (\code{"score"},
+\code{"minScore"} or \code{"maxScore"}) is which of a zoom bin's stored mean,
+minimum and maximum is plotted}
 
 \item{width}{the width in pixels the display draws the region across,
 which picks the BigWig zoom level that answers and so each bin's width}
@@ -56,7 +57,7 @@ layers of their own, tinted as the display tints them
 \item \code{sources}: \code{name}, \code{label}, \code{group}, \code{color}; \code{bins} and \code{marks} name
 their source by \code{name}, and assigning \code{sources} drops the bins and
 marks of the sources it leaves out
-\item \code{rules}: the reference lines \code{scales$y$rules} draws
+\item \code{rules}: the reference lines \code{encoding$y$rules} draws
 }
 
 \code{y_scale} is the score axis the display autoscales to, \code{ramps} the

@@ -173,7 +173,8 @@ test_that("a stack hangs from the triangles' tip, as deep a share of the depth a
 
 test_that("a log depth axis leaves the hang linear", {
   log <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"), "ctgA:1,001-20,000",
-     display = list(scales = list(y = list(type = "log"))))
+     display = list(coverage = list(encoding = list(y = list(
+       scale = list(type = "log"))))))
   expect_equal(log$y_scale$domain[1], 1)
   built <- ggplot2::ggplot_build(ggplot2::autoplot(log, "coverage"))
   hang <- built$data[[4]]
