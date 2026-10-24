@@ -13,7 +13,8 @@ jbrowse_features(
   color_by_cds = FALSE,
   amino_acids = TRUE,
   index = NULL,
-  byte_limit = 2e+08
+  byte_limit = 2e+08,
+  protein_features = NULL
 )
 }
 \arguments{
@@ -45,7 +46,10 @@ expressions, and \code{"geneLike"} for the genes alone),
 packs a section per value, as alignments' \code{facet} does), and \code{heightMode}
 with \code{height}. A figure has no track height to fit, so \code{heightMode}
 defaults to \code{"grow"}, every feature at full size; \code{list(heightMode = "fit", height = 100)} gives up the labels, isoforms and row height the
-browser gives up to fit a 100 px track}
+browser gives up to fit a 100 px track. With \code{protein_features},
+\code{proteinFeatures} takes the domains' \code{color} (by \code{name} unwritten) and
+\code{join}, which pairs a domain row's \code{domain} field (\code{"transcript"}) with
+a transcript's \code{gene} field (\code{"id"})}
 
 \item{width}{the width in pixels the display lays the region out across:
 whether a name fits beside its feature, which chevrons and arrows draw and
@@ -72,6 +76,12 @@ name}
 
 \item{byte_limit}{the most compressed bytes the region may need, refused
 off the index before any feature is fetched}
+
+\item{protein_features}{protein domains to draw over each transcript's
+CDS, as a gene track's \code{proteinFeatures} does: a BED that
+\verb{jbrowse make-protein-features} writes, path or URL, or its adapter
+config as a list. Each domain is a box in \code{rects}, in its own color,
+and \code{keys$domains} lists each domain name with its color}
 }
 \value{
 a \code{jbrowse_features} list of data frames, beside the slots
@@ -123,7 +133,7 @@ region's records use, and a region lacking one reads \code{NA} there when
 regions bind. \code{fields$attributes} declares each field: its \code{key},
 \code{type}, \code{number} (\code{"1"}, or \code{"."} for a list column), \code{description} and
 the \code{column} it takes. \code{keys$features} is the key the display shows for
-a color field.
+a color field, and \code{keys$domains} the \code{protein_features} domains' key.
 
 A VCF reads as JBrowse's plain variant track draws it, every record
 whether or not it calls a genotype, so a calls VCF with no GT reads

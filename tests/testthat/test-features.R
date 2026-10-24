@@ -90,6 +90,29 @@ test_that("a track's adapter config reads with its own settings", {
     c("EDEN.1", "EDEN.2", "EDEN.3"))
 })
 
+test_that("protein domains draw over the CDS of the transcripts they were called on", {
+  gapdh <- extdata("gapdh_gencode.gff3.gz")
+  locus <- "chr12:6,534,201-6,538,700"
+  pfam <- extdata("gapdh_pfam.bed.gz")
+  plain <- jbrowse_features(gapdh, locus)
+  d <- jbrowse_features(gapdh, locus, protein_features = pfam)
+  expect_equal(nrow(plain$keys$domains), 0)
+  expect_setequal(d$keys$domains$label, c("Gp_dh_N", "Gp_dh_C"))
+  boxes <- d$rects[d$rects$color %in% d$keys$domains$color, ]
+  expect_equal(nrow(boxes), nrow(d$rects) - nrow(plain$rects))
+  called <- c("ENST00000229239.10", "ENST00000396861.5", "ENST00000396859.5")
+  expect_setequal(of(boxes, d$subfeatures, "subfeature")$ID, called)
+  n_term <- boxes[boxes$color == d$keys$domains$color[
+    d$keys$domains$label == "Gp_dh_N"], ]
+  expect_equal(sum(n_term$end - n_term$start), 3 * 3 * (104 - 4 + 1))
+  magenta <- jbrowse_features(gapdh, locus, protein_features = pfam,
+    display = list(proteinFeatures = list(color = list(value = "#ff00ff"))))
+  expect_equal(sum(magenta$rects$color == "#ff00ff"), nrow(boxes))
+  p <- ggplot2::ggplot_build(ggplot2::autoplot(d))
+  expect_true(all(boxes$color %in% p$data[[3]]$fill))
+  expect_true("jbrowse_key_domains" %in% names(guides_jbrowse(d)$guides))
+})
+
 test_that("autoplot draws every box, line and label", {
   p <- ggplot2::ggplot_build(ggplot2::autoplot(g))
   rows <- vapply(p$data, nrow, 1L)
