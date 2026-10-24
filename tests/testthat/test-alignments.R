@@ -94,6 +94,9 @@ test_that("mismatches$show off drops the mismatches and indels and keeps the ski
 test_that("the coverage band stacks each position's alleles as the display does", {
   a <- bam$allele_coverage
   expect_gt(nrow(a), 0)
+  hidden <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
+    display = list(coverage = list(alleles = list(show = FALSE))))
+  expect_equal(nrow(hidden$allele_coverage), 0)
   expect_true(all(a$position %in% bam$mismatches$position))
   expect_true(all(a$from >= 0 & a$to > a$from & a$to <= 1 + 1e-6))
   cov <- ggplot2::ggplot_build(ggplot2::autoplot(bam, "coverage"))

@@ -97,7 +97,8 @@ read's arc, \code{mark = "rule"} for the read cloud, \code{height},
 \code{encoding = list(color = list(field = ))}),
 e.g. \code{list(coverage = list(show = FALSE), pileup = list(mark = list(height = 3)))}.
 A band or layer set not to show (\code{coverage}, \code{pileup} or \code{sashimi}'s
-\code{show}, \code{coverage$interbase$show}) reads as empty tables.
+\code{show}, \code{coverage$interbase$show}, \code{coverage$alleles$show}) reads as
+empty tables.
 \code{pileup$mismatches$show = FALSE} empties \code{mismatches} and \code{insertions}
 and leaves only the skips in \code{gaps}, as the display drops those marks
 }}

@@ -105,7 +105,8 @@ alignments_adapter <- function(file, index) {
 #'     e.g. `list(coverage = list(show = FALSE),
 #'     pileup = list(mark = list(height = 3)))`.
 #'     A band or layer set not to show (`coverage`, `pileup` or `sashimi`'s
-#'     `show`, `coverage$interbase$show`) reads as empty tables.
+#'     `show`, `coverage$interbase$show`, `coverage$alleles$show`) reads as
+#'     empty tables.
 #'     `pileup$mismatches$show = FALSE` empties `mismatches` and `insertions`
 #'     and leaves only the skips in `gaps`, as the display drops those marks
 #' @param byte_limit the most compressed bytes the regions may need, refused
