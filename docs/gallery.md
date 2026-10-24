@@ -286,14 +286,14 @@ dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
   function(cell) list(type = "BigWigAdapter", name = toupper(cell),
     bigWigLocation = list(uri = e(sprintf("hbb_dnase_%s.bw", cell))))))
 w <- jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000",
-  display = list(mark = "span"))
+  display = list(mark = "rect"))
 w$tree <- hclust(dist(as.matrix(w)), "average")
 autoplot(w)
 ```
 
 ```sh
 jb2export --hub hg38 \
-  --multiwig gallery/jb2export/dnase.json legend.show=true name:DNase mark=span runClustering=true \
+  --multiwig gallery/jb2export/dnase.json legend.show=true name:DNase mark=rect runClustering=true \
   --loc chr11:5,270,001-5,320,000 \
   --width 1200 --out dnase_clustered.png
 ```
@@ -318,14 +318,14 @@ patchwork::wrap_plots(ncol = 1,
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
     display = list(mark = list(type = "line", interpolate = "linear")))),
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
-    display = list(mark = "span"))))
+    display = list(mark = "rect"))))
 ```
 
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --bigwig inst/extdata/gapdh_phylop100way.bw legend.show=true \
   --bigwig inst/extdata/gapdh_phylop100way.bw mark.type=line mark.interpolate=linear \
-  --bigwig inst/extdata/gapdh_phylop100way.bw mark=span \
+  --bigwig inst/extdata/gapdh_phylop100way.bw mark=rect \
   --loc chr12:6,534,201-6,538,700 \
   --width 1200 --out conservation.png
 ```

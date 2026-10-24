@@ -30,7 +30,7 @@ sources <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
   function(cell) list(type = "BigWigAdapter", name = toupper(cell),
     bigWigLocation = list(uri = e(sprintf("hbb_dnase_\%s.bw", cell))))))
 w <- jbrowse_wiggle(sources, "chr11:5,270,001-5,320,000",
-  display = list(mark = "span"))
+  display = list(mark = "rect"))
 dim(as.matrix(w))
 w$tree <- hclust(dist(as.matrix(w)), "average")
 }

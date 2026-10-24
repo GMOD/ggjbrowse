@@ -321,7 +321,7 @@ autoplot(jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000"))
     title = "DNase in twelve cell lines as density, clustered by signal",
     locus = "chr11:5,270,001-5,320,000", height = 4,
     jbrowse = c(hg38, "--multiwig", dnase_json(), "legend.show=true",
-      "name:DNase", "mark=span", "runClustering=true",
+      "name:DNase", "mark=rect", "runClustering=true",
       "--loc", "chr11:5,270,001-5,320,000"),
     r = r"-(
 cells <- c("gm12878", "k562", "hepg2", "huvec", "hmec", "nhek", "helas3",
@@ -330,7 +330,7 @@ dnase <- list(type = "MultiWiggleAdapter", subadapters = lapply(cells,
   function(cell) list(type = "BigWigAdapter", name = toupper(cell),
     bigWigLocation = list(uri = e(sprintf("hbb_dnase_%s.bw", cell))))))
 w <- jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000",
-  display = list(mark = "span"))
+  display = list(mark = "rect"))
 w$tree <- hclust(dist(as.matrix(w)), "average")
 autoplot(w)
 )-"),
@@ -340,7 +340,7 @@ autoplot(w)
     locus = gapdh, height = 6,
     jbrowse = c(fasta, "--bigwig", phylop, "legend.show=true",
       "--bigwig", phylop, "mark.type=line", "mark.interpolate=linear",
-      "--bigwig", phylop, "mark=span", "--loc", gapdh),
+      "--bigwig", phylop, "mark=rect", "--loc", gapdh),
     r = r"-(
 bw <- e("gapdh_phylop100way.bw")
 gapdh <- "chr12:6,534,201-6,538,700"
@@ -349,7 +349,7 @@ patchwork::wrap_plots(ncol = 1,
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
     display = list(mark = list(type = "line", interpolate = "linear")))),
   autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
-    display = list(mark = "span"))))
+    display = list(mark = "rect"))))
 )-"),
   two_regions = list(
     caption = "A grey divider separates the two loci, and each tick gives a position in its own region.",

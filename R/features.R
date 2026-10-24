@@ -51,10 +51,12 @@ features_adapter <- function(file, index) {
 #'   with `height`. A figure has no track height to fit, so `heightMode`
 #'   defaults to `"grow"`, every feature at full size; `list(heightMode =
 #'   "fit", height = 100)` gives up the labels, isoforms and row height the
-#'   browser gives up to fit a 100 px track. With `protein_features`,
-#'   `proteinFeatures` takes the domains' `color` (by `name` unwritten) and
-#'   `join`, which pairs a domain row's `domain` field (`"transcript"`) with
-#'   a transcript's `gene` field (`"id"`)
+#'   browser gives up to fit a 100 px track. With `transcript_features`,
+#'   `transcriptFeatures` lists which of them draw (all, unwritten), each a
+#'   name or `list(track = , on = , join = , filter = )`, and takes their
+#'   `encoding$color` (by `name` unwritten); `join = list(field =
+#'   "transcript")` draws a row only on the transcript its `transcript`
+#'   field names
 #' @param width the width in pixels the display lays the region out across:
 #'   whether a name fits beside its feature, which chevrons and arrows draw and
 #'   how the `auto` modes resolve all follow from it. [autoplot()] scales those
@@ -73,11 +75,14 @@ features_adapter <- function(file, index) {
 #'   stripes in `rects`, and each residue in `amino_acids`
 #' @param index the tabix or CSI index, if not beside `file` under its usual
 #'   name
-#' @param protein_features protein domains to draw over each transcript's
-#'   CDS, as a gene track's `proteinFeatures` does: a BED that
-#'   `jbrowse make-protein-features` writes, path or URL, or its adapter
-#'   config as a list. Each domain is a box in `rects`, in its own color,
-#'   and `keys$domains` lists each domain name with its color
+#' @param transcript_features features to draw on each transcript they fit,
+#'   as a gene track's `transcriptFeatures` does, such as the protein domains
+#'   `jbrowse make-protein-features` writes: a named list, each name the
+#'   trackId `display$transcriptFeatures` names it by, each value a file,
+#'   path or URL, or its adapter config as a list. A row fits a transcript
+#'   when each of its blocks lies in one of the transcript's coding exons.
+#'   Each row is a box in `rects`, in its own color, and `keys$domains` lists
+#'   each row name with its color
 #' @param byte_limit the most compressed bytes the region may need, refused
 #'   off the index before any feature is fetched
 #' @return a `jbrowse_features` list of data frames, beside the slots
@@ -127,7 +132,7 @@ features_adapter <- function(file, index) {
 #'   regions bind. `fields$attributes` declares each field: its `key`,
 #'   `type`, `number` (`"1"`, or `"."` for a list column), `description` and
 #'   the `column` it takes. `keys$features` is the key the display shows for
-#'   a color field, and `keys$domains` the `protein_features` domains' key.
+#'   a color field, and `keys$domains` the `transcript_features` rows' key.
 #'
 #'   A VCF reads as JBrowse's plain variant track draws it, every record
 #'   whether or not it calls a genotype, so a calls VCF with no GT reads
@@ -164,7 +169,7 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
                              width = DEFAULT_WIDTH, assembly = NULL,
                              color_by_cds = FALSE, amino_acids = TRUE,
                              index = NULL, byte_limit = 2e8,
-                             protein_features = NULL) {
+                             transcript_features = NULL) {
   adapter <- adapter_of(file, function() features_adapter(file, index))
   assembly <- assembly_config(assembly)
   regions <- to_record_ends(reader_regions(adapter, region, assembly),
@@ -177,11 +182,18 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
     aminoAcids = amino_acids,
     byteLimit = byte_limit)
   args$assembly <- assembly
-  if (!is.null(protein_features)) {
-    args$proteinFeatures <- adapter_of(protein_features,
-      function() features_adapter(protein_features, NULL))
-  }
   display <- display %||% list()
+  if (length(transcript_features)) {
+    ids <- names(transcript_features)
+    if (is.null(ids) || !all(nzchar(ids))) {
+      rlang::abort("`transcript_features` must name each source by its trackId",
+        call = NULL)
+    }
+    args$transcriptFeatures <- lapply(as.list(transcript_features),
+      function(f) adapter_of(f, function() features_adapter(f, NULL)))
+    display$transcriptFeatures <- display$transcriptFeatures %||%
+      list(tracks = I(ids))
+  }
   display$heightMode <- display$heightMode %||% "grow"
   args$display <- display_config(display)
   if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS

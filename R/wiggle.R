@@ -17,7 +17,7 @@
 #'   regions share one score axis and color ramp
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearWiggleDisplay`: a list with any of `mark`
-#'   (`"bar"`, `"line"`, `"point"`, or `"span"` for density, or
+#'   (`"bar"`, `"line"`, `"point"`, or `"rect"` for density, or
 #'   `list(type =, interpolate =)` with `"step"` or `"linear"` for a line),
 #'   `extent` (`"min-max"` or `"none"`), `origin` and `encoding`: its `color`
 #'   (`list(value =)` for one CSS color, or the color object's slots) and its
@@ -101,7 +101,7 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
 #'   function(cell) list(type = "BigWigAdapter", name = toupper(cell),
 #'     bigWigLocation = list(uri = e(sprintf("hbb_dnase_%s.bw", cell))))))
 #' w <- jbrowse_wiggle(sources, "chr11:5,270,001-5,320,000",
-#'   display = list(mark = "span"))
+#'   display = list(mark = "rect"))
 #' dim(as.matrix(w))
 #' w$tree <- hclust(dist(as.matrix(w)), "average")
 as.matrix.jbrowse_wiggle <- function(x, ...) {

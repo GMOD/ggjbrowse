@@ -27,7 +27,7 @@ regions share one score axis and color ramp}
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearWiggleDisplay}: a list with any of \code{mark}
-(\code{"bar"}, \code{"line"}, \code{"point"}, or \code{"span"} for density, or
+(\code{"bar"}, \code{"line"}, \code{"point"}, or \code{"rect"} for density, or
 \code{list(type =, interpolate =)} with \code{"step"} or \code{"linear"} for a line),
 \code{extent} (\code{"min-max"} or \code{"none"}), \code{origin} and \code{encoding}: its \code{color}
 (\code{list(value =)} for one CSS color, or the color object's slots) and its

@@ -50,6 +50,9 @@ test_that("an identity key lists every domain color, drawn or not, as the browse
   expect_equal(keyed$keys$features$label, c("Drawn", "Not drawn"))
   guide <- drawn_guides(ggplot2::autoplot(keyed))[[1]]
   expect_equal(guide$label, c("Drawn", "Not drawn"))
+  one <- jbrowse_features(gff, "ctgA:1-25,000", display = list(encoding = list(color = list(
+    scale = list(type = "identity", domain = "goldenrod", names = "Drawn")))))
+  expect_equal(one$keys$features$label, "Drawn")
 })
 
 test_that("one filter expression reads as the list the schema types", {
@@ -90,12 +93,15 @@ test_that("a track's adapter config reads with its own settings", {
     c("EDEN.1", "EDEN.2", "EDEN.3"))
 })
 
-test_that("protein domains draw over the CDS of the transcripts they were called on", {
+test_that("transcript features draw over the CDS of the transcripts they fit or name", {
   gapdh <- extdata("gapdh_gencode.gff3.gz")
   locus <- "chr12:6,534,201-6,538,700"
   pfam <- extdata("gapdh_pfam.bed.gz")
+  called_on <- list(tracks = list(list(track = "pfam",
+    join = list(field = "transcript"))))
   plain <- jbrowse_features(gapdh, locus)
-  d <- jbrowse_features(gapdh, locus, protein_features = pfam)
+  d <- jbrowse_features(gapdh, locus, transcript_features = list(pfam = pfam),
+    display = list(transcriptFeatures = called_on))
   expect_equal(nrow(plain$keys$domains), 0)
   expect_setequal(d$keys$domains$label, c("Gp_dh_N", "Gp_dh_C"))
   boxes <- d$rects[d$rects$color %in% d$keys$domains$color, ]
@@ -105,9 +111,14 @@ test_that("protein domains draw over the CDS of the transcripts they were called
   n_term <- boxes[boxes$color == d$keys$domains$color[
     d$keys$domains$label == "Gp_dh_N"], ]
   expect_equal(sum(n_term$end - n_term$start), 3 * 3 * (104 - 4 + 1))
-  magenta <- jbrowse_features(gapdh, locus, protein_features = pfam,
-    display = list(proteinFeatures = list(color = list(value = "#ff00ff"))))
+  magenta <- jbrowse_features(gapdh, locus, transcript_features = list(pfam = pfam),
+    display = list(transcriptFeatures = c(called_on,
+      list(encoding = list(color = list(value = "#ff00ff"))))))
   expect_equal(sum(magenta$rects$color == "#ff00ff"), nrow(boxes))
+  fit <- jbrowse_features(gapdh, locus, transcript_features = list(pfam = pfam))
+  expect_gte(nrow(fit$rects) - nrow(plain$rects), nrow(boxes))
+  expect_error(jbrowse_features(gapdh, locus, transcript_features = pfam),
+    "trackId")
   p <- ggplot2::ggplot_build(ggplot2::autoplot(d))
   expect_true(all(boxes$color %in% p$data[[3]]$fill))
   expect_true("jbrowse_key_domains" %in% names(guides_jbrowse(d)$guides))

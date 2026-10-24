@@ -18,7 +18,7 @@ test_that("a BigWig region reads as the wiggle display scales and colors it", {
 })
 
 test_that("density keys its ramp as a bar beside the plot, and bars key none", {
-  d <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "span"))
+  d <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "rect"))
   expect_length(d$ramps, 1)
   ramp <- d$ramps[[1]]
   expect_equal(attr(ramp, "title"), "Score")
@@ -49,7 +49,7 @@ test_that("a zoomed-out min-max extent draws the max, mean and min bands on each
 })
 
 test_that("each plot type draws every mark", {
-  for (mark in c("bar", "point", "line", "span")) {
+  for (mark in c("bar", "point", "line", "rect")) {
     x <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = mark,
       extent = "none"))
     built <- ggplot2::ggplot_build(ggplot2::autoplot(x))
@@ -84,7 +84,7 @@ test_that("a stepped line's riser across the origin is cut there too", {
 })
 
 test_that("an empty region draws, whatever the plot type", {
-  for (mark in c("bar", "line", "span")) {
+  for (mark in c("bar", "line", "rect")) {
     empty <- jbrowse_wiggle(bw, "ctgA:1-1,000", display = list(mark = mark))
     empty$sources <- empty$sources[0, ]
     expect_equal(nrow(empty$marks), 0)
@@ -137,7 +137,7 @@ test_that("a row layout packs its sources into the display's height, a slice eac
     subadapters = lapply(seq_len(n), function(i) list(type = "BigWigAdapter",
       name = sprintf("s%03d", i), bigWigLocation = list(uri = bw))))
   w <- jbrowse_wiggle(multi(120), "ctgA:1-50,000",
-    display = list(mark = "span"))
+    display = list(mark = "rect"))
   expect_true(w$row_layout)
   expect_equal(jbrowse_stack(w)$patches$layout$heights, w$height)
   p <- autoplot(w)
@@ -156,13 +156,13 @@ test_that("a row layout packs its sources into the display's height, a slice eac
 
 test_that("several regions share one score axis and color ramp", {
   loci <- c("ctgA:1-10000", "ctgA:20001-30000")
-  d <- jbrowse_wiggle(bw, loci, display = list(mark = "span"))
+  d <- jbrowse_wiggle(bw, loci, display = list(mark = "rect"))
   m <- d$marks
   colors <- tapply(m$color, m$score, function(c) length(unique(c)))
   expect_true(all(colors == 1))
   expect_true(any(duplicated(m$score[!duplicated(m[c("score", "region")])])))
   expect_equal(as.numeric(attr(d$ramps[[1]], "labels")), d$y_scale$domain)
-  alone <- jbrowse_wiggle(bw, loci[1], display = list(mark = "span"))
+  alone <- jbrowse_wiggle(bw, loci[1], display = list(mark = "rect"))
   expect_equal(d$marks[d$marks$region == 1, c("start", "end", "score")],
     alone$marks[c("start", "end", "score")])
   expect_false(isTRUE(all.equal(d$y_scale$domain, alone$y_scale$domain)))
@@ -172,7 +172,7 @@ test_that("as.matrix() bins each source into the display's pixel columns", {
   sources <- list(type = "MultiWiggleAdapter", subadapters = lapply(1:3,
     function(i) list(type = "BigWigAdapter", name = paste0("rep", i),
       bigWigLocation = list(uri = normalizePath(bw)))))
-  m3 <- jbrowse_wiggle(sources, "ctgA:1-50,000", display = list(mark = "span"))
+  m3 <- jbrowse_wiggle(sources, "ctgA:1-50,000", display = list(mark = "rect"))
   m <- as.matrix(m3)
   expect_equal(dim(m), c(3, m3$width))
   expect_equal(rownames(m), c("rep1", "rep2", "rep3"))
@@ -185,7 +185,7 @@ test_that("as.matrix() bins each source into the display's pixel columns", {
   expect_equal(unname(m[1, c(1, 2, 400)]),
     vapply(c(1, 2, 400), function(k) mean(covering(k)), 0))
   two <- jbrowse_wiggle(sources, c("ctgA:1-10,000", "ctgA:20,001-30,000"),
-    display = list(mark = "span"))
+    display = list(mark = "rect"))
   expect_equal(colnames(as.matrix(two))[c(1, two$width / 2 + 1)], c("ctgA:1", "ctgA:20001"))
 
   m3$tree <- stats::hclust(stats::dist(m + c(0, 5, 1)), "average")
