@@ -191,7 +191,7 @@ file_order <- jbrowse_alignments(bam, actb, assembly = hg19)
 spliced_first <- jbrowse_alignments(bam, actb, assembly = hg19,
   display = list(sort = list(field = "spliced")))
 only_spliced <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = list(pileup = list(readHeight = 1),
+  display = list(pileup = list(mark = list(height = 1)),
     filter = list(list(field = "spliced", equal = TRUE))))
 
 spliced_rows <- function(r) {

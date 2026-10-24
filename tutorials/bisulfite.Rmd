@@ -91,8 +91,9 @@ cram <- "https://jbrowse.org/demos/bisulfite/arabidopsis_wgbs_bisulfite.cram"
 locus <- "NC_003070.9:4,398,001-4,412,000"
 
 cg <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
-  display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
-    modifications = list(cytosineContext = "CG")))
+  display = list(pileup = list(bases = list(show = TRUE,
+    encoding = list(color = "bisulfite"),
+    filter = list(list(field = "context", oneOf = "CG"))))))
 ```
 
 <!-- jbrowse
@@ -148,8 +149,9 @@ subset(repeats$features, end - start > 1000, c(name, start, end))
 contexts <- c("CG", "CHG", "CHH")
 reads <- lapply(contexts, function(context)
   jbrowse_alignments(cram, locus, assembly = tair10_2bit,
-    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
-      modifications = list(cytosineContext = context))))
+    display = list(pileup = list(bases = list(show = TRUE,
+      encoding = list(color = "bisulfite"),
+      filter = list(list(field = "context", oneOf = context)))))))
 
 fig <- jbrowse_stack(`RefSeq genes` = genes, RepeatMasker = repeats,
   setNames(reads, contexts))
@@ -182,8 +184,10 @@ regions <- data.frame(
 
 calls <- bind_rows(lapply(contexts, function(context) {
   r <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
-    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
-      modifications = list(cytosineContext = context, unmodified = "calls")))
+    display = list(pileup = list(bases = list(show = TRUE,
+      encoding = list(color = "bisulfite"),
+      filter = list(list(field = "context", oneOf = context)))),
+      modifications = list(unmodified = "calls")))
   mutate(r$modifications, context = context, region = NULL)
 }))
 
@@ -246,7 +250,8 @@ To run this on your own WGBS or EM-seq run:
 - Name the locus the way the BAM's header names the chromosome. ggjbrowse has
   no alias table, so a BAM aligned to RefSeq TAIR10 takes `NC_003070.9`, not
   `chr1`.
-- Set `cytosineContext` to `"all"` for every context at once.
+- A `context` entry with no test, `list(field = "context")`, reads every
+  context at once.
 
 The website's [build script](https://github.com/GMOD/jbrowse-components/blob/main/scripts/build_arabidopsis_wgbs.sh)
 runs the whole alignment for this run and prints the conversion rate and the
