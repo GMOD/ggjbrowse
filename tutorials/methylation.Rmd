@@ -61,8 +61,8 @@ holds the alignments track's settings, as a JBrowse track config spells them:
 - **`pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications")))`** paints each read with the
   calls its `MM`/`ML` tags hold, as **Color by... → Modifications** does in the
   browser.
-- **`unmodified = "all"`** also returns every CpG the tags left implicit as
-  unmethylated, in blue, as the browser's **One color per type, plus
+- **`unmodified = list(show = TRUE)`** also returns every CpG the tags left
+  implicit as unmethylated, in blue, as the browser's **One color per type, plus
   low-probability & unmodified in blue** mode (IGV's "2-color" scheme) does.
   Without it a read with no methylation draws bare, and its CpGs are missing
   from the table.
@@ -78,10 +78,9 @@ demo <- "https://jbrowse.org/demos/methylation/"
 bam <- paste0(demo, "HG002_SNRPN_5mC_haplotagged.bam")
 locus <- "chr15:24,948,000-24,962,000"
 
-bases <- list(bases = list(show = TRUE, encoding = list(color = "modifications")))
-reads <- jbrowse_alignments(bam, locus,
-  display = list(pileup = bases,
-    modifications = list(unmodified = "all")))
+bases <- list(bases = list(show = TRUE,
+  encoding = list(color = "modifications"), unmodified = list(show = TRUE)))
+reads <- jbrowse_alignments(bam, locus, display = list(pileup = bases))
 ```
 
 ```{r reads, fig.height = 6, fig.cap = "HG002 ONT reads over the SNRPN CpG island, methylated CpGs red and unmethylated ones blue, interleaved in file order"}
@@ -115,9 +114,7 @@ We'll facet on the `HP` tag, which `tags.HP` names:
 
 ```{r facet}
 by_haplotype <- jbrowse_alignments(bam, locus,
-  display = list(pileup = bases,
-    modifications = list(unmodified = "all"),
-    facet = list(field = "tags.HP")))
+  display = list(pileup = bases, facet = list(field = "tags.HP")))
 by_haplotype$sections
 ```
 

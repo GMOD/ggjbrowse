@@ -64,8 +64,10 @@ predicates on \code{probability} (0 to 1, \code{gte} or \code{gt}; 0.1 unwritten
 \code{list(field = "context")} takes all three) and \code{code} (\code{oneOf} the
 type codes drawn; every one unwritten), such as
 \code{list(list(field = "context", oneOf = "CHH"))}
-\item \code{modifications}: \code{unmodified} (\code{"hidden"}, \code{"calls"} or \code{"all"};
-bisulfite paints its unmethylated calls under either of the last two)
+\item \code{pileup$bases$unmodified}: \code{list(show = TRUE)} adds the unmodified
+side in blue: under \code{"modifications"} every cytosine in context, the
+ones the MM tag left implicit included, and under \code{"bisulfite"} the
+unmethylated calls
 \item \code{sort}: how the rows are laid out, by one \code{field}:
 \code{list(field = "position")} (or \code{"length"}, \code{"spliced"}, \code{"split"},
 \code{"svSignal"}: SV evidence first, split reads above SV-size indels above

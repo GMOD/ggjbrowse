@@ -189,8 +189,8 @@ Each read's 5mC calls in red where methylated and blue where not.
 ```r
 autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
   assembly = e("hg38_clip.fa"),
-  display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications"))),
-    modifications = list(unmodified = "all"))))
+  display = list(pileup = list(bases = list(show = TRUE,
+    encoding = list(color = "modifications"), unmodified = list(show = TRUE))))))
 ```
 
 ```sh

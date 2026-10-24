@@ -271,8 +271,8 @@ autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
     r = r"-(
 autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
   assembly = e("hg38_clip.fa"),
-  display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications"))),
-    modifications = list(unmodified = "all"))))
+  display = list(pileup = list(bases = list(show = TRUE,
+    encoding = list(color = "modifications"), unmodified = list(show = TRUE))))))
 )-"),
   bisulfite = list(
     caption = "RefSeq genes and RepeatMasker over MethylDackel's three context bigWigs and each read's methylated CHH cytosines in red: CHH is dense over the LTR/Copia element on the right and rare over the gene on the left, which carries CpG methylation only.",

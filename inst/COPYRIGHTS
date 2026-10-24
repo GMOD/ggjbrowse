@@ -112,7 +112,7 @@ the JBrowse authors) with the packages below, minified.
 - @jbrowse/jexl 7.2.0
   License: MIT
   Copyright: Copyright (c) 2025 Colin Diesh; Copyright (c) 2020 Tom Shawver
-- @jbrowse/mobx-state-tree 6.9.0
+- @jbrowse/mobx-state-tree 6.10.0
   License: MIT
   Copyright: Copyright (c) 2016 Michel Weststrate
 - @jbrowse/modifications-utils 5.0.0-beta.17

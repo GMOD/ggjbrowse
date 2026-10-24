@@ -71,8 +71,10 @@ alignments_adapter <- function(file, index) {
 #'     `list(field = "context")` takes all three) and `code` (`oneOf` the
 #'     type codes drawn; every one unwritten), such as
 #'     `list(list(field = "context", oneOf = "CHH"))`
-#'   * `modifications`: `unmodified` (`"hidden"`, `"calls"` or `"all"`;
-#'     bisulfite paints its unmethylated calls under either of the last two)
+#'   * `pileup$bases$unmodified`: `list(show = TRUE)` adds the unmodified
+#'     side in blue: under `"modifications"` every cytosine in context, the
+#'     ones the MM tag left implicit included, and under `"bisulfite"` the
+#'     unmethylated calls
 #'   * `sort`: how the rows are laid out, by one `field`:
 #'     `list(field = "position")` (or `"length"`, `"spliced"`, `"split"`,
 #'     `"svSignal"`: SV evidence first, split reads above SV-size indels above

@@ -276,15 +276,12 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   p <- ggplot2::ggplot_build(ggplot2::autoplot(m, "pileup"))
   expect_equal(nrow(p$data[[6]]), nrow(m$modifications))
   expect_true(all(p$data[[6]]$fill %in% m$keys$reads$color))
-  calls <- jbrowse_alignments(bam, "20:10,001-20,000",
-    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications"))),
-      modifications = list(unmodified = "calls")))
-  expect_gt(sum(calls$modifications$unmodified), 0)
+  expect_false(any(m$modifications$unmodified))
   every <- jbrowse_alignments(bam, "20:10,001-20,000",
-    display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications"))),
-      modifications = list(unmodified = "all")))
-  expect_gt(sum(every$modifications$unmodified),
-    10 * sum(calls$modifications$unmodified))
+    display = list(pileup = list(bases = list(show = TRUE,
+      encoding = list(color = "modifications"), unmodified = list(show = TRUE)))))
+  expect_gt(sum(every$modifications$unmodified), 100)
+  expect_gt(nrow(every$modifications), nrow(m$modifications))
 })
 
 test_that("modification coloring greys the mismatched bases and drops their key", {
@@ -307,10 +304,9 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   bam <- extdata("arabidopsis_wgbs.bam")
   fa <- extdata("arabidopsis_tair10.fa.gz")
   locus <- "NC_003070.9:4,406,001-4,408,000"
-  bisulfite <- function(modifications = NULL, ...) jbrowse_alignments(bam,
-    locus, assembly = fa, display = list(pileup = list(bases = list(show = TRUE,
-      encoding = list(color = "bisulfite"), ...)),
-      modifications = modifications))
+  bisulfite <- function(...) jbrowse_alignments(bam, locus, assembly = fa,
+    display = list(pileup = list(bases = list(show = TRUE,
+      encoding = list(color = "bisulfite"), ...))))
   cg <- bisulfite()
   expect_gt(nrow(cg$modifications), 100)
   expect_false(any(cg$modifications$unmodified))
@@ -329,7 +325,7 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   expect_setequal(base_at(forward$position, 1), "G")
   chh <- bisulfite(filter = list(list(field = "context", oneOf = "CHH")))
   expect_false(any(chh$modifications$position %in% cg$modifications$position))
-  calls <- bisulfite(list(unmodified = "calls"))
+  calls <- bisulfite(unmodified = list(show = TRUE))
   expect_gt(sum(calls$modifications$unmodified), 0)
   expect_equal(sum(!calls$modifications$unmodified), nrow(cg$modifications))
   expect_true("Unmethylated" %in% calls$keys$reads$label)
