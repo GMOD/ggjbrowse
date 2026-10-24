@@ -76,8 +76,8 @@ How each piece reaches R:
 - **Junctions:** `shown` under `filter.junctions`, `arcHeight` from
   `sashimiArcHeightFraction()` and `strokeWidth` from
   `sashimiStrokeWidth()`, in px, which R draws at 150 px an inch.
-- **Alleles:** `shown` under `coverage.minAlleleFraction`.
-- **Read pitch:** `pileup.readHeight` and its spacing, which R's read inset
+- **Alleles:** `shown` under `coverage.alleles.filter`.
+- **Read pitch:** `pileup.mark.height` and its spacing, which R's read inset
   takes.
 - **Defaults:** each track's resolved config, as the result's `display`,
   and for the synteny, dotplot and multi-way views their resolved settings.

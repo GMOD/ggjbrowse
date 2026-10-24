@@ -40,8 +40,9 @@ slots, such as \code{list(field = "strand")}, \code{list(field = "identity")},
 \code{list(field = "query")} or \code{list(field = "mapq")}), \code{opacity} (a number,
 or an opacity object with a \code{field}), \code{filter} (a list of field
 predicates, such as \code{list(list(field = "length", gte = 10000))}),
-\code{cigarMode} (\code{"full"} for colored indels, \code{"matches"} for the matches
-alone with the indels left clear, \code{"off"} for the block alone), \code{axis}
+\code{indels} (unset for the indels in their colors,
+\code{list(encoding = list(opacity = 0))} for the matches alone with the
+indels left clear, \code{list(show = FALSE)} for the block alone), \code{axis}
 (\code{list(grid = TRUE)} draws the location markers), \code{render}
 (\code{list(antialias = FALSE)} stops the fade of sub-pixel ribbons; unset,
 it fades once they dominate) and \code{height}, the band's pixels}

@@ -123,6 +123,11 @@ test_that("the interbase tables count the reads' insertions and clips", {
   expect_equal(sv$indicators$type, "softclip")
   expect_equal(sv$keys$interbase$label,
     c("Insertion", "Soft clip", "Hard clip"))
+  deep <- jbrowse_alignments(extdata("volvox-long-reads-sv.bam"),
+    "ctgA:1,001-20,000", display = list(coverage = list(interbase = list(
+      filter = list(list(field = "depth", gte = 1e6))))))
+  expect_equal(nrow(deep$indicators), 0)
+  expect_equal(deep$interbase_coverage, sv$interbase_coverage)
 })
 
 test_that("the coverage band draws on the display's depth axis, inset as the display insets it", {
@@ -258,6 +263,14 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
   expect_true("5mC" %in% m$keys$reads$label)
   expect_setequal(unique(m$reads$category), c("modFwd", "modRev"))
   expect_gt(nrow(m$modification_coverage), 0)
+  sure <- jbrowse_alignments(bam, "20:10,001-20,000",
+    assembly = extdata("hg38_clip.fa"),
+    display = list(pileup = list(bases = list(show = TRUE,
+      encoding = list(color = "modifications"),
+      filter = list(list(field = "probability", gte = 0.9))))))
+  expect_gt(nrow(sure$modifications), 0)
+  expect_lt(nrow(sure$modifications), nrow(m$modifications))
+  expect_true(all(sure$modifications$probability >= 0.9))
   band <- ggplot2::ggplot_build(ggplot2::autoplot(m, "coverage"))$data[[3]]
   expect_equal(nrow(band), nrow(m$modification_coverage))
   p <- ggplot2::ggplot_build(ggplot2::autoplot(m, "pileup"))
@@ -294,8 +307,9 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   bam <- extdata("arabidopsis_wgbs.bam")
   fa <- extdata("arabidopsis_tair10.fa.gz")
   locus <- "NC_003070.9:4,406,001-4,408,000"
-  bisulfite <- function(modifications = NULL) jbrowse_alignments(bam, locus,
-    assembly = fa, display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
+  bisulfite <- function(modifications = NULL, ...) jbrowse_alignments(bam,
+    locus, assembly = fa, display = list(pileup = list(bases = list(show = TRUE,
+      encoding = list(color = "bisulfite"), ...)),
       modifications = modifications))
   cg <- bisulfite()
   expect_gt(nrow(cg$modifications), 100)
@@ -313,7 +327,7 @@ test_that("bisulfite reads paint their methylated cytosines by context", {
   forward <- cg$modifications[base_at(cg$modifications$position, 0) == "C", ]
   expect_gt(nrow(forward), 0)
   expect_setequal(base_at(forward$position, 1), "G")
-  chh <- bisulfite(list(cytosineContext = "CHH"))
+  chh <- bisulfite(filter = list(list(field = "context", oneOf = "CHH")))
   expect_false(any(chh$modifications$position %in% cg$modifications$position))
   calls <- bisulfite(list(unmodified = "calls"))
   expect_gt(sum(calls$modifications$unmodified), 0)
@@ -588,10 +602,10 @@ test_that("regions spanning past span_limit in all are refused", {
 test_that("reads draw at the display's read height, and the pileup band is as tall as its rows", {
   bam <- extdata("volvox-sorted.bam")
   read_at <- function(h) jbrowse_alignments(bam, "ctgA:1,001-9,000",
-    display = list(pileup = list(readHeight = h)))
+    display = list(pileup = list(mark = list(height = h))))
   normal <- read_at(7)
   compact <- read_at(3)
-  expect_equal(compact$display$pileup$readHeight, 3)
+  expect_equal(compact$display$pileup$mark$height, 3)
   body <- function(x) {
     d <- ggplot2::layer_data(ggplot2::ggplot(x) + geom_jbrowse_reads(), 1)
     unique(round(d$ymax - d$ymin, 6))
@@ -608,7 +622,7 @@ test_that("reads draw at the display's read height, and the pileup band is as ta
 
 test_that("a short pileup's figure is still tall enough for its keys", {
   r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-1,400",
-    display = list(pileup = list(readHeight = 1), encoding = list(color = list(field = "strand"))))
+    display = list(pileup = list(mark = list(height = 1)), encoding = list(color = list(field = "strand"))))
   fig <- jbrowse_stack(r)
   bands <- sum(fig$patches$layout$heights) / 150 + 0.86
   expect_lt(bands, 2)
@@ -637,7 +651,7 @@ test_that("a chain's overlapping segments come back as overlap spans", {
   expect_equal(key$color[nrow(key)], chained$overlaps$color[1])
   expect_equal(nrow(jbrowse_alignments(colo, locus)$overlaps), 0)
   thin <- jbrowse_alignments(colo, locus, display = list(unit = "chain",
-    filter = list(list(field = "split", equal = TRUE)), pileup = list(readHeight = 2)))
+    filter = list(list(field = "split", equal = TRUE)), pileup = list(mark = list(height = 2))))
   expect_equal(nrow(thin$overlaps), 0)
   expect_false("Pair/chain reads overlap here" %in% thin$keys$reads$label)
 })
@@ -749,7 +763,8 @@ test_that("the junction band draws the junctions the display shows, at its heigh
 test_that("the coverage band stacks the alleles the display shows", {
   a <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
     "chr12:6,534,201-6,538,700",
-    display = list(coverage = list(minAlleleFraction = 0.2)))
+    display = list(coverage = list(alleles = list(
+      filter = list(list(field = "fraction", gte = 0.2))))))
   expect_gt(sum(!a$allele_coverage$shown), 0)
   drawn <- ggplot2::layer_data(ggplot2::ggplot(a) + geom_jbrowse_alleles())
   expect_equal(nrow(drawn), sum(a$allele_coverage$shown))
@@ -766,7 +781,7 @@ test_that("a result carries the display's resolved config and read pitch", {
   expect_false(bam$display$readConnections$show)
   expect_equal(bam$read_pitch, list(featureHeight = 7L, featureSpacing = 1L))
   compact <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
-     display = list(pileup = list(readHeight = 3)))
+     display = list(pileup = list(mark = list(height = 3))))
   expect_equal(compact$read_pitch$featureSpacing, 0)
   expect_equal(read_inset(compact), 0)
   off <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",

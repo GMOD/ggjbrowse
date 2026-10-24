@@ -49,8 +49,10 @@ opacity, with each CIGAR insertion, deletion and skip wider than a pixel
 ([HG002's chr8 inversion](gallery.md#inversion_synteny),
 [a CIGAR zoom](gallery.md#amylase_zoom)).
 
-- `display` takes the `LinearSyntenyView`'s settings (`color`, `opacity`,
-  `cigarMode`, `minAlignmentLength`, `drawLocationMarkers`, ...).
+- `display` takes the `LinearSyntenyView`'s settings (`encoding`, `filter`,
+  `indels`, `axis`, ...). `indels = list(show = FALSE)` draws each alignment
+  as one block, and `indels = list(encoding = list(opacity = 0))` leaves each
+  indel a gap.
 - `autoplot(s, above = genes, below = genes2)` stacks tracks over either row
   ([genes on both rows](gallery.md#synteny_genes)).
 - `geom_jbrowse_ribbons()` draws `s$ribbons`, each foot's span on its row,

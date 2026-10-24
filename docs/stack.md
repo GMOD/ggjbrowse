@@ -35,7 +35,7 @@ with the keys collected.
   as the region does.
 
 Each band takes the pixels the display gives it. Reads draw at the display's
-`pileup$readHeight` (7, or 3 and 1 for its compact and super-compact settings),
+`pileup$mark$height` (7, or 3 and 1 for its compact and super-compact settings),
 and `jbrowse_height()` gives the figure height that keeps those proportions,
 so a compact pileup saves as a shorter figure. `jbrowse_width()` gives the
 width at the same scale, so a track read at a wide view's `width` draws its
@@ -45,7 +45,7 @@ labels at the display's size:
 loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
 genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci)
 reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), loci,
-  display = list(pileup = list(readHeight = 3)))
+  display = list(pileup = list(mark = list(height = 3))))
 fig <- jbrowse_stack(genes, reads)
 ggsave("stack.png", fig, width = jbrowse_width(fig),
   height = jbrowse_height(fig))

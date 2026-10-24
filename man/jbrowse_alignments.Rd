@@ -58,12 +58,14 @@ retained C is methylated, a C read as T is not), or \code{"baseQuality"} for
 each base's Phred score; unset paints none. Under \code{"modifications"} or
 \code{"bisulfite"} the display greys every mismatched base so the calls
 stand out
-\item \code{modifications}: what that layer reads: any of \code{threshold} (the
-percent probability under which a call is hidden, 10), \code{unmodified}
-(\code{"hidden"}, \code{"calls"} or \code{"all"}; bisulfite paints its unmethylated
-calls under either of the last two), \code{cytosineContext} (\code{"CG"},
-\code{"CHG"}, \code{"CHH"} or \code{"all"}) and \code{shownModifications} (the type codes
-drawn, every one when empty)
+\item \code{pileup$bases$filter}: which calls that layer draws, a list of field
+predicates on \code{probability} (0 to 1, \code{gte} or \code{gt}; 0.1 unwritten),
+\code{context} (\code{oneOf} \code{"CG"}, \code{"CHG"} or \code{"CHH"}; \code{"CG"} unwritten, and
+\code{list(field = "context")} takes all three) and \code{code} (\code{oneOf} the
+type codes drawn; every one unwritten), such as
+\code{list(list(field = "context", oneOf = "CHH"))}
+\item \code{modifications}: \code{unmodified} (\code{"hidden"}, \code{"calls"} or \code{"all"};
+bisulfite paints its unmethylated calls under either of the last two)
 \item \code{sort}: how the rows are laid out, by one \code{field}:
 \code{list(field = "position")} (or \code{"length"}, \code{"spliced"}, \code{"split"},
 \code{"svSignal"}: SV evidence first, split reads above SV-size indels above
@@ -79,15 +81,19 @@ order) and \code{hidden} (keys left out)
 with its mate and split segments on one row, a hairline across it, and
 the strand colors framed against the chain's own
 \item the four bands, each a list with its own \code{show}:
-\code{coverage} (\code{height}, \code{interbase}, \code{minAlleleFraction},
-the share of the depth an allele needs to be colored);
-\code{pileup} (\code{readHeight}, 7, or 3 and 1 for compact and super-compact,
+\code{coverage} (\code{height}; \code{interbase}, whose \code{filter} on \code{depth} and
+\code{fraction} picks the positions that get an indicator; \code{alleles}, whose
+\code{filter} on \code{fraction}, the share of the depth, picks the alleles
+colored, such as \code{list(list(field = "fraction", gte = 0.2))});
+\code{pileup} (\code{mark = list(height = )}, 7, or 3 and 1 for compact and
+super-compact,
 \code{mismatches}, \code{softClips}, \code{fadeLowFrequency}, ...);
 \code{sashimi} (\code{height}, \code{placement}, \code{labels});
 \code{readConnections} (\code{show = TRUE} for each mate pair's and split
 read's arc, \code{mark = "rule"} for the read cloud, \code{height},
-\code{ordinaryPairs}, \code{color = list(field = )}),
-e.g. \code{list(coverage = list(show = FALSE), pileup = list(readHeight = 3))}.
+\code{ordinaryPairs = list(show = FALSE)} to leave out the ordinary pairs,
+\code{encoding = list(color = list(field = ))}),
+e.g. \code{list(coverage = list(show = FALSE), pileup = list(mark = list(height = 3)))}.
 A band or layer set not to show (\code{coverage}, \code{pileup} or \code{sashimi}'s
 \code{show}, \code{coverage$interbase$show}) reads as empty tables.
 \code{pileup$mismatches$show = FALSE} empties \code{mismatches} and \code{insertions}
@@ -133,7 +139,7 @@ carry that base there, over the depth), \code{quality}, \code{fade}
 \item \code{chains}: under \code{unit = "chain"}, each chain of more than one read:
 \code{start}, \code{end}, \code{row}, and the \code{color} and \code{opacity} of the hairline
 across it; empty otherwise
-\item \code{overlaps}: under \code{unit = "chain"} and a \code{readHeight} of 3 or more,
+\item \code{overlaps}: under \code{unit = "chain"} and a read height of 3 or more,
 each span where two reads of one row both align: \code{start}, \code{end}, \code{row}
 and the neutral \code{color} the display fills it with, which is neither
 read's color, and the reads' key ends with the display's row for it;

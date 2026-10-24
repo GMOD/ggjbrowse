@@ -28,10 +28,10 @@ test_that("a PAF reads as the synteny band lays out and colors it", {
   expect_equal(nrow(s$offscreen), 0)
 })
 
-test_that("the view's settings color by strand, set the opacity and pick the CIGAR mode", {
+test_that("the view's settings color by strand, set the opacity and hide the indels", {
   strand <- jbrowse_synteny(paf, query, target,
     display = list(encoding = list(color = list(field = "strand"), opacity = 0.6),
-      cigarMode = "off"))
+      indels = list(show = FALSE)))
   expect_equal(unique(strand$ribbons$kind), "match")
   expect_equal(length(unique(strand$ribbons$color)), 2)
   expect_equal(strand$display$encoding$opacity$value, 0.6)
@@ -78,7 +78,8 @@ test_that("a PAF reads as the dotplot lays out and colors it", {
   built <- ggplot2::ggplot_build(autoplot(d))
   expect_equal(nrow(built$data[[3]]), nrow(d$segments))
   plain <- jbrowse_dotplot(paf, query, target,
-    display = list(drawCigar = FALSE, encoding = list(color = list(field = "strand"))))
+    display = list(indels = list(show = FALSE),
+      encoding = list(color = list(field = "strand"))))
   expect_equal(plain$segments$op, rep("match", 7))
   expect_equal(length(unique(plain$segments$color)), 2)
 })
@@ -131,9 +132,9 @@ test_that("drawing places tables on the axis once, marked by an attribute", {
 })
 
 test_that("the display slot holds the view's settings as the engine resolves them", {
-  expect_equal(s$display[c("filter", "cigarMode", "axis", "height")],
-    list(filter = list(), cigarMode = "full", axis = list(grid = FALSE),
-      height = 100L))
+  expect_equal(s$display[c("filter", "axis", "height")],
+    list(filter = list(), axis = list(grid = FALSE), height = 100L))
+  expect_true(s$display$indels$show)
   expect_null(s$display$render$antialias)
   short <- jbrowse_synteny(paf, query, target,
     display = list(filter = list(list(field = "length", gte = 1e9))))
@@ -141,9 +142,10 @@ test_that("the display slot holds the view's settings as the engine resolves the
   expect_equal(nrow(short$ribbons), 0)
   expect_equal(s$display$encoding$color$field, "")
   strand <- jbrowse_synteny(paf, query, target,
-    display = list(encoding = list(color = list(field = "strand")), cigarMode = "off"))
+    display = list(encoding = list(color = list(field = "strand")),
+      indels = list(show = FALSE)))
   expect_equal(strand$display$encoding$color$field, "strand")
-  expect_equal(strand$display$cigarMode, "off")
+  expect_false(strand$display$indels$show)
   expect_null(strand[["field"]])
   expect_null(strand$alpha)
   expect_null(strand$height)
@@ -156,8 +158,9 @@ test_that("the display slot holds the view's settings as the engine resolves the
   d <- jbrowse_dotplot(paf, query, target, display = list(encoding = list(color = list(value = "grey"))))
   expect_equal(d$height, 1500)
   expect_equal(jbrowse_dotplot(paf, query, target, width = 900)$height, 900)
-  expect_equal(d$display[c("filter", "drawCigar", "lineWidth")],
-    list(filter = list(), drawCigar = TRUE, lineWidth = 2.5))
+  expect_equal(d$display[c("filter", "lineWidth")],
+    list(filter = list(), lineWidth = 2.5))
+  expect_true(d$display$indels$show)
   expect_equal(d$display$encoding$color$value, "grey")
   expect_null(d$line_width)
   expect_error(jbrowse_synteny(paf, query, target, view = list()),
@@ -251,10 +254,15 @@ test_that("each axis takes every region form a linear reader takes", {
   expect_equal(jbrowse_synteny(paf, g, target)$regions$end[1], 49186)
 })
 
-test_that("a setting the view does not take raises ggjbrowse_bad_display", {
-  expect_error(jbrowse_synteny(paf, query, target,
-    display = list(cigarMode = "some")), "display\\$cigarMode",
-    class = "ggjbrowse_bad_display")
+test_that("an indels opacity of 0 leaves each indel a gap", {
+  gaps <- jbrowse_synteny(paf, query, target,
+    display = list(indels = list(encoding = list(opacity = 0))))
+  expect_equal(unique(gaps$ribbons$kind), "match")
+  expect_gt(sum(gaps$ribbons$kind == "match"), sum(s$ribbons$kind == "match"))
+  expect_equal(gaps$display$indels$encoding$opacity$value, 0)
+  dots <- jbrowse_dotplot(paf, query, target,
+    display = list(indels = list(encoding = list(opacity = 0))))
+  expect_equal(unique(dots$segments$op), "match")
 })
 
 test_that("identity keys as a bar from 0% to 100%, and mapq as chips", {

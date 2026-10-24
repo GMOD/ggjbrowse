@@ -65,12 +65,14 @@ alignments_adapter <- function(file, index) {
 #'     each base's Phred score; unset paints none. Under `"modifications"` or
 #'     `"bisulfite"` the display greys every mismatched base so the calls
 #'     stand out
-#'   * `modifications`: what that layer reads: any of `threshold` (the
-#'     percent probability under which a call is hidden, 10), `unmodified`
-#'     (`"hidden"`, `"calls"` or `"all"`; bisulfite paints its unmethylated
-#'     calls under either of the last two), `cytosineContext` (`"CG"`,
-#'     `"CHG"`, `"CHH"` or `"all"`) and `shownModifications` (the type codes
-#'     drawn, every one when empty)
+#'   * `pileup$bases$filter`: which calls that layer draws, a list of field
+#'     predicates on `probability` (0 to 1, `gte` or `gt`; 0.1 unwritten),
+#'     `context` (`oneOf` `"CG"`, `"CHG"` or `"CHH"`; `"CG"` unwritten, and
+#'     `list(field = "context")` takes all three) and `code` (`oneOf` the
+#'     type codes drawn; every one unwritten), such as
+#'     `list(list(field = "context", oneOf = "CHH"))`
+#'   * `modifications`: `unmodified` (`"hidden"`, `"calls"` or `"all"`;
+#'     bisulfite paints its unmethylated calls under either of the last two)
 #'   * `sort`: how the rows are laid out, by one `field`:
 #'     `list(field = "position")` (or `"length"`, `"spliced"`, `"split"`,
 #'     `"svSignal"`: SV evidence first, split reads above SV-size indels above
@@ -86,15 +88,20 @@ alignments_adapter <- function(file, index) {
 #'     with its mate and split segments on one row, a hairline across it, and
 #'     the strand colors framed against the chain's own
 #'   * the four bands, each a list with its own `show`:
-#'     `coverage` (`height`, `interbase`, `minAlleleFraction`,
-#'     the share of the depth an allele needs to be colored);
-#'     `pileup` (`readHeight`, 7, or 3 and 1 for compact and super-compact,
+#'     `coverage` (`height`; `interbase`, whose `filter` on `depth` and
+#'     `fraction` picks the positions that get an indicator; `alleles`, whose
+#'     `filter` on `fraction`, the share of the depth, picks the alleles
+#'     colored, such as `list(list(field = "fraction", gte = 0.2))`);
+#'     `pileup` (`mark = list(height = )`, 7, or 3 and 1 for compact and
+#'     super-compact,
 #'     `mismatches`, `softClips`, `fadeLowFrequency`, ...);
 #'     `sashimi` (`height`, `placement`, `labels`);
 #'     `readConnections` (`show = TRUE` for each mate pair's and split
 #'     read's arc, `mark = "rule"` for the read cloud, `height`,
-#'     `ordinaryPairs`, `color = list(field = )`),
-#'     e.g. `list(coverage = list(show = FALSE), pileup = list(readHeight = 3))`.
+#'     `ordinaryPairs = list(show = FALSE)` to leave out the ordinary pairs,
+#'     `encoding = list(color = list(field = ))`),
+#'     e.g. `list(coverage = list(show = FALSE),
+#'     pileup = list(mark = list(height = 3)))`.
 #'     A band or layer set not to show (`coverage`, `pileup` or `sashimi`'s
 #'     `show`, `coverage$interbase$show`) reads as empty tables.
 #'     `pileup$mismatches$show = FALSE` empties `mismatches` and `insertions`
@@ -123,7 +130,7 @@ alignments_adapter <- function(file, index) {
 #'   * `chains`: under `unit = "chain"`, each chain of more than one read:
 #'     `start`, `end`, `row`, and the `color` and `opacity` of the hairline
 #'     across it; empty otherwise
-#'   * `overlaps`: under `unit = "chain"` and a `readHeight` of 3 or more,
+#'   * `overlaps`: under `unit = "chain"` and a read height of 3 or more,
 #'     each span where two reads of one row both align: `start`, `end`, `row`
 #'     and the neutral `color` the display fills it with, which is neither
 #'     read's color, and the reads' key ends with the display's row for it;
@@ -385,7 +392,7 @@ paints_bisulfite <- function(display) {
 # `domain`, a facet's or row arrangement's `sort`, `kept`, a field
 # predicate's `oneOf`
 ARRAY_SLOTS <- c("domain", "sort", "range", "labels", "hidden", "kept", "oneOf",
-  "shownModifications", "laneGeneTracks", "tracks")
+  "laneGeneTracks", "tracks")
 
 # A config with each unnamed vector in an ARRAY_SLOTS slot a JSON array
 # however many values it holds, where jsonlite would write one as a scalar

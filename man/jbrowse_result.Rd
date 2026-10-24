@@ -75,8 +75,7 @@ in a table
 region on such a contig beside others on the file's contigs reads empty
 and warns, its reason in \code{regions$missing}
 \item \code{ggjbrowse_bad_display}: a \code{display} slot holds a value the display's
-config schema refuses, or a synteny view's \code{cigarMode} one it does not
-take, which the error names
+config schema refuses, which the error names
 \item \code{ggjbrowse_bad_region}: a region is neither a locus nor a contig of the
 file, or a data frame of regions reads as 1-based
 \item \code{ggjbrowse_forked}: the engine was started in a forked worker

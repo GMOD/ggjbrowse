@@ -112,7 +112,7 @@ Sorted by the base at the center, at 3 pixels a row the pileup takes far less he
 ```r
 autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
   "chr10:122,831,700-122,840,800",
-  display = list(pileup = list(readHeight = 3),
+  display = list(pileup = list(mark = list(height = 3)),
     sort = list(field = "base", pos = 122836300))))
 ```
 
@@ -222,8 +222,9 @@ methyldackel <- list(type = "MultiWiggleAdapter",
       uri = e(sprintf("arabidopsis_methyldackel_%s.bw", context))))))
 reads <- jbrowse_alignments(e("arabidopsis_wgbs.bam"), locus,
   assembly = e("arabidopsis_tair10.fa.gz"),
-  display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
-    modifications = list(cytosineContext = "CHH")))
+  display = list(pileup = list(bases = list(show = TRUE,
+    encoding = list(color = "bisulfite"),
+    filter = list(list(field = "context", oneOf = "CHH"))))))
 jbrowse_stack(`RefSeq genes` = genes, RepeatMasker = repeats,
   MethylDackel = jbrowse_wiggle(methyldackel, locus), `CHH reads` = reads)
 ```
@@ -233,7 +234,7 @@ jb2export --fasta inst/extdata/arabidopsis_tair10.fa.gz \
   --bigbed inst/extdata/arabidopsis_refseq.bb 'name:RefSeq genes' \
   --bigbed inst/extdata/arabidopsis_rmsk.bb name:RepeatMasker \
   --multiwig gallery/jb2export/methyldackel.json name:MethylDackel legend.show=true \
-  --bam inst/extdata/arabidopsis_wgbs.bam baseColor:bisulfite modifications.cytosineContext=CHH legend.show=true heightMode:grow growMaxHeight=2000 \
+  --bam inst/extdata/arabidopsis_wgbs.bam baseColor:bisulfite '{"pileup":{"bases":{"filter":[{"field":"context","oneOf":["CHH"]}]}}}' legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc NC_003070.9:4,398,001-4,412,000 \
   --width 1200 --out bisulfite.png
 ```
@@ -700,7 +701,7 @@ primates <- list(type = "MultiPairwiseSyntenyAdapter", adapters = list(
   liftover("PonAbe3", "ponAbe3")))
 autoplot(jbrowse_multiway(primates, "chr17:7,400,001-7,700,000", "hg38",
   lanes = c("panTro6", "gorGor6", "ponAbe3"),
-  display = list(ribbonColor = list(field = "strand"))))
+  display = list(ribbons = list(encoding = list(color = list(field = "strand"))))))
 ```
 
 ```sh

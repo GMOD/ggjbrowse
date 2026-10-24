@@ -58,22 +58,6 @@ comparative_args <- function(file, index, display) {
   args
 }
 
-# The values a view's enumerated settings take
-SYNTENY_CHOICES <- list(cigarMode = c("full", "matches", "off"))
-
-# Stops where a setting holds a value its view does not take, as the
-# linear displays' config schemas refuse one
-check_choices <- function(display, choices) {
-  for (slot in intersect(names(choices), names(display))) {
-    value <- display[[slot]]
-    if (length(value) == 1 && value %in% choices[[slot]]) next
-    rlang::abort(sprintf("`display$%s` is %s; the view takes %s", slot,
-      paste(format(value), collapse = ", "), paste(encodeString(
-        choices[[slot]], quote = "\""), collapse = ", ")),
-      class = "ggjbrowse_bad_display")
-  }
-}
-
 # The engine's tables and the warnings it raised reading them, each also
 # raised as an R warning
 warned_call <- function(table, args) {
@@ -251,8 +235,9 @@ on_axis_of <- function(regions, axis) {
 #'   `list(field = "query")` or `list(field = "mapq")`), `opacity` (a number,
 #'   or an opacity object with a `field`), `filter` (a list of field
 #'   predicates, such as `list(list(field = "length", gte = 10000))`),
-#'   `cigarMode` (`"full"` for colored indels, `"matches"` for the matches
-#'   alone with the indels left clear, `"off"` for the block alone), `axis`
+#'   `indels` (unset for the indels in their colors,
+#'   `list(encoding = list(opacity = 0))` for the matches alone with the
+#'   indels left clear, `list(show = FALSE)` for the block alone), `axis`
 #'   (`list(grid = TRUE)` draws the location markers), `render`
 #'   (`list(antialias = FALSE)` stops the fade of sub-pixel ribbons; unset,
 #'   it fades once they dominate) and `height`, the band's pixels
@@ -322,7 +307,6 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
                             display = NULL, width = DEFAULT_WIDTH,
                             assemblies = NULL, swap = FALSE, labels = NULL,
                             index = NULL) {
-  check_choices(display, SYNTENY_CHOICES)
   args <- comparative_args(file, index, display)
   axes <- comparative_axes(args$adapterConfig, query, target, assemblies, swap)
   q <- axes$first
@@ -739,7 +723,7 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #' @param display the view's settings, as a `DotplotView` snapshot writes
 #'   them: a list with any of `color`, `opacity`, `filter` (a list of field
 #'   predicates, such as `list(list(field = "identity", gte = 0.9))`),
-#'   `drawCigar` and `lineWidth`
+#'   `indels` (as for [jbrowse_synteny()]) and `lineWidth`
 #' @param width,height the plot's pixels across and up, which decide which
 #'   blocks are wide enough for their CIGAR to show: 1,500 across as for the
 #'   linear readers, and up as many as across

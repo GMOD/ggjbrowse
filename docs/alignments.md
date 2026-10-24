@@ -27,14 +27,15 @@ JBrowse does:
   `filter = list(list(field = "junction.reads", gte = 5), list(field = "junction.canonical", equal = TRUE))`.
 - `sort = list(field = "base", pos = 122836300)` sorts by the base at a
   position ([a somatic deletion](gallery.md#deletion)).
-- `pileup = list(readHeight = 3)` packs reads compact
+- `pileup = list(mark = list(height = 3))` packs reads compact
   ([compact reads](gallery.md#compact_reads)).
 - `pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications")))` paints MM/ML modification calls
   ([CpG methylation](gallery.md#methylation)).
 - `pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite")))` paints the methylation bisulfite or
-  EM-seq reads show against `assembly`, in the context
-  `modifications = list(cytosineContext = "CHH")` names
-  ([CHH methylation](gallery.md#bisulfite)).
+  EM-seq reads show against `assembly`, in the context its
+  `filter = list(list(field = "context", oneOf = "CHH"))` names
+  ([CHH methylation](gallery.md#bisulfite)). The same `filter` keeps
+  modification calls by `probability`, from 0 to 1, and type `code`.
 - `readConnections = list(show = TRUE)` adds the read-pair band, an arc per
   mate pair and split read colored by insert size and pair orientation.
   `mark = "rule"` plots each abnormal pair at its insert size instead.
@@ -47,7 +48,7 @@ JBrowse does:
   band's own `show` and height, as a track config writes them:
   `coverage = list(show = FALSE)`,
   `sashimi = list(placement = "down")`,
-  `readConnections = list(show = TRUE, showOrdinaryPairs = FALSE)`.
+  `readConnections = list(show = TRUE, ordinaryPairs = list(show = FALSE))`.
 
 Each read comes back on the row the display lays it on, with the fill the
 display paints it, and `a$keys$reads` is the display's key. A mismatch,
@@ -65,7 +66,8 @@ resolved config it decided from:
   `filter$junctions`. Each arc rises to its `arcHeight` share of the band and
   strokes `strokeWidth` px, which R draws at 150 px an inch.
 - `allele_coverage$shown` marks the alleles the coverage band stacks, by
-  `coverage$minAlleleFraction`.
+  `coverage$alleles$filter`, such as
+  `list(list(field = "fraction", gte = 0.2))`.
 - `autoplot()` and the geoms draw what these columns say, so editing them
   draws otherwise: `a$junctions$shown <- a$junctions$count >= 5`, or
   `a$mismatches$fade <- 1` to stop a sub-pixel mismatch fading.

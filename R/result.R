@@ -64,8 +64,7 @@
 #'   region on such a contig beside others on the file's contigs reads empty
 #'   and warns, its reason in `regions$missing`
 #' * `ggjbrowse_bad_display`: a `display` slot holds a value the display's
-#'   config schema refuses, or a synteny view's `cigarMode` one it does not
-#'   take, which the error names
+#'   config schema refuses, which the error names
 #' * `ggjbrowse_bad_region`: a region is neither a locus nor a contig of the
 #'   file, or a data frame of regions reads as 1-based
 #' * `ggjbrowse_forked`: the engine was started in a forked worker

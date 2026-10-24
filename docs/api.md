@@ -141,7 +141,7 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
 |---|---|
 | `ggjbrowse_too_large` | the regions pass `span_limit` or `byte_limit`, or a whole file or contig passes 5 million rows in a table |
 | `ggjbrowse_missing_contig` | no region's contig is one the file lists; a region on a missing contig beside others warns and reads empty |
-| `ggjbrowse_bad_display` | a `display` slot holds a value the config schema refuses, or a synteny view's `cigarMode` or `fadeThinAlignmentsMode` one it does not take, which the error names |
+| `ggjbrowse_bad_display` | a `display` slot holds a value the config schema refuses, which the error names |
 | `ggjbrowse_bad_region` | a region is neither a locus nor a contig of the file, or a frame reads as 1-based |
 | `ggjbrowse_parent_data` | a geom is handed a parent table as `data` |
 | `ggjbrowse_forked` | the engine was started in a forked worker |
