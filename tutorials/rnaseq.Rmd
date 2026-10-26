@@ -259,11 +259,11 @@ only:
   - "Splice-arc colors give the strand"
   - "The surfeit locus is a tight cluster"
   - "Grouping the reads by first-of-pair strand"
-  - "**Group by... → First-of-pair strand** applies"
+  - "**Group by → First-of-pair strand** applies"
 replace:
   - from: "Type `chr9:136,214,000-136,229,000` into the\nlocation box, then pick this path from the track menu:"
     to: "We'll read `chr9:136,214,000-136,229,000`."
-  - from: "**Group by... → First-of-pair strand** applies a `facet`, one section per group,\neach with a coverage histogram from only that group's reads, forward and reverse\non one autoscaled axis. Turning off **Show... → Pileup** leaves the two\nhistograms alone."
+  - from: "**Group by → First-of-pair strand** applies a `facet`, one section per group,\neach with a coverage histogram from only that group's reads, forward and reverse\non one autoscaled axis. Turning off **Show → Pileup** leaves the two histograms\nalone."
     to: "`facet = list(field = \"firstOfPairStrand\")` makes one section per group, each with a coverage histogram from only that group's reads, forward and reverse on one autoscaled axis. `pileup = list(show = FALSE)` leaves the two histograms alone."
 -->
 
