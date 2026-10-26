@@ -110,7 +110,8 @@ gene_track <- function(id, file, assembly) list(type = "FeatureTrack",
       indexType = "TBI")),
   displays = list(list(type = "LinearBasicDisplay",
     displayId = paste0(id, "-display"), displayMode = "compact",
-    showLabels = FALSE, filter = list("geneLike"))))
+    labels = list(name = list(show = FALSE), description = list(show = FALSE)),
+    filter = list("geneLike"))))
 
 synteny_genes_args <- function() {
   config <- json_file(list(
@@ -527,8 +528,8 @@ s <- jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
   labels = c(query = "paternal", target = "maternal"))
 gene_track <- function(file, contig) jbrowse_features(e(file),
   paste0(contig, ":", r),
-  display = list(displayMode = "compact", showLabels = FALSE,
-    filter = "geneLike"))
+  display = list(displayMode = "compact", filter = "geneLike",
+    labels = list(name = list(show = FALSE), description = list(show = FALSE))))
 autoplot(s, above = gene_track("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
   below = gene_track("hg002_pat_genes.gff3.gz", "chr8_PATERNAL"))
 )-"),

@@ -20,7 +20,7 @@ features_adapter <- function(file, index) {
 #' Runs JBrowse's own feature display in V8: the features it fetches, the gene
 #' glyph it builds from each (transcripts, exons, CDS, UTRs, intron lines,
 #' strand chevrons and arrows), the rows its layout packs them into, the
-#' labels it shows at this zoom and the colors its `color` object paints.
+#' labels it shows at this zoom and the colors its `encoding.color` paints.
 #' Coordinates are 0-based, half-open, on the reference; vertical positions
 #' are the display's pixels, down from the track's top.
 #'
@@ -38,14 +38,16 @@ features_adapter <- function(file, index) {
 #'   file or contig is refused past 5 million rows in any one table
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearBasicDisplay`: a list with any of
-#'   `color` (a constant such as `"purple"`, or the color object's slots,
-#'   such as `list(field = "type")`), `displayMode` (`"normal"`, `"compact"`,
-#'   `"superCompact"`, `"collapsed"`), `showLabels` (`"auto"`, `"name"`,
-#'   `"nameAndDescription"`, `"description"`, `"none"`), `geneGlyphMode`
-#'   (`"auto"`, `"all"`, `"longestCoding"`), `subfeatureLabels` (`"none"`,
-#'   `"below"`, `"overlay"`), `featureHeight`, `filter` (jexl
-#'   expressions, and `"geneLike"` for the genes alone),
-#'   `showChevrons`, `facet` (a field such as
+#'   `encoding = list(color = )` (`list(value = "purple")` for a constant, or
+#'   the color object's slots, such as `list(field = "type")`), `displayMode`
+#'   (`"normal"`, `"compact"`, `"superCompact"`, `"collapsed"`), `labels`
+#'   (parts `name`, `description` and `subfeatures`, each with its `show`,
+#'   such as `list(description = list(show = FALSE))`; `name` and
+#'   `description` take a `field`, `subfeatures` a `placement` of `"auto"`,
+#'   `"below"` or `"overlay"`), `geneGlyphMode` (`"auto"`, `"all"`,
+#'   `"representative"`), `utrs = list(encoding = list(color = ))`,
+#'   `mark = list(height = )`, `filter` (jexl expressions, and `"geneLike"`
+#'   for the genes alone), `chevrons = list(show = )`, `facet` (a field such as
 #'   `"strand"` or `"type"`, or `list(field = , sort = , hidden = )`, which
 #'   packs a section per value, as alignments' `facet` does), and `heightMode`
 #'   with `height`. A figure has no track height to fit, so `heightMode`

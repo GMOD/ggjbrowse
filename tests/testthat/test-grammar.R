@@ -192,7 +192,7 @@ test_that("the multi-layer geoms take any column of their tables", {
   built <- ggplot_build(ggplot(g) + geom_jbrowse_glyphs(aes(alpha = end - start)))
   expect_equal(nrow(built$data[[2]]), 2 * nrow(g$chevrons))
   labelled <- jbrowse_features(extdata("volvox.sort.gff3.gz"), "ctgA:1-25,000",
-    width = 5000, display = list(subfeatureLabels = "below"))
+    width = 5000, display = list(labels = list(subfeatures = list(placement = "below"))))
   expect_true(all(labelled$labels$feature >= 1))
   sub <- labelled$labels[!is.na(labelled$labels$subfeature), ]
   expect_gt(nrow(sub), 0)

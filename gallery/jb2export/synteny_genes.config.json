@@ -69,7 +69,14 @@
           "type": "LinearBasicDisplay",
           "displayId": "maternal genes-display",
           "displayMode": "compact",
-          "showLabels": false,
+          "labels": {
+            "name": {
+              "show": false
+            },
+            "description": {
+              "show": false
+            }
+          },
           "filter": [
             "geneLike"
           ]
@@ -100,7 +107,14 @@
           "type": "LinearBasicDisplay",
           "displayId": "paternal genes-display",
           "displayMode": "compact",
-          "showLabels": false,
+          "labels": {
+            "name": {
+              "show": false
+            },
+            "description": {
+              "show": false
+            }
+          },
           "filter": [
             "geneLike"
           ]

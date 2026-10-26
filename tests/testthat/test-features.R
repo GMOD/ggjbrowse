@@ -25,7 +25,8 @@ test_that("a GFF3 region reads as JBrowse's feature display lays it out", {
 
 test_that("the display's settings reach the tables", {
   bare <- jbrowse_features(gff, "ctgA:1-25,000",
-    display = list(showLabels = "none", showChevrons = FALSE))
+    display = list(labels = list(name = list(show = FALSE),
+      description = list(show = FALSE)), chevrons = list(show = FALSE)))
   expect_equal(nrow(bare$labels), 0)
   expect_equal(nrow(bare$chevrons), 0)
   expect_lt(bare$height, g$height)

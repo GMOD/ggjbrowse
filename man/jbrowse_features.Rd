@@ -33,14 +33,16 @@ file or contig is refused past 5 million rows in any one table}
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearBasicDisplay}: a list with any of
-\code{color} (a constant such as \code{"purple"}, or the color object's slots,
-such as \code{list(field = "type")}), \code{displayMode} (\code{"normal"}, \code{"compact"},
-\code{"superCompact"}, \code{"collapsed"}), \code{showLabels} (\code{"auto"}, \code{"name"},
-\code{"nameAndDescription"}, \code{"description"}, \code{"none"}), \code{geneGlyphMode}
-(\code{"auto"}, \code{"all"}, \code{"longestCoding"}), \code{subfeatureLabels} (\code{"none"},
-\code{"below"}, \code{"overlay"}), \code{featureHeight}, \code{filter} (jexl
-expressions, and \code{"geneLike"} for the genes alone),
-\code{showChevrons}, \code{facet} (a field such as
+\code{encoding = list(color = )} (\code{list(value = "purple")} for a constant, or
+the color object's slots, such as \code{list(field = "type")}), \code{displayMode}
+(\code{"normal"}, \code{"compact"}, \code{"superCompact"}, \code{"collapsed"}), \code{labels}
+(parts \code{name}, \code{description} and \code{subfeatures}, each with its \code{show},
+such as \code{list(description = list(show = FALSE))}; \code{name} and
+\code{description} take a \code{field}, \code{subfeatures} a \code{placement} of \code{"auto"},
+\code{"below"} or \code{"overlay"}), \code{geneGlyphMode} (\code{"auto"}, \code{"all"},
+\code{"representative"}), \code{utrs = list(encoding = list(color = ))},
+\code{mark = list(height = )}, \code{filter} (jexl expressions, and \code{"geneLike"}
+for the genes alone), \code{chevrons = list(show = )}, \code{facet} (a field such as
 \code{"strand"} or \code{"type"}, or \code{list(field = , sort = , hidden = )}, which
 packs a section per value, as alignments' \code{facet} does), and \code{heightMode}
 with \code{height}. A figure has no track height to fit, so \code{heightMode}
@@ -158,7 +160,7 @@ pixels.
 Runs JBrowse's own feature display in V8: the features it fetches, the gene
 glyph it builds from each (transcripts, exons, CDS, UTRs, intron lines,
 strand chevrons and arrows), the rows its layout packs them into, the
-labels it shows at this zoom and the colors its \code{color} object paints.
+labels it shows at this zoom and the colors its \code{encoding.color} paints.
 Coordinates are 0-based, half-open, on the reference; vertical positions
 are the display's pixels, down from the track's top.
 }
