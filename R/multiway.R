@@ -80,8 +80,10 @@ lane_pin <- function(locus) {
 #'   config writes them: a list with any of `ribbons` (its `encoding$color`,
 #'   `list(value = )` for a CSS color, or a field such as
 #'   `list(field = "strand")`, `list(field = "identity")` or a declared
-#'   column, and its `mark$interpolate`, `"bump"` for curved sides),
-#'   `hideUnlabelled` and `rows`, which `lanes` writes
+#'   column, its `encoding$opacity`, its `filter`, a list of predicates
+#'   such as `list(field = "length", gte = 10000)`, and its
+#'   `mark$interpolate`, `"bump"` for curved sides), and `rows`, which
+#'   `lanes` writes
 #' @param width the view's pixels, 1,500 as for the linear readers, which set
 #'   each lane's zoom and which ribbons are wide enough to draw
 #' @param index the tabix or CSI index of a `.pif.gz`, if not beside it

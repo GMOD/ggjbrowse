@@ -87,8 +87,8 @@ alignments' own coordinates, and the ribbons between adjacent lanes
 ([TP53 in four primates](gallery.md#multiway)).
 
 - `lanes` picks and orders the genomes, or pins a lane to a contig.
-- `display` takes the display's settings (`ribbons` with its `encoding` and
-  `mark`, `hideUnlabelled`, ...).
+- `display` takes the display's settings (`ribbons` with its `encoding`,
+  `filter` and `mark`, ...).
 - `autoplot(m, above = genes)` stacks tracks over the anchor lane.
 - `region` takes the anchor's loci, a frame or a GRanges, but not a bare
   contig: a multi-genome file states no contig's length. `regions` holds the
