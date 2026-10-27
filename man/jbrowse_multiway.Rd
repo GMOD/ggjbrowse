@@ -59,8 +59,9 @@ a \code{jbrowse_multiway} list, beside the slots \link{jbrowse_result} lists:
 \itemize{
 \item \code{lanes}: one row per lane, top to bottom: \code{lane}, \code{assembly},
 \code{label}, \code{anchor}, \code{chrom}, \code{flipped} (the lane runs right to left),
-\code{bp_per_px}, \code{also_on} (other contigs placing a comparable share)
-and \code{locus}, the lane's window, to read its tracks over
+\code{bp_per_px}, \code{also_on} (other contigs placing a comparable share),
+\code{y_top} and \code{y_bottom}, the band its gene boxes fill, and \code{locus}, the
+lane's window, to read its tracks over
 \item \code{segments}: the stretches of each lane's sequence across the view,
 cut where it opens a hole: \code{lane}, \code{chrom}, \code{start}, \code{end}, and \code{x1},
 \code{x2}, the pixels \code{start} and \code{end} sit at, and \code{region}, the row of
@@ -74,9 +75,9 @@ base tile), \code{gutter} (the lane it hangs under), \code{upper_lane},
 \code{lower_lane}, each foot's \verb{*_region}, \verb{*_chrom}, \verb{*_start} and
 \verb{*_end}, and its
 pixels \code{upper_x1}, \code{upper_x2}, \code{lower_x1}, \code{lower_x2}, where the ribbon
-joins \code{upper_x1} to \code{lower_x1}, so a reversed pair crosses; \code{color},
-\code{alpha}, \code{thin} and \code{bridge}, a ribbon that skips a lane placing
-nothing for its group
+joins \code{upper_x1} to \code{lower_x1}, so a reversed pair crosses; \code{y_top}
+and \code{y_bottom}, its gutter; \code{color}, \code{alpha}, \code{thin} and \code{bridge}, a
+ribbon that skips a lane placing nothing for its group
 \item \code{alignments}: the records the ribbons draw: \code{alignment}, the key
 assigning \code{alignments} drops the ribbons of, \code{id}, \code{group}, \code{name},
 \code{assembly}, \code{chrom}, \code{start}, \code{end}, \code{strand}, \code{mate_assembly},
@@ -87,7 +88,8 @@ columns the file carries
 \code{keys$ribbons} is the ribbons' key. \code{regions} lays out each lane, its \code{axis} the lane's assembly: the
 anchor's regions, spaced as a linear track over them spaces them, and
 the window each other lane shows. \code{display} is the display's config as
-the engine resolves it, \code{rows} as \code{lanes} writes it. \code{width} is the view's pixels, \code{tick_interval} the bp between
+the engine resolves it, \code{rows} as \code{lanes} writes it. \code{width} is the view's pixels, \code{height} the stack's, each \code{y_top}
+and \code{y_bottom} pixels down from its top, \code{tick_interval} the bp between
 each lane's ticks, and \code{rows_vs_anchor} whether each lane is stated
 against the anchor alone, as a star of pairwise files states it.
 }

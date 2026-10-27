@@ -90,8 +90,9 @@ lane_pin <- function(locus) {
 #' @return a `jbrowse_multiway` list, beside the slots [jbrowse_result] lists:
 #'   * `lanes`: one row per lane, top to bottom: `lane`, `assembly`,
 #'     `label`, `anchor`, `chrom`, `flipped` (the lane runs right to left),
-#'     `bp_per_px`, `also_on` (other contigs placing a comparable share)
-#'     and `locus`, the lane's window, to read its tracks over
+#'     `bp_per_px`, `also_on` (other contigs placing a comparable share),
+#'     `y_top` and `y_bottom`, the band its gene boxes fill, and `locus`, the
+#'     lane's window, to read its tracks over
 #'   * `segments`: the stretches of each lane's sequence across the view,
 #'     cut where it opens a hole: `lane`, `chrom`, `start`, `end`, and `x1`,
 #'     `x2`, the pixels `start` and `end` sit at, and `region`, the row of
@@ -105,9 +106,9 @@ lane_pin <- function(locus) {
 #'     `lower_lane`, each foot's `*_region`, `*_chrom`, `*_start` and
 #'     `*_end`, and its
 #'     pixels `upper_x1`, `upper_x2`, `lower_x1`, `lower_x2`, where the ribbon
-#'     joins `upper_x1` to `lower_x1`, so a reversed pair crosses; `color`,
-#'     `alpha`, `thin` and `bridge`, a ribbon that skips a lane placing
-#'     nothing for its group
+#'     joins `upper_x1` to `lower_x1`, so a reversed pair crosses; `y_top`
+#'     and `y_bottom`, its gutter; `color`, `alpha`, `thin` and `bridge`, a
+#'     ribbon that skips a lane placing nothing for its group
 #'   * `alignments`: the records the ribbons draw: `alignment`, the key
 #'     assigning `alignments` drops the ribbons of, `id`, `group`, `name`,
 #'     `assembly`, `chrom`, `start`, `end`, `strand`, `mate_assembly`,
@@ -117,7 +118,8 @@ lane_pin <- function(locus) {
 #'   `keys$ribbons` is the ribbons' key. `regions` lays out each lane, its `axis` the lane's assembly: the
 #'   anchor's regions, spaced as a linear track over them spaces them, and
 #'   the window each other lane shows. `display` is the display's config as
-#'   the engine resolves it, `rows` as `lanes` writes it. `width` is the view's pixels, `tick_interval` the bp between
+#'   the engine resolves it, `rows` as `lanes` writes it. `width` is the view's pixels, `height` the stack's, each `y_top`
+#'   and `y_bottom` pixels down from its top, `tick_interval` the bp between
 #'   each lane's ticks, and `rows_vs_anchor` whether each lane is stated
 #'   against the anchor alone, as a star of pairwise files states it.
 #' @export
@@ -183,7 +185,8 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     layout, width, r$config, list(ribbons = legend_key(r, 0.6)),
     ramp_frames(r$ramps),
     unique(c(attr(missing, "warning"), read$warnings)),
-    list(tick_interval = r$tickInterval, rows_vs_anchor = r$rowsVsAnchor))
+    list(height = r$height, tick_interval = r$tickInterval,
+      rows_vs_anchor = r$rowsVsAnchor))
 }
 
 # The anchor lane's regions: loci, a data frame or a GRanges. A
@@ -247,25 +250,25 @@ print.jbrowse_multiway <- function(x, ...) {
 
 `%|NA|%` <- function(a, b) if (is.na(a)) b else a
 
-# The stack's heights in the figure's pixels: a gutter between lanes, and a
-# lane's ruler labels above its line
-MULTIWAY_GUTTER_PX <- 100
-LANE_RULER_PX <- 22
-LANE_BOX_PX <- 5
-
-# The stack laid out top to bottom, a lane's line at y = its pixels above
-# the bottom lane's: each ribbon from under its upper lane to over its lower
-# lane's ruler, each lane's ticks at the shared interval
+# The stack as the display lays it out, y the px up from its bottom: each
+# lane's line through the middle of its gene boxes, each ribbon across its
+# gutter, each lane's ticks at the shared interval
 multiway_on_axis <- function(x) {
   if (is_on_axis(x$ribbons)) return(x)
-  n <- nrow(x$lanes)
-  lane_y <- (n - seq_len(n)) * MULTIWAY_GUTTER_PX
+  up <- function(y) x$height - y
+  l <- x$lanes
+  l$box_top <- up(l$y_top)
+  l$box_bottom <- up(l$y_bottom)
+  x$lanes <- l
+  lane_y <- (l$box_top + l$box_bottom) / 2
   r <- x$ribbons
-  r$y_top <- lane_y[r$gutter] - LANE_BOX_PX
-  r$y_bottom <- lane_y[r$lower_lane] + LANE_RULER_PX
+  r$y_top <- up(r$y_top)
+  r$y_bottom <- up(r$y_bottom)
   x$ribbons <- structure(r, on_axis = TRUE)
   x$segments$y <- lane_y[x$segments$lane]
   x$blocks$y <- lane_y[x$blocks$lane]
+  x$blocks$box_top <- l$box_top[x$blocks$lane]
+  x$blocks$box_bottom <- l$box_bottom[x$blocks$lane]
   x$ticks <- lane_ticks(x$segments, x$tick_interval)
   x$lane_y <- lane_y
   x
@@ -300,8 +303,9 @@ multiway_feet <- function(r) {
 #' to over its lower lane as the display draws it: a filled trapezoid in its
 #' color at its opacity, or a one-pixel line where it is thinner than a
 #' pixel. `geom_jbrowse_lanes()` draws each lane's line, its ruler and, for a
-#' gene table, the boxes the ribbons join. Lanes stack top to bottom
-#' `r MULTIWAY_GUTTER_PX` pixels apart on y; x is the view's pixels.
+#' gene table, the boxes the ribbons join. Lanes stack top to bottom as the
+#' display lays them out over its `height`, y the pixels up from the stack's
+#' bottom; x is the view's pixels.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_multiway()] result, `NULL` for the plot's,
 #'   or a data frame in place of the table the geom draws from the plot's
@@ -341,7 +345,7 @@ geom_jbrowse_lanes <- function(data = NULL, ...) {
   list(
     jbrowse_layer(ggplot2::GeomRect, data, named, NULL,
       ggplot2::aes(xmin = pmin(x1, x2), xmax = pmax(x1, x2),
-        ymin = y - LANE_BOX_PX, ymax = y + LANE_BOX_PX),
+        ymin = box_bottom, ymax = box_top),
       list(fill = "grey60", colour = "grey30", linewidth = 0.2, ...)),
     jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$segments, NULL,
       ggplot2::aes(x = x1, xend = x2, y = y, yend = y),
@@ -371,7 +375,7 @@ multiway_stack <- function(x, curves) {
     guides_jbrowse(x) +
     ggplot2::scale_y_continuous(breaks = x$lane_y, labels = lane_names(x)) +
     ggplot2::coord_cartesian(xlim = c(0, x$width),
-      ylim = c(-LANE_BOX_PX, max(x$lane_y) + LANE_RULER_PX), expand = FALSE) +
+      ylim = c(0, x$height), expand = FALSE) +
     ggplot2::labs(x = NULL, y = NULL) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),
@@ -463,10 +467,7 @@ autoplot.jbrowse_multiway <- function(object, above = NULL, below = NULL,
   bottom <- lapply(listed_tracks(below), lane_band, object, nrow(object$lanes),
     "below")
   if (!length(top) && !length(bottom)) return(stack)
-  n <- nrow(object$lanes)
-  bands <- c(top,
-    list(list(plots = list(stack),
-      heights = (n - 1) * MULTIWAY_GUTTER_PX + LANE_RULER_PX + LANE_BOX_PX)),
+  bands <- c(top, list(list(plots = list(stack), heights = object$height)),
     bottom)
   stack_bands(bands, axis_at = 0)
 }

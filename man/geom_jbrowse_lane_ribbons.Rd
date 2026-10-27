@@ -30,8 +30,9 @@ a list of ggplot layers
 to over its lower lane as the display draws it: a filled trapezoid in its
 color at its opacity, or a one-pixel line where it is thinner than a
 pixel. \code{geom_jbrowse_lanes()} draws each lane's line, its ruler and, for a
-gene table, the boxes the ribbons join. Lanes stack top to bottom
-100 pixels apart on y; x is the view's pixels.
+gene table, the boxes the ribbons join. Lanes stack top to bottom as the
+display lays them out over its \code{height}, y the pixels up from the stack's
+bottom; x is the view's pixels.
 }
 \examples{
 e <- function(f) system.file("extdata", f, package = "ggjbrowse")

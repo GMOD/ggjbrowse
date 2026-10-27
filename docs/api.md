@@ -82,9 +82,9 @@ state:
 - alignments: `read_pitch`, `glyph`, `arc_span_max`, and `sequence`, each
   region's reference bases where `assembly` has a sequence
 - variants: `tree`, where a caller sets it
-- synteny: `offscreen_strip`, `fade_thin`, `has_cigar`, `assemblies`
+- synteny: `offscreen_strip`, `assemblies`
 - dotplot: `height`, `assemblies`, `skipped`
-- multiway: `tick_interval`, `rows_vs_anchor`
+- multiway: `height`, `tick_interval`, `rows_vs_anchor`
 
 A comparative result lays out several axes in its one `regions` frame:
 

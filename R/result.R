@@ -51,7 +51,7 @@
 #' [jbrowse_synteny()] result also holds `offscreen_strip` and
 #' `assemblies`, the axis titles; a [jbrowse_dotplot()]
 #' result `height`, `assemblies` and `skipped`; and a [jbrowse_multiway()]
-#' result `tick_interval` and `rows_vs_anchor`. `y_scale` is `NULL` and
+#' result `height`, `tick_interval` and `rows_vs_anchor`. `y_scale` is `NULL` and
 #' `fields` empty for each. A multi-genome file lists no contigs, so a
 #' [jbrowse_multiway()] result's `missing` is always `""`.
 #'
