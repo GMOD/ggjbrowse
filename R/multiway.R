@@ -423,7 +423,8 @@ lane_band <- function(track, x, lane, where) {
   band$plots <- lapply(band$plots, function(p) suppressMessages(p +
     ggplot2::scale_x_continuous(transform = scales::new_transform("lane_px",
       to_px, from_px)) +
-    ggplot2::coord_cartesian(xlim = from_px(c(0, x$width)), expand = FALSE)))
+    ggplot2::coord_cartesian(xlim = from_px(c(0, x$width)),
+      ylim = p$coordinates$limits$y, expand = FALSE)))
   band
 }
 

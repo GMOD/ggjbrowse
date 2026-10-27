@@ -119,6 +119,7 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   expect_equal(length(fig$patches$plots) + 1, 2)
   expect_s3_class(fig$theme$axis.text.x, "element_blank")
   expect_s3_class(fig$patches$plots[[1]]$theme$axis.text.x, "element_blank")
+  expect_equal(fig$patches$plots[[1]]$coordinates$limits$y, c(0, genes$height))
   expect_gt(jbrowse_height(fig), 1)
   bottom <- nrow(m$lanes)
   expect_gt(min(m$segments$x1[m$segments$lane == bottom]), 1)
