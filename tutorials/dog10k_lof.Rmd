@@ -108,13 +108,15 @@ replace:
     to: "Reading the callset at exactly that position finds it, passing every\nfilter."
 -->
 
-`jbrowse_variants()` takes the 397 GB callset's URL and fetches the records
-under one locus by range request, so a single base costs a few seconds. Each
-record carries its `filter` and INFO fields as columns, and the table has a row
-for every canid in the callset and a cell for each non-reference call:
+The callset's host, kiddlabshare.med.umich.edu, serves an expired TLS
+certificate, so R reads JBrowse's hosted copy of the callset's record at the
+stop site, with every canid's genotype. Given the 397 GB callset's own URL,
+`jbrowse_variants()` fetches the same record by range request. The result
+has a column for each record's `filter` and INFO fields, a row for every canid
+in the callset and a cell for each non-reference call:
 
 ```{r callset}
-callset <- "https://kiddlabshare.med.umich.edu/dog10K/SNP_and_indel_calls_2021-10-17/AutoAndXPAR.SNPs.vqsr99.vcf.gz"
+callset <- "https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_cyp1a2_stop_site.vcf.gz"
 everyone <- jbrowse_variants(callset, sprintf("chr30:%d-%d", stop_site, stop_site))
 everyone$variants |> select(start, ref, alt, filter, AC, AN)
 everyone
@@ -138,7 +140,7 @@ breed and category. The matrix labels each row with its breed, and
 `rowColor` marks the rows by a `group` column of the `samples` file:
 
 ```{r samples}
-meta <- read_tsv("https://kiddlabshare.med.umich.edu/dog10K/sample-information/dog10K-alignment-sample-table.2022-02-23-v7.txt",
+meta <- read_tsv("https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_sample_table.tsv",
   show_col_types = FALSE) |>
   transmute(name = sampleName, breed = Breed.Type, category = Category)
 
@@ -369,7 +371,7 @@ cohort |>
 ## The check
 
 Two numbers test the figures' reading. The first is the callset's own count of
-alleles at the stop site, which `bcftools query` prints from the same URL:
+alleles at the stop site, which `bcftools query` prints from the callset:
 
 <!-- jbrowse
 section: Deriving the CYP1A2 stop codon's coordinate from the reference
