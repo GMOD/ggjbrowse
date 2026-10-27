@@ -120,12 +120,8 @@ jbrowse_variants <- function(file, region = NULL, display = NULL,
   adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
   assembly <- assembly_config(assembly)
   regions <- reader_regions(adapter, region, assembly)
-  args <- list(adapterConfig = adapter, regions = engine_regions(regions),
+  t <- read_regions("variants", adapter, regions, assembly, display,
     byteLimit = byte_limit)
-  args$assembly <- assembly
-  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
-  args$display <- display_config(display)
-  t <- call_engine("variants", args)
   x <- in_one_call(variants_result(t), regions, t, width)
   x$variants$opacity <- density_alpha(x$variants, diff(xlim_of(x)) / width)
   x
@@ -228,10 +224,17 @@ annotation_fields <- function(fields) {
 # region gives arrives as NAs, which a list column takes one per record.
 info_column <- function(x, number, type) {
   if (type == "Flag" || number == "0") return(as.logical(unlist(x)))
-  cast <- switch(type, Integer = as.integer, Float = as.numeric,
+  cast <- switch(type, Integer = whole_numbers, Float = as.numeric,
     as.character)
   if (number == "1") return(cast(unlist(x)))
   lapply(as.list(x), cast)
+}
+
+# Whole numbers as integers, or as doubles where one is past R's integer
+# range, as a cohort's summed INFO counts can be
+whole_numbers <- function(x) {
+  x <- as.numeric(x)
+  if (all(abs(x) <= .Machine$integer.max, na.rm = TRUE)) as.integer(x) else x
 }
 
 #' @export

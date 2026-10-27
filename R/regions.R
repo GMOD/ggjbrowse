@@ -30,12 +30,9 @@ WHOLE_CONTIG_END <- 2^31 - 1
 to_record_ends <- function(regions, adapter, assembly, byte_limit) {
   open <- which(regions$end >= WHOLE_CONTIG_END)
   if (!length(open)) return(regions)
-  args <- list(adapterConfig = adapter,
-    regions = engine_regions(regions[open, , drop = FALSE]), bpPerPx = 1,
-    byteLimit = byte_limit)
-  args$assembly <- assembly
-  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
-  f <- as_frame(call_engine("features", args)$features)
+  f <- as_frame(read_regions("features", adapter,
+    structure(regions[open, , drop = FALSE], whole = attr(regions, "whole")),
+    assembly, bpPerPx = 1, byteLimit = byte_limit)$features)
   ends <- tapply(f$end, factor(f$region, levels = seq_along(open) - 1), max)
   regions$end[open] <- pmax(regions$start[open] + 1, ends, na.rm = TRUE)
   regions
@@ -91,7 +88,8 @@ reader_regions <- function(adapter, region, assembly = NULL) {
   open <- is.na(regions$end)
   if (any(open)) {
     file <- contigs()
-    regions$end[open] <- file$end[match(regions$chrom[open], file$chrom)]
+    regions$end[open] <- file$end[contig_index(regions$chrom[open], file,
+      canonical_of(assembly))]
     regions$end[is.na(regions$end)] <- WHOLE_CONTIG_END
   }
   regions
@@ -100,6 +98,19 @@ reader_regions <- function(adapter, region, assembly = NULL) {
 # Regions as the engine's `regions` argument names them
 engine_regions <- function(regions) {
   data.frame(refName = regions$chrom, start = regions$start, end = regions$end)
+}
+
+# The engine's `table` read of `regions`, as reader_regions() gives them,
+# named in `assembly` and drawn under `display`, with the reader's own args
+# in `...`; a whole file's read caps its rows at WHOLE_FILE_ROWS
+read_regions <- function(table, adapter, regions, assembly, display = NULL,
+                         ...) {
+  args <- list(adapterConfig = adapter, regions = engine_regions(regions),
+    ...)
+  args$assembly <- assembly
+  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
+  args$display <- display_config(display)
+  call_engine(table, args)
 }
 
 # Regions as 0-based half-open `chrom`, `start` and `end`, from loci as
@@ -147,11 +158,7 @@ parsed_regions <- function(region, contigs = NULL, canonical = NULL) {
   out$end[locus] <- number(5)
   if (all(locus)) return(out)
   known <- if (is.null(contigs)) NULL else contigs()
-  at <- match(region[!locus], known$chrom)
-  if (anyNA(at) && !is.null(canonical)) {
-    alias <- is.na(at)
-    at[alias] <- match(canonical(region[!locus][alias]), known$canonical)
-  }
+  at <- contig_index(region[!locus], known, canonical)
   if (anyNA(at)) {
     rlang::abort(sprintf(paste("\"%s\" is neither a locus such as",
       "\"ctgA:1,001-9,000\" nor a contig of the file%s"),
@@ -162,6 +169,18 @@ parsed_regions <- function(region, contigs = NULL, canonical = NULL) {
   out$start[!locus] <- known$start[at]
   out$end[!locus] <- known$end[at]
   structure(out, whole = TRUE)
+}
+
+# Each of `names` as its row in `known`, a frame of `chrom` and
+# `canonical`: by its own name, else by `canonical`'s name for it; NA for a
+# contig `known` lacks
+contig_index <- function(names, known, canonical = NULL) {
+  at <- match(names, known$chrom)
+  if (anyNA(at) && !is.null(canonical)) {
+    alias <- is.na(at)
+    at[alias] <- match(canonical(names[alias]), known$canonical)
+  }
+  at
 }
 
 # A data frame of regions as `chrom`, `start` and `end`, refused where it

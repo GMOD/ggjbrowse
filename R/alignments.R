@@ -231,12 +231,8 @@ jbrowse_alignments <- function(file, region = NULL, display = NULL,
       format(span_limit, big.mark = ",", scientific = FALSE)),
       class = "ggjbrowse_too_large", limit = "span_limit", call = NULL)
   }
-  args <- list(adapterConfig = adapter, regions = engine_regions(regions),
+  t <- read_regions("alignments", adapter, regions, assembly, display,
     byteLimit = byte_limit, spanLimit = span_limit)
-  args$assembly <- assembly
-  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
-  args$display <- display_config(display)
-  t <- call_engine("alignments", args)
   x <- alignments_result(t, assembly)
   x$junctions$region <- junction_region(x$junctions,
     unlist(t$readAs$refName), regions)

@@ -162,19 +162,12 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
   assembly <- assembly_config(assembly)
   regions <- to_record_ends(reader_regions(adapter, region, assembly),
     adapter, assembly, byte_limit)
-  args <- list(
-    adapterConfig = adapter,
-    regions = engine_regions(regions),
-    bpPerPx = sum(regions$end - regions$start) / width,
-    colorByCDS = color_by_cds,
-    aminoAcids = amino_acids,
-    byteLimit = byte_limit)
-  args$assembly <- assembly
   display <- display %||% list()
   display$heightMode <- display$heightMode %||% "grow"
-  args$display <- display_config(display)
-  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
-  t <- call_engine("features", args)
+  t <- read_regions("features", adapter, regions, assembly, display,
+    bpPerPx = sum(regions$end - regions$start) / width,
+    colorByFrame = color_by_cds, aminoAcids = amino_acids,
+    byteLimit = byte_limit)
   key <- structure(as_frame(t$legend), title = t$legendTitle)
   features <- as_frame(t$features)
   features <- cbind(feature = match(features$id, unique(features$id)),

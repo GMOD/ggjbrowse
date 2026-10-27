@@ -5,7 +5,7 @@
 \alias{geom_jbrowse_offscreen_mates}
 \title{A synteny band's ribbons as ggplot layers}
 \usage{
-geom_jbrowse_ribbons(mapping = NULL, data = NULL, curves = FALSE, ...)
+geom_jbrowse_ribbons(mapping = NULL, data = NULL, curves = NULL, ...)
 
 geom_jbrowse_offscreen_mates(mapping = NULL, data = NULL, labels = TRUE, ...)
 }
@@ -18,7 +18,7 @@ result, such as a filtered copy of it}
 
 \item{curves}{draw each ribbon edge as the view's
 \code{mark = list(interpolate = "bump")} does, a cubic curve vertical at both
-rows}
+rows; unset, as the result's display says}
 
 \item{...}{passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} params}
 

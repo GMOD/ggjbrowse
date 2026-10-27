@@ -248,3 +248,13 @@ test_that("memory stays bounded over many files, and a reset frees it for reuse"
   jbrowse_reset()
   expect_lt(pass() - first, 64)
 })
+
+test_that("a region with no records binds to one with records", {
+  bam <- extdata("gapdh_direct_rna.bam")
+  empty <- jbrowse_alignments(bam, "chr12:1-1,000")
+  reads <- jbrowse_alignments(bam, "chr12:6,534,201-6,538,700")
+  expect_equal(nrow(empty$reads), 0)
+  both <- vctrs::vec_rbind(empty$reads, reads$reads)
+  expect_equal(nrow(both), nrow(reads$reads))
+  expect_type(both$id, typeof(reads$reads$id))
+})

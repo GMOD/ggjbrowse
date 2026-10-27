@@ -62,12 +62,9 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
     list(type = "BigWigAdapter", bigWigLocation = location(file)))
   assembly <- assembly_config(assembly)
   regions <- reader_regions(adapter, region, assembly)
-  args <- list(adapterConfig = adapter, regions = engine_regions(regions),
-    bpPerPx = sum(regions$end - regions$start) / width)
-  args$assembly <- assembly
-  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
-  args$display <- display_config(display)
-  t <- call_engine("wiggle", args)
+  bp_per_px <- sum(regions$end - regions$start) / width
+  t <- read_regions("wiggle", adapter, regions, assembly, display,
+    bpPerPx = bp_per_px)
   marks <- as_frame(t$marks)
   bins <- as_frame(t$bins)
   rules <- as_frame(t$rules)
@@ -76,7 +73,7 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
       rules = rules, display = t$config, keys = list(),
       ramps = ramp_frames(t$ramps), y_scale = y_scale(t), fields = list(),
       rendering = t$rendering, origin = t$origin, row_layout = t$rowLayout,
-      height = t$height, bp_per_px = args$bpPerPx),
+      height = t$height, bp_per_px = bp_per_px),
     primary = "marks",
     class = c("jbrowse_wiggle", "jbrowse_result")),
     regions, t, width)

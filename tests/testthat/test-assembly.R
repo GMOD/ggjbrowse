@@ -40,6 +40,13 @@ test_that("a contig's alias alone reads the file's contig whole", {
     class = "ggjbrowse_bad_region")
 })
 
+test_that("a region frame naming a contig by its alias reads to the contig's end", {
+  gff <- extdata("gapdh_gencode.gff3.gz")
+  open <- jbrowse_features(gff,
+    data.frame(chrom = "12", start = 6534200, end = NA), assembly = hg38)
+  expect_equal(open$regions$end, 6570000)
+})
+
 test_that("a CRAM decodes against the assembly's sequence, and the sequence band reads it", {
   cram <- jbrowse_alignments(extdata("gapdh_direct_rna.cram"),
     "NC_000012.12:6,534,201-6,534,500", assembly = hg38)

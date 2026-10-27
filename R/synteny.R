@@ -448,7 +448,7 @@ ribbon_lines <- function(r, curves, feet = band_feet(r)) {
 #'   result, such as a filtered copy of it
 #' @param curves draw each ribbon edge as the view's
 #'   `mark = list(interpolate = "bump")` does, a cubic curve vertical at both
-#'   rows
+#'   rows; unset, as the result's display says
 #' @param ... passed to [ggplot2::layer()] params
 #' @return a list of ggplot layers
 #' @export
@@ -459,13 +459,28 @@ ribbon_lines <- function(r, curves, feet = band_feet(r)) {
 #'   "chr8_MATERNAL:5,250,001-14,250,000")
 #' library(ggplot2)
 #' ggplot(s) + geom_jbrowse_ribbons(curves = TRUE) + guides_jbrowse(s)
-geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = FALSE,
+geom_jbrowse_ribbons <- function(mapping = NULL, data = NULL, curves = NULL,
                                  ...) {
-  data <- replacing(data, "ribbons", "geom_jbrowse_ribbons")
-  filled <- function(x) ribbon_polygons(x$ribbons[!x$ribbons$thin, ,
-    drop = FALSE], curves)
-  lines <- function(x) ribbon_lines(x$ribbons[x$ribbons$thin, ,
-    drop = FALSE], curves)
+  ribbon_layers(mapping, replacing(data, "ribbons", "geom_jbrowse_ribbons"),
+    function(x) curves %||% bump(x$display$mark), band_feet, ...)
+}
+
+# Whether a ribbons `mark` config curves each edge
+bump <- function(mark) identical(mark$interpolate, "bump")
+
+# A ribbon geom's two layers: the ribbons the engine flags `thin` as lines,
+# the rest as polygons, each between `feet(ribbons)` and curved where
+# `curved(result)` says
+ribbon_layers <- function(mapping, data, curved, feet, ...) {
+  pick <- function(x, thin) x$ribbons[x$ribbons$thin == thin, , drop = FALSE]
+  filled <- function(x) {
+    r <- pick(x, FALSE)
+    ribbon_polygons(r, curved(x), feet(r))
+  }
+  lines <- function(x) {
+    r <- pick(x, TRUE)
+    ribbon_lines(r, curved(x), feet(r))
+  }
   list(
     jbrowse_layer(ggplot2::GeomPolygon, data, filled,
       for_geom(mapping, ggplot2::GeomPolygon),
@@ -677,7 +692,8 @@ row_tracks <- function(tracks, layout, row) {
 #'   band, and over the bottom row's, drawn below it: each a result or a
 #'   list of them
 #' @param curves draw each ribbon edge as a curve, as the view's
-#'   `mark = list(interpolate = "bump")` does
+#'   `mark = list(interpolate = "bump")` does; unset, as the result's display
+#'   says
 #' @param ... must be empty, so a misspelt argument errors
 #' @return a ggplot of the band alone, or with tracks a patchwork, whose
 #'   height and width [jbrowse_height()] and [jbrowse_width()] measure
@@ -693,7 +709,7 @@ row_tracks <- function(tracks, layout, row) {
 #'   display = list(filter = "geneLike"))
 #' autoplot(s, below = genes)
 autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
-                                     curves = FALSE, ...) {
+                                     curves = NULL, ...) {
   rlang::check_dots_empty()
   band <- synteny_band(object, curves)
   above <- row_tracks(above, on_axis_of(object$regions, "query"), "top")

@@ -393,11 +393,13 @@ shorthand_uri <- function(path) {
   else sub("\\?v=.*$", "", location(path)$uri)
 }
 
-# A table's columns as a data frame, an empty column read as an empty vector
-# and a nested column kept a list column
+# A table's columns as a data frame, a nested column kept a list column. An
+# empty column says nothing of its type, so it reads as vctrs' unspecified
+# vector, which binds to a column of any type from another region's table.
 as_frame <- function(columns) {
   columns <- lapply(columns, function(x)
-    if (is.null(x) || (is.list(x) && !length(x))) logical(0) else x)
+    if (is.null(x) || (is.list(x) && !length(x))) vctrs::unspecified(0)
+    else x)
   n <- unique(lengths(columns))
   if (length(n) > 1) stop("the engine's columns differ in length", call. = FALSE)
   structure(columns, names = names(columns) %||% character(0),

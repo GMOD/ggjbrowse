@@ -324,27 +324,9 @@ multiway_feet <- function(r) {
 #' ggplot(m) + geom_jbrowse_lane_ribbons() + geom_jbrowse_lanes()
 geom_jbrowse_lane_ribbons <- function(mapping = NULL, data = NULL,
                                       curves = NULL, ...) {
-  data <- replacing(data, "ribbons", "geom_jbrowse_lane_ribbons")
-  curved <- function(x) {
-    curves %||% identical(x$display$ribbons$mark$interpolate, "bump")
-  }
-  filled <- function(x) {
-    r <- x$ribbons[!x$ribbons$thin, , drop = FALSE]
-    ribbon_polygons(r, curved(x), multiway_feet(r))
-  }
-  lines <- function(x) {
-    r <- x$ribbons[x$ribbons$thin, , drop = FALSE]
-    ribbon_lines(r, curved(x), multiway_feet(r))
-  }
-  list(
-    jbrowse_layer(ggplot2::GeomPolygon, data, filled,
-      for_geom(mapping, ggplot2::GeomPolygon),
-      ggplot2::aes(x = x, y = y, group = ribbon, fill = I(color),
-        alpha = I(alpha)), list(colour = NA, ...)),
-    jbrowse_layer(ggplot2::GeomPath, data, lines,
-      for_geom(mapping, ggplot2::GeomPath),
-      ggplot2::aes(x = x, y = y, group = ribbon, colour = I(color),
-        alpha = I(alpha)), list(linewidth = 0.3, ...)))
+  ribbon_layers(mapping,
+    replacing(data, "ribbons", "geom_jbrowse_lane_ribbons"),
+    function(x) curves %||% bump(x$display$ribbons$mark), multiway_feet, ...)
 }
 
 #' @rdname geom_jbrowse_lane_ribbons

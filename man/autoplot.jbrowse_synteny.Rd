@@ -4,7 +4,7 @@
 \alias{autoplot.jbrowse_synteny}
 \title{Draw a pairwise alignment as JBrowse's linear synteny view}
 \usage{
-\method{autoplot}{jbrowse_synteny}(object, above = NULL, below = NULL, curves = FALSE, ...)
+\method{autoplot}{jbrowse_synteny}(object, above = NULL, below = NULL, curves = NULL, ...)
 }
 \arguments{
 \item{object}{a \code{\link[=jbrowse_synteny]{jbrowse_synteny()}} result}
@@ -14,7 +14,8 @@ band, and over the bottom row's, drawn below it: each a result or a
 list of them}
 
 \item{curves}{draw each ribbon edge as a curve, as the view's
-\code{mark = list(interpolate = "bump")} does}
+\code{mark = list(interpolate = "bump")} does; unset, as the result's display
+says}
 
 \item{...}{must be empty, so a misspelt argument errors}
 }

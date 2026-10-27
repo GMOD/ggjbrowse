@@ -224,3 +224,8 @@ test_that("the result keeps the display's resolved unit, row height and config",
   expect_equal(phased$display$unit, "haplotype")
   expect_equal(phased$display$rowHeight, 4)
 })
+
+test_that("an Integer field past R's integer range reads as doubles, not NA", {
+  expect_identical(whole_numbers(c("1", NA)), c(1L, NA))
+  expect_identical(whole_numbers(c(1, 2^31)), c(1, 2^31))
+})

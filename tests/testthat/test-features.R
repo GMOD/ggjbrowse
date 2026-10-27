@@ -252,6 +252,18 @@ test_that("a zoomed-in CDS carries its residues, in frame across an intron", {
     width = 1200, amino_acids = FALSE)$amino_acids), 0)
 })
 
+test_that("color_by_cds paints each CDS by its reading frame", {
+  gapdh <- extdata("gapdh_gencode.gff3.gz")
+  hg38 <- extdata("gapdh_hg38.fa.gz")
+  locus <- "chr12:6,534,201-6,538,700"
+  plain <- jbrowse_features(gapdh, locus, assembly = hg38)
+  framed <- jbrowse_features(gapdh, locus, assembly = hg38,
+    color_by_cds = TRUE)
+  expect_equal(nrow(framed$rects), nrow(plain$rects))
+  expect_gt(length(unique(framed$rects$color)),
+    length(unique(plain$rects$color)))
+})
+
 test_that("the residues draw as haloed monospace letters", {
   near <- jbrowse_features(extdata("gapdh_gencode.gff3.gz"),
     "chr12:6,534,811-6,534,880", assembly = extdata("gapdh_hg38.fa.gz"),
