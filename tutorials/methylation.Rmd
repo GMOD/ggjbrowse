@@ -46,17 +46,12 @@ replace:
     to: "Every chunk below reads region slices we host, cut from these files, by URL, so\nno download is needed."
 -->
 
-<!-- jbrowse
-section: Two parental alleles at the SNRPN imprinting center
-replace:
-  - from: "Every view below is at `chr15:24,948,000-24,962,000`, the _SNRPN_ imprinting\ncenter; type it into the location box once the tracks are loaded."
-    to: "Every figure until the last section is at `chr15:24,948,000-24,962,000`, the\n_SNRPN_ imprinting center."
--->
-
 ## Per-read methylation from the alignments
 
-We'll start by reading the reads with their 5mC calls. The `display` list
-holds the alignments track's settings, as a JBrowse track config spells them:
+Every figure until the last section is at `chr15:24,948,000-24,962,000`, the
+_SNRPN_ imprinting center. We'll start by reading the reads with their 5mC
+calls. The `display` list holds the alignments track's settings, as a JBrowse
+track config spells them:
 
 - **`pileup = list(bases = list(show = TRUE, encoding = list(color = "modifications")))`** paints each read with the
   calls its `MM`/`ML` tags hold, as **Color by → Modifications** does in the

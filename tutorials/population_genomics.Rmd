@@ -78,7 +78,7 @@ R variables as they stand:
 <!-- jbrowse
 chunk: files
 assign:
-  genes_adapter: dm6_ncbiRefSeq.adapter
+  genes_adapter: dm6-ncbiRefSeqCurated.adapter
   fst_bw: fst_in2lt.adapter.uri
   tajd_bw: tajd_all.adapter.uri
   pi_bw: pi_all.adapter.uri
