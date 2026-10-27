@@ -14,6 +14,6 @@ pixel width the display lays the region out across, which decides which
 names fit. `jbrowse_stack(genes, reads)` draws genes over reads
 ([GENCODE genes](gallery.md#genes_and_reads)).
 
-- Under `facet = "strand"`, or `list(field = "type", domain = ...,
+- Under `facet = "strand"`, or `list(field = "type", sort = ...,
   hidden = ...)`, the display packs a section per value, and `autoplot()`
   draws each section in its own panel.

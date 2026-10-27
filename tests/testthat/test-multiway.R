@@ -89,8 +89,8 @@ test_that("the display's settings color the ribbons", {
   grey <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     display = list(ribbons = list(encoding = list(color = list(value = "grey")))))
   expect_equal(unique(as.character(grey$ribbons$color)), "#808080")
-  expect_equal(grey$display[c("splitStrands", "inlineLaneNames", "height")],
-    list(splitStrands = TRUE, inlineLaneNames = FALSE, height = 240L))
+  expect_equal(grey$display$labels$lanes$placement, "above")
+  expect_equal(grey$display$height, 240L)
   expect_true(grey$display$labels$name$show)
   expect_equal(grey$display$ribbons$mark$interpolate, "linear")
   expect_equal(grey$display$ribbons$encoding$color$value, "grey")
