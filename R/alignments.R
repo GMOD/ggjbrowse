@@ -375,7 +375,7 @@ junction_region <- function(j, contigs, regions) {
 # A band's y axis as the display autoscales it: its domain, its type
 # (`"linear"`, `"log"` or `"symlog"`), the symlog's constant, and its ticks
 y_scale <- function(s) {
-  list(domain = unlist(s$domain), type = s$type %||% s$scaleType,
+  list(domain = unlist(s$domain), type = s$type,
     symlog_constant = s$symlogConstant, ticks = unlist(s$ticks))
 }
 

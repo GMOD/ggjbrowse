@@ -274,8 +274,10 @@ on_axis_of <- function(regions, axis) {
 #'     `target_region`, `target_chrom`, `target_start`, `target_end`, each
 #'     `*_region` the row of `regions` its foot lies in, where
 #'     the ribbon joins `query_start` to `target_start` and `query_end` to
-#'     `target_end`, so a reverse-strand block crosses; `color`, `alpha`, and
-#'     `thin`, whether the band draws it as a one-pixel line
+#'     `target_end`, so a reverse-strand block crosses; `query_x1`,
+#'     `query_x2`, `target_x1` and `target_x2`, the pixel across `width` of
+#'     each foot at `*_start` and `*_end`, within its region; `color`,
+#'     `alpha`, and `thin`, whether the band draws it as a one-pixel line
 #'   * `offscreen`: the blocks on one `axis` whose mate lies on a contig the
 #'     other row is not showing, the `region` they lie in, their span and
 #'     their mate's, the
@@ -337,7 +339,6 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
     list(offscreen_strip = list(marks = snake_frame(r$offscreenStrip$marks),
         labels = snake_frame(r$offscreenStrip$labels),
         font_px = r$offscreenStrip$fontPx),
-      fade_thin = r$fadeThin, has_cigar = r$hasCigar,
       assemblies = display_names(unlist(r$assemblyNames), labels,
         args$adapterConfig)))
 }
@@ -362,16 +363,11 @@ band_px <- function(regions, axis, region, coord, width) {
   unname((coord + shift - lo) / (hi - lo) * width)
 }
 
-# The ribbons with each foot at its pixel on its row
+# The result with its ribbons and off-screen blocks marked as on the band's
+# axis, where the engine placed each foot
 synteny_on_axis <- function(x) {
   r <- x$ribbons
   if (is_on_axis(r)) return(x)
-  px <- function(axis, region, coord) band_px(x$regions, axis, region, coord,
-    x$width)
-  r$query_px_start <- px("query", r$query_region, r$query_start)
-  r$query_px_end <- px("query", r$query_region, r$query_end)
-  r$target_px_start <- px("target", r$target_region, r$target_start)
-  r$target_px_end <- px("target", r$target_region, r$target_end)
   x$ribbons <- structure(r, on_axis = TRUE)
   x$offscreen <- structure(x$offscreen, on_axis = TRUE)
   x
@@ -389,8 +385,8 @@ edge_points <- function(x0, x1, y0, y1, curves, n = 16) {
 # Where each ribbon's feet sit: px along its upper and lower edges, and the
 # heights of those edges. The band's query row is at y = 1, its target at 0.
 band_feet <- function(r) {
-  list(top1 = r$query_px_start, top2 = r$query_px_end,
-    bottom1 = r$target_px_start, bottom2 = r$target_px_end,
+  list(top1 = r$query_x1, top2 = r$query_x2,
+    bottom1 = r$target_x1, bottom2 = r$target_x2,
     y_top = rep(1, nrow(r)), y_bottom = rep(0, nrow(r)))
 }
 

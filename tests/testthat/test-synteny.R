@@ -89,7 +89,7 @@ test_that("two regions on an axis lay end to end, each ribbon on its own", {
   two <- jbrowse_synteny(paf, query, halves)
   expect_setequal(unique(two$ribbons$target_region), 2:3)
   axis <- on_axis(two)$ribbons
-  expect_true(all(axis$target_px_start >= 0 & axis$target_px_start <= two$width))
+  expect_true(all(axis$target_x1 >= 0 & axis$target_x1 <= two$width))
   d <- jbrowse_dotplot(paf, query, halves)
   moved <- on_axis(d)$segments
   second <- moved$y_region == 3

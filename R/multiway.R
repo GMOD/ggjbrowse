@@ -152,6 +152,8 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   if (length(choice$pins)) args$pins <- choice$pins
   read <- warned_call("multiway", args)
   r <- read$value
+  missing <- check_missing(as.list(unlist(r$missingContigs)), regions$chrom)
+  regions$missing <- as.vector(missing)
   one_based <- function(d, columns) {
     for (column in intersect(columns, names(d))) d[[column]] <- d[[column]] + 1
     d
@@ -179,7 +181,8 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
     list(lanes = lane_frame, segments = segments, blocks = blocks,
       ribbons = ribbons, alignments = keyed_alignments(r$alignments)),
     layout, width, r$config, list(ribbons = legend_key(r, 0.6)),
-    ramp_frames(r$ramps), read$warnings,
+    ramp_frames(r$ramps),
+    unique(c(attr(missing, "warning"), read$warnings)),
     list(tick_interval = r$tickInterval, rows_vs_anchor = r$rowsVsAnchor))
 }
 

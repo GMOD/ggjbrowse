@@ -86,8 +86,10 @@ block's key in \code{alignments}), \code{kind} (\code{"match"}, \code{"insertion
 \code{target_region}, \code{target_chrom}, \code{target_start}, \code{target_end}, each
 \verb{*_region} the row of \code{regions} its foot lies in, where
 the ribbon joins \code{query_start} to \code{target_start} and \code{query_end} to
-\code{target_end}, so a reverse-strand block crosses; \code{color}, \code{alpha}, and
-\code{thin}, whether the band draws it as a one-pixel line
+\code{target_end}, so a reverse-strand block crosses; \code{query_x1},
+\code{query_x2}, \code{target_x1} and \code{target_x2}, the pixel across \code{width} of
+each foot at \verb{*_start} and \verb{*_end}, within its region; \code{color},
+\code{alpha}, and \code{thin}, whether the band draws it as a one-pixel line
 \item \code{offscreen}: the blocks on one \code{axis} whose mate lies on a contig the
 other row is not showing, the \code{region} they lie in, their span and
 their mate's, the

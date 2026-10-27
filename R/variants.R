@@ -143,8 +143,7 @@ variants_result <- function(t) {
   cells$variant <- variants$variant[cells$variant + 1L]
   cells$row <- factor(cells$row, levels = rows$name)
   genotypes <- as_frame(t$legend)
-  attr(genotypes, "title") <- c(genotypes$section[genotypes$section != ""],
-    "Genotypes")[1]
+  attr(genotypes, "title") <- t$legendTitle
   structure(
     list(variants = variants, cells = cells, rows = rows, bands = bands,
       annotations = annotations, display = t$config,

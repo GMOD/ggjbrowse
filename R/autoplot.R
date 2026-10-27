@@ -281,14 +281,13 @@ autoplot.jbrowse_alignments <- function(object,
   stack_bands(list(alignment_bands(object, o)))
 }
 
-MIN_PX_PER_BP_FOR_TEXT <- 6.5
-
 alignment_options <- function(object, letters = NULL) {
   s <- object$display
   tall <- (object$read_pitch$featureHeight %||% 0) >=
     (object$glyph$label$minHeight %||% Inf)
   list(
-    letters = letters %||% (tall && px_of(object, NULL) >= MIN_PX_PER_BP_FOR_TEXT),
+    letters = letters %||% (tall &&
+      px_of(object, NULL) >= object$glyph$label$minPxPerBp),
     coverage = !isFALSE(s$coverage$show),
     pileup = !isFALSE(s$pileup$show),
     junctions = !isFALSE(s$sashimi$show))

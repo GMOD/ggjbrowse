@@ -63,8 +63,10 @@ marks of the sources it leaves out
 
 \code{y_scale} is the score axis the display autoscales to, \code{ramps} the
 score's color bar where one ramp paints every row (density, or a
-gradient), and \code{rendering} what the display draws (\code{"xyplot"}, \code{"line"},
-\code{"linecenter"}, \code{"scatter"}, \code{"density"}).
+gradient), \code{mark} the display's mark (\code{"bar"}, \code{"line"}, \code{"point"},
+\code{"rect"}), \code{interpolate} how a line joins its scores (\code{"step"} or
+\code{"linear"}), and \code{summary_field} the bin column the display plots
+(\code{"score"}, \code{"minScore"} or \code{"maxScore"}).
 }
 \description{
 Runs JBrowse's own quantitative display in V8: the scores it fetches at

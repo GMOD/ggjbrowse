@@ -152,3 +152,10 @@ test_that("an inversion draws as its records state it, its ribbons crossed", {
   expect_equal(crossed, r$color == inverted)
   expect_s3_class(ggplot2::ggplot_build(autoplot(inv)), "ggplot_built")
 })
+
+test_that("an anchor contig or kept lane the file lacks is refused, not read empty", {
+  expect_error(jbrowse_multiway(paf, "ctgZ:1-50,001", "volvox"),
+    "ctgZ is not a contig", class = "ggjbrowse_missing_contig")
+  expect_error(jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
+    lanes = "volvox_typo"), "no lane for")
+})

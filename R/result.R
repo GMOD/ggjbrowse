@@ -35,7 +35,8 @@
 #'
 #' A [jbrowse_features()] result also holds `glyph`, `height` and
 #' `bp_per_px`, the layout's pixel sizes; a [jbrowse_wiggle()] result
-#' `rendering`, `origin`, `row_layout`, `height` and `bp_per_px`; a
+#' `mark`, `interpolate`, `summary_field`, `origin`, `row_layout`, `height`
+#' and `bp_per_px`; a
 #' [jbrowse_alignments()] result `read_pitch`, `glyph`, `arc_span_max` and
 #' `sequence`, each region's reference bases where `assembly` has a sequence,
 #' which the sequence band draws; and a [jbrowse_variants()] result the
@@ -47,8 +48,8 @@
 #' `assembly`, the assembly it is on, and its tables name their regions by
 #' axis: `query_region` and `target_region`, `x_region` and `y_region`, or
 #' `upper_region` and `lower_region`, each a row of `regions`. A
-#' [jbrowse_synteny()] result also holds `offscreen_strip`, `fade_thin`,
-#' `has_cigar` and `assemblies`, the axis titles; a [jbrowse_dotplot()]
+#' [jbrowse_synteny()] result also holds `offscreen_strip` and
+#' `assemblies`, the axis titles; a [jbrowse_dotplot()]
 #' result `height`, `assemblies` and `skipped`; and a [jbrowse_multiway()]
 #' result `tick_interval` and `rows_vs_anchor`. `y_scale` is `NULL` and
 #' `fields` empty for each. A multi-genome file lists no contigs, so a

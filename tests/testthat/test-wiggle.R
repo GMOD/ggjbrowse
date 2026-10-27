@@ -5,7 +5,7 @@ w <- jbrowse_wiggle(bw, "ctgA:1-50,000")
 test_that("a BigWig region reads as the wiggle display scales and colors it", {
   expect_gt(nrow(w$bins), 100)
   expect_equal(nrow(w$marks), nrow(w$bins))
-  expect_equal(w$rendering, "xyplot")
+  expect_equal(w$mark, "bar")
   expect_lte(w$y_scale$domain[1], min(w$bins$score))
   expect_gte(w$y_scale$domain[2], max(w$bins$score))
   sides <- split(w$marks$color, w$marks$score < 0)

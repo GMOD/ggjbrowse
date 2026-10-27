@@ -48,8 +48,10 @@
 #'
 #'   `y_scale` is the score axis the display autoscales to, `ramps` the
 #'   score's color bar where one ramp paints every row (density, or a
-#'   gradient), and `rendering` what the display draws (`"xyplot"`, `"line"`,
-#'   `"linecenter"`, `"scatter"`, `"density"`).
+#'   gradient), `mark` the display's mark (`"bar"`, `"line"`, `"point"`,
+#'   `"rect"`), `interpolate` how a line joins its scores (`"step"` or
+#'   `"linear"`), and `summary_field` the bin column the display plots
+#'   (`"score"`, `"minScore"` or `"maxScore"`).
 #' @export
 #' @examples
 #' bw <- system.file("extdata", "gapdh_phylop100way.bw",
@@ -71,8 +73,10 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
   in_one_call(structure(
     list(bins = bins, marks = marks, sources = as_frame(t$sources),
       rules = rules, display = t$config, keys = list(),
-      ramps = ramp_frames(t$ramps), y_scale = y_scale(t), fields = list(),
-      rendering = t$rendering, origin = t$origin, row_layout = t$rowLayout,
+      ramps = ramp_frames(t$ramps), y_scale = y_scale(t$scoreScale),
+      fields = list(), mark = t$mark, interpolate = t$interpolate,
+      summary_field = t$summaryField, origin = t$origin,
+      row_layout = t$rowLayout,
       height = t$height, bp_per_px = bp_per_px),
     primary = "marks",
     class = c("jbrowse_wiggle", "jbrowse_result")),
@@ -108,8 +112,8 @@ as.matrix.jbrowse_wiggle <- function(x, ...) {
   columns <- pmax(0, floor((r$end - r$start) * per_px))
   offset <- cumsum(c(0, columns))[seq_along(columns)]
   b <- x$bins[x$bins$source %in% x$sources$name, , drop = FALSE]
-  value <- switch(x$display$encoding$y$field, minScore = b$min,
-    maxScore = b$max, b$score) %||% b$score
+  value <- switch(x$summary_field, minScore = b$min, maxScore = b$max,
+    b$score)
   i <- b$region
   from <- pmax(0, trunc((b$start - r$start[i]) * per_px))
   to <- pmin(columns[i], pmax(trunc((b$end - r$start[i]) * per_px), from + 1))
@@ -133,7 +137,7 @@ print.jbrowse_wiggle <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_wiggle> %s, %d bins from %d source(s), drawn as %s on %s axis %g to %g\n",
     print_loci(x), nrow(x$bins),
-    nrow(x$sources), x$rendering, x$y_scale$type, x$y_scale$domain[1],
+    nrow(x$sources), x$mark, x$y_scale$type, x$y_scale$domain[1],
     x$y_scale$domain[2]))
   invisible(x)
 }
@@ -238,9 +242,11 @@ cut_at_origin <- function(d, origin) {
 #'   scale_fill_viridis_c()
 geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "marks", "geom_jbrowse_wiggle")
-  of <- function(rendering, pick) function(x) {
+  of <- function(mark, pick, interpolate = NULL) function(x) {
     d <- pick(x)
-    if (x$rendering %in% rendering) d else d[0, , drop = FALSE]
+    drawn <- x$mark == mark &&
+      (is.null(interpolate) || identical(interpolate, x$interpolate))
+    if (drawn) d else d[0, , drop = FALSE]
   }
   marks <- function(x) in_rows(x, pixel_wide(x, !x$marks$band))
   band <- function(x) in_rows(x, pixel_wide(x, x$marks$band))
@@ -260,23 +266,23 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
         fill = I(color), alpha = I(opacity)), list(...)),
-    jbrowse_layer(ggplot2::GeomRect, data, of("xyplot", marks),
+    jbrowse_layer(ggplot2::GeomRect, data, of("bar", marks),
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
         fill = I(color)), list(...)),
-    jbrowse_layer(ggplot2::GeomRect, data, of("density", marks),
+    jbrowse_layer(ggplot2::GeomRect, data, of("rect", marks),
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = base, ymax = base + 1,
         fill = I(color)), list(...)),
-    jbrowse_layer(ggplot2::GeomPoint, data, of("scatter", marks),
+    jbrowse_layer(ggplot2::GeomPoint, data, of("point", marks),
       for_geom(mapping, ggplot2::GeomPoint),
       ggplot2::aes(x = (start + end) / 2, y = score, colour = I(color)),
       list(size = 0.6, ...)),
-    jbrowse_layer(ggplot2::GeomPath, data, of("line", steps),
+    jbrowse_layer(ggplot2::GeomPath, data, of("line", steps, "step"),
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = score, colour = I(color), group = run),
       list(...)),
-    jbrowse_layer(ggplot2::GeomPath, data, of("linecenter", centers),
+    jbrowse_layer(ggplot2::GeomPath, data, of("line", centers, "linear"),
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = score, colour = I(color), group = run),
       list(...)))
@@ -287,7 +293,7 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
 geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "rules", "geom_jbrowse_rules")
   rules <- function(x) {
-    r <- if (x$rendering == "density" || isTRUE(x$row_layout)) x$rules[0, ]
+    r <- if (x$mark == "rect" || isTRUE(x$row_layout)) x$rules[0, ]
       else x$rules
     r$x <- rep(xlim_of(x)[1], nrow(r))
     r
@@ -328,7 +334,7 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
 autoplot.jbrowse_wiggle <- function(object, width = NULL, ...) {
   rlang::check_dots_empty()
   object <- on_axis(drawn_at(object, width))
-  density <- object$rendering == "density"
+  density <- object$mark == "rect"
   rows <- isTRUE(object$row_layout)
   tree <- rows && !is.null(object$tree)
   n <- nrow(object$sources)
