@@ -41,7 +41,7 @@ jbrowse_stack(genes, reads)
 
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
-  --gffgz inst/extdata/gapdh_gencode.gff3.gz \
+  --gff inst/extdata/gapdh_gencode.gff3.gz \
   --bam inst/extdata/gapdh_direct_rna.bam legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc chr12:6,534,201-6,538,700 \
   --width 1200 --out genes_and_reads.png
@@ -66,8 +66,8 @@ autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
 ```
 
 ```sh
-jb2export --hub hg38 \
-  --bam inst/extdata/colo829_tumor_chr3.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain encoding.color.field=strand filter.split=only \
+jb2export --genome hg38 \
+  --bam inst/extdata/colo829_tumor_chr3.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain encoding.color.field=strand split:only \
   --loc chr3:25,358,500-25,359,800 \
   --width 1200 --out long_reads_sv.png
 ```
@@ -91,7 +91,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 ```
 
 ```sh
-jb2export --hub hg38 \
+jb2export --genome hg38 \
   --bam inst/extdata/hg008t_cuzd1_deletion.bam legend.show=true heightMode:grow growMaxHeight=2000 sort:base \
   --loc chr10:122,831,700-122,840,800 \
   --width 1200 --out deletion.png
@@ -117,7 +117,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 ```
 
 ```sh
-jb2export --hub hg38 \
+jb2export --genome hg38 \
   --bam inst/extdata/hg008t_cuzd1_deletion.bam legend.show=true heightMode:grow growMaxHeight=2000 sort:base featureHeight:compact \
   --loc chr10:122,831,700-122,840,800 \
   --width 1200 --out compact_reads.png
@@ -142,7 +142,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 ```
 
 ```sh
-jb2export --hub hg38 \
+jb2export --genome hg38 \
   --bam inst/extdata/hg008t_cuzd1_deletion.bam legend.show=true heightMode:grow growMaxHeight=2000 sort:base \
   --loc chr10:122,835,300-122,835,420 \
   --width 1200 --out base_zoom.png
@@ -168,7 +168,7 @@ autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
 ```
 
 ```sh
-jb2export --hub hg38 \
+jb2export --genome hg38 \
   --bam inst/extdata/hg00151_chr1_inversion.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain encoding.color.field=pairOrientation facet=split coverage.height=80 \
   --loc chr1:197,786,900-197,789,700 \
   --width 1200 --out inversion.png
@@ -261,7 +261,7 @@ autoplot(jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000"))
 ```
 
 ```sh
-jb2export --hub hg38 \
+jb2export --genome hg38 \
   --multiwig gallery/jb2export/dnase.json legend.show=true name:DNase \
   --loc chr11:5,270,001-5,320,000 \
   --width 1200 --out dnase_rows.png
@@ -292,7 +292,7 @@ autoplot(w)
 ```
 
 ```sh
-jb2export --hub hg38 \
+jb2export --genome hg38 \
   --multiwig gallery/jb2export/dnase.json legend.show=true name:DNase mark=rect runClustering=true \
   --loc chr11:5,270,001-5,320,000 \
   --width 1200 --out dnase_clustered.png
@@ -353,7 +353,7 @@ jbrowse_stack(genes, signal, reads)
 
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
-  --gffgz inst/extdata/gapdh_gencode.gff3.gz \
+  --gff inst/extdata/gapdh_gencode.gff3.gz \
   --bigwig inst/extdata/gapdh_phylop100way.bw legend.show=true \
   --bam inst/extdata/gapdh_direct_rna.bam legend.show=true heightMode:grow growMaxHeight=2000 encoding.color.field=strand \
   --loc 'chr12:6,534,201-6,535,700 chr12:6,537,201-6,538,700' \
@@ -381,7 +381,7 @@ jbrowse_stack(genes)
 
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
-  --gffgz inst/extdata/gapdh_gencode.gff3.gz heightMode:grow growMaxHeight=2000 \
+  --gff inst/extdata/gapdh_gencode.gff3.gz heightMode:grow growMaxHeight=2000 \
   --loc 'chr12:6,534,811-6,534,880 chr12:6,536,476-6,536,545' \
   --width 1200 --out amino_acids.png
 ```
@@ -406,7 +406,7 @@ autoplot(v, layout = "columns")
 ```
 
 ```sh
-jb2export --hub hg19 \
+jb2export --genome hg19 \
   --tracks gallery/jb2export/people.tracks.json \
   --track people \
   --loc 1:155,000,001-155,050,000 \
@@ -434,7 +434,7 @@ autoplot(v, layout = "columns")
 ```
 
 ```sh
-jb2export --hub hg19 \
+jb2export --genome hg19 \
   --tracks gallery/jb2export/people.tracks.json \
   --track people runClustering=true \
   --loc 1:155,000,001-155,050,000 \
@@ -465,7 +465,7 @@ autoplot(v)
 ```
 
 ```sh
-jb2export --hub hg19 \
+jb2export --genome hg19 \
   --tracks gallery/jb2export/people.tracks.json \
   --track people variantLayout=genomic facet=superpopulation runClustering=true \
   --loc 1:155,000,001-155,050,000 \
@@ -500,7 +500,7 @@ jbrowse_stack(genes, reads)
 
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
-  --gffgz inst/extdata/gapdh_gencode.gff3.gz \
+  --gff inst/extdata/gapdh_gencode.gff3.gz \
   --bam inst/extdata/gapdh_direct_rna.bam sashimi:auto encoding.color.field=strand legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc 'chr12:6534497-6534589 chr12:6534790-6534881 chr12:6536474-6536613 chr12:6536664-6536810 chr12:6536900-6537030 chr12:6537081-6537236 chr12:6537289-6537410 chr12:6537564-6538016 chr12:6538081-6538391' \
   --width 1200 --out collapsed_introns.png
@@ -531,7 +531,7 @@ jb2export synteny \
   --chromSizes gallery/jb2export/maternal.chrom.sizes loc:chr8_MATERNAL:5,250,001-14,250,000 \
   --chain inst/extdata/hg002_chr8.chain \
   --chromSizes gallery/jb2export/paternal.chrom.sizes loc:chr8_PATERNAL:5,250,001-14,250,000 \
-  --colorBy strand \
+  --view encoding.color.field=strand \
   --width 1200 --out inversion_synteny.png
 ```
 
@@ -558,7 +558,7 @@ jb2export dotplot \
   --chromSizes gallery/jb2export/maternal.chrom.sizes \
   --chain inst/extdata/hg002_chr8.chain \
   --chromSizes gallery/jb2export/paternal.chrom.sizes \
-  --colorBy strand \
+  --view encoding.color.field=strand \
   --width 1200 --out inversion_dotplot.png
 ```
 
@@ -612,7 +612,7 @@ jb2export synteny \
   --chromSizes gallery/jb2export/GRCh38.chrom.sizes 'loc:GRCh38#0#chr1:103,520,894-103,832,637' \
   --paf inst/extdata/hprc_amylase.paf \
   --chromSizes gallery/jb2export/HG00133.chrom.sizes 'loc:HG00133#1#CM090045.1:103,669,666-103,981,330' \
-  --colorBy strand \
+  --view encoding.color.field=strand \
   --width 1200 --out amylase_synteny.png
 ```
 
@@ -641,7 +641,7 @@ jb2export synteny \
   --chromSizes gallery/jb2export/GRCh38.chrom.sizes 'loc:GRCh38#0#chr1:103,619,501-103,622,500' \
   --paf inst/extdata/hprc_amylase.paf \
   --chromSizes gallery/jb2export/HG00133.chrom.sizes 'loc:HG00133#1#CM090045.1:103,768,401-103,771,400' \
-  --colorBy strand \
+  --view encoding.color.field=strand \
   --width 1200 --out amylase_zoom.png
 ```
 

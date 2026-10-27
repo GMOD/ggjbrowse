@@ -83,7 +83,7 @@ methyldackel_json <- function() json_file(
   "methyldackel.json")
 
 fasta <- c("--fasta", inst("gapdh_hg38.fa.gz"))
-hg38 <- c("--hub", "hg38")
+hg38 <- c("--genome", "hg38")
 grow <- c("heightMode:grow", "growMaxHeight=2000")
 gapdh <- "chr12:6,534,201-6,538,700"
 two_loci <- c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")
@@ -192,7 +192,7 @@ examples <- list(
   genes_and_reads = list(
     caption = "Junction arcs join each splice over the coverage band, and the reads split at every intron.",
     title = "GENCODE genes over direct RNA reads", locus = gapdh,
-    jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "legend.show=true", grow,
+    jbrowse = c(fasta, "--gff", gencode, "--bam", rna, "legend.show=true", grow,
       "--loc", gapdh),
     r = r"-(
 reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"),
@@ -207,7 +207,7 @@ jbrowse_stack(genes, reads)
     locus = "chr3:25,358,500-25,359,800",
     jbrowse = c(hg38, "--bam", inst("colo829_tumor_chr3.bam"),
       "legend.show=true", grow,
-      "arcs:down", "unit=chain", "encoding.color.field=strand", "filter.split=only",
+      "arcs:down", "unit=chain", "encoding.color.field=strand", "split:only",
       "--loc", "chr3:25,358,500-25,359,800"),
     r = r"-(
 autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
@@ -356,7 +356,7 @@ patchwork::wrap_plots(ncol = 1,
     caption = "A grey divider separates the two loci, and each tick gives a position in its own region.",
     title = "Genes, conservation and strand-colored reads over two regions end to end",
     locus = paste(two_loci, collapse = " "),
-    jbrowse = c(fasta, "--gffgz", gencode, "--bigwig", phylop, "legend.show=true",
+    jbrowse = c(fasta, "--gff", gencode, "--bigwig", phylop, "legend.show=true",
       "--bam", rna, "legend.show=true", grow, "encoding.color.field=strand",
       "--loc", paste(two_loci, collapse = " ")),
     r = r"-(
@@ -371,7 +371,7 @@ jbrowse_stack(genes, signal, reads)
     caption = "GAPDH's coding transcripts open MGKVKVGVNG, the last codon split by the intron and lettered red on each side, the frame running on in the next exon.",
     title = "Amino acids over GAPDH's first coding exons, read in frame across the intron",
     locus = paste(aa_loci, collapse = " "),
-    jbrowse = c(fasta, "--gffgz", gencode, grow,
+    jbrowse = c(fasta, "--gff", gencode, grow,
       "--loc", paste(aa_loci, collapse = " ")),
     r = r"-(
 loci <- c("chr12:6,534,811-6,534,880", "chr12:6,536,476-6,536,545")
@@ -383,7 +383,7 @@ jbrowse_stack(genes)
     caption = "20 people from each superpopulation genotyped at 249 variants, a column per record, the East Asians homozygous for the alt allele at many of the first 40.",
     title = "100 people's genotypes across DCST2 (GRCh37), colored by superpopulation",
     locus = "1:155,000,001-155,050,000", height = 7,
-    jbrowse = c("--hub", "hg19", "--tracks", population_tracks(), "--track",
+    jbrowse = c("--genome", "hg19", "--tracks", population_tracks(), "--track",
       "people", "--loc", "1:155,000,001-155,050,000"),
     r = r"-(
 v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
@@ -395,7 +395,7 @@ autoplot(v, layout = "columns")
     caption = "Most East Asians gather near the top, the Africans and Europeans further down.",
     title = "100 people's genotypes across DCST2 clustered, the tree beside the rows",
     locus = "1:155,000,001-155,050,000", height = 7,
-    jbrowse = c("--hub", "hg19", "--tracks", population_tracks(), "--track",
+    jbrowse = c("--genome", "hg19", "--tracks", population_tracks(), "--track",
       "people", "runClustering=true", "--loc", "1:155,000,001-155,050,000"),
     r = r"-(
 v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
@@ -408,7 +408,7 @@ autoplot(v, layout = "columns")
     caption = "Each superpopulation clusters apart in its own band, and the records crowding a pixel fade by how many share it.",
     title = "100 people's genotypes across DCST2 in a band per superpopulation, each band clustered",
     locus = "1:155,000,001-155,050,000", height = 7,
-    jbrowse = c("--hub", "hg19", "--tracks", population_tracks(), "--track",
+    jbrowse = c("--genome", "hg19", "--tracks", population_tracks(), "--track",
       "people", "variantLayout=genomic", "facet=superpopulation",
       "runClustering=true", "--loc", "1:155,000,001-155,050,000"),
     r = r"-(
@@ -425,7 +425,7 @@ autoplot(v)
     caption = "An arc over the coverage joins each pair of exons, and the direct RNA reads run across.",
     title = "GAPDH's nine exons side by side, with the junctions between them as arcs",
     locus = "ENST00000229239.10's exons, each padded by 20 bp", height = 7,
-    jbrowse = c(fasta, "--gffgz", gencode, "--bam", rna, "sashimi:auto",
+    jbrowse = c(fasta, "--gff", gencode, "--bam", rna, "sashimi:auto",
       "encoding.color.field=strand", "legend.show=true", grow, "--loc",
       paste(exon_locs("ENST00000229239.10"), collapse = " ")),
     r = r"-(
@@ -448,7 +448,7 @@ jbrowse_stack(genes, reads)
     jbrowse = c("synteny", "--chromSizes", chrom_sizes(chain, "target",
       "maternal"), paste0("loc:chr8_MATERNAL:", inversion), "--chain", chain,
       "--chromSizes", chrom_sizes(chain, "query", "paternal"),
-      paste0("loc:chr8_PATERNAL:", inversion), "--colorBy", "strand"),
+      paste0("loc:chr8_PATERNAL:", inversion), "--view", "encoding.color.field=strand"),
     r = r"-(
 r <- "5,250,001-14,250,000"
 autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
@@ -462,7 +462,7 @@ autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
     locus = "chr8_MATERNAL chr8_PATERNAL", height = 6,
     jbrowse = c("dotplot", "--chromSizes", axis_sizes(hg002_dot, "x", "maternal"),
       "--chain", chain, "--chromSizes", axis_sizes(hg002_dot, "y", "paternal"),
-      "--colorBy", "strand"),
+      "--view", "encoding.color.field=strand"),
     r = r"-(
 autoplot(jbrowse_dotplot(e("hg002_chr8.chain"),
   display = list(encoding = list(color = list(field = "strand"))), swap = TRUE,
@@ -489,7 +489,7 @@ autoplot(jbrowse_dotplot(e("peach_grape.paf.gz"),
       "--chromSizes", chrom_sizes(amylase, "target", "HG00133",
         "HG00133#1#CM090045.1"),
       "loc:HG00133#1#CM090045.1:103,669,666-103,981,330",
-      "--colorBy", "strand"),
+      "--view", "encoding.color.field=strand"),
     r = r"-(
 autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,520,894-103,832,637",
@@ -507,7 +507,7 @@ autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
       "--chromSizes", chrom_sizes(amylase, "target", "HG00133",
         "HG00133#1#CM090045.1"),
       "loc:HG00133#1#CM090045.1:103,768,401-103,771,400",
-      "--colorBy", "strand"),
+      "--view", "encoding.color.field=strand"),
     r = r"-(
 autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,619,501-103,622,500",
