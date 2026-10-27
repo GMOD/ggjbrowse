@@ -50,8 +50,8 @@ test_that("a zoomed-out min-max extent draws the max, mean and min bands on each
 
 test_that("each plot type draws every mark", {
   for (mark in c("bar", "point", "line", "rect")) {
-    x <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = mark,
-      extent = "none"))
+    x <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = list(
+      type = mark, extent = "none")))
     built <- ggplot2::ggplot_build(ggplot2::autoplot(x))
     drawn <- sum(vapply(built$data[2:6], nrow, 1L))
     if (mark == "line") expect_gte(drawn, nrow(x$marks) * 2)
@@ -94,8 +94,9 @@ test_that("an empty region draws, whatever the plot type", {
 })
 
 test_that("a stepped line joins its bins, and a rule is labelled in its color", {
-  x <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "line",
-    extent = "none", encoding = list(y = list(rules = list(
+  x <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(
+    mark = list(type = "line", extent = "none"),
+    encoding = list(y = list(rules = list(
       list(value = 500, label = "gain"), list(value = 0))))))
   expect_equal(x$rules$label, c("gain", ""))
   expect_equal(as.character(x$rules$color), c("#787878", "#787878"))

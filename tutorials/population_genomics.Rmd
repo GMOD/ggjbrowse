@@ -299,8 +299,8 @@ arm <- function(chrom) data.frame(chrom = chrom, start = 0,
   end = arms$length[1])
 extent <- jbrowse_features(inversion_adapter, arm("chr2L"), width = 1200)
 fig <- jbrowse_stack(`In(2L)t` = extent,
-  Fst = jbrowse_wiggle(fst_bw, arm("2L"), display = list(extent = "none"),
-    width = 1200),
+  Fst = jbrowse_wiggle(fst_bw, arm("2L"),
+    display = list(mark = list(extent = "none")), width = 1200),
   `log2 π, inverted over standard` = jbrowse_wiggle(ratio_bw, arm("2L"),
     display = ratio_display, width = 1200))
 ```

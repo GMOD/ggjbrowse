@@ -18,8 +18,9 @@
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearWiggleDisplay`: a list with any of `mark`
 #'   (`"bar"`, `"line"`, `"point"`, or `"rect"` for density, or
-#'   `list(type =, interpolate =)` with `"step"` or `"linear"` for a line),
-#'   `extent` (`"min-max"` or `"none"`), `origin` and `encoding`: its `color`
+#'   `list(type =, interpolate =, extent =)` with `"step"` or `"linear"` for a
+#'   line and `"min-max"` or `"none"` for the band around each bin), `origin`
+#'   and `encoding`: its `color`
 #'   (`list(value =)` for one CSS color, or the color object's slots) and its
 #'   `y`, `list(field =, scale = list(type =, domainMin =, domainMax =,
 #'   fenceQuantile =, zero =), rules =)`, whose `field` (`"score"`,
