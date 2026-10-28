@@ -1,0 +1,19 @@
+name: Standalone files
+
+# The files copied from GMOD/ggbandage match it: on a push, at the commit each
+# header names, so a hand edit fails; weekly, also at ggbandage's main, so a
+# change there is taken in. scripts/check-standalone.sh --update <sha> takes it.
+on:
+  push:
+  schedule:
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  standalone:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: scripts/check-standalone.sh ${{ github.event_name == 'schedule' && '--latest' || '' }}

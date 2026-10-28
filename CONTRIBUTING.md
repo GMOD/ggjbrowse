@@ -69,6 +69,20 @@ scripts/build-js.sh
   npm, runs R CMD check on it, then commits the bundle to `main` and starts
   R-CMD-check for every platform. A failed check leaves `main` alone and the
   next run tries again.
+- **Standalone files:** runs `scripts/check-standalone.sh` on every push, and
+  with `--latest` weekly.
+
+## Code from ggbandage
+
+`R/import-standalone-v8-host.R` holds `is_url`, `beside`, `bare_name` and the
+fork guard, copied from [ggbandage](https://github.com/GMOD/ggbandage), which
+shares them with ggtubemap. The file's header names the ggbandage commit it
+came from.
+
+- `scripts/check-standalone.sh` fails where the copy differs from that commit,
+  and with `--latest`, where ggbandage's main has changed the file since
+- `scripts/check-standalone.sh --update <sha>` copies it again from that
+  ggbandage commit
 
 ## Where decisions live
 

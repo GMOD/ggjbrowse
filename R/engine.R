@@ -36,7 +36,7 @@ engine <- local({
       return(invisible())
     }
     if (is.null(ctx) && start) {
-      if (!identical(Sys.getpid(), deferred$pid) || forked()) {
+      if (engine_forked(deferred$pid)) {
         rlang::abort(paste("the engine cannot start in a forked worker",
           "(parallel::mclapply(), future's multicore, BiocParallel's",
           "MulticoreParam), where V8 hangs: read in a socket cluster, such",
@@ -152,13 +152,6 @@ deferred$warnings <- character(0)
 # forked child inherits a started engine, but one starting there hangs
 .onLoad <- function(libname, pkgname) {
   deferred$pid <- Sys.getpid()
-}
-
-# Whether this process is a worker parallel's fork made, where a V8 the parent
-# loaded hangs starting, even when ggjbrowse loaded only after the fork
-forked <- function() {
-  is_child <- get0("isChild", asNamespace("parallel"))
-  !is.null(is_child) && is_child()
 }
 
 read_range_deferring <- function(url, start, end) {
@@ -312,8 +305,6 @@ list_column <- function(lengths, values) {
   rows
 }
 
-is_url <- function(path) grepl("^[A-Za-z][A-Za-z0-9+.-]*://", path)
-
 # A file's location for the engine: a URL as given, and a local path as a
 # file:// URL, each segment percent-encoded so a %, ? or # in a name stays in
 # the name, with the file's modification time and size as a query, which
@@ -350,19 +341,6 @@ guess_adapter <- function(file, index, formats, expected = NULL) {
   }
   stop("cannot tell the format of ", file, ": expected ", expected,
     call. = FALSE)
-}
-
-# The file beside `file` its name and `suffix` name, a URL's query and
-# fragment kept after it, as a signed URL's index carries the same query; a
-# local path's `?` and `#` are part of its name
-beside <- function(file, suffix) {
-  if (!is_url(file)) return(paste0(file, suffix))
-  sub("^([^?#]*)", paste0("\\1", suffix), file)
-}
-
-# A path or URL as its extension reads, a URL's query and fragment aside
-bare_name <- function(file) {
-  if (is_url(file)) sub("[?#].*$", "", file) else file
 }
 
 # The adapter config the engine reads `file` through: a track's own adapter
