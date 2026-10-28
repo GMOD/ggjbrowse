@@ -258,7 +258,6 @@ same_regions <- function(results) {
         collapse = ", "), " and track 1 ", paste(loci_of(results[[1]]),
         collapse = ", "), call. = FALSE)
   }
-  bare <- function(chrom) sub("^chr", "", chrom, ignore.case = TRUE)
   first <- results[[1]]$regions$chrom
   for (i in seq_along(results)[-1]) {
     chrom <- results[[i]]$regions$chrom
@@ -269,7 +268,7 @@ same_regions <- function(results) {
         " and track 1 ", paste(loci_of(results[[1]]), collapse = ", "),
         call. = FALSE)
     }
-    renamed <- pairs[bare(pairs$a) != bare(pairs$b), , drop = FALSE]
+    renamed <- pairs[bare_contig(pairs$a) != bare_contig(pairs$b), , drop = FALSE]
     if (nrow(renamed)) {
       warning("track ", i, " reads ", renamed$b[1], " where track 1 reads ",
         renamed$a[1], "; jbrowse_stack draws them as one contig, as it ",

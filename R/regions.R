@@ -127,9 +127,7 @@ regions_of <- function(region, contigs = NULL, canonical = NULL) {
   bad <- which(regions$start < 0 | regions$end < regions$start)
   if (!nrow(regions) || length(bad)) {
     rlang::abort(if (!nrow(regions)) "the region frame has no rows" else
-      sprintf("the region %s:%s-%s is %s", regions$chrom[bad[1]],
-        format(regions$start[bad[1]] + 1, big.mark = ",", scientific = FALSE),
-        format(regions$end[bad[1]], big.mark = ",", scientific = FALSE),
+      sprintf("the region %s is %s", loci_of_layout(regions[bad[1], ]),
         if (regions$start[bad[1]] < 0) "before the contig's first base, 1"
         else "reversed"), class = "ggjbrowse_bad_region")
   }
@@ -299,12 +297,18 @@ on_axis <- function(x) {
 
 is_on_axis <- function(d) isTRUE(attr(d, "on_axis"))
 
+# A contig's name without a chr prefix, with UCSC's M as Ensembl's MT, so
+# chr1 and 1 compare equal, as do chrM and MT
+bare_contig <- function(x) {
+  x <- sub("^chr", "", as.character(x), ignore.case = TRUE)
+  ifelse(toupper(x) == "M", "MT", x)
+}
+
 in_regions <- function(d, regions) {
-  bare <- function(x) sub("^chr", "", as.character(x), ignore.case = TRUE)
   lo <- d[["start"]] %||% d[["position"]]
   hi <- d[["end"]] %||% (lo + 1)
   at <- lapply(seq_len(nrow(regions)), function(i) which(
-    bare(d[["chrom"]]) == bare(regions$chrom[i]) & hi > regions$start[i] &
+    bare_contig(d[["chrom"]]) == bare_contig(regions$chrom[i]) & hi > regions$start[i] &
       lo < regions$end[i]))
   rows <- unlist(at)
   out <- d[rows, , drop = FALSE]

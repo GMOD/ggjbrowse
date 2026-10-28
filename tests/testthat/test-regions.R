@@ -268,6 +268,12 @@ test_that("a frame of one's own lands in the region its chrom and positions fall
       ymax = y + 1), data = peaks), 1)$ymin, 1:3)
 })
 
+test_that("a frame's chrM lands in a region on MT, as its chr1 lands on 1", {
+  regions <- data.frame(chrom = c("1", "MT"), start = 0, end = 100)
+  d <- data.frame(chrom = c("chr1", "chrM", "chr2"), start = 10, end = 20)
+  expect_equal(in_regions(d, regions)$region, 1:2)
+})
+
 test_that("a result's $ matches names exactly, so $region is not $regions", {
   g <- jbrowse_features(gff, "ctgA:1-1,000")
   expect_null(g$region)
