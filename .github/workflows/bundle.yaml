@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '@jbrowse/tables version, latest by default'
+        description: '@jbrowse/tables version, the newer of latest and next by default'
         required: false
 
 concurrency: bundle
@@ -34,7 +34,7 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          wanted=${INPUT_VERSION:-$(npm view @jbrowse/tables version 2>/dev/null || true)}
+          wanted=${INPUT_VERSION:-$(scripts/newest-release.sh 2>/dev/null || true)}
           built=$(sed -n '1s|^// @jbrowse/tables \([^ ]*\) .*|\1|p' inst/js/jbrowse-tables.js)
           if [ -z "$wanted" ]; then
             echo "::notice::@jbrowse/tables is not on npm yet"

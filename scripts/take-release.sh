@@ -1,11 +1,12 @@
 #!/bin/sh
 # Replaces inst/js/jbrowse-tables.js with the bundle a published @jbrowse/tables
 # release carries (its dist/jbrowse-tables.js), named on the first line.
-# Usage: scripts/take-release.sh [version], the latest by default.
+# Usage: scripts/take-release.sh [version], by default the one
+# scripts/newest-release.sh prints.
 # The npm release names no commit, so inst/COPYRIGHTS stays as it was.
 set -eu
 cd "$(dirname "$0")/.."
-version=${1:-$(npm view @jbrowse/tables version)}
+version=${1:-$(scripts/newest-release.sh)}
 tmp=$(mktemp -d)
 npm pack --silent --pack-destination "$tmp" "@jbrowse/tables@$version" >/dev/null
 tar -xzf "$tmp"/*.tgz -C "$tmp" package/dist/jbrowse-tables.js
