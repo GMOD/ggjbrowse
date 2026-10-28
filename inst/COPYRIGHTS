@@ -124,9 +124,6 @@ the JBrowse authors) with the packages below, minified.
 - @jbrowse/plugin-bed 5.0.0-beta.18
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-canvas 5.0.0-beta.18
-  License: Apache-2.0
-  Copyright: JBrowse Team
 - @jbrowse/plugin-comparative-adapters 5.0.0-beta.18
   License: Apache-2.0
   Copyright: JBrowse Team
@@ -134,6 +131,9 @@ the JBrowse authors) with the packages below, minified.
   License: Apache-2.0
   Copyright: JBrowse Team
 - @jbrowse/plugin-dotplot-view 5.0.0-beta.18
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/plugin-features 5.0.0-beta.18
   License: Apache-2.0
   Copyright: JBrowse Team
 - @jbrowse/plugin-gff3 5.0.0-beta.18
