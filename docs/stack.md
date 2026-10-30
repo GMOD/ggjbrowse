@@ -53,7 +53,7 @@ ggsave("stack.png", fig, width = jbrowse_width(fig),
 
 ## From a JBrowse view
 
-JBrowse's linear genome view is gaining an **Export R script** menu item, not
-yet in a release. It writes one ggjbrowse reader per open track, then
+JBrowse's linear genome view has an **Export R script** menu item, from
+5.0.0-beta.14. It writes one ggjbrowse reader per open track, then
 `jbrowse_stack()` and `ggsave()` at `jbrowse_width(fig)` by
 `jbrowse_height(fig)`.

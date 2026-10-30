@@ -1,0 +1,176 @@
+---
+title: "Get started with ggjbrowse"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Get started with ggjbrowse}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dpi = 150,
+  out.width = "100%", fig.width = 6, fig.height = 4)
+```
+
+ggjbrowse reads a region of a BAM, CRAM, GFF3, BED, BigBed, BigWig, VCF or
+pairwise alignment file through the [JBrowse 2](https://jbrowse.org) genome
+browser's own data engine, run in V8. A reader returns the tables the
+browser's display draws from, and `autoplot()` draws them as the browser's
+track.
+
+- Every example below runs on clips of public data installed with the
+  package.
+- `locus` is written as JBrowse's location box writes it, 1-based.
+- `width` is the view's width in pixels: a reader lays out labels, rows and
+  zoom levels as a JBrowse view that wide does.
+
+```{r setup}
+library(ggjbrowse)
+library(ggplot2)
+
+e <- function(f) system.file("extdata", f, package = "ggjbrowse")
+locus <- "chr12:6,534,201-6,538,700"
+width <- 900
+```
+
+## A track in one call
+
+We'll start with nanopore direct RNA reads across _GAPDH_ from NA12878.
+`autoplot()` draws the browser's alignments track: junction arcs over the
+coverage, and the reads split at each intron.
+
+```{r reads}
+reads <- jbrowse_alignments(e("gapdh_direct_rna.bam"), locus, width = width)
+p <- autoplot(reads)
+```
+
+```{r reads-plot, fig.width = jbrowse_width(p), fig.height = jbrowse_height(p)}
+p
+```
+
+## The tables
+
+The result is a list of data frames, one per kind of mark the display draws.
+Each read has its pileup `row` and the `color` the display paints it, and
+each mismatch, gap and clip names its read by a key.
+
+```{r tables}
+names(reads)
+head(reads$reads[c("chrom", "start", "end", "row", "strand", "mapq",
+  "color")])
+```
+
+The geoms draw one table each, so a figure is an ordinary ggplot that `+`
+changes piece by piece. Here the reads are filled by mapping quality:
+
+```{r mapq, fig.height = 3}
+ggplot(reads) +
+  geom_jbrowse_reads(aes(fill = mapq)) +
+  geom_jbrowse_mismatches() +
+  scale_fill_viridis_c() +
+  scale_y_reverse()
+```
+
+## The display's settings and decisions
+
+A reader's `display` argument takes the track's display settings, spelled as
+a JBrowse config writes them, so a setting copied from a config or a session
+draws the same in R:
+
+```{r strand}
+stranded <- jbrowse_alignments(e("gapdh_direct_rna.bam"), locus,
+  width = width,
+  display = list(encoding = list(color = list(field = "strand"))))
+```
+
+What the display decided comes back as columns. `shown` marks the junctions
+it draws, so setting it keeps only the junctions with 60 reads or more:
+
+```{r junctions}
+reads$junctions$shown <- reads$junctions$count >= 60
+p <- autoplot(reads)
+```
+
+```{r junctions-plot, fig.width = jbrowse_width(p), fig.height = jbrowse_height(p)}
+p
+```
+
+## Several tracks
+
+`jbrowse_stack()` stacks tracks as a JBrowse view does, top to bottom on one
+x axis, each named for its track, with the keys collected:
+
+```{r stack}
+genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), locus, width = width)
+phylop <- jbrowse_wiggle(e("gapdh_phylop100way.bw"), locus, width = width)
+fig <- jbrowse_stack(GENCODE = genes, phyloP = phylop, Reads = stranded)
+```
+
+```{r stack-plot, fig.width = jbrowse_width(fig), fig.height = jbrowse_height(fig)}
+fig
+```
+
+- `jbrowse_height()` and `jbrowse_width()` give the size that keeps the
+  display's pixel proportions:
+  `ggsave("gapdh.png", fig, width = jbrowse_width(fig), height = jbrowse_height(fig))`.
+- Each band is a ggplot, so `fig & theme_classic()` restyles every band, and
+  `+` reaches only the last.
+- Several loci lay out end to end, as a view lays out several regions: give
+  a reader `c("chr12:6,534,201-6,535,700", "chr12:6,537,201-6,538,700")`.
+
+## Genotypes
+
+`jbrowse_variants()` reads a multi-sample VCF as the variant matrix: a row
+per sample, a column per record. A sample table adds columns to the rows, so
+the display can color them, here 100 people of the 1000 Genomes Project at
+_DCST2_ by superpopulation:
+
+```{r variants, fig.height = 5}
+v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
+  samples = e("1000g_dcst2_samples.tsv"),
+  display = list(rowColor = list(field = "superpopulation")))
+autoplot(v, layout = "columns")
+```
+
+`as.matrix(v)` gives the genotypes as a sample-by-record matrix, and a tree
+set as `v$tree <- hclust(dist(as.matrix(v)), "average")` orders the rows and
+draws beside them.
+
+## Two genomes
+
+`jbrowse_synteny()` reads a PAF, chain or delta file between two regions as
+the synteny view's ribbons. HG002's maternal chr8 over its paternal copy shows
+the 4 Mb inversion at 8p23.1 as a crossing ribbon:
+
+```{r synteny, fig.height = 3}
+r <- "5,250,001-14,250,000"
+autoplot(jbrowse_synteny(e("hg002_chr8.chain"), paste0("chr8_MATERNAL:", r),
+  paste0("chr8_PATERNAL:", r),
+  display = list(encoding = list(color = list(field = "strand"))),
+  swap = TRUE, labels = c(query = "paternal", target = "maternal")))
+```
+
+`jbrowse_dotplot()` reads the same files as a dotplot, and
+`jbrowse_multiway()` lays several genomes in lanes.
+
+## From a JBrowse view
+
+The linear genome view's **Export R script** menu item, from JBrowse
+5.0.0-beta.14, writes a script of this shape for the view on screen: one reader per open track, at the view's
+regions, width and display settings, then `jbrowse_stack()` and `ggsave()`.
+
+## More
+
+- [Gallery](https://github.com/GMOD/ggjbrowse/blob/main/docs/gallery.md):
+  each figure drawn by JBrowse and by ggjbrowse, with both recipes
+- [Tutorials](https://github.com/GMOD/ggjbrowse#tutorials): whole analyses
+  done in R, each on the data of a JBrowse tutorial
+- Guides to
+  [alignments](https://github.com/GMOD/ggjbrowse/blob/main/docs/alignments.md),
+  [features](https://github.com/GMOD/ggjbrowse/blob/main/docs/features.md),
+  [wiggle](https://github.com/GMOD/ggjbrowse/blob/main/docs/wiggle.md),
+  [variants](https://github.com/GMOD/ggjbrowse/blob/main/docs/variants.md),
+  [synteny](https://github.com/GMOD/ggjbrowse/blob/main/docs/synteny.md)
+  and [the geoms](https://github.com/GMOD/ggjbrowse/blob/main/docs/grammar.md)
+- [Every function](https://github.com/GMOD/ggjbrowse/blob/main/docs/api.md)
+  and the [FAQ](https://github.com/GMOD/ggjbrowse/blob/main/docs/faq.md)

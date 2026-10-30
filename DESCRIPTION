@@ -37,8 +37,11 @@ Suggests:
     dplyr,
     GenomicRanges,
     IRanges,
+    knitr,
+    rmarkdown,
     testthat (>= 3.1.7),
     tibble,
     withr
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0

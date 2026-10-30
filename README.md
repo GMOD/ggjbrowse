@@ -165,6 +165,9 @@ Whole analyses done in R, each on the data and question of a
 
 ## Docs
 
+- [Get started](vignettes/ggjbrowse.Rmd): a track, its tables, the display's
+  settings, a stack, genotypes and synteny, each on the installed data.
+  `vignette("ggjbrowse")` once installed with `build_vignettes = TRUE`
 - [docs/alignments.md](docs/alignments.md): BAM and CRAM reads
   (`jbrowse_alignments()`): color, filter, sort, split and chain reads,
   methylation
