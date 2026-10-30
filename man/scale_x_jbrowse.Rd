@@ -10,7 +10,7 @@ scale_x_jbrowse(object, ...)
 \item{object}{a ggjbrowse reader's result}
 
 \item{...}{passed to \code{\link[ggplot2:scale_x_continuous]{ggplot2::scale_x_continuous()}}, such as \code{name}, in
-place of the regions' own \code{breaks} and \code{labels}}
+place of the regions' own \code{breaks}, \code{labels} and \code{limits}}
 }
 \value{
 a list of a ggplot scale and the seams' layer
@@ -18,9 +18,10 @@ a list of a ggplot scale and the seams' layer
 \description{
 The scale a result's regions draw on: genomic positions written with
 commas, or, for several regions laid end to end, each tick labelled with
-its position in its own region and a bar at each seam. \verb{ggplot(<result>)}
-adds it where the plot sets no x scale of its own, and moves the result's
-tables in other layers onto it.
+its position in its own region and a bar at each seam. Its limits are the
+regions' span, as the view's are, and a mark running past an edge is kept
+and clipped by the panel. \verb{ggplot(<result>)} adds it where the plot sets no
+x scale of its own, and moves the result's tables in other layers onto it.
 }
 \examples{
 gff <- system.file("extdata", "gapdh_gencode.gff3.gz", package = "ggjbrowse")

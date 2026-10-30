@@ -183,6 +183,16 @@ test_that("a plain ggplot of several regions draws them, and one's own layers, e
   expect_equal(named$breaks, scale_x_jbrowse(a)[[1]]$breaks)
 })
 
+test_that("a plain ggplot of one region spans the region, keeping a read past its edge", {
+  a <- jbrowse_alignments(bam, "ctgA:1,001-2,000")
+  past <- a$reads$end > 2000
+  expect_true(any(past))
+  b <- ggplot2::ggplot_build(ggplot2::ggplot(a) + geom_jbrowse_reads())
+  expect_equal(b$layout$panel_params[[1]]$x$continuous_range,
+    c(1000, 2000) + c(-50, 50))
+  expect_equal(max(b$data[[1]]$xmax), max(a$reads$end))
+})
+
 test_that("jbrowse_stack takes a contig's other spelling and warns at another contig", {
   a <- jbrowse_features(gff, "ctgA:1,001-3,000")
   b <- jbrowse_features(gff, "ctgB:1,001-3,000")

@@ -301,7 +301,7 @@ onto_axis <- function(p, axis) {
     moved$data <- frame_on_axis(layer$data, axis$regions)
     moved
   })
-  if (nrow(axis$regions) > 1 && is.null(p$scales$get_scales("x"))) {
+  if (is.null(p$scales$get_scales("x"))) {
     p <- p + genomic_x(axis)
   }
   p
@@ -325,12 +325,13 @@ ggplot_build.ggjbrowse_plot <- function(plot, ...) {
 #'
 #' The scale a result's regions draw on: genomic positions written with
 #' commas, or, for several regions laid end to end, each tick labelled with
-#' its position in its own region and a bar at each seam. `ggplot(<result>)`
-#' adds it where the plot sets no x scale of its own, and moves the result's
-#' tables in other layers onto it.
+#' its position in its own region and a bar at each seam. Its limits are the
+#' regions' span, as the view's are, and a mark running past an edge is kept
+#' and clipped by the panel. `ggplot(<result>)` adds it where the plot sets no
+#' x scale of its own, and moves the result's tables in other layers onto it.
 #' @param object a ggjbrowse reader's result
 #' @param ... passed to [ggplot2::scale_x_continuous()], such as `name`, in
-#'   place of the regions' own `breaks` and `labels`
+#'   place of the regions' own `breaks`, `labels` and `limits`
 #' @return a list of a ggplot scale and the seams' layer
 #' @export
 #' @examples
@@ -391,7 +392,8 @@ genomic_x <- function(x, ...) {
   r <- x$regions
   if (nrow(r) == 1) {
     return(scale_with(ggplot2::scale_x_continuous,
-      list(labels = scales::label_comma()), ...))
+      list(labels = scales::label_comma(), limits = xlim_of(x),
+        oob = scales::oob_keep), ...))
   }
   at <- region_breaks(r)
   breaks <- unlist(lapply(seq_len(nrow(r)), function(i)
@@ -404,7 +406,8 @@ genomic_x <- function(x, ...) {
     else k, seq_along(breaks), integer(0))
   seams <- (utils::head(r$cum_end, -1) + r$offset[-1]) / 2
   list(scale_with(ggplot2::scale_x_continuous, list(breaks = breaks[kept],
-      labels = labels[kept]), ...),
+      labels = labels[kept], limits = xlim_of(x), oob = scales::oob_keep),
+      ...),
     ggplot2::geom_vline(xintercept = seams, colour = REGION_SEPARATOR,
       linewidth = 0.9))
 }
