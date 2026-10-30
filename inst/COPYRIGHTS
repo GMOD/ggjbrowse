@@ -61,13 +61,13 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/bed 2.3.3
   License: MIT
   Copyright: Copyright (c) 2026 Colin Diesh
-- @gmod/bgzf-filehandle 6.8.2
+- @gmod/bgzf-filehandle 6.8.4
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
 - @gmod/cram 14.3.2
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
-- @gmod/gff-nostream 5.6.2
+- @gmod/gff-nostream 5.6.4
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels
 - @gmod/indexedfasta 5.0.14
@@ -79,7 +79,7 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/shared-read-cache 2.1.0
   License: MIT
   Copyright: Copyright (c) 2021 Colin Diesh
-- @gmod/tabix 3.12.0
+- @gmod/tabix 3.13.1
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels
 - @gmod/trix 3.1.0
@@ -232,13 +232,13 @@ the JBrowse authors) with the packages below, minified.
 - md5 2.3.0
   License: BSD-3-Clause
   Copyright: Copyright (c) 2011-2012, Paul Vorbach.; Copyright (c) 2009, Jeff Mott.
-- mobx 7.1.1
+- mobx 7.1.3
   License: MIT
   Copyright: Copyright (c) 2015 Michel Weststrate
-- mobx-react 10.0.2
+- mobx-react 10.0.3
   License: MIT
   Copyright: Copyright (c) 2015 Michel Weststrate
-- mobx-react-lite 5.1.0
+- mobx-react-lite 5.1.2
   License: MIT
   Copyright: Copyright (c) 2015 Michel Weststrate
 - pako-esm2 2.0.2

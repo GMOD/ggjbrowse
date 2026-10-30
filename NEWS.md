@@ -1,4 +1,13 @@
-# ggjbrowse (development version)
+# ggjbrowse 0.11.0
+
+- A CRAM read again in the same session under another assembly decodes its
+  bases against that assembly's sequence. A first read against a FASTA that
+  spells the contig differently, with no alias table, had left every
+  substituted base as N for the rest of the session.
+- A CRAM read against a sequence that has no name for its contig warns that
+  its bases decode as N, and names the sequence's contigs.
+- The engine is `@jbrowse/tables` 5.0.0-beta.18 at jbrowse-components
+  d5a0299d00, bundled in `inst/js/jbrowse-tables.js`.
 
 # ggjbrowse 0.10.0
 
