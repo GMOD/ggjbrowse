@@ -73,6 +73,19 @@ scripts/build-js.sh
 - **Standalone files:** runs `scripts/check-standalone.sh` on every push, and
   with `--latest` weekly.
 
+## Releases
+
+A release is a git tag and a GitHub release, for reference; nothing goes to
+CRAN yet. On a green `main`:
+
+- Set DESCRIPTION's `Version` to the release, and head `NEWS.md`'s top section
+  `# ggjbrowse <version>`, naming the bundled `@jbrowse/tables` from the first
+  line of `inst/js/jbrowse-tables.js`.
+- Commit, then `git tag v<version>`, `git push origin main v<version>`, and
+  `gh release create v<version> --notes-file <that section>`.
+- Bump `Version` to `<version>.9000` with a `# ggjbrowse (development version)`
+  section above the release's.
+
 ## Code from ggbandage
 
 `R/import-standalone-v8-host.R` holds `is_url`, `beside`, `bare_name` and the
