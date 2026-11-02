@@ -104,7 +104,7 @@ test_that("an engine error reads once, without JavaScript's prefix", {
   vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")
   e <- tryCatch(jbrowse_variants(vcf, "1:1-1000",
     display = list(rows = list(field = "allele"))), error = conditionMessage)
-  expect_match(e, "^`display\\$rows` is \"allele\"")
+  expect_match(e, "^`display\\$rows\\$field` is \"allele\"")
 })
 
 test_that("the engine's warnings warn once a call", {

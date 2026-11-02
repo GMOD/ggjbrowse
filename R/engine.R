@@ -215,12 +215,12 @@ engine_error <- function(message, display = NULL) {
   union <- regmatches(message, regexec("No matching type for union (\\S+)",
     message))[[1]]
   if (length(union)) {
-    slot <- Filter(function(s) grepl(tolower(s), tolower(union[2]),
-      fixed = TRUE), names(display))
-    value <- if (length(slot)) unlist(display[[slot[1]]])
-    rlang::abort(if (length(slot)) {
+    path <- union_path(display, tolower(union[2]))
+    value <- if (length(path)) unlist(display[[path]])
+    rlang::abort(if (length(path)) {
       sprintf(paste("`display$%s` is %s, which the display's config schema",
-        "does not accept (no type of its union %s matches)"), slot[1],
+        "does not accept (no type of its union %s matches)"),
+        paste(path, collapse = "$"),
         paste(if (is.character(value)) encodeString(value, quote = "\"")
           else format(value), collapse = ", "), union[2])
     } else {
@@ -229,6 +229,19 @@ engine_error <- function(message, display = NULL) {
     }, class = "ggjbrowse_bad_display", call = NULL)
   }
   rlang::abort(message, call = NULL)
+}
+
+# The deepest path through a display config whose every name the refused
+# union's type name holds, as `rows`, `field` in VariantRowsField
+union_path <- function(x, type) {
+  best <- character()
+  for (name in names(x)) {
+    if (nzchar(name) && grepl(tolower(name), type, fixed = TRUE)) {
+      path <- c(name, if (is.list(x[[name]])) union_path(x[[name]], type))
+      if (length(path) > length(best)) best <- path
+    }
+  }
+  best
 }
 
 as_engine_json <- function(args) {
