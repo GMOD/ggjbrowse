@@ -58,9 +58,10 @@ replace:
 section: intro
 only:
   - "In _Drosophila melanogaster_"
+  - "Starting from a multi-sample VCF of inbred lines"
 replace:
-  - from: "From a multi-sample VCF of inbred lines we:"
-    to: "From a multi-sample VCF of inbred lines, vcftools computes Fst (the distance\nbetween two groups' allele frequencies), π (diversity within a group) and\nTajima's D (below zero after a sweep) per window; the code below reads each\nscan and draws it beside the genes."
+  - from: "Starting from a multi-sample VCF of inbred lines and vcftools' windowed\nstatistics, packed into bigWigs, we:"
+    to: "Starting from a multi-sample VCF of inbred lines, vcftools computes the three\nstatistics per window, and the code below reads each scan and draws it beside\nthe genes."
 -->
 
 <!-- jbrowse
@@ -198,11 +199,14 @@ only:
 ## The In(2L)t inversion in Fst and π
 
 <!-- jbrowse
-section: The In(2L)t inversion, genome-wide and within each arrangement
+section: Genotyping the inversion in each line
 title: false
 only:
-  - "The inversion itself is one"
+  - "The inversion is one `<INV>` record"
   - "#CHROM"
+replace:
+  - from: "The karyotype that split the lines into two groups also loads as a track, one\nrow per line. "
+    to: ""
 -->
 
 The VCF holds that record, so R can read the inversion's extent and each line's
@@ -245,7 +249,7 @@ ggplot(binned, aes(mb, fst)) +
 ```
 
 <!-- jbrowse
-section: Loading the scans in JBrowse
+section: The In(2L)t inversion, genome-wide and within each arrangement
 title: false
 only:
   - "Each arrangement's π swings"
@@ -280,7 +284,7 @@ c(bins = nrow(ratio), hosted = nrow(hosted), both = nrow(compared),
 ```
 
 <!-- jbrowse
-section: Loading the scans in JBrowse
+section: The In(2L)t inversion, genome-wide and within each arrangement
 title: false
 only:
   - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms,\n`encoding.color` is a color scale"

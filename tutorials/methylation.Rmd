@@ -35,15 +35,15 @@ For your own data:
 section: Prerequisites
 title: false
 replace:
-  - from: "  modification tags, which modern ONT and PacBio basecallers write by default,\n  plus a JBrowse instance to load them into (the\n  [web quickstart](/docs/quickstart_web) or the\n  [desktop quickstart](/docs/quickstart_desktop))"
-    to: "  modification tags, which modern ONT and PacBio basecallers write by default"
+  - from: "- a JBrowse instance (the [web quickstart](/docs/quickstart_web) or the\n  [desktop quickstart](/docs/quickstart_desktop))\n"
+    to: ""
 -->
 
 <!-- jbrowse
 section: The data
 replace:
-  - from: "The track configs below load region slices we host, cut from these files, so no\ndownload is needed."
-    to: "Every chunk below reads region slices we host, cut from these files, by URL, so\nno download is needed."
+  - from: "the track configs below read\nslices we host, cut from them."
+    to: "every chunk below reads\nslices we host, cut from them, by URL."
 -->
 
 ## Per-read methylation from the alignments

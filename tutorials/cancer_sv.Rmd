@@ -36,7 +36,7 @@ Only the optional `minimap2` command under
 <!-- jbrowse
 section: The data
 replace:
-  - from: "The tracks below read local files that the\n[build script](#reproduce-it-end-to-end) writes from these, so run it first, or\nswap the `uri` for your own sample's reads and follow _The derivative allele_ to\nassemble a contig from them. The script fetches everything itself."
+  - from: "The read and SV call tracks read these files by URL. The derivative-allele\ntracks read local files that the [build script](#reproduce-it-end-to-end)\nwrites, so run it first, or swap the `uri` for your own sample's reads and\nfollow _The derivative allele_ to assemble a contig from them."
     to: "The code below reads each of these files by URL, and reads the 3 GB FASTA by\nrange request, so R fetches only the bases it needs."
 -->
 
@@ -139,7 +139,7 @@ only:
   - "A breakend (BND) record names one partner"
   - "The dialog searches the callset at each end"
 replace:
-  - from: " Two ways\nto open one:"
+  - from: " There are\ntwo ways to open one:"
     to: ""
   - from: "Check **Follow further breakends at each end** to add the rest of the chain:"
     to: "The dialog's **Follow further breakends at each end** adds the rest of the\nchain by this search, which `walk()` below repeats in R:"
@@ -221,12 +221,12 @@ in _TRHDE_, with a pseudogene, _FAM133CP_, and an antisense gene,
 _TRHDE-AS1_, beside two of them.
 
 <!-- jbrowse
-section: COLO829 and its coverage tracks
+section: Tumor and normal coverage as bigWigs
 title: Coverage in the tumor and the normal
 only:
-  - "The demo's tumor and normal coverage tracks"
+  - "The demo config also carries tumor and normal coverage tracks"
 replace:
-  - from: "converted to bigWig:"
+  - from: "converted to\nbigWig the same way for each sample:"
     to: "converted to bigWig for the browser. `readr` reads the BED as it is.\nWe'll take the ratio of the two samples' depth per window, each over its own\nmedian, and mark the chain's breakends on it:"
 -->
 
@@ -367,7 +367,7 @@ section: Assembling the der(3) derivative allele and aligning it to GRCh38
 title: The derivative allele
 level: 0
 only:
-  - "The cancer SV demo config"
+  - "the cancer SV demo config"
   - "To build one from your own data"
   - "The published contig aligns to the reference"
   - "derivative       0-32732"
@@ -376,6 +376,9 @@ keep:
   - "minimap2 -cx asm5"
 drop_lines:
   - "jbrowse make-pif"
+replace:
+  - from: "The split view shows each read in pieces across three panels. Assembling the\nreads"
+    to: "Assembling the reads"
 -->
 
 `jbrowse_synteny()` reads that PAF as it is. The demo hosts the indexed PIF its

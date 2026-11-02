@@ -256,15 +256,14 @@ bind_rows(all = all_junctions$junctions,
 <!-- jbrowse
 section: Strand-specific RNA-seq
 only:
-  - "Splice-arc colors give the strand"
+  - "The arc colors give the transcript strand"
   - "The surfeit locus is a tight cluster"
-  - "Grouping the reads by first-of-pair strand"
-  - "**Group by → First-of-pair strand** applies"
+  - "The color marks each read's strand"
 replace:
   - from: "Type `chr9:136,214,000-136,229,000` into the\nlocation box, then pick this path from the track menu:"
     to: "We'll read `chr9:136,214,000-136,229,000`."
-  - from: "**Group by → First-of-pair strand** applies a `facet`, one section per group,\neach with a coverage histogram from only that group's reads, forward and reverse\non one autoscaled axis. Turning off **Show → Pileup** leaves the two histograms\nalone."
-    to: "`facet = list(field = \"firstOfPairStrand\")` makes one section per group, each with a coverage histogram from only that group's reads, forward and reverse on one autoscaled axis. `pileup = list(show = FALSE)` leaves the two histograms alone."
+  - from: "To compare the strands over a whole gene,\n**Group by → First-of-pair strand** applies a `facet`, one section per strand,\neach with a coverage histogram drawn from that section's reads, forward and\nreverse on one autoscaled axis. **Show → Pileup**, unticked, hides the reads and\nleaves the two histograms."
+    to: "To compare the strands over a whole gene,\n`facet = list(field = \"firstOfPairStrand\")` makes one section per strand,\neach with a coverage histogram drawn from that section's reads, forward and\nreverse on one autoscaled axis. `pileup = list(show = FALSE)` hides the reads\nand leaves the two histograms."
 -->
 
 ```{r surfeit}
@@ -349,7 +348,7 @@ title: Long-read splicing, IsoSeq over ACTB
 only:
   - "A long read (PacBio IsoSeq"
 replace:
-  - from: "The IsoSeq alignments are a second BAM on\nthe same assembly:"
+  - from: "The IsoSeq alignments are a second BAM on the same assembly:"
     to: "The IsoSeq alignments are a second BAM on the same assembly, and its contigs are bare numbers."
 -->
 

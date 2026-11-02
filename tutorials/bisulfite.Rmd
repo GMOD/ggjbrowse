@@ -63,6 +63,14 @@ section: Producing the BAM
 replace:
   - from: "still there for JBrowse to find"
     to: "still there for the engine to find"
+-->
+
+<!-- jbrowse
+section: Aggregate methylation per context with MethylDackel
+level: 1
+replace:
+  - from: "The track is optional, and the reproduce\nscript leaves it out. "
+    to: "jbrowse.org hosts the three bigWigs, so\nthe code below reads them without this step. "
   - from: "becomes a bigWig once the header line is dropped and the percentage column kept:"
     to: "becomes a bigWig once the header line is dropped and the percentage column\nkept. We'll read these three bigWigs back into R to check the per-read calls:"
 drop:
@@ -211,7 +219,7 @@ the two programs in the table above.
 ### Checking against MethylDackel
 
 MethylDackel calls the same cytosines independently, and jbrowse.org hosts the
-three bigWigs the [aggregate step](#optional-aggregate-methylation-bigwigs-from-methyldackel)
+three bigWigs the [aggregate step](#aggregate-methylation-per-context-with-methyldackel)
 writes. `jbrowse_wiggle()` reads them as one multi-row track, and each bin's
 `score` is the percentage methylated:
 

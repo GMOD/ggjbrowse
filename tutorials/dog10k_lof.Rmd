@@ -157,10 +157,10 @@ panel <- meta |>
 section: CYP1A2 stop-gained genotypes across breeds and wolves
 title: false
 only:
-  - "Three other variants lie within"
+  - "Other variants lie near the stop site"
 replace:
-  - from: "and the\nconfig below filters them out."
-    to: "and the\nfilter below drops them."
+  - from: "and the config below filters them out so\nthe stop site"
+    to: "and the filter below drops them so\nthe stop site"
 -->
 
 ```{r neighbours}
@@ -178,9 +178,8 @@ codon 373, and the variant sits on its first base:
 ```{r genotypes}
 display <- list(
   filter = "jexl:feature.start == 38261634",
-  rowHeight = 20,
   rowColor = list(field = "group"),
-  rows = list(sort = panel$name,
+  rows = list(sort = panel$name, step = 20,
     labels = setNames(as.list(panel$label), panel$name)))
 
 samples_file <- tempfile(fileext = ".tsv")
@@ -284,7 +283,7 @@ only:
   - "The build script converts depth"
   - "CN = 2 * depth"
   - "The flanking sequence should"
-  - "Each window is 5 kb"
+  - "a call rests on 5 kb of depth"
 -->
 
 The build script's output is a BED with one row per animal and run of equal
@@ -401,9 +400,6 @@ at_gene |> filter(row %in% c("Boxer", "Golden Retriever"))
 <!-- jbrowse
 section: Reproduce it end to end
 title: Reproducing the files with the build scripts
-replace:
-  - from: "counts\n   quoted above"
-    to: "counts this page computes in R"
 -->
 
 ## Your own data
@@ -429,4 +425,5 @@ replace:
 section: Citations
 only:
   - "Meadows et al."
+  - "[^cert]:"
 -->
