@@ -1,5 +1,20 @@
 # ggjbrowse (development version)
 
+- `jbrowse_alignments()`'s `reads` table drops `category` for `level`, the
+  read's value as the color's `scale$domain` names it (`"1"`, `"-1"`,
+  `"RL"`, `"short"`, a MAPQ, a tag's value, or `""`). The `arcs` table
+  drops `category` for `level`, the `insertSizeAndOrientation` level whose
+  color it paints, and `class`, a split read's junction class
+  (`"deletion"`, `"duplication"`, `"inversion"`).
+- `insertSizeAndOrientation` is the one paired-end read color, ordinal over
+  its levels: the `insertSize` and `pairOrientation` color fields are gone,
+  and `display = list(normalInsertSize = list(min = 200, max = 600))` pins the
+  insert sizes it colors normal.
+- `jbrowse_variants()` reads its `display` as a `LinearVariantDisplay`'s,
+  the one variant display, and its result's `display$type` says so.
+- The engine is `@jbrowse/tables` 5.0.0-beta.19 at jbrowse-components
+  f83577e48e, bundled in `inst/js/jbrowse-tables.js`.
+
 # ggjbrowse 0.11.0
 
 - A CRAM read again in the same session under another assembly decodes its

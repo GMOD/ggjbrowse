@@ -34,10 +34,15 @@ writes it for a \code{LinearAlignmentsDisplay}, which is what JBrowse's
 "Export R script" passes. Its main slots:
 \itemize{
 \item \code{encoding}: what fills each read, its \code{color}:
-\code{list(color = list(field = "strand"))} (or \code{"mapq"}, \code{"insertSize"},
-\code{"pairOrientation"}, \code{"firstOfPairStrand"}, \code{"tags.XS"}), with an
-optional \code{scale} (\code{domain}, \code{range}) and \code{legend} (\code{title}), e.g.
-\code{list(color = list(field = "insertSize", scale = list(domain = c(200, 600))))}; \code{list(color = list(value = "purple"))} is one constant color; unset fills every read plain
+\code{list(color = list(field = "strand"))} (or \code{"mapq"},
+\code{"insertSizeAndOrientation"}, \code{"firstOfPairStrand"}, \code{"tags.XS"}),
+with an optional \code{scale} (\code{domain}, \code{range}) and \code{legend} (\code{title}),
+e.g. \code{list(color = list(field = "insertSizeAndOrientation", scale = list(domain = c("RL"), range = c("teal"))))} to recolor one
+level; \code{list(color = list(value = "purple"))} is one constant color;
+unset fills every read plain
+\item \code{normalInsertSize}: the insert sizes \code{"insertSizeAndOrientation"}
+colors normal, between short and long, as \code{list(min = 200, max = 600)};
+unset, each region samples the band from its own pairs
 \item \code{filter}: a list of field tests every read, junction or connection
 drawn passes, merged with the defaults by field: a SAM flag by
 samtools' name, \code{list(field = "flags.DUP", equal = FALSE)} (unmapped,
@@ -132,8 +137,12 @@ it by), \code{id} (the record's own id, the same in every call, where its
 mates and supplementary segments share its \code{name}), \code{start}, \code{end},
 \code{row}, \code{strand}, \code{mapq}, \code{flags}, \code{name}, \code{insert_size},
 \code{pair_orientation}, \code{color} (the fill the display paints, as
-\verb{#rrggbb}), \code{category} (the bucket the display files the read under:
-\code{fwdStrand}, \code{mapq}, \code{unmappedMate}, ...) and \code{section}. Over several regions a read is listed once in each region it
+\verb{#rrggbb}), \code{level} (the read's value as the color's \code{scale$domain}
+names it: a level of the colored field such as \code{"1"}, \code{"-1"},
+\code{"short"}, \code{"RL"} or \code{"mateUnmapped"}, a MAPQ as a string, a tag's
+value, or \code{""} where the field gives the read none, as under a plain
+fill or a modifications tint) and \code{section}. Over several regions a
+read is listed once in each region it
 reaches, its copies sharing \code{read} and \code{row}
 \item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{frequency} (how many reads
 carry that base there, over the depth), \code{quality}, \code{fade}
@@ -181,7 +190,15 @@ does not cover both ends)
 \item \code{arcs}: under \code{display$readConnections}, each connection the band draws:
 \code{start} and \code{end} (its feet), \code{shape} (\code{"arc"}, or the read cloud's
 \code{"flat"}, \code{"flatSplit"} for a split read, and \code{"unplaced"} for one whose
-partner is outside the region), \code{category}, \code{color}, \code{opacity}, \code{y}
+partner is outside the region), \code{level} (the
+\code{"insertSizeAndOrientation"} level whose color it paints: \code{"normal"},
+\code{"long"}, \code{"short"}, \code{"RL"}, \code{"RR"}, \code{"LL"}, \code{"interchrom"} or
+\code{"splitSameStrand"}, a split read's arc taking the level of a pair of
+its shape, so a deletion's is \code{"splitSameStrand"}, a duplication's \code{"RL"} and an
+inversion's \code{"LL"} or \code{"RR"}), \code{class} (a split read's junction class
+as the \code{junction.class} filter field names it, \code{"deletion"},
+\code{"duplication"} or \code{"inversion"}; \code{""} for a pair's arc), \code{color},
+\code{opacity}, \code{y}
 (where the band plots it in bp: an arc's radius, or the read cloud's
 insert size, jittered as the display jitters it), \code{span} (the distance
 itself), \code{support} (the reads behind it) and \code{width} (the stroke in px)

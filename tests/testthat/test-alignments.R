@@ -264,7 +264,7 @@ test_that("base modifications paint under the layer, keyed and tinted as the dis
     of(m$modifications, m$reads, "read")$row)
   expect_true(all(m$modifications$opacity >= 0.1 & m$modifications$opacity <= 1))
   expect_true("5mC" %in% m$keys$reads$label)
-  expect_setequal(unique(m$reads$category), c("modFwd", "modRev"))
+  expect_setequal(unique(m$reads$level), "")
   expect_gt(nrow(m$modification_coverage), 0)
   sure <- jbrowse_alignments(bam, "20:10,001-20,000",
     assembly = extdata("hg38_clip.fa"),
@@ -473,7 +473,8 @@ test_that("reads fill as the display's color object paints them, with its key", 
   expect_equal(s$keys$reads$label, c("Forward strand", "Reverse strand"))
   expect_equal(unique(s$reads$color[s$reads$strand == 1]), s$keys$reads$color[1])
   expect_equal(unique(s$reads$color[s$reads$strand == -1]), s$keys$reads$color[2])
-  expect_setequal(unique(s$reads$category), c("fwdStrand", "revStrand"))
+  expect_equal(unique(s$reads$level[s$reads$strand == 1]), "1")
+  expect_equal(unique(s$reads$level[s$reads$strand == -1]), "-1")
   p <- ggplot2::ggplot_build(ggplot2::autoplot(s))
   expect_setequal(unique(p$data[[1]]$fill), s$keys$reads$color)
 
@@ -488,7 +489,7 @@ test_that("reads fill as the display's color object paints them, with its key", 
     display = list(encoding = list(color = list(field = "mapq"))))
   expect_equal(attr(m$keys$reads, "title"), "Mapping quality")
   expect_true(all(m$reads$color %in% m$keys$reads$color))
-  expect_equal(unique(m$reads$category), "mapq")
+  expect_equal(m$reads$level, as.character(m$reads$mapq))
 })
 
 test_that("the display's filter list keeps the reads it keeps", {
@@ -685,7 +686,7 @@ test_that("the sequence band asks for the reference it draws", {
 
 test_that("every section keys the track's read colors, insertions and clips", {
   a <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
-    "chr1:197,786,900-197,789,700", display = list(unit = "chain", encoding = list(color = list(field = "pairOrientation")), facet = list(field = "split")))
+    "chr1:197,786,900-197,789,700", display = list(unit = "chain", encoding = list(color = list(field = "insertSizeAndOrientation")), facet = list(field = "split")))
   flat <- function(p) c(if (inherits(p, "patchwork"))
     unlist(lapply(p$patches$plots, flat), recursive = FALSE), list(p))
   keyed <- lapply(flat(autoplot(a)), function(p)

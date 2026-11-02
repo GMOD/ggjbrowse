@@ -34,7 +34,7 @@ variants_adapter <- function(file, index, samples) {
 #'   its index shows empty, to the length the file or `assembly` states. A whole
 #'   file or contig is refused past 5 million rows in any one table
 #' @param display the display's settings, as a track config's `displays`
-#'   entry writes them for a `LinearMultiSampleVariantDisplay`: a list with
+#'   entry writes them for a `LinearVariantDisplay`: a list with
 #'   any of `unit` (`"sample"` for a row per sample, `"haplotype"` for a row
 #'   per haplotype), `color` (a field such as `"svType"` or `"impact"`, or a
 #'   list of the color object's slots), `filter` (a list of any of

@@ -254,13 +254,13 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
     locus = "chr1:197,786,900-197,789,700",
     jbrowse = c(hg38, "--bam", inst("hg00151_chr1_inversion.bam"),
       "legend.show=true", grow,
-      "arcs:down", "unit=chain", "encoding.color.field=pairOrientation",
-      "facet=split", "coverage.height=80", "--loc",
+      "arcs:down", "unit=chain",
+      "encoding.color.field=insertSizeAndOrientation", "facet=split", "coverage.height=80", "--loc",
       "chr1:197,786,900-197,789,700"),
     r = r"-(
 autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
   "chr1:197,786,900-197,789,700",
-  display = list(unit = "chain", readConnections = list(show = TRUE), encoding = list(color = list(field = "pairOrientation")), facet = list(field = "split"),
+  display = list(unit = "chain", readConnections = list(show = TRUE), encoding = list(color = list(field = "insertSizeAndOrientation")), facet = list(field = "split"),
     coverage = list(height = 80))))
 )-"),
   methylation = list(

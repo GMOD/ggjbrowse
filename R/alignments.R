@@ -39,12 +39,16 @@ alignments_adapter <- function(file, index) {
 #'   writes it for a `LinearAlignmentsDisplay`, which is what JBrowse's
 #'   "Export R script" passes. Its main slots:
 #'   * `encoding`: what fills each read, its `color`:
-#'     `list(color = list(field = "strand"))` (or `"mapq"`, `"insertSize"`,
-#'     `"pairOrientation"`, `"firstOfPairStrand"`, `"tags.XS"`), with an
-#'     optional `scale` (`domain`, `range`) and `legend` (`title`), e.g.
-#'     `list(color = list(field = "insertSize",
-#'     scale = list(domain = c(200, 600))))`; `list(color = list(value =
-#'     "purple"))` is one constant color; unset fills every read plain
+#'     `list(color = list(field = "strand"))` (or `"mapq"`,
+#'     `"insertSizeAndOrientation"`, `"firstOfPairStrand"`, `"tags.XS"`),
+#'     with an optional `scale` (`domain`, `range`) and `legend` (`title`),
+#'     e.g. `list(color = list(field = "insertSizeAndOrientation",
+#'     scale = list(domain = c("RL"), range = c("teal"))))` to recolor one
+#'     level; `list(color = list(value = "purple"))` is one constant color;
+#'     unset fills every read plain
+#'   * `normalInsertSize`: the insert sizes `"insertSizeAndOrientation"`
+#'     colors normal, between short and long, as `list(min = 200, max = 600)`;
+#'     unset, each region samples the band from its own pairs
 #'   * `filter`: a list of field tests every read, junction or connection
 #'     drawn passes, merged with the defaults by field: a SAM flag by
 #'     samtools' name, `list(field = "flags.DUP", equal = FALSE)` (unmapped,
@@ -123,8 +127,12 @@ alignments_adapter <- function(file, index) {
 #'     mates and supplementary segments share its `name`), `start`, `end`,
 #'     `row`, `strand`, `mapq`, `flags`, `name`, `insert_size`,
 #'     `pair_orientation`, `color` (the fill the display paints, as
-#'     `#rrggbb`), `category` (the bucket the display files the read under:
-#'     `fwdStrand`, `mapq`, `unmappedMate`, ...) and `section`. Over several regions a read is listed once in each region it
+#'     `#rrggbb`), `level` (the read's value as the color's `scale$domain`
+#'     names it: a level of the colored field such as `"1"`, `"-1"`,
+#'     `"short"`, `"RL"` or `"mateUnmapped"`, a MAPQ as a string, a tag's
+#'     value, or `""` where the field gives the read none, as under a plain
+#'     fill or a modifications tint) and `section`. Over several regions a
+#'     read is listed once in each region it
 #'     reaches, its copies sharing `read` and `row`
 #'   * `mismatches`: `position`, `base`, `read`, `frequency` (how many reads
 #'     carry that base there, over the depth), `quality`, `fade`
@@ -173,7 +181,15 @@ alignments_adapter <- function(file, index) {
 #'   * `arcs`: under `display$readConnections`, each connection the band draws:
 #'     `start` and `end` (its feet), `shape` (`"arc"`, or the read cloud's
 #'     `"flat"`, `"flatSplit"` for a split read, and `"unplaced"` for one whose
-#'     partner is outside the region), `category`, `color`, `opacity`, `y`
+#'     partner is outside the region), `level` (the
+#'     `"insertSizeAndOrientation"` level whose color it paints: `"normal"`,
+#'     `"long"`, `"short"`, `"RL"`, `"RR"`, `"LL"`, `"interchrom"` or
+#'     `"splitSameStrand"`, a split read's arc taking the level of a pair of
+#'     its shape, so a deletion's is `"splitSameStrand"`, a duplication's `"RL"` and an
+#'     inversion's `"LL"` or `"RR"`), `class` (a split read's junction class
+#'     as the `junction.class` filter field names it, `"deletion"`,
+#'     `"duplication"` or `"inversion"`; `""` for a pair's arc), `color`,
+#'     `opacity`, `y`
 #'     (where the band plots it in bp: an arc's radius, or the read cloud's
 #'     insert size, jittered as the display jitters it), `span` (the distance
 #'     itself), `support` (the reads behind it) and `width` (the stroke in px)

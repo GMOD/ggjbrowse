@@ -216,7 +216,7 @@ test_that("a VCF with no region reads whole", {
 
 test_that("the result keeps the display's resolved unit, row height and config", {
   v <- jbrowse_variants(people, dcst2)
-  expect_equal(v$display$type, "LinearMultiSampleVariantDisplay")
+  expect_equal(v$display$type, "LinearVariantDisplay")
   expect_equal(v$display$unit, "sample")
   expect_equal(v$display$rowHeight, 0)
   phased <- jbrowse_variants(people, dcst2,

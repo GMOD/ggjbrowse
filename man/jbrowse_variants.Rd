@@ -29,7 +29,7 @@ its index shows empty, to the length the file or \code{assembly} states. A whole
 file or contig is refused past 5 million rows in any one table}
 
 \item{display}{the display's settings, as a track config's \code{displays}
-entry writes them for a \code{LinearMultiSampleVariantDisplay}: a list with
+entry writes them for a \code{LinearVariantDisplay}: a list with
 any of \code{unit} (\code{"sample"} for a row per sample, \code{"haplotype"} for a row
 per haplotype), \code{color} (a field such as \code{"svType"} or \code{"impact"}, or a
 list of the color object's slots), \code{filter} (a list of any of

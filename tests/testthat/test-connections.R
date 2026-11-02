@@ -32,12 +32,13 @@ test_that("read connections come back as the display's band draws them", {
   a <- read(display = list(readConnections = list(show = TRUE)))
   expect_gt(nrow(a$arcs), 100)
   expect_setequal(unique(a$arcs$shape), "arc")
-  expect_true(all(c("pairLL", "pairRR") %in% a$arcs$category))
+  expect_true(all(c("LL", "RR") %in% a$arcs$level))
   expect_setequal(unique(a$arcs$color), unique(a$keys$arcs$color))
   expect_equal(attr(a$keys$arcs, "title"), "Arc colors")
   abnormal <- read(display = list(readConnections = list(show = TRUE,
     ordinaryPairs = list(show = FALSE))))
-  expect_false("normalInsert" %in% abnormal$arcs$category)
+  expect_true("normal" %in% a$arcs$level)
+  expect_false("normal" %in% abnormal$arcs$level)
   domes <- ggplot2::ggplot_build(ggplot2::autoplot(a, "arcs"))$data[[2]]
   expect_equal(length(unique(domes$group)), nrow(a$arcs))
 
@@ -84,8 +85,35 @@ test_that("a chain puts a read's mates and split segments on one row, a hairline
 
 test_that("a chain over an inversion frames the split segments' strands against each other", {
   chained <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
-    "chr1:197,786,900-197,789,700", display = list(unit = "chain", encoding = list(color = list(field = "pairOrientation"))))
+    "chr1:197,786,900-197,789,700", display = list(unit = "chain", encoding = list(color = list(field = "insertSizeAndOrientation"))))
   expect_gt(length(unique(chained$reads$color)), 2)
   expect_true(any(grepl("same strand", chained$keys$reads$label)))
   expect_true(any(grepl("inverted", chained$keys$reads$label)))
+  expect_true(all(c("unpairedSplitInverted", "unpairedSplitSameStrand") %in%
+    chained$reads$level))
+})
+
+test_that("each level paints one color, which the read key holds", {
+  for (field in c("strand", "mapq", "insertSizeAndOrientation")) {
+    a <- read(display = list(encoding = list(color = list(field = field))))
+    colors <- tapply(a$reads$color, a$reads$level, unique)
+    expect_true(all(lengths(colors) == 1))
+    expect_true(all(unlist(colors) %in% a$keys$reads$color))
+  }
+})
+
+test_that("insertSizeAndOrientation colors by level, in the band normalInsertSize pins", {
+  color <- function(...) list(color = list(field = "insertSizeAndOrientation",
+    ...))
+  wide <- read(display = list(encoding = color(),
+    normalInsertSize = list(min = 1, max = 1e7)))
+  expect_true("LL" %in% wide$reads$level)
+  expect_false(any(c("short", "long") %in% wide$reads$level))
+  narrow <- read(display = list(encoding = color(),
+    normalInsertSize = list(min = 1, max = 2)))
+  expect_true("long" %in% narrow$reads$level)
+  teal <- read(display = list(encoding = color(scale = list(domain = "LL",
+    range = "#008080"))))
+  expect_equal(unique(teal$reads$color[teal$reads$level == "LL"]), "#008080")
+  expect_false("#008080" %in% teal$reads$color[teal$reads$level != "LL"])
 })

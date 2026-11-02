@@ -75,7 +75,7 @@ test_that("a column keeps the type it had when the tables crossed as JSON", {
   expect_type(bam$reads$start, "integer")
   expect_type(bam$reads$strand, "integer")
   expect_type(bam$mismatches$frequency, "double")
-  expect_type(bam$reads$category, "character")
+  expect_type(bam$reads$level, "character")
   expect_type(bam$reads$name, "character")
 })
 

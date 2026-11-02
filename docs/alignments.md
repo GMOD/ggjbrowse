@@ -19,8 +19,12 @@ it, so `jbrowse_alignments()` colors, filters, sorts and splits reads as
 JBrowse does:
 
 - `encoding = list(color = list(field = "mapq"))`, or
-  `list(color = list(field = "insertSize", scale = list(domain = c(200, 600))))`.
-  `list(color = list(value = "purple"))` is one constant color.
+  `list(color = list(field = "insertSizeAndOrientation", scale = list(domain = c("RL"), range = c("teal"))))`,
+  which recolors one level. `list(color = list(value = "purple"))` is one
+  constant color.
+- `normalInsertSize = list(min = 200, max = 600)` pins the insert sizes
+  `insertSizeAndOrientation` colors normal; unset, each region samples the
+  band from its own pairs.
 - `filter = list(list(field = "flags.SECONDARY", equal = FALSE), list(field = "tags.HP", equal = "1"))`
   keeps reads by their flags and tags; its `junctions` and `connections`
   pick the splice junctions and read connections drawn:
