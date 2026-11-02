@@ -30,17 +30,18 @@ file or contig is refused past 5 million rows in any one table}
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearVariantDisplay}: a list with
-any of \code{unit} (\code{"sample"} for a row per sample, \code{"haplotype"} for a row
-per haplotype), \code{color} (a field such as \code{"svType"} or \code{"impact"}, or a
+any of \code{color} (a field such as \code{"svType"} or \code{"impact"}, or a
 list of the color object's slots), \code{filter} (a list of any of
 jexl expressions, and \code{minorAlleleFrequency} and \code{missingness} field
 tests),
 \code{genotypes} (\code{list(reference = list(show = TRUE))} gives each reference
 call a cell), \code{rows}
-(the arrangement a session saves: \code{sort}, the rows listed first in
-order, \code{labels}, a label by row name, \code{kept}, the rows shown, and
-\code{step}, pixels a row, where \code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the rows
-into the display's height) and \code{facet} (a samples file attribute, or
+(\code{\link[=jbrowse_rows]{jbrowse_rows()}}: its \code{field}, \code{"sample"} for a row per sample or
+\code{"haplotype"} for a row per haplotype, named \code{"<sample> HP1"}, \code{"HP2"};
+the arrangement a session saves, \code{sort}, \code{labels}, \code{colors}, \code{kept}
+and \code{filter}; \code{color}, the samples file column the rows are colored by;
+and \code{step}, pixels a row, where \code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the
+rows into the display's height) and \code{facet} (a samples file attribute, or
 \code{list(field, sort)}, whose values each take a band of rows)}
 
 \item{width}{the pixels the figure spans across the regions, at which
@@ -52,8 +53,8 @@ name a contig by any alias it lists, and the reader names the contig in
 its tables as \code{region} does}
 
 \item{samples}{a tab-separated file of the samples' attributes, a \code{name}
-column and one column per attribute, which \code{display$rowColor} colors
-the rows by, e.g. \code{list(rowColor = list(field = "group"))}}
+column and one column per attribute, which \code{display$rows$color} colors
+the rows by, e.g. \code{list(rows = jbrowse_rows(color = "group"))}}
 
 \item{index}{the tabix or CSI index, if not beside \code{file} under its usual
 name}
@@ -87,7 +88,7 @@ character, as the header types none. The raw string leaves the INFO
 columns
 \item \code{cells}: each row's cell at a record: \code{variant}, \code{row} (the row's
 \code{name}, a factor in \code{rows}' order), \code{genotype}, \code{dosage} (the share of the called alleles that
-are an ALT; under \code{unit = "haplotype"} the row's allele, 1 for an ALT;
+are an ALT; under \code{rows$field = "haplotype"} the row's allele, 1 for an ALT;
 \code{NA} for a no-call or a haplotype of an unphased call) and \code{color}, the
 fill the display paints; unless \code{genotypes$reference$show} is \code{TRUE},
 a reference call has no cell. A cell takes its record's
@@ -95,7 +96,7 @@ a reference call has no cell. A cell takes its record's
 gives the genotypes as the display's clustering reads them
 \item \code{rows}: \code{name}, \code{label}, \code{sample}, \code{haplotype}, \code{ploidy}, \code{band},
 its \code{facet} value, and \code{color}, the bar the display marks the row with
-under \code{rowColor}, \code{""} where none. The rows come in the display's
+under \code{rows$color} or \code{rows$colors}, \code{""} where none. The rows come in the display's
 arrangement, and the matrix draws them in this table's order, and only
 these rows: reorder or filter it to rearrange them. Assigning \code{rows}
 drops the cells of the rows it leaves out, as assigning \code{variants}

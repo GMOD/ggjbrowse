@@ -137,7 +137,7 @@ slice <- "https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_cyp1a2_snvs.
 
 The slice's samples come from the Dog10K sample table, which gives each animal's
 breed and category. The matrix labels each row with its breed, and
-`rowColor` marks the rows by a `group` column of the `samples` file:
+`rows$color` marks the rows by a `group` column of the `samples` file:
 
 ```{r samples}
 meta <- read_tsv("https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_sample_table.tsv",
@@ -178,9 +178,8 @@ codon 373, and the variant sits on its first base:
 ```{r genotypes}
 display <- list(
   filter = "jexl:feature.start == 38261634",
-  rowColor = list(field = "group"),
-  rows = list(sort = panel$name, step = 20,
-    labels = setNames(as.list(panel$label), panel$name)))
+  rows = jbrowse_rows(color = "group", sort = panel$name, step = 20,
+    labels = setNames(panel$label, panel$name)))
 
 samples_file <- tempfile(fileext = ".tsv")
 write_tsv(mutate(panel, group = ifelse(category == "Breed_Dogs", "Dog breed",
@@ -406,7 +405,7 @@ title: Reproducing the files with the build scripts
 
 - Point `jbrowse_variants()` at your own bgzipped, indexed VCF. A tab-separated
   `samples` file with a `name` column and one column per attribute colors the
-  rows through `rowColor`.
+  rows through `rows$color`.
 - Read a different site by changing `stop_site`. Derive it from a protein change
   with the same steps: exon starts and ends from the gene's annotation, the CDS
   translated, the codon's first base.

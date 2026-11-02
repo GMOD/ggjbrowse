@@ -128,7 +128,7 @@ _DCST2_ by superpopulation:
 ```{r variants, fig.height = 5}
 v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
   samples = e("1000g_dcst2_samples.tsv"),
-  display = list(rowColor = list(field = "superpopulation")))
+  display = list(rows = list(color = "superpopulation")))
 autoplot(v, layout = "columns")
 ```
 

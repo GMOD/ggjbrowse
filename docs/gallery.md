@@ -401,7 +401,7 @@ jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
 ```r
 v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
   samples = e("1000g_dcst2_samples.tsv"),
-  display = list(rowColor = list(field = "superpopulation")))
+  display = list(rows = list(color = "superpopulation")))
 autoplot(v, layout = "columns")
 ```
 
@@ -428,7 +428,7 @@ Most East Asians gather near the top, the Africans and Europeans further down.
 ```r
 v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
   samples = e("1000g_dcst2_samples.tsv"),
-  display = list(rowColor = list(field = "superpopulation")))
+  display = list(rows = list(color = "superpopulation")))
 v$tree <- hclust(dist(as.matrix(v)), "average")
 autoplot(v, layout = "columns")
 ```
@@ -456,7 +456,7 @@ Each superpopulation clusters apart in its own band, and the records crowding a 
 ```r
 v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
   samples = e("1000g_dcst2_samples.tsv"),
-  display = list(rowColor = list(field = "superpopulation"),
+  display = list(rows = list(color = "superpopulation"),
     facet = "superpopulation"))
 m <- as.matrix(v)
 v$tree <- lapply(split(rownames(m), v$rows$band), function(rows)

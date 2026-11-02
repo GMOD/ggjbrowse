@@ -35,23 +35,24 @@ variants_adapter <- function(file, index, samples) {
 #'   file or contig is refused past 5 million rows in any one table
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearVariantDisplay`: a list with
-#'   any of `unit` (`"sample"` for a row per sample, `"haplotype"` for a row
-#'   per haplotype), `color` (a field such as `"svType"` or `"impact"`, or a
+#'   any of `color` (a field such as `"svType"` or `"impact"`, or a
 #'   list of the color object's slots), `filter` (a list of any of
 #'   jexl expressions, and `minorAlleleFrequency` and `missingness` field
 #'   tests),
 #'   `genotypes` (`list(reference = list(show = TRUE))` gives each reference
 #'   call a cell), `rows`
-#'   (the arrangement a session saves: `sort`, the rows listed first in
-#'   order, `labels`, a label by row name, `kept`, the rows shown, and
-#'   `step`, pixels a row, where [jbrowse_stack()] otherwise fits the rows
-#'   into the display's height) and `facet` (a samples file attribute, or
+#'   ([jbrowse_rows()]: its `field`, `"sample"` for a row per sample or
+#'   `"haplotype"` for a row per haplotype, named `"<sample> HP1"`, `"HP2"`;
+#'   the arrangement a session saves, `sort`, `labels`, `colors`, `kept`
+#'   and `filter`; `color`, the samples file column the rows are colored by;
+#'   and `step`, pixels a row, where [jbrowse_stack()] otherwise fits the
+#'   rows into the display's height) and `facet` (a samples file attribute, or
 #'   `list(field, sort)`, whose values each take a band of rows)
 #' @param index the tabix or CSI index, if not beside `file` under its usual
 #'   name
 #' @param samples a tab-separated file of the samples' attributes, a `name`
-#'   column and one column per attribute, which `display$rowColor` colors
-#'   the rows by, e.g. `list(rowColor = list(field = "group"))`
+#'   column and one column per attribute, which `display$rows$color` colors
+#'   the rows by, e.g. `list(rows = jbrowse_rows(color = "group"))`
 #' @param byte_limit the most compressed bytes the region may need, refused
 #'   off the index before any record is fetched
 #' @param assembly a [jbrowse_assembly()], an assembly as a JBrowse config's
@@ -84,7 +85,7 @@ variants_adapter <- function(file, index, samples) {
 #'     columns
 #'   * `cells`: each row's cell at a record: `variant`, `row` (the row's
 #'     `name`, a factor in `rows`' order), `genotype`, `dosage` (the share of the called alleles that
-#'     are an ALT; under `unit = "haplotype"` the row's allele, 1 for an ALT;
+#'     are an ALT; under `rows$field = "haplotype"` the row's allele, 1 for an ALT;
 #'     `NA` for a no-call or a haplotype of an unphased call) and `color`, the
 #'     fill the display paints; unless `genotypes$reference$show` is `TRUE`,
 #'     a reference call has no cell. A cell takes its record's
@@ -92,7 +93,7 @@ variants_adapter <- function(file, index, samples) {
 #'     gives the genotypes as the display's clustering reads them
 #'   * `rows`: `name`, `label`, `sample`, `haplotype`, `ploidy`, `band`,
 #'     its `facet` value, and `color`, the bar the display marks the row with
-#'     under `rowColor`, `""` where none. The rows come in the display's
+#'     under `rows$color` or `rows$colors`, `""` where none. The rows come in the display's
 #'     arrangement, and the matrix draws them in this table's order, and only
 #'     these rows: reorder or filter it to rearrange them. Assigning `rows`
 #'     drops the cells of the rows it leaves out, as assigning `variants`
@@ -431,7 +432,7 @@ makeContent.ggjbrowse_band_labels <- function(x) {
 MAX_NAMED_ROWS <- 150
 
 # Each row's color as a bar beside its label, outside the matrix, as the
-# display marks a row by its rowColor, keyed under the attribute
+# display marks a row by its rows$color, keyed under the attribute
 row_bars <- function(x, xlim) {
   colored <- x$rows$color != ""
   if (!any(colored)) return(NULL)

@@ -174,7 +174,7 @@ population_tracks <- function() json_file(list(list(type = "VariantTrack",
     samplesTsvLocation = local_file(inst("1000g_dcst2_samples.tsv"))),
   displays = list(list(type = "LinearVariantDisplay",
     displayId = "people-display", height = 450, variantLayout = "columns",
-    rowColor = "superpopulation")))), "people.tracks.json")
+    rows = list(color = "superpopulation"))))), "people.tracks.json")
 
 exon_locs <- function(transcript, window = 20) {
   gff <- read.delim(gzfile(gencode), header = FALSE, comment.char = "#")
@@ -388,7 +388,7 @@ jbrowse_stack(genes)
     r = r"-(
 v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
   samples = e("1000g_dcst2_samples.tsv"),
-  display = list(rowColor = list(field = "superpopulation")))
+  display = list(rows = list(color = "superpopulation")))
 autoplot(v, layout = "columns")
 )-"),
   variants_clustered = list(
@@ -400,7 +400,7 @@ autoplot(v, layout = "columns")
     r = r"-(
 v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
   samples = e("1000g_dcst2_samples.tsv"),
-  display = list(rowColor = list(field = "superpopulation")))
+  display = list(rows = list(color = "superpopulation")))
 v$tree <- hclust(dist(as.matrix(v)), "average")
 autoplot(v, layout = "columns")
 )-"),
@@ -414,7 +414,7 @@ autoplot(v, layout = "columns")
     r = r"-(
 v <- jbrowse_variants(e("1000g_dcst2.vcf.gz"), "1:155,000,001-155,050,000",
   samples = e("1000g_dcst2_samples.tsv"),
-  display = list(rowColor = list(field = "superpopulation"),
+  display = list(rows = list(color = "superpopulation"),
     facet = "superpopulation"))
 m <- as.matrix(v)
 v$tree <- lapply(split(rownames(m), v$rows$band), function(rows)

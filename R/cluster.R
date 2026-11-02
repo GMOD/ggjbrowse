@@ -4,7 +4,7 @@
 #' row per row of `x$rows`, in its order, named by its `name`. With a row per
 #' sample, each record has a column per ALT allele, scored 0 to 2 as twice
 #' that allele's share of the sample's called alleles, so `1/1` and `2/2`
-#' stand apart; with a row per haplotype (`unit = "haplotype"`), a column per
+#' stand apart; with a row per haplotype (`rows = jbrowse_rows(field = "haplotype")`), a column per
 #' record, 1 where the haplotype carries an ALT. A no-call is `NA`, as is a
 #' haplotype of an unphased call, and a reference call the display skips
 #' drawing is 0. `hclust(dist(as.matrix(v)), "average")` is the R script the
@@ -28,7 +28,7 @@ as.matrix.jbrowse_variants <- function(x, ...) {
   cells <- cells[!duplicated(cells[c("variant", "row")]), , drop = FALSE]
   i <- match(as.character(cells$row), rows)
   v <- match(cells$variant, variants$variant)
-  if (identical(x$display$unit, "haplotype")) {
+  if (identical(x$display[["rows"]][["field"]], "haplotype")) {
     m <- matrix(0, length(rows), nrow(variants),
       dimnames = list(rows, variants$variant))
     m[cbind(i, v)] <- cells$dosage

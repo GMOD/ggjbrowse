@@ -32,7 +32,7 @@ test_that("as.matrix() scores each ALT as the display's clustering does", {
 })
 
 test_that("as.matrix() of haplotype rows is each haplotype's ALT", {
-  h <- jbrowse_variants(vcf, locus, display = list(unit = "haplotype"))
+  h <- jbrowse_variants(vcf, locus, display = list(rows = list(field = "haplotype")))
   m <- as.matrix(h)
   expect_equal(dim(m), c(nrow(h$rows), nrow(h$variants)))
   cells <- h$cells[!is.na(h$cells$dosage), ]

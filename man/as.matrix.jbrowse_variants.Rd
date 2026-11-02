@@ -20,7 +20,7 @@ The matrix the variant display's "Cluster rows by genotype" clusters: a
 row per row of \code{x$rows}, in its order, named by its \code{name}. With a row per
 sample, each record has a column per ALT allele, scored 0 to 2 as twice
 that allele's share of the sample's called alleles, so \code{1/1} and \code{2/2}
-stand apart; with a row per haplotype (\code{unit = "haplotype"}), a column per
+stand apart; with a row per haplotype (\code{rows = jbrowse_rows(field = "haplotype")}), a column per
 record, 1 where the haplotype carries an ALT. A no-call is \code{NA}, as is a
 haplotype of an unphased call, and a reference call the display skips
 drawing is 0. \code{hclust(dist(as.matrix(v)), "average")} is the R script the

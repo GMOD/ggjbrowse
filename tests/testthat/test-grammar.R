@@ -168,7 +168,7 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
   expect_equal(drawn_pt(5), 0.85 * 5)
   expect_equal(drawn_pt(2), 0)
   haplotypes <- jbrowse_variants(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
-    "chr30:38,258,001-38,265,000", display = list(unit = "haplotype"))
+    "chr30:38,258,001-38,265,000", display = list(rows = list(field = "haplotype")))
   expect_equal(nrow(haplotypes$rows), 78)
 })
 
@@ -210,11 +210,11 @@ test_that("the junction band keys the strands its arcs are drawn in", {
   expect_length(drawn_guides(autoplot(spliced, "junctions")), 0)
 })
 
-test_that("rows take their samples file's colors under rowColor, keyed by the attribute", {
+test_that("rows take their samples file's colors under rows$color, keyed by the attribute", {
   v <- jbrowse_variants(extdata("dog10k_amy2b_svs.vcf.gz"),
     "chr6:47,340,001-47,420,000",
     samples = extdata("dog10k_amy2b_samples.tsv"),
-    display = list(rowColor = list(field = "group")))
+    display = list(rows = list(color = list(field = "group"))))
   expect_equal(attr(v$keys$rows, "title"), "Group")
   expect_equal(v$keys$rows$label, c("Breed dog", "Village dog", "Gray wolf"))
   expect_setequal(as.character(unique(v$rows$color)),

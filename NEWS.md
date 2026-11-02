@@ -12,8 +12,18 @@
   insert sizes it colors normal.
 - `jbrowse_variants()` reads its `display` as a `LinearVariantDisplay`'s,
   the one variant display, and its result's `display$type` says so.
+- A variant display's row settings live under `rows`: `unit` is
+  `rows$field` (`"sample"` or `"haplotype"`), `rowColor` is `rows$color` for
+  a samples file column and `rows$colors` for a color by row name, and
+  `rowHeight` is `rows$step`. A haplotype row is named `"<sample> HP1"`,
+  `"HP2"`, from 1, and a sample's label or color reaches its haplotypes.
+- `jbrowse_rows()` writes a display's `rows`, a named vector of `labels` or
+  `colors` as the map the display reads.
+- A named vector anywhere in `display` is written as a JSON object, where it
+  had lost its names, and a `TRUE` or `FALSE` in a slot named like an array
+  slot, such as `rows$axis$labels`, stays a boolean.
 - The engine is `@jbrowse/tables` 5.0.0-beta.19 at jbrowse-components
-  f83577e48e, bundled in `inst/js/jbrowse-tables.js`.
+  87f4bd5c78, bundled in `inst/js/jbrowse-tables.js`.
 
 # ggjbrowse 0.11.0
 

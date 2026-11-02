@@ -5,9 +5,9 @@ display: the records its filters keep, each sample's genotype at each, and
 the fill the display paints it, its hue shaded by the alt dosage
 ([by superpopulation](gallery.md#variants_by_population)).
 
-- `display` takes the display's settings: `unit = "haplotype"` for a row per
-  haplotype, `color`, `filter` (with a `minorAlleleFrequency` floor), ...
-- `samples` is a table of the samples' attributes, which `rowColor` marks the
+- `display` takes the display's settings:
+  `rows = jbrowse_rows(field = "haplotype")` for a row per haplotype, `color`, `filter` (with a `minorAlleleFrequency` floor), ...
+- `samples` is a table of the samples' attributes, which `rows$color` marks the
   rows by.
 - `v$variants` gives each record's `filter`, its FILTER column, and a column
   per INFO key (`AC`, `AN`, ...), typed by the header. A key with a value per
@@ -18,8 +18,12 @@ the fill the display paints it, its hue shaded by the alt dosage
   `jbrowse_features()` instead, as JBrowse's plain variant track draws it.
   Its `features` hold each record's `filter` and INFO columns, and its
   `samples` each sample's FORMAT values (`AD`, `DP`, ...).
-- `rows` arranges the rows as a saved session does. `domain` lists the rows
-  that lead, `labels` renames rows, and `kept` names the rows shown.
+- `rows`, written with `jbrowse_rows()`, arranges the rows as a saved session
+  does. `sort` lists the rows that lead, `labels` renames rows, `colors` pins
+  a row's color, `kept` names the rows shown, and `filter` keeps the rows
+  whose samples file attributes pass its tests. A haplotype row is named
+  `"<sample> HP1"`, `"HP2"`, and a sample's label or color reaches its
+  haplotypes.
 - `facet = "superpopulation"` stacks the rows in a band per value, named
   beside them ([by band](gallery.md#variants_banded)).
 - Reordering or filtering `v$rows` rearranges the matrix's rows, each

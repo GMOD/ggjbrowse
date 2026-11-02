@@ -150,6 +150,9 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
 
 - `jbrowse_assembly(sequence, aliases)`: an assembly, its reference sequence
   and its contigs' alias table, for any reader's `assembly`
+- `jbrowse_rows(field, sort, kept, filter, labels, colors, color, ...)`: a
+  row display's `rows`, a named vector of labels or colors written as the map
+  JBrowse reads, for `display = list(rows = ...)`
 - `jbrowse_contigs(x)`: an assembly's, a file's, or each side of a pairwise
   file's contigs as `assembly`, `chrom`, `start` and `end`, a region frame
   any reader takes; a linear file adds `has_data`

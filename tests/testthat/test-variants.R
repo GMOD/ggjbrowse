@@ -214,18 +214,48 @@ test_that("a VCF with no region reads whole", {
   expect_gt(nrow(whole$cells), 1000)
 })
 
-test_that("the result keeps the display's resolved unit, row height and config", {
+test_that("the result keeps the display's resolved row field, row height and config", {
   v <- jbrowse_variants(people, dcst2)
   expect_equal(v$display$type, "LinearVariantDisplay")
-  expect_equal(v$display$unit, "sample")
+  expect_equal(v$display$rows$field, "sample")
   expect_equal(v$display$rows$step, "fit")
   phased <- jbrowse_variants(people, dcst2,
-    display = list(unit = "haplotype", rows = list(step = 4)))
-  expect_equal(phased$display$unit, "haplotype")
+    display = list(rows = list(field = "haplotype", step = 4)))
+  expect_equal(phased$display$rows$field, "haplotype")
   expect_equal(phased$display$rows$step, 4)
 })
 
 test_that("an Integer field past R's integer range reads as doubles, not NA", {
   expect_identical(whole_numbers(c("1", NA)), c(1L, NA))
   expect_identical(whole_numbers(c(1, 2^31)), c(1, 2^31))
+})
+
+test_that("jbrowse_rows writes named vectors as maps and leaves unset members out", {
+  rows <- jbrowse_rows(field = "haplotype", sort = "HG01879",
+    colors = c(HG01879 = "crimson"), color = "superpopulation",
+    filter = list(field = "superpopulation", oneOf = "African"))
+  expect_equal(names(rows), c("field", "sort", "filter", "colors", "color"))
+  expect_equal(rows$colors, list(HG01879 = "crimson"))
+  expect_equal(rows$color, list(field = "superpopulation"))
+  expect_length(rows$filter, 1)
+  expect_error(jbrowse_rows(labels = c("Dad")), "names each row")
+  expect_error(jbrowse_rows(step = 0), "above 0")
+})
+
+test_that("a sample's color reaches its haplotype rows, named from HP1", {
+  v <- read_people(list(rows = jbrowse_rows(field = "haplotype",
+    colors = c(HG01879 = "crimson"))))
+  hg01879 <- v$rows[v$rows$sample == "HG01879", ]
+  expect_equal(as.character(hg01879$name), c("HG01879 HP1", "HG01879 HP2"))
+  expect_equal(hg01879$color, c("crimson", "crimson"))
+})
+
+test_that("a boolean in an array-named slot stays a boolean, a named vector a map", {
+  config <- display_config(list(rows = list(axis = list(labels = FALSE),
+    labels = c(HG01879 = "Mother"), kept = "HG01879")))
+  expect_identical(config$rows$axis$labels, FALSE)
+  expect_equal(config$rows$labels, list(HG01879 = "Mother"))
+  expect_s3_class(config$rows$kept, "AsIs")
+  v <- read_people(list(rows = list(axis = list(labels = FALSE))))
+  expect_false(v$display$rows$axis$labels)
 })
