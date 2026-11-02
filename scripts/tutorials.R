@@ -12,6 +12,9 @@
 #   Rscript scripts/tutorials.R --check      knit to a temporary directory and
 #                                            fail if the markdown differs
 #   Rscript scripts/tutorials.R --status     list website commits since the pin
+#   Rscript scripts/tutorials.R --lint       expand every tutorial and list each
+#                                            directive that matches nothing and
+#                                            each footnote left undefined
 #
 # TUTORIALS_REF=HEAD reads the website pages at the checkout's own commit in
 # place of the pin, as scripts/check-against-jbrowse.sh does.
@@ -181,7 +184,11 @@ slug <- function(text) {
 
 # The blocks of a heading's section, down to the next heading at its level or
 # above. `intro` is everything before the first heading.
-section_blocks <- function(blocks, section) {
+# What a directive that matches nothing does: stop, or under --lint, record it
+# and let the rest of the page expand
+stop_on_miss <- function(message) stop(message, call. = FALSE)
+
+section_blocks <- function(blocks, section, report) {
   heads <- which(vapply(blocks, function(b) b$kind == "heading", TRUE))
   if (identical(section, "intro")) {
     end <- if (length(heads)) heads[1] - 1 else length(blocks)
@@ -189,14 +196,16 @@ section_blocks <- function(blocks, section) {
   }
   hit <- heads[vapply(blocks[heads], heading_text, "") == section]
   if (length(hit) != 1) {
-    stop(sprintf("the website tutorial has %d sections headed '%s'",
-      length(hit), section), call. = FALSE)
+    report(sprintf("the website tutorial has %d sections headed '%s'",
+      length(hit), section))
+    NULL
+  } else {
+    level <- heading_level(blocks[[hit]])
+    later <- heads[heads > hit]
+    later <- later[vapply(blocks[later], heading_level, 0) <= level]
+    end <- if (length(later)) later[1] - 1 else length(blocks)
+    list(head = blocks[[hit]], body = blocks[seq_len(end - hit) + hit])
   }
-  level <- heading_level(blocks[[hit]])
-  later <- heads[heads > hit]
-  later <- later[vapply(blocks[later], heading_level, 0) <= level]
-  end <- if (length(later)) later[1] - 1 else length(blocks)
-  list(head = blocks[[hit]], body = blocks[seq_len(end - hit) + hit])
 }
 
 browser_only <- function(b) {
@@ -217,19 +226,25 @@ matches <- function(blocks, text) {
     TRUE))
 }
 
-one_match <- function(blocks, text, what, section) {
+one_match <- function(blocks, text, what, section, report) {
   hit <- matches(blocks, text)
   if (length(hit) != 1) {
-    stop(sprintf("%s '%s' matches %d blocks of section '%s'", what, text,
-      length(hit), section), call. = FALSE)
+    report(sprintf("%s '%s' matches %d blocks of section '%s'", what, text,
+      length(hit), section))
+    integer(0)
+  } else {
+    hit
   }
-  hit
 }
 
-pull <- function(spec, tutorial, level_offset) {
+pull <- function(spec, tutorial, level_offset, report) {
   blocks <- parse_blocks(split_frontmatter(tutorial_lines(tutorial))$body)
+  s <- section_blocks(blocks, spec[["section"]], report)
+  if (is.null(s)) "" else pull_section(spec, s, tutorial, level_offset, report)
+}
+
+pull_section <- function(spec, s, tutorial, level_offset, report) {
   section <- spec[["section"]]
-  s <- section_blocks(blocks, section)
   body <- s$body
   dropped <- vapply(body, browser_only, TRUE)
   for (k in seq_along(body)) {
@@ -242,30 +257,39 @@ pull <- function(spec, tutorial, level_offset) {
   }
   if (length(spec[["only"]])) {
     dropped[] <- TRUE
-    for (text in spec[["only"]]) dropped[one_match(body, text, "only", section)] <- FALSE
+    for (text in spec[["only"]]) {
+      dropped[one_match(body, text, "only", section, report)] <- FALSE
+    }
   }
-  for (text in spec[["keep"]]) dropped[one_match(body, text, "keep", section)] <- FALSE
-  for (text in spec[["drop"]]) dropped[one_match(body, text, "drop", section)] <- TRUE
+  for (text in spec[["keep"]]) {
+    dropped[one_match(body, text, "keep", section, report)] <- FALSE
+  }
+  for (text in spec[["drop"]]) {
+    dropped[one_match(body, text, "drop", section, report)] <- TRUE
+  }
   body <- body[!dropped]
   for (text in spec[["drop_lines"]]) {
-    k <- one_match(body, text, "drop_lines", section)
-    hit <- grepl(text, body[[k]]$lines, fixed = TRUE)
-    if (sum(hit) != 1) {
-      stop(sprintf("drop_lines '%s' matches %d lines", text, sum(hit)),
-        call. = FALSE)
+    k <- one_match(body, text, "drop_lines", section, report)
+    if (length(k) == 1) {
+      hit <- grepl(text, body[[k]]$lines, fixed = TRUE)
+      if (sum(hit) != 1) {
+        report(sprintf("drop_lines '%s' matches %d lines", text, sum(hit)))
+      } else {
+        body[[k]]$lines <- body[[k]]$lines[!hit]
+      }
     }
-    body[[k]]$lines <- body[[k]]$lines[!hit]
   }
   for (r in spec[["replace"]]) {
     count <- vapply(body, function(b) lengths(regmatches(block_text(b),
       gregexpr(r$from, block_text(b), fixed = TRUE))), 0)
     if (sum(count) != 1) {
-      stop(sprintf("replace '%s' matches %d times in section '%s'", r$from,
-        sum(count), section), call. = FALSE)
+      report(sprintf("replace '%s' matches %d times in section '%s'", r$from,
+        sum(count), section))
+    } else {
+      k <- which(count == 1)
+      body[[k]]$lines <- strsplit(sub(r$from, r$to, block_text(body[[k]]),
+        fixed = TRUE), "\n")[[1]]
     }
-    k <- which(count == 1)
-    body[[k]]$lines <- strsplit(sub(r$from, r$to, block_text(body[[k]]),
-      fixed = TRUE), "\n")[[1]]
   }
   out <- vapply(body, function(b) {
     if (b$kind == "heading") {
@@ -426,7 +450,7 @@ assign_chunk <- function(spec, tutorial) {
   paste(c(header, lines, "```"), collapse = "\n")
 }
 
-expand <- function(name) {
+expand <- function(name, report = stop_on_miss) {
   source_file <- file.path(SRC_DIR, paste0(name, ".Rmd"))
   doc <- split_frontmatter(readLines(source_file, encoding = "UTF-8"))
   tutorial <- doc$meta$jbrowse_tutorial %||% name
@@ -442,7 +466,7 @@ expand <- function(name) {
       if (is.character(spec)) spec <- list(section = spec)
       from <- spec[["tutorial"]] %||% tutorial
       out <- c(out, if (!is.null(spec[["assign"]])) assign_chunk(spec, from)
-        else pull(spec, from, spec[["level"]] %||% 0))
+        else pull(spec, from, spec[["level"]] %||% 0, report))
       i <- j + 1
     } else {
       out <- c(out, lines[i])
@@ -450,8 +474,13 @@ expand <- function(name) {
     }
   }
   body <- resolve_anchors(paste(out, collapse = "\n"))
-  if (grepl("`r ", gsub("```[^`]*```", "", body))) {
+  prose <- gsub("```[^`]*```", "", body)
+  if (grepl("`r ", prose)) {
     stop(name, ": pulled text holds `r , which knitr would run", call. = FALSE)
+  }
+  for (ref in undefined_footnotes(prose)) {
+    report(sprintf("footnote %s has no definition; keep its '%s:' block", ref,
+      ref))
   }
   header <- c(
     sprintf("<!-- Generated by scripts/tutorials.R from %s and %s's website/docs/tutorials/%s.md at %s. Edit those, not this file. -->",
@@ -459,6 +488,17 @@ expand <- function(name) {
     "",
     paste("#", doc$meta$title))
   paste(c(header, "", sub("^\\s+", "", body)), collapse = "\n")
+}
+
+# A footnote reference the expanded page never defines, which pandoc prints as
+# literal text. Inline code is not prose: an R regex like `[^;]` is no footnote.
+undefined_footnotes <- function(prose) {
+  text <- gsub("`[^`\n]*`", "", prose)
+  refs <- unique(regmatches(text, gregexpr("\\[\\^[^]\\s]+\\]", text,
+    perl = TRUE))[[1]])
+  defined <- sub(":$", "", regmatches(text, gregexpr("(?m)^\\[\\^[^]\\s]+\\]:",
+    text, perl = TRUE))[[1]])
+  setdiff(refs, defined)
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
@@ -485,21 +525,41 @@ names_of <- function(args) {
   sub("\\.Rmd$", "", list.files(SRC_DIR, "\\.Rmd$"))
 }
 
-main <- function(args) {
-  tutorials <- names_of(args)
-  if ("--status" %in% args) {
-    for (name in tutorials) {
-      meta <- split_frontmatter(readLines(file.path(SRC_DIR,
-        paste0(name, ".Rmd"))))$meta
-      page <- sprintf("website/docs/tutorials/%s.md",
-        meta$jbrowse_tutorial %||% name)
-      log <- system2("git", c("-C", checkout(), "log", "--oneline",
-        paste0(pin(), "..origin/main"), "--", page), stdout = TRUE)
-      cat(sprintf("%s: %d website commits since the pin\n", name, length(log)))
-      if (length(log)) cat(paste0("  ", log, "\n"), sep = "")
-    }
-    return(invisible())
+status <- function(tutorials) {
+  for (name in tutorials) {
+    meta <- split_frontmatter(readLines(file.path(SRC_DIR,
+      paste0(name, ".Rmd"))))$meta
+    page <- sprintf("website/docs/tutorials/%s.md",
+      meta$jbrowse_tutorial %||% name)
+    log <- system2("git", c("-C", checkout(), "log", "--oneline",
+      paste0(pin(), "..origin/main"), "--", page), stdout = TRUE)
+    cat(sprintf("%s: %d website commits since the pin\n", name, length(log)))
+    if (length(log)) cat(paste0("  ", log, "\n"), sep = "")
   }
+}
+
+# Every miss in every tutorial at once: the build stops at the first, so a
+# rewrite pass on the website otherwise takes a round per stale directive
+lint <- function(tutorials) {
+  misses <- character()
+  for (name in tutorials) {
+    found <- character()
+    failed <- tryCatch({
+      expand(name, report = function(message) found <<- c(found, message))
+      NULL
+    }, error = function(e) conditionMessage(e))
+    if (length(found) || !is.null(failed)) {
+      misses <- c(misses, name, paste0("  ", c(found, failed)))
+    }
+  }
+  if (length(misses)) {
+    stop("tutorials that would not expand cleanly:\n",
+      paste(misses, collapse = "\n"), call. = FALSE)
+  }
+  message("every directive matches")
+}
+
+build <- function(tutorials, args) {
   stale <- character()
   for (name in tutorials) {
     message(name)
@@ -525,6 +585,17 @@ main <- function(args) {
   if (length(stale)) {
     stop("out of date, rerun scripts/tutorials.R: ",
       paste(stale, collapse = ", "), call. = FALSE)
+  }
+}
+
+main <- function(args) {
+  tutorials <- names_of(args)
+  if ("--status" %in% args) {
+    status(tutorials)
+  } else if ("--lint" %in% args) {
+    lint(tutorials)
+  } else {
+    build(tutorials, args)
   }
 }
 

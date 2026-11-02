@@ -12,8 +12,8 @@ R CMD INSTALL -l "$lib" .
 R_LIBS="$lib" Rscript -e 'testthat::test_dir("tests/testthat",
   package = "ggjbrowse", load_package = "installed", stop_on_failure = TRUE)'
 # The R tutorials pull sections of the website tutorials, and a website edit
-# that removes text a directive matches fails their expansion. Expanding them
+# that removes text a directive matches fails their expansion. Linting them
 # against this checkout's own pages fails the night of that edit, rather than
-# at the next pin bump.
+# at the next pin bump, and lists every stale directive in one run.
 JBROWSE_COMPONENTS=${JBROWSE_COMPONENTS:-../jbrowse-components} \
-  TUTORIALS_REF=HEAD Rscript scripts/tutorials.R --expand
+  TUTORIALS_REF=HEAD Rscript scripts/tutorials.R --lint
