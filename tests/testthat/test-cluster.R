@@ -102,9 +102,9 @@ test_that("a matrix with no rows draws an empty panel", {
   expect_no_error(ggplot2::ggplotGrob(ggplot2::autoplot(v)))
 })
 
-test_that("a matrix stacks at the display's rowHeight, and fits without one", {
+test_that("a matrix stacks at the display's rows step, and fits without one", {
   fitted <- jbrowse_variants(vcf, locus)
-  tall <- jbrowse_variants(vcf, locus, display = list(rowHeight = 12))
+  tall <- jbrowse_variants(vcf, locus, display = list(rows = list(step = 12)))
   rows <- nrow(fitted$rows)
   expect_equal(jbrowse_stack(fitted)$patches$layout$heights,
     fitted$display$height)

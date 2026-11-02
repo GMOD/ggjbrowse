@@ -218,11 +218,11 @@ test_that("the result keeps the display's resolved unit, row height and config",
   v <- jbrowse_variants(people, dcst2)
   expect_equal(v$display$type, "LinearVariantDisplay")
   expect_equal(v$display$unit, "sample")
-  expect_equal(v$display$rowHeight, 0)
+  expect_equal(v$display$rows$step, "fit")
   phased <- jbrowse_variants(people, dcst2,
-    display = list(unit = "haplotype", rowHeight = 4))
+    display = list(unit = "haplotype", rows = list(step = 4)))
   expect_equal(phased$display$unit, "haplotype")
-  expect_equal(phased$display$rowHeight, 4)
+  expect_equal(phased$display$rows$step, 4)
 })
 
 test_that("an Integer field past R's integer range reads as doubles, not NA", {

@@ -24,7 +24,7 @@ with the keys collected.
   a list of them.
 - An alignments track read with `display = list(coverage = list(show = FALSE))`
   stacks no coverage band.
-- A variant matrix gives each row the display's `rowHeight` pixels, or
+- A variant matrix gives each row the display's `rows$step` pixels, or
   without one fits its rows into the display's `height`, 200 pixels by
   default, as the display does.
 - A key several tracks share appears once, listing every entry any of them

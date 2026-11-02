@@ -43,10 +43,10 @@ variants_adapter <- function(file, index, samples) {
 #'   `genotypes` (`list(reference = list(show = TRUE))` gives each reference
 #'   call a cell), `rows`
 #'   (the arrangement a session saves: `sort`, the rows listed first in
-#'   order, `labels`, a label by row name, and `kept`, the rows shown) and
-#'   `facet` (a samples file attribute, or `list(field, sort)`, whose values
-#'   each take a band of rows) and `rowHeight` (pixels a row, where
-#'   [jbrowse_stack()] otherwise fits the rows into the display's height)
+#'   order, `labels`, a label by row name, `kept`, the rows shown, and
+#'   `step`, pixels a row, where [jbrowse_stack()] otherwise fits the rows
+#'   into the display's height) and `facet` (a samples file attribute, or
+#'   `list(field, sort)`, whose values each take a band of rows)
 #' @param index the tabix or CSI index, if not beside `file` under its usual
 #'   name
 #' @param samples a tab-separated file of the samples' attributes, a `name`
@@ -442,9 +442,11 @@ row_bars <- function(x, xlim) {
       linewidth = 2.5, lineend = "butt"))
 }
 
-# A matrix row's height in display pixels: the display's rowHeight, or for
-# 0, the rows fitted to the display's height, as the display fits them
+# A matrix row's height in display pixels: the display's `rows$step`, or for
+# "fit", the rows fitted to the display's height, as the display fits them.
+# `[[`, since `$` would partially match a slot the engine dropped
 row_px <- function(x) {
-  if (isTRUE(x$display$rowHeight > 0)) x$display$rowHeight
+  step <- x$display[["rows"]][["step"]]
+  if (is.numeric(step)) step
   else x$display$height / max(1, nrow(x$rows))
 }

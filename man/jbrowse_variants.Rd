@@ -38,10 +38,10 @@ tests),
 \code{genotypes} (\code{list(reference = list(show = TRUE))} gives each reference
 call a cell), \code{rows}
 (the arrangement a session saves: \code{sort}, the rows listed first in
-order, \code{labels}, a label by row name, and \code{kept}, the rows shown) and
-\code{facet} (a samples file attribute, or \code{list(field, sort)}, whose values
-each take a band of rows) and \code{rowHeight} (pixels a row, where
-\code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the rows into the display's height)}
+order, \code{labels}, a label by row name, \code{kept}, the rows shown, and
+\code{step}, pixels a row, where \code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the rows
+into the display's height) and \code{facet} (a samples file attribute, or
+\code{list(field, sort)}, whose values each take a band of rows)}
 
 \item{width}{the pixels the figure spans across the regions, at which
 records sharing a pixel fade as the display fades them}
