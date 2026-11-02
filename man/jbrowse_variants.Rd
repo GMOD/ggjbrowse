@@ -35,7 +35,8 @@ per haplotype), \code{color} (a field such as \code{"svType"} or \code{"impact"}
 list of the color object's slots), \code{filter} (a list of any of
 jexl expressions, and \code{minorAlleleFrequency} and \code{missingness} field
 tests),
-\code{referenceDrawingMode} (\code{"skip"} or \code{"draw"}), \code{shadeByDosage}, \code{rows}
+\code{genotypes} (\code{list(reference = list(show = TRUE))} gives each reference
+call a cell), \code{rows}
 (the arrangement a session saves: \code{sort}, the rows listed first in
 order, \code{labels}, a label by row name, and \code{kept}, the rows shown) and
 \code{facet} (a samples file attribute, or \code{list(field, sort)}, whose values
@@ -88,8 +89,8 @@ columns
 \code{name}, a factor in \code{rows}' order), \code{genotype}, \code{dosage} (the share of the called alleles that
 are an ALT; under \code{unit = "haplotype"} the row's allele, 1 for an ALT;
 \code{NA} for a no-call or a haplotype of an unphased call) and \code{color}, the
-fill the display paints; under \code{referenceDrawingMode = "skip"}, the
-default, a reference call has no cell. A cell takes its record's
+fill the display paints; unless \code{genotypes$reference$show} is \code{TRUE},
+a reference call has no cell. A cell takes its record's
 \code{start} and \code{end} and its row's \code{sample} when drawn. \code{\link[=as.matrix]{as.matrix()}}
 gives the genotypes as the display's clustering reads them
 \item \code{rows}: \code{name}, \code{label}, \code{sample}, \code{haplotype}, \code{ploidy}, \code{band},

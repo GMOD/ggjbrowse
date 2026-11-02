@@ -23,7 +23,7 @@
     },
     "displays": [
       {
-        "type": "LinearMultiSampleVariantDisplay",
+        "type": "LinearVariantDisplay",
         "displayId": "people-display",
         "height": 450,
         "variantLayout": "columns",

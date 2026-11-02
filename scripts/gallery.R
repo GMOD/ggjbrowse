@@ -172,7 +172,7 @@ population_tracks <- function() json_file(list(list(type = "VariantTrack",
     vcfGzLocation = local_file(inst("1000g_dcst2.vcf.gz")),
     index = list(location = local_file(inst("1000g_dcst2.vcf.gz.tbi"))),
     samplesTsvLocation = local_file(inst("1000g_dcst2_samples.tsv"))),
-  displays = list(list(type = "LinearMultiSampleVariantDisplay",
+  displays = list(list(type = "LinearVariantDisplay",
     displayId = "people-display", height = 450, variantLayout = "columns",
     rowColor = "superpopulation")))), "people.tracks.json")
 

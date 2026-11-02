@@ -40,7 +40,8 @@ variants_adapter <- function(file, index, samples) {
 #'   list of the color object's slots), `filter` (a list of any of
 #'   jexl expressions, and `minorAlleleFrequency` and `missingness` field
 #'   tests),
-#'   `referenceDrawingMode` (`"skip"` or `"draw"`), `shadeByDosage`, `rows`
+#'   `genotypes` (`list(reference = list(show = TRUE))` gives each reference
+#'   call a cell), `rows`
 #'   (the arrangement a session saves: `sort`, the rows listed first in
 #'   order, `labels`, a label by row name, and `kept`, the rows shown) and
 #'   `facet` (a samples file attribute, or `list(field, sort)`, whose values
@@ -85,8 +86,8 @@ variants_adapter <- function(file, index, samples) {
 #'     `name`, a factor in `rows`' order), `genotype`, `dosage` (the share of the called alleles that
 #'     are an ALT; under `unit = "haplotype"` the row's allele, 1 for an ALT;
 #'     `NA` for a no-call or a haplotype of an unphased call) and `color`, the
-#'     fill the display paints; under `referenceDrawingMode = "skip"`, the
-#'     default, a reference call has no cell. A cell takes its record's
+#'     fill the display paints; unless `genotypes$reference$show` is `TRUE`,
+#'     a reference call has no cell. A cell takes its record's
 #'     `start` and `end` and its row's `sample` when drawn. [as.matrix()]
 #'     gives the genotypes as the display's clustering reads them
 #'   * `rows`: `name`, `label`, `sample`, `haplotype`, `ploidy`, `band`,
@@ -144,9 +145,14 @@ variants_result <- function(t) {
   cells$row <- factor(cells$row, levels = rows$name)
   genotypes <- as_frame(t$legend)
   attr(genotypes, "title") <- t$legendTitle
+  # an unwritten height is the 200 px the display's rows take
+  # (jbrowse-components' DEFAULT_VARIANT_DISPLAY_HEIGHT); `[[`, since `$`
+  # would partially match `heightMode`
+  display <- t$config
+  display$height <- display[["height"]] %||% 200
   structure(
     list(variants = variants, cells = cells, rows = rows, bands = bands,
-      annotations = annotations, display = t$config,
+      annotations = annotations, display = display,
       keys = list(genotypes = genotypes, rows = key_frame(
         unlist(t$rowLegend$label) %||% character(0),
         unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),

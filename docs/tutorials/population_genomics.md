@@ -392,7 +392,7 @@ inversion <- jbrowse_variants(vcf,
   data.frame(chrom = "2L", start = 0, end = arms$length[1]),
   samples = karyotypes,
   display = c(vcf_displays[[1]][c("facet", "rowColor")],
-    referenceDrawingMode = "draw"))
+    list(genotypes = list(reference = list(show = TRUE)))))
 inversion$variants[c("name", "alt", "start", "end")]
 #>    name   alt   start      end
 #> 1 In2Lt <INV> 2225743 13154180
