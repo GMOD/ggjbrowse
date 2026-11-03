@@ -41,7 +41,8 @@ engine <- local({
           "(parallel::mclapply(), future's multicore, BiocParallel's",
           "MulticoreParam), where V8 hangs: read in a socket cluster, such",
           "as parallel::makeCluster() or future's multisession, whose",
-          "workers load ggjbrowse afresh"), class = "ggjbrowse_forked")
+          "workers load ggjbrowse afresh"), class = "ggjbrowse_forked",
+          call = NULL)
       }
       fresh <- V8::v8()
       fresh$eval(paste(
@@ -74,7 +75,6 @@ engine <- local({
 #' @return `NULL`, invisibly.
 #' @export
 jbrowse_reset <- function() {
-  deferred$warnings <- character(0)
   if (!is.null(engine(start = FALSE))) {
     tryCatch(in_engine(function(ctx) ctx$call("jbrowse.clearCache",
       await = TRUE)), error = function(e) {
@@ -161,26 +161,31 @@ read_range_deferring <- function(url, start, end) {
   })
 }
 
-# Runs use(<the engine's context>) and raises what the engine queued meanwhile.
-# V8 raises a rejected call's error with JavaScript's own "Error: " prefix,
-# which R would print after its own. `display` is the config the call passed,
-# which an error about it names.
+# Runs use(<the engine's context>) and raises what the engine queued meanwhile,
+# a rejected call's own error before any it queued. V8 raises a rejected
+# call's error with JavaScript's own "Error: " prefix, which R would print
+# after its own. `display` is the config the call passed, which an error about
+# it names.
 in_engine <- function(use, display = NULL) {
   ctx <- engine()
-  on.exit({
-    queued <- ctx$get("ggjbrowseQueued")
-    ctx$eval("ggjbrowseQueued = { warnings: [], errors: [] }")
-    warnings <- unique(c(deferred$warnings, unlist(queued$warnings)))
-    deferred$warnings <- character(0)
-    for (w in warnings) warning(w, call. = FALSE)
-    if (length(queued$errors)) {
-      engine_error(paste(unique(unlist(queued$errors)), collapse = "\n"),
-        display)
-    }
-  })
-  tryCatch(use(ctx), "C++Error" = function(e) {
-    engine_error(sub("^Error: ", "", conditionMessage(e)), display)
-  })
+  result <- tryCatch(use(ctx), "C++Error" = function(e) e,
+    finally = queued <- drain_queue(ctx))
+  if (inherits(result, "C++Error")) {
+    engine_error(sub("^Error: ", "", conditionMessage(result)), display)
+  }
+  if (length(queued)) engine_error(paste(queued, collapse = "\n"), display)
+  result
+}
+
+# Raises the warnings the engine and read_range() queued, and returns the
+# errors the engine queued, emptying both queues
+drain_queue <- function(ctx) {
+  queued <- ctx$get("ggjbrowseQueued")
+  ctx$eval("ggjbrowseQueued = { warnings: [], errors: [] }")
+  warnings <- unique(c(deferred$warnings, unlist(queued$warnings)))
+  deferred$warnings <- character(0)
+  for (w in warnings) warning(w, call. = FALSE)
+  unique(as.character(unlist(queued$errors)))
 }
 
 TOO_LARGE <- paste0("^(.*) (spans?|needs?) ([0-9]+) (bp|bytes) of (\\w+)",
@@ -251,7 +256,8 @@ as_engine_json <- function(args) {
     x[] <- lapply(x, objects)
     x
   }
-  as.character(jsonlite::toJSON(objects(args), auto_unbox = TRUE))
+  as.character(jsonlite::toJSON(objects(args), auto_unbox = TRUE,
+    digits = NA))
 }
 
 call_engine <- function(table, args) {
@@ -337,7 +343,8 @@ location <- function(path) {
 # The adapter config of the first of `formats` whose `pattern` matches
 # `file`'s name, any URL query aside: its `type`, the file's location in its
 # `slot`, and where it names an `index` type, the index (`index`, else the
-# file's name and that type's extension), CSI where its name says so
+# file's name and that type's extension, or a local file's .csi where only
+# that is beside it), CSI where its name says so
 guess_adapter <- function(file, index, formats, expected = NULL) {
   name <- tolower(bare_name(file))
   for (format in formats) {
@@ -345,7 +352,7 @@ guess_adapter <- function(file, index, formats, expected = NULL) {
     adapter <- list(type = format$type)
     adapter[[format$slot]] <- location(file)
     if (!is.null(format$index)) {
-      index <- index %||% beside(file, paste0(".", tolower(format$index)))
+      index <- index %||% index_beside(file, tolower(format$index))
       adapter$index <- list(location = location(index),
         indexType = if (grepl("\\.csi$", tolower(bare_name(index)))) "CSI"
           else format$index)
@@ -354,6 +361,12 @@ guess_adapter <- function(file, index, formats, expected = NULL) {
   }
   stop("cannot tell the format of ", file, ": expected ", expected,
     call. = FALSE)
+}
+
+index_beside <- function(file, type) {
+  named <- beside(file, paste0(".", type))
+  csi <- beside(file, ".csi")
+  if (!is_url(file) && !file.exists(named) && file.exists(csi)) csi else named
 }
 
 # The adapter config the engine reads `file` through: a track's own adapter

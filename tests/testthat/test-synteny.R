@@ -54,6 +54,18 @@ test_that("the band draws every ribbon between the rows, with both rulers", {
   expect_gt(nrow(curved), nrow(polygons))
 })
 
+test_that("a track over a row reads the row's contig, not only its span", {
+  r <- "9,000,001-9,100,000"
+  hg002 <- jbrowse_synteny(
+    system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse"),
+    paste0("chr8_PATERNAL:", r), paste0("chr8_MATERNAL:", r))
+  genes <- function(file, contig) jbrowse_features(
+    system.file("extdata", file, package = "ggjbrowse"), paste0(contig, ":", r))
+  paternal <- genes("hg002_pat_genes.gff3.gz", "chr8_PATERNAL")
+  expect_error(autoplot(hg002, below = paternal), "bottom row.s regions")
+  expect_s3_class(autoplot(hg002, above = paternal), "patchwork")
+})
+
 test_that("tracks over each row stack around the band", {
   genes <- jbrowse_features(gff, target, display = list(filter = "geneLike"))
   fig <- autoplot(s, below = genes)

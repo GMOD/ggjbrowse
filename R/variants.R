@@ -121,7 +121,8 @@ jbrowse_variants <- function(file, region = NULL, display = NULL,
                              samples = NULL, index = NULL, byte_limit = 2e8) {
   adapter <- adapter_of(file, function() variants_adapter(file, index, samples))
   assembly <- assembly_config(assembly)
-  regions <- reader_regions(adapter, region, assembly)
+  regions <- to_record_ends(reader_regions(adapter, region, assembly),
+    adapter, assembly, byte_limit)
   t <- read_regions("variants", adapter, regions, assembly, display,
     byteLimit = byte_limit)
   x <- in_one_call(variants_result(t), regions, t, width)

@@ -36,7 +36,8 @@ lane_pin <- function(locus) {
   if (!length(m)) {
     rlang::abort(paste0("cannot read \"", locus, "\" as a lane's contig or ",
       "position: write \"Chr2\", \"Chr2:1,000,000\" or ",
-      "\"Chr2:1,000,001-2,000,000\""), class = "ggjbrowse_bad_region")
+      "\"Chr2:1,000,001-2,000,000\""), class = "ggjbrowse_bad_region",
+      call = NULL)
   }
   number <- function(x) as.numeric(gsub(",", "", x))
   from <- number(m[3]) - 1
@@ -197,7 +198,8 @@ anchor_regions <- function(region) {
     rlang::abort(paste("the anchor lane reads loci such as",
       "\"ctgA:1-50,001\", a data frame of chrom, start and end, or a GRanges:",
       "a multi-genome file states no contig's length, so a whole contig has",
-      "no extent"), class = "ggjbrowse_bad_region")
+      "no extent"), class = "ggjbrowse_bad_region",
+      call = NULL)
   }
   regions_of(region)
 }

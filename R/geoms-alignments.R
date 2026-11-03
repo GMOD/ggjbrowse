@@ -2,9 +2,9 @@
 # display draws by default and takes any column of its table in `mapping`.
 
 # The pixels a base spans, which the display's sub-pixel fade reads, in a
-# figure `width` pixels across its region, else 1,500
+# figure `width` pixels across its regions, else the width they were read at
 px_of <- function(x, width) {
-  (width %||% x$width %||% DEFAULT_WIDTH) / diff(xlim_of(x))
+  (width %||% x$width) / diff(xlim_of(x))
 }
 
 # The share of a pileup row left empty above and below a read, from the
@@ -12,7 +12,6 @@ px_of <- function(x, width) {
 # `featureSpacing` pixels taller
 read_inset <- function(x) {
   p <- x$read_pitch
-  if (is.null(p)) return(0)
   (1 - p$featureHeight / (p$featureHeight + p$featureSpacing)) / 2
 }
 
@@ -25,7 +24,7 @@ mark_alpha <- function(x, width, kind, marks) {
   if (!nrow(marks)) return(list(alpha = numeric(), widthPx = numeric()))
   pileup <- x$display$pileup
   args <- list(pxPerBp = px_of(x, width),
-    featureHeight = x$read_pitch$featureHeight %||% 0,
+    featureHeight = x$read_pitch$featureHeight,
     fadeLowFrequency = fades(x),
     mismatchOpacity = pileup$mismatches$encoding$opacity %||% list())
   args[[kind]] <- lapply(marks, I)
@@ -136,10 +135,9 @@ geom_jbrowse_deletion_lengths <- function(mapping = NULL, data = NULL,
   jbrowse_layer(ggplot2::GeomText, data, function(x) {
     rule <- x$glyph$label
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
-    d$length <- d$end - d$start
-    tall <- (x$read_pitch$featureHeight %||% 0) >= (rule$minHeight %||% Inf)
-    d$alpha <- label_fade((d$end - d$start) * px_of(x, width),
-      nchar(d$length) * (rule$digitPx %||% Inf), rule)
+    tall <- x$read_pitch$featureHeight >= rule$minHeight
+    d$alpha <- label_fade(d$length * px_of(x, width),
+      nchar(d$length) * rule$digitPx, rule)
     if (!tall) d$alpha[] <- 0
     d[d$alpha > 0, , drop = FALSE]
   }, mapping, ggplot2::aes(x = (start + end) / 2, y = row + 0.5,
@@ -151,10 +149,10 @@ geom_jbrowse_deletion_lengths <- function(mapping = NULL, data = NULL,
 # digits need: none below `fadeLo` times the need, then `fadeFloor` ramping to
 # one at `fadeHi` times it, as the display fades a deletion's length
 label_fade <- function(span_px, need_px, rule) {
-  t <- pmin(1, pmax(0, (span_px - need_px) / (need_px * (rule$fadeHi %||% 2) -
+  t <- pmin(1, pmax(0, (span_px - need_px) / (need_px * rule$fadeHi -
     need_px)))
   ramp <- t * t * (3 - 2 * t)
-  ifelse(span_px < need_px * (rule$fadeLo %||% Inf), 0,
+  ifelse(span_px < need_px * rule$fadeLo, 0,
     rule$fadeFloor + (1 - rule$fadeFloor) * ramp)
 }
 
@@ -200,7 +198,7 @@ geom_jbrowse_deletions <- function(mapping = NULL, data = NULL,
   jbrowse_layer(ggplot2::GeomRect, data, function(x) {
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
     d$alpha <- mark_alpha(x, width, "deletions",
-      data.frame(length = d$end - d$start, fade = d$fade))$alpha
+      data.frame(length = d$length, fade = d$fade))$alpha
     widen <- pmax(0, 1 / px_of(x, width) - (d$end - d$start)) / 2
     d$xmin <- d$start - widen
     d$xmax <- d$end + widen

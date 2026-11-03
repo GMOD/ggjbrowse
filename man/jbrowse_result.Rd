@@ -60,8 +60,7 @@ axis: \code{query_region} and \code{target_region}, \code{x_region} and \code{y_
 \code{assemblies}, the axis titles; a \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}}
 result \code{height}, \code{assemblies} and \code{skipped}; and a \code{\link[=jbrowse_multiway]{jbrowse_multiway()}}
 result \code{height}, \code{tick_interval} and \code{rows_vs_anchor}. \code{y_scale} is \code{NULL} and
-\code{fields} empty for each. A multi-genome file lists no contigs, so a
-\code{\link[=jbrowse_multiway]{jbrowse_multiway()}} result's \code{missing} is always \code{""}.
+\code{fields} empty for each.
 }
 
 \section{Errors}{

@@ -17,16 +17,16 @@ file_contigs <- function(adapter, assembly = NULL) {
   d$canonical <- as.character(r$canonical)
   d$has_data <- as.logical(unlist(r$hasData) %||% logical(0))
   d$length_known <- as.logical(unlist(r$lengthKnown) %||% logical(0))
+  d$end[!d$length_known] <- WHOLE_CONTIG_END
   d
 }
 
-# The end the engine gives a contig whose length neither the file nor the
-# assembly states
-WHOLE_CONTIG_END <- 2^31 - 1
+# The end read for a contig whose length neither the file nor the assembly
+# states: the largest exact double, past any contig's records
+WHOLE_CONTIG_END <- 2^53
 
-# A feature file's regions read to WHOLE_CONTIG_END cut where their records
-# end, so a contig of unknown length lays out over what it holds rather than
-# over 2 Gbp
+# A file's regions read to WHOLE_CONTIG_END cut where their records end, so a
+# contig of unknown length lays out over what it holds
 to_record_ends <- function(regions, adapter, assembly, byte_limit) {
   open <- which(regions$end >= WHOLE_CONTIG_END)
   if (!length(open)) return(regions)
@@ -129,7 +129,8 @@ regions_of <- function(region, contigs = NULL, canonical = NULL) {
     rlang::abort(if (!nrow(regions)) "the region frame has no rows" else
       sprintf("the region %s is %s", loci_of_layout(regions[bad[1], ]),
         if (regions$start[bad[1]] < 0) "before the contig's first base, 1"
-        else "reversed"), class = "ggjbrowse_bad_region")
+        else "reversed"), class = "ggjbrowse_bad_region",
+      call = NULL)
   }
   regions
 }
@@ -145,7 +146,8 @@ parsed_regions <- function(region, contigs = NULL, canonical = NULL) {
   if (!is.character(region) || !length(region)) {
     rlang::abort(paste("a region is a locus such as \"ctgA:1,001-9,000\", a",
       "contig name, a data frame of chrom, start and end (0-based,",
-      "half-open), or a GRanges"), class = "ggjbrowse_bad_region")
+      "half-open), or a GRanges"), class = "ggjbrowse_bad_region",
+      call = NULL)
   }
   m <- regmatches(region, regexec(LOCUS, region))
   locus <- lengths(m) > 0
@@ -162,7 +164,8 @@ parsed_regions <- function(region, contigs = NULL, canonical = NULL) {
       "\"ctgA:1,001-9,000\" nor a contig of the file%s"),
       region[!locus][is.na(at)][1], if (length(known$chrom)) paste0(
         ", whose contigs are ", paste(utils::head(unique(known$chrom), 20),
-          collapse = ", ")) else ""), class = "ggjbrowse_bad_region")
+          collapse = ", ")) else ""), class = "ggjbrowse_bad_region",
+      call = NULL)
   }
   out$start[!locus] <- known$start[at]
   out$end[!locus] <- known$end[at]
@@ -192,13 +195,15 @@ region_table <- function(region) {
       "start and end, as BED writes it, but this one reads as 1-based (",
       if (closed) "its width is end - start + 1" else "it has seqnames",
       "): pass the GRanges itself, or subtract 1 from start"),
-      class = "ggjbrowse_bad_region")
+      class = "ggjbrowse_bad_region",
+      call = NULL)
   }
   missing <- setdiff(c("chrom", "start", "end"), names(region))
   if (length(missing)) {
     rlang::abort(paste0("a region frame names chrom, start and end, ",
       "0-based and half-open; this one lacks ", paste(missing,
-        collapse = ", ")), class = "ggjbrowse_bad_region")
+        collapse = ", ")), class = "ggjbrowse_bad_region",
+      call = NULL)
   }
   data.frame(chrom = as.character(region[["chrom"]]),
     start = as.numeric(region[["start"]]), end = as.numeric(region[["end"]]))

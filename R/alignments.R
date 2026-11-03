@@ -136,8 +136,8 @@ alignments_adapter <- function(file, index) {
 #'     reaches, its copies sharing `read` and `row`
 #'   * `mismatches`: `position`, `base`, `read`, `frequency` (how many reads
 #'     carry that base there, over the depth), `quality`, `fade`
-#'   * `gaps`: `start`, `end`, `type` (`"deletion"` or `"skip"`), `read`,
-#'     `fade`
+#'   * `gaps`: `start`, `end`, `length`, `type` (`"deletion"` or `"skip"`),
+#'     `read`, `fade`
 #'   * `chains`: under `unit = "chain"`, each chain of more than one read:
 #'     `start`, `end`, `row`, and the `color` and `opacity` of the hairline
 #'     across it; empty otherwise
@@ -298,6 +298,7 @@ alignments_result <- function(t, assembly) {
   chains <- frame(t$chains)
   overlaps <- frame(t$overlaps)
   gaps <- on_read(t$gaps)
+  gaps$length <- gaps$end - gaps$start
   insertions <- on_read(t$insertions)
   clips <- on_read(t$clips)
   modifications <- on_read(t$modifications)

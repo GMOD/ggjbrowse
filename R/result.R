@@ -52,8 +52,7 @@
 #' `assemblies`, the axis titles; a [jbrowse_dotplot()]
 #' result `height`, `assemblies` and `skipped`; and a [jbrowse_multiway()]
 #' result `height`, `tick_interval` and `rows_vs_anchor`. `y_scale` is `NULL` and
-#' `fields` empty for each. A multi-genome file lists no contigs, so a
-#' [jbrowse_multiway()] result's `missing` is always `""`.
+#' `fields` empty for each.
 #'
 #' @section Errors:
 #' Each error a reader raises has a class, which a [tryCatch()] handler

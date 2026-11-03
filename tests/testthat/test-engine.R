@@ -38,6 +38,17 @@ test_that("an index beside a URL takes the URL's query after its extension", {
   expect_equal(bare_name("/data/a?b.vcf.gz"), "/data/a?b.vcf.gz")
 })
 
+test_that("a local file with only a .csi beside it reads through that index", {
+  dir <- withr::local_tempdir()
+  vcf <- file.path(dir, "x.vcf.gz")
+  file.create(c(vcf, paste0(vcf, ".csi")))
+  index <- features_adapter(vcf, NULL)$index
+  expect_equal(index$indexType, "CSI")
+  expect_match(index$location$uri, "x\\.vcf\\.gz\\.csi\\?")
+  file.create(paste0(vcf, ".tbi"))
+  expect_equal(features_adapter(vcf, NULL)$index$indexType, "TBI")
+})
+
 test_that("a nested column reads as a list column, a missing row NA", {
   wire <- jsonlite::fromJSON(paste0('{"t": {"n": [1, 2, 3], "x": {"$list": ',
     '{"lengths": [2, -1, 1], "values": [4, 5, 6]}}}}'), simplifyVector = TRUE,

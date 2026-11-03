@@ -143,7 +143,8 @@ axis_regions <- function(given, contigs, assembly, side) {
   own <- own[!duplicated(own$chrom), ]
   where <- if (name %in% c("query", "target")) paste(name, "side")
     else paste("assembly", name)
-  bad <- function(...) rlang::abort(paste0(...), class = "ggjbrowse_bad_region")
+  bad <- function(...) rlang::abort(paste0(...), class = "ggjbrowse_bad_region",
+      call = NULL)
   contigs <- own$chrom[natural_order(own$chrom)]
   if (is.null(given)) {
     if (!nrow(own)) bad("the file names no contig on its ", where)
@@ -662,7 +663,8 @@ row_tracks <- function(tracks, layout, row) {
   tracks <- named_tracks(tracks, "")
   for (t in tracks) {
     r <- t$regions
-    if (!identical(paste(r$start, r$end), paste(layout$start, layout$end))) {
+    if (!identical(paste(bare_contig(r$chrom), r$start, r$end),
+      paste(bare_contig(layout$chrom), layout$start, layout$end))) {
       stop("a ", row, " track draws over the ", row, " row's regions, ",
         paste(loci_of_layout(layout), collapse = ", "), ", but one reads ",
         paste(loci_of(t), collapse = ", "), call. = FALSE)

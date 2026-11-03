@@ -146,8 +146,8 @@ read is listed once in each region it
 reaches, its copies sharing \code{read} and \code{row}
 \item \code{mismatches}: \code{position}, \code{base}, \code{read}, \code{frequency} (how many reads
 carry that base there, over the depth), \code{quality}, \code{fade}
-\item \code{gaps}: \code{start}, \code{end}, \code{type} (\code{"deletion"} or \code{"skip"}), \code{read},
-\code{fade}
+\item \code{gaps}: \code{start}, \code{end}, \code{length}, \code{type} (\code{"deletion"} or \code{"skip"}),
+\code{read}, \code{fade}
 \item \code{chains}: under \code{unit = "chain"}, each chain of more than one read:
 \code{start}, \code{end}, \code{row}, and the \code{color} and \code{opacity} of the hairline
 across it; empty otherwise

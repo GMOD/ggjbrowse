@@ -19,7 +19,8 @@ replacing <- function(data, table, geom) {
       "their rows by, so a filtered copy drawn alone leaves their marks ",
       "behind: assign it into the result, `x$%s <- subset(x$%s, ...)`, ",
       "which drops its children's rows too, and draw that result"),
-      table, table, table), class = "ggjbrowse_parent_data")
+      table, table, table), class = "ggjbrowse_parent_data",
+      call = NULL)
   }
   structure(list(frame = data, table = table), class = "jbrowse_table")
 }
