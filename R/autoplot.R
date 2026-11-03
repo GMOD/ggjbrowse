@@ -35,19 +35,13 @@ read_blocks <- function(x) {
   rbind(reads[n == 0, , drop = FALSE], blocks[ends > starts, , drop = FALSE])
 }
 
-# The points of each junction's arc: a half ellipse from its start to its end,
-# as high as the engine's `arcHeight`, a share of the band
-junction_arcs <- function(junctions, points = 48) {
-  if (!nrow(junctions)) {
-    return(data.frame(id = integer(0), x = numeric(0), y = numeric(0)))
-  }
-  span <- junctions$end - junctions$start
-  t <- seq(0, pi, length.out = points)
-  do.call(rbind, lapply(seq_len(nrow(junctions)), function(i) {
-    data.frame(id = i,
-      x = junctions$start[i] + span[i] * (1 - cos(t)) / 2,
-      y = junctions$arcHeight[i] * sin(t))
-  }))
+# Each span's dome as `points` points from foot to foot, a half ellipse as
+# high as its `height`, `id` its row
+domes <- function(start, end, height, points = 48) {
+  t <- rep(seq(0, pi, length.out = points), length(start))
+  id <- rep(seq_along(start), each = points)
+  data.frame(id = id, x = start[id] + (end - start)[id] * (1 - cos(t)) / 2,
+    y = height[id] * sin(t))
 }
 
 # The pileup's y axis is packed rows, which mean nothing to a reader

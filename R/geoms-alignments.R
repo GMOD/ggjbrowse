@@ -437,7 +437,7 @@ on_bar_of <- function(d, x) on_bar(x, d)
 # px as a linewidth at the figure's PX_PER_INCH
 junction_paths <- function(x) {
   j <- shown_junctions(x)
-  arcs <- junction_arcs(j)
+  arcs <- domes(j$start, j$end, j$arcHeight)
   arcs$color <- j$color[arcs$id]
   arcs$section <- j$section[arcs$id]
   arcs$count <- j$count[arcs$id]
@@ -475,14 +475,14 @@ geom_jbrowse_junction_counts <- function(mapping = NULL, data = NULL,
 # Each connection's arc as points: a dome from foot to foot, its height the
 # genomic radius up to the band's reach `top`, as the display rises an arc as
 # high as it is wide and flattens one wider than its band
-connection_domes <- function(arcs, top, points = 48) {
-  t <- rep(seq(0, pi, length.out = points), nrow(arcs))
-  id <- rep(seq_len(nrow(arcs)), each = points)
-  d <- arcs[id, , drop = FALSE]
-  d$id <- id
-  d$x <- d$start + (d$end - d$start) * (1 - cos(t)) / 2
-  d$height <- pmin(d$y, top)
-  d$y <- d$height * sin(t)
+connection_domes <- function(arcs, top) {
+  height <- pmin(arcs$y, top)
+  points <- domes(arcs$start, arcs$end, height)
+  d <- arcs[points$id, , drop = FALSE]
+  d$id <- points$id
+  d$x <- points$x
+  d$height <- height[points$id]
+  d$y <- points$y
   d
 }
 
