@@ -311,12 +311,8 @@ alignments_result <- function(t, assembly) {
   junctions <- frame(t$junctions)
   arcs <- frame(t$arcs)
   arc_ticks <- frame(t$arcTicks)
-  read_key <- structure(frame(t$legend), title = t$legendTitle)
-  arc_key <- structure(frame(t$arcLegend), title = t$arcLegendTitle)
-  engine_key <- function(key, title) {
-    key_frame(unlist(key$label) %||% character(0),
-      unlist(key$color) %||% character(0), title)
-  }
+  read_key <- engine_key(t$legend, t$legendTitle)
+  arc_key <- engine_key(t$arcLegend, t$arcLegendTitle)
   base_key <- engine_key(t$baseLegend, t$baseLegendTitle)
   interbase_key <- engine_key(t$interbaseLegend, t$interbaseLegendTitle)
   junction_key <- engine_key(t$junctionLegend, t$junctionLegendTitle)

@@ -145,8 +145,7 @@ variants_result <- function(t) {
   cells <- as_frame(t$cells)
   cells$variant <- variants$variant[cells$variant + 1L]
   cells$row <- factor(cells$row, levels = rows$name)
-  genotypes <- as_frame(t$legend)
-  attr(genotypes, "title") <- t$legendTitle
+  genotypes <- engine_key(t$legend, t$legendTitle)
   # an unwritten height is the 200 px the display's rows take
   # (jbrowse-components' DEFAULT_VARIANT_DISPLAY_HEIGHT); `[[`, since `$`
   # would partially match `heightMode`
@@ -155,9 +154,8 @@ variants_result <- function(t) {
   structure(
     list(variants = variants, cells = cells, rows = rows, bands = bands,
       annotations = annotations, display = display,
-      keys = list(genotypes = genotypes, rows = key_frame(
-        unlist(t$rowLegend$label) %||% character(0),
-        unlist(t$rowLegend$color) %||% character(0), t$rowLegendTitle)),
+      keys = list(genotypes = genotypes,
+        rows = engine_key(t$rowLegend, t$rowLegendTitle)),
       ramps = ramp_frames(t$ramps), y_scale = NULL,
       fields = Filter(Negate(is.null), list(info = info_fields,
         annotations = annotation_fields(t$annotationFields)))),

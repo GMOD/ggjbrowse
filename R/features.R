@@ -168,7 +168,7 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
     bpPerPx = sum(regions$end - regions$start) / width,
     colorByFrame = color_by_cds, aminoAcids = amino_acids,
     byteLimit = byte_limit)
-  key <- structure(as_frame(t$legend), title = t$legendTitle)
+  key <- engine_key(t$legend, t$legendTitle)
   features <- as_frame(t$features)
   features <- cbind(feature = match(features$id, unique(features$id)),
     features)

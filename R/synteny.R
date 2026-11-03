@@ -40,8 +40,7 @@ snake_frame <- function(columns) snake(as_frame(columns))
 # A comparative view's key as the engine titles and colors it, its chips
 # drawn at `alpha`
 legend_key <- function(r, alpha) {
-  structure(key_frame(unlist(r$legend$label), unlist(r$legend$color),
-    r$legendTitle), alpha = alpha)
+  structure(engine_key(r$legend, r$legendTitle), alpha = alpha)
 }
 
 # The engine's camelCase columns as this package's snake_case

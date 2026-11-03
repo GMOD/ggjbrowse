@@ -264,5 +264,5 @@ test_that("the rows' background is the reference grey under a cell color field",
   v <- read_people(list(encoding = list(color = list(field = "AF"))))
   expect_false(v$keys$genotypes$label[1] == "Homozygous reference")
   background <- ggplot2::layer_data(ggplot2::autoplot(v), 1)
-  expect_equal(background$fill, "#cccccc")
+  expect_equal(as.character(background$fill), "#cccccc")
 })

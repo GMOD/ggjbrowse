@@ -2,6 +2,13 @@ key_frame <- function(label, color, title) {
   structure(data.frame(label = label, color = tolower(color)), title = title)
 }
 
+engine_key <- function(legend, title) {
+  key <- as_frame(legend)
+  key$label <- as.character(key$label)
+  key$color <- tolower(as.character(key$color))
+  structure(key, title = title)
+}
+
 key_shown <- function(key, shown) {
   kept <- key[key$color %in% shown, , drop = FALSE]
   for (a in setdiff(names(attributes(key)), names(attributes(kept)))) {
