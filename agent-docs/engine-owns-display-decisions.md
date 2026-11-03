@@ -1,6 +1,7 @@
 # Handoff: the engine owns the display's decisions
 
-- **Status:** done (2026-10-15). Since 2026-10-19 the engine's
+- **Status:** done (2026-10-15), with three engine fixes found since listed
+  under "Waiting on the engine". Since 2026-10-19 the engine's
   `alignmentMarkAlpha` sizes and fades the pileup's marks, so R copies two
   small rules, listed below, and still draws some insertion details
   differently.
@@ -103,3 +104,43 @@ reference bases.
   3 px per bp or more), and `geom_jbrowse_letters()` writes every insertion's
   length beside it, where JBrowse writes `(N)` beside a small one and `N`
   inside a boxed one.
+- **A multi-row wiggle's range.** JBrowse writes the rows' shared domain,
+  `[0, 200]`, at the top right; R's rows show no scale. This is R's to draw,
+  from `y_scale$domain`.
+- **A transcript past the view's edge.** JBrowse marks it with `≫` at the
+  edge (the `amino_acids` gallery figure); R does not. Not yet traced to
+  where JBrowse decides it.
+
+## Waiting on the engine
+
+Found 2026-11-02 comparing the gallery halves. Each is JBrowse's decision,
+so R does not copy it: the fix is in jbrowse-components, then an engine bump
+here. Local jbrowse-components `main` is 106 commits past the pinned
+v5.0.0-beta.20, and a bump from it takes those too.
+
+- **Synteny ribbons stop short of the view's edges.** `inversion_synteny`'s
+  top-right corner and `amylase_zoom`'s corners are white where JBrowse
+  fills them. In chr8, alignment 2 runs to 25,080,663, but its ribbon ends
+  at 13,998,216, where the bottom row's region ends.
+  - Cause: the live display's displayed region is the whole contig, and
+    `syntenyFetchRegions()` buffers the visible window inside it. The
+    tables engine (`plugins/linear-comparative-view/src/tables.ts`) makes
+    the requested loci the displayed regions and passes them as the fetch
+    and target windows, so `buildSyntenyGeometry` trims each ribbon where
+    either row's window ends.
+  - `place()` clamps each foot to its region on its own, so a wider window
+    alone would skew a partly off-screen ribbon, where it should clip.
+    Fixing it changes how the tables lay out an axis: each ribbon's region
+    and its px.
+- **A dotplot with no color field keys "Default / alignment".** The views'
+  `colorScales` (synteny-core `TrackColorsMixin`) show no key unless
+  `hasLegendKey`, which needs a track, strand, measurement or column field.
+  `comparativeLegend()` returns chips for every field, and
+  `packages/tables/src/synteny.test.ts` asserts the default
+  `['match', 'insertion', 'deletion']`, so the tables' key is deliberate
+  there. Settle which rule the tables follow before changing it.
+- **Clipped wiggle bars carry no flag.** JBrowse paints a `CLIP_STRIP_PX`
+  strip of `CLIP_STRIP_COLOR` (render-core `clipStrip`) across a row's edge
+  where a bar passes its domain; R paints none. In `dnase_rows`, K562 peaks
+  at 427 on a 0–260 domain. The engine could flag each clipped mark in
+  `marks` and return the strip's color and px.
