@@ -22,8 +22,8 @@
 - A named vector anywhere in `display` is written as a JSON object, where it
   had lost its names, and a `TRUE` or `FALSE` in a slot named like an array
   slot, such as `rows$axis$labels`, stays a boolean.
-- The engine is `@jbrowse/tables` 5.0.0-beta.19 at jbrowse-components
-  87f4bd5c78, bundled in `inst/js/jbrowse-tables.js`.
+- The engine is `@jbrowse/tables` 5.0.0-beta.20, bundled in
+  `inst/js/jbrowse-tables.js`.
 
 # ggjbrowse 0.11.0
 
