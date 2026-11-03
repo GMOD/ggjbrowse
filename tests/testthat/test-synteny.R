@@ -66,6 +66,19 @@ test_that("a track over a row reads the row's contig, not only its span", {
   expect_s3_class(autoplot(hg002, above = paternal), "patchwork")
 })
 
+test_that("a track over a PanSN-named row reads the contig past its prefix", {
+  bed <- withr::local_tempfile(fileext = ".bed")
+  writeLines("chr1\t103600000\t103650000\tAMY1A\t0\t+", bed)
+  span <- "103,520,894-103,832,637"
+  amylase <- jbrowse_synteny(
+    system.file("extdata", "hprc_amylase.paf", package = "ggjbrowse"),
+    "HG01361#1#CM089019.1:103,831,844-104,049,351",
+    paste0("GRCh38#0#chr1:", span))
+  genes <- jbrowse_features(bed, paste0("chr1:", span))
+  expect_s3_class(autoplot(amylase, below = genes), "patchwork")
+  expect_error(autoplot(amylase, above = genes), "top row.s regions")
+})
+
 test_that("tracks over each row stack around the band", {
   genes <- jbrowse_features(gff, target, display = list(filter = "geneLike"))
   fig <- autoplot(s, below = genes)

@@ -244,10 +244,11 @@ loci_of <- function(x) loci_of_layout(x$regions)
 print_loci <- function(x) paste(loci_of(x), collapse = ", ")
 
 # Whether a track reads `layout`'s regions, a contig spelt with or without
-# its `chr`
+# its `chr`, and a PanSN row's contig as its name past the last `#`
 same_loci <- function(read, layout) {
-  identical(paste(bare_contig(read$chrom), read$start, read$end),
-    paste(bare_contig(layout$chrom), layout$start, layout$end))
+  contig <- function(chrom) bare_contig(sub("^.*#", "", chrom))
+  identical(paste(contig(read$chrom), read$start, read$end),
+    paste(contig(layout$chrom), layout$start, layout$end))
 }
 
 # A position in a region on the axis that lays the regions at their offsets

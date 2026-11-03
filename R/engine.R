@@ -261,7 +261,7 @@ as_engine_json <- function(args) {
     x
   }
   as.character(jsonlite::toJSON(objects(args), auto_unbox = TRUE,
-    digits = NA))
+    digits = I(17)))
 }
 
 call_engine <- function(table, args) {

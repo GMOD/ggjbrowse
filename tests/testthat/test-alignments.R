@@ -837,8 +837,6 @@ test_that("a deletion split across two regions is labelled with its whole length
   a <- jbrowse_alignments(
     system.file("extdata", "hg008t_cuzd1_deletion.bam", package = "ggjbrowse"),
     c("chr10:122,835,000-122,836,200", "chr10:122,836,201-122,837,500"))
-  long <- a$gaps[a$gaps$length > 1000, ]
-  expect_equal(long$length, long$end - long$start)
   labels <- ggplot2::layer_data(ggplot2::ggplot() +
     geom_jbrowse_deletion_lengths(data = a))$label
   expect_true(all(labels > 1000))

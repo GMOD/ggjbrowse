@@ -146,6 +146,8 @@ variants_result <- function(t) {
   cells$variant <- variants$variant[cells$variant + 1L]
   cells$row <- factor(cells$row, levels = rows$name)
   genotypes <- engine_key(t$legend, t$legendTitle)
+  attr(genotypes, "background") <- genotypes$color[genotypes$label %in%
+    c("Homozygous reference", "Reference")][1]
   # an unwritten height is the 200 px the display's rows take
   # (jbrowse-components' DEFAULT_VARIANT_DISPLAY_HEIGHT); `[[`, since `$`
   # would partially match `heightMode`
@@ -324,11 +326,10 @@ density_alpha <- function(variants, bp_per_px) {
 }
 
 # Every row's background in the reference call's grey, as the display paints
-# a row behind the cells it draws: the key's reference entry, wherever a color
-# field's entries put it, and none where the key has none
+# a row behind the cells it draws: the key's reference entry as read, wherever
+# a color field's entries put it, and none where the key has none
 reference_rows <- function(x) {
-  key <- x$keys$genotypes
-  color <- key$color[key$label %in% c("Homozygous reference", "Reference")][1]
+  color <- attr(x$keys$genotypes, "background") %||% NA_character_
   background <- data.frame(xmin = -Inf, xmax = Inf, ymin = 0.5,
     ymax = nrow(x$rows) + 0.5, color = color)[!is.na(color), , drop = FALSE]
   ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin,
