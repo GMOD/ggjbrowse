@@ -659,8 +659,7 @@ upright_names <- function(layout, axis) {
 
 # The tracks a row shows, each read over the row's regions
 row_tracks <- function(tracks, layout, row) {
-  if (is.null(tracks)) return(list())
-  if (inherits(tracks, "jbrowse_result")) tracks <- list(tracks)
+  tracks <- named_tracks(tracks, "")
   for (t in tracks) {
     r <- t$regions
     if (!identical(paste(r$start, r$end), paste(layout$start, layout$end))) {
@@ -676,6 +675,13 @@ row_tracks <- function(tracks, layout, row) {
   })
 }
 
+# Each track's bands, titled by its name in the list as jbrowse_stack()
+# titles them
+titled_bands <- function(tracks) {
+  unname(Map(function(t, name) titled(track_bands(t), name), tracks,
+    names(tracks)))
+}
+
 #' Draw a pairwise alignment as JBrowse's linear synteny view
 #'
 #' The band of ribbons between the two rows, the query row's ruler above it
@@ -688,7 +694,8 @@ row_tracks <- function(tracks, layout, row) {
 #' @param object a [jbrowse_synteny()] result
 #' @param above,below tracks over the top row's regions, drawn above the
 #'   band, and over the bottom row's, drawn below it: each a result or a
-#'   list of them
+#'   list of them, a list's names titling its tracks as [jbrowse_stack()]
+#'   titles them
 #' @param curves draw each ribbon edge as a curve, as the view's
 #'   `mark = list(interpolate = "bump")` does; unset, as the result's display
 #'   says
@@ -713,9 +720,9 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
   above <- row_tracks(above, on_axis_of(object$regions, "query"), "top")
   below <- row_tracks(below, on_axis_of(object$regions, "target"), "bottom")
   if (!length(above) && !length(below)) return(band)
-  bands <- c(lapply(above, track_bands),
+  bands <- c(titled_bands(above),
     list(list(plots = list(band), heights = object$display$height)),
-    lapply(below, track_bands))
+    titled_bands(below))
   own <- sum(lengths(lapply(bands[seq_along(above)], `[[`, "plots"))) + 1
   stack_bands(bands, axis_at = own)
 }

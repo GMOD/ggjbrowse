@@ -116,6 +116,9 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   genes <- jbrowse_features(gff, m$lanes$locus[1],
     display = list(filter = "geneLike"))
   fig <- autoplot(m, above = genes)
+  titled <- autoplot(m, above = list("volvox genes" = genes))
+  expect_equal(titled$patches$plots[[1]]$labels$title, "volvox genes")
+  expect_null(fig$patches$plots[[1]]$labels$title)
   expect_equal(length(fig$patches$plots) + 1, 2)
   expect_s3_class(fig$theme$axis.text.x, "element_blank")
   expect_s3_class(fig$patches$plots[[1]]$theme$axis.text.x, "element_blank")

@@ -11,7 +11,8 @@
 
 \item{above, below}{tracks over the top row's regions, drawn above the
 band, and over the bottom row's, drawn below it: each a result or a
-list of them}
+list of them, a list's names titling its tracks as \code{\link[=jbrowse_stack]{jbrowse_stack()}}
+titles them}
 
 \item{curves}{draw each ribbon edge as a curve, as the view's
 \code{mark = list(interpolate = "bump")} does; unset, as the result's display

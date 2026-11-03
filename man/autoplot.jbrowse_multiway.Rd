@@ -10,7 +10,8 @@
 \item{object}{a \code{\link[=jbrowse_multiway]{jbrowse_multiway()}} result}
 
 \item{above, below}{tracks over the anchor lane and over the bottom lane, a
-result or a list of them; a lane drawn flipped takes none}
+result or a list of them, a list's names titling its tracks as
+\code{\link[=jbrowse_stack]{jbrowse_stack()}} titles them; a lane drawn flipped takes none}
 
 \item{curves}{draw each ribbon edge as a curve, as the display's
 \code{ribbons = list(mark = list(interpolate = "bump"))} does; unset, as the

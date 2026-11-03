@@ -29,6 +29,9 @@
   view's edge, where it drew it cut in half, and a lane names the other
   contigs placing a comparable share (`lanes$also_on`), as the display's
   header does.
+- `autoplot()` of a synteny or multi-way result titles each track a named
+  list passes as `above` or `below`, as `jbrowse_stack()` titles a named
+  track, where it dropped the names.
 - The engine is `@jbrowse/tables` 5.0.0-beta.20, bundled in
   `inst/js/jbrowse-tables.js`.
 

@@ -457,7 +457,8 @@ lane_band <- function(track, x, lane, where) {
 #'
 #' @param object a [jbrowse_multiway()] result
 #' @param above,below tracks over the anchor lane and over the bottom lane, a
-#'   result or a list of them; a lane drawn flipped takes none
+#'   result or a list of them, a list's names titling its tracks as
+#'   [jbrowse_stack()] titles them; a lane drawn flipped takes none
 #' @param curves draw each ribbon edge as a curve, as the display's
 #'   `ribbons = list(mark = list(interpolate = "bump"))` does; unset, as the
 #'   result's settings say
@@ -482,9 +483,13 @@ autoplot.jbrowse_multiway <- function(object, above = NULL, below = NULL,
                                       curves = NULL, ...) {
   rlang::check_dots_empty()
   stack <- multiway_stack(object, curves)
-  top <- lapply(listed_tracks(above), lane_band, object, 1, "above")
-  bottom <- lapply(listed_tracks(below), lane_band, object, nrow(object$lanes),
-    "below")
+  band <- function(tracks, lane, where) {
+    named <- named_tracks(tracks, "")
+    unname(Map(function(t, name) titled(lane_band(t, object, lane, where),
+      name), named, names(named)))
+  }
+  top <- band(above, 1, "above")
+  bottom <- band(below, nrow(object$lanes), "below")
   if (!length(top) && !length(bottom)) return(stack)
   bands <- c(top, list(list(plots = list(stack), heights = object$height)),
     bottom)
