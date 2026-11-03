@@ -517,7 +517,7 @@ geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, width = NULL,
     jbrowse_layer(ggplot2::GeomPath, data, domes,
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = y, group = id, colour = I(color),
-        linewidth = I(px_to_mm(width))), list(...)),
+        linewidth = I(px_to_mm(.data$width))), list(...)),
     jbrowse_layer(ggplot2::GeomSegment, data, bars,
       for_geom(mapping, ggplot2::GeomSegment),
       ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = I(color),
@@ -541,7 +541,7 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
     t$top <- rep(arc_top(x, width), nrow(t))
     t
   }, mapping, ggplot2::aes(x = position, xend = position, y = bottom,
-    yend = top, colour = I(color), linewidth = I(px_to_mm(width))),
+    yend = top, colour = I(color), linewidth = I(px_to_mm(.data$width))),
     list(...))
 }
 

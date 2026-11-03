@@ -2,6 +2,7 @@
 "_PACKAGE"
 
 #' @importFrom ggplot2 autoplot
+#' @importFrom rlang .data
 #' @importFrom utils globalVariables
 NULL
 
