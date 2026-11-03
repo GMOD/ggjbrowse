@@ -302,8 +302,9 @@ multiway_feet <- function(r) {
 #' `geom_jbrowse_lane_ribbons()` draws each ribbon from under its upper lane
 #' to over its lower lane as the display draws it: a filled trapezoid in its
 #' color at its opacity, or a one-pixel line where it is thinner than a
-#' pixel. `geom_jbrowse_lanes()` draws each lane's line, its ruler and, for a
-#' gene table, the boxes the ribbons join. Lanes stack top to bottom as the
+#' pixel. `geom_jbrowse_lanes()` draws each lane's line, its ruler, labelled
+#' at each tick whose label fits inside the view, and, for a gene table, the
+#' boxes the ribbons join. Lanes stack top to bottom as the
 #' display lays them out over its `height`, y the pixels up from the stack's
 #' bottom; x is the view's pixels.
 #' @param mapping aesthetics that override the defaults
@@ -353,18 +354,34 @@ geom_jbrowse_lanes <- function(data = NULL, ...) {
     jbrowse_layer(ggplot2::GeomSegment, data, function(x) x$ticks, NULL,
       ggplot2::aes(x = x, xend = x, y = y, yend = y + tick_px),
       list(colour = "grey35", linewidth = 0.3, ...)),
-    jbrowse_layer(ggplot2::GeomText, data, function(x) x$ticks, NULL,
-      ggplot2::aes(x = x, y = y + tick_px + 2,
-        label = scales::label_number(scale_cut = scales::cut_si("bp"))(bp)),
-      list(size = 2.2, vjust = 0, colour = "grey30", ...)))
+    jbrowse_layer(ggplot2::GeomText, data, tick_labels, NULL,
+      ggplot2::aes(x = x, y = y + tick_px + 2, label = label),
+      list(size = TICK_LABEL_MM, vjust = 0, colour = "grey30", ...)))
 }
 
-# Each lane's name on the y axis: its assembly, and the contig it shows
+TICK_LABEL_MM <- 2.2
+
+# Each lane's tick labels, those whose text would cross the view's edge at
+# PX_PER_INCH left out
+tick_labels <- function(x) {
+  t <- x$ticks
+  t$label <- scales::label_number(scale_cut = scales::cut_si("bp"))(t$bp)
+  gp <- grid::gpar(fontsize = TICK_LABEL_MM * ggplot2::.pt)
+  half <- vapply(t$label, function(l) grid::convertWidth(grid::grobWidth(
+    grid::textGrob(l, gp = gp)), "inches", valueOnly = TRUE), 0) *
+    PX_PER_INCH / 2
+  t[t$x - half >= 0 & t$x + half <= x$width, , drop = FALSE]
+}
+
+# Each lane's name on the y axis: its assembly, the contig it shows, and
+# the other contigs placing a comparable share
 lane_names <- function(x) {
   l <- x$lanes
   where <- ifelse(is.na(l$chrom), "nothing in view",
     paste0(l$chrom, ifelse(l$flipped, ", reversed", "")))
-  paste0(l$label, "\n", where)
+  also <- ifelse(!nzchar(l$also_on), "",
+    paste0("\nalso on ", gsub(",", ", ", l$also_on, fixed = TRUE)))
+  paste0(l$label, "\n", where, also)
 }
 
 multiway_stack <- function(x, curves) {
@@ -431,7 +448,8 @@ lane_band <- function(track, x, lane, where) {
 #' Draw a multi-genome alignment as JBrowse's multi-way synteny display
 #'
 #' The lanes top to bottom, each with its own ruler and its genome named on
-#' the left, the ribbons between them, and any tracks over the anchor lane
+#' the left, with any other contig placing a comparable share, the ribbons
+#' between them, and any tracks over the anchor lane
 #' above the stack and over the bottom lane below it: a
 #' [jbrowse_features()], [jbrowse_wiggle()], [jbrowse_variants()] or
 #' [jbrowse_alignments()] result read over that lane's window, as

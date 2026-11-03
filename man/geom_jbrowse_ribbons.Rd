@@ -32,7 +32,8 @@ a list of ggplot layers
 \code{geom_jbrowse_ribbons()} draws each ribbon between the query row at the
 top of the panel (\code{y = 1}) and the target row at the bottom (\code{y = 0}) as
 the band draws it: a filled trapezoid in its color at its opacity, or a
-one-pixel line where it is thinner than a pixel, with the band's location
+one-pixel line where it is thinner than a pixel (\code{linewidth} in \code{...}
+widens it), with the band's location
 ticks where the view draws them. \code{geom_jbrowse_offscreen_mates()} draws
 the strip the band hangs off a row's edge for the blocks whose mate the
 other row is not showing: the display's own marks, 6 px tall, grey or in

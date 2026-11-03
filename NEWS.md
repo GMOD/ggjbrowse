@@ -22,6 +22,13 @@
 - A named vector anywhere in `display` is written as a JSON object, where it
   had lost its names, and a `TRUE` or `FALSE` in a slot named like an array
   slot, such as `rows$axis$labels`, stays a boolean.
+- `geom_jbrowse_ribbons()` and `geom_jbrowse_lane_ribbons()` draw a thin
+  ribbon one pixel wide, as the band does, where they drew it nearly two;
+  `linewidth` widens it.
+- A multi-way lane's ruler leaves out a tick label that would run past the
+  view's edge, where it drew it cut in half, and a lane names the other
+  contigs placing a comparable share (`lanes$also_on`), as the display's
+  header does.
 - The engine is `@jbrowse/tables` 5.0.0-beta.20, bundled in
   `inst/js/jbrowse-tables.js`.
 

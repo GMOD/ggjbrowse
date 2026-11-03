@@ -672,10 +672,12 @@ test_that("an empty display slot reads as the display's defaults", {
   bam <- extdata("arabidopsis_wgbs.bam")
   fa <- extdata("arabidopsis_tair10.fa.gz")
   locus <- "NC_003070.9:4,406,001-4,407,000"
-  read <- function(modifications) jbrowse_alignments(bam, locus,
-    assembly = fa, display = list(pileup = list(bases = list(show = TRUE, encoding = list(color = "bisulfite"))),
-      modifications = modifications))
-  expect_equal(read(list())$modifications, read(NULL)$modifications)
+  read <- function(unmodified) jbrowse_alignments(bam, locus,
+    assembly = fa, display = list(pileup = list(bases = list(show = TRUE,
+      encoding = list(color = "bisulfite"), unmodified = unmodified))))
+  expect_no_warning(empty <- read(list()))
+  expect_equal(empty$modifications, read(NULL)$modifications)
+  expect_error(read(I(list())), "not \\[\\]")
 })
 
 test_that("the sequence band asks for the reference it draws", {

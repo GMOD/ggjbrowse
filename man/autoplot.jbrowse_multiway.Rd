@@ -24,7 +24,8 @@ height and width \code{\link[=jbrowse_height]{jbrowse_height()}} and \code{\link
 }
 \description{
 The lanes top to bottom, each with its own ruler and its genome named on
-the left, the ribbons between them, and any tracks over the anchor lane
+the left, with any other contig placing a comparable share, the ribbons
+between them, and any tracks over the anchor lane
 above the stack and over the bottom lane below it: a
 \code{\link[=jbrowse_features]{jbrowse_features()}}, \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}}, \code{\link[=jbrowse_variants]{jbrowse_variants()}} or
 \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result read over that lane's window, as

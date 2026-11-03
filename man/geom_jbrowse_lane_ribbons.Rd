@@ -29,8 +29,9 @@ a list of ggplot layers
 \code{geom_jbrowse_lane_ribbons()} draws each ribbon from under its upper lane
 to over its lower lane as the display draws it: a filled trapezoid in its
 color at its opacity, or a one-pixel line where it is thinner than a
-pixel. \code{geom_jbrowse_lanes()} draws each lane's line, its ruler and, for a
-gene table, the boxes the ribbons join. Lanes stack top to bottom as the
+pixel. \code{geom_jbrowse_lanes()} draws each lane's line, its ruler, labelled
+at each tick whose label fits inside the view, and, for a gene table, the
+boxes the ribbons join. Lanes stack top to bottom as the
 display lays them out over its \code{height}, y the pixels up from the stack's
 bottom; x is the view's pixels.
 }

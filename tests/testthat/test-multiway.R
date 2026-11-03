@@ -135,6 +135,27 @@ test_that("the stack draws every lane and ribbon, with tracks over the anchor an
   expect_equal(nrow(ggplot2::layer_data(autoplot(bumped), 1)), nrow(curved))
 })
 
+test_that("a lane's ruler labels only the ticks whose labels fit in the view", {
+  x <- on_axis(m)
+  at_edges <- x
+  at_edges$ticks <- data.frame(lane = 1, bp = c(0, 25000, 50000), y = 0,
+    x = c(0, m$width / 2, m$width))
+  labels <- tick_labels(at_edges)
+  expect_equal(labels$x, m$width / 2)
+  expect_equal(labels$label, "25 kbp")
+  drawn <- ggplot2::layer_data(autoplot(m), 6)
+  expect_true(all(c("x", "label") %in% names(drawn)))
+  expect_true(all(drawn$x > 0 & drawn$x < m$width))
+})
+
+test_that("a lane placing a comparable share on another contig names it", {
+  x <- m
+  x$lanes$also_on <- c("", "ctgB,ctgC", "")
+  names <- lane_names(x)
+  expect_match(names[2], "\nalso on ctgB, ctgC$")
+  expect_false(any(grepl("also on", names[-2])))
+})
+
 # The PAF is reference-anchored: HG01361 aligns to GRCh38 alone, so a lane
 # under HG00133 has no records, and a read of it fails.
 test_that("an inversion draws as its records state it, its ribbons crossed", {

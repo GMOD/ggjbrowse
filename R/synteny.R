@@ -432,7 +432,8 @@ ribbon_lines <- function(r, curves, feet = band_feet(r)) {
 #' `geom_jbrowse_ribbons()` draws each ribbon between the query row at the
 #' top of the panel (`y = 1`) and the target row at the bottom (`y = 0`) as
 #' the band draws it: a filled trapezoid in its color at its opacity, or a
-#' one-pixel line where it is thinner than a pixel, with the band's location
+#' one-pixel line where it is thinner than a pixel (`linewidth` in `...`
+#' widens it), with the band's location
 #' ticks where the view draws them. `geom_jbrowse_offscreen_mates()` draws
 #' the strip the band hangs off a row's edge for the blocks whose mate the
 #' other row is not showing: the display's own marks, 6 px tall, grey or in
@@ -485,7 +486,8 @@ ribbon_layers <- function(mapping, data, curved, feet, ...) {
     jbrowse_layer(ggplot2::GeomPath, data, lines,
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = y, group = ribbon, colour = I(color),
-        alpha = I(alpha)), list(linewidth = 0.3, ...)))
+        alpha = I(alpha)), with_defaults(list(...),
+        list(linewidth = px_to_mm(1)))))
 }
 
 #' @rdname geom_jbrowse_ribbons
