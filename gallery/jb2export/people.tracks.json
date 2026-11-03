@@ -27,7 +27,9 @@
         "displayId": "people-display",
         "height": 450,
         "variantLayout": "columns",
-        "rows": { "color": "superpopulation" }
+        "rows": {
+          "color": "superpopulation"
+        }
       }
     ]
   }
