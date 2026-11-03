@@ -259,3 +259,10 @@ test_that("a boolean in an array-named slot stays a boolean, a named vector a ma
   v <- read_people(list(rows = list(axis = list(labels = FALSE))))
   expect_false(v$display$rows$axis$labels)
 })
+
+test_that("the rows' background is the reference grey under a cell color field", {
+  v <- read_people(list(encoding = list(color = list(field = "AF"))))
+  expect_false(v$keys$genotypes$label[1] == "Homozygous reference")
+  background <- ggplot2::layer_data(ggplot2::autoplot(v), 1)
+  expect_equal(background$fill, "#cccccc")
+})

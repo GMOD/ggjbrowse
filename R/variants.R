@@ -325,11 +325,14 @@ density_alpha <- function(variants, bp_per_px) {
   alpha
 }
 
-# Every row's background in the reference call's grey, the key's first entry,
-# as the display paints a row behind the cells it draws
+# Every row's background in the reference call's grey, as the display paints
+# a row behind the cells it draws: the key's reference entry, wherever a color
+# field's entries put it, and none where the key has none
 reference_rows <- function(x) {
+  key <- x$keys$genotypes
+  color <- key$color[key$label %in% c("Homozygous reference", "Reference")][1]
   background <- data.frame(xmin = -Inf, xmax = Inf, ymin = 0.5,
-    ymax = nrow(x$rows) + 0.5, color = x$keys$genotypes$color[1])
+    ymax = nrow(x$rows) + 0.5, color = color)[!is.na(color), , drop = FALSE]
   ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin,
     ymax = ymax, fill = I(color)), data = background, inherit.aes = FALSE)
 }

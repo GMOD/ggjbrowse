@@ -98,6 +98,12 @@ reference bases.
   `LEGEND_CHIP_ALPHA_FLOOR`, and `jbrowse_multiway()` at 0.6. The engine
   could return the chip alpha beside `legend`.
 
+- **The genotype rows' background.** `reference_rows()` fills each row
+  with the key entry labelled "Homozygous reference" (or "Reference" for
+  haplotype rows), the display's `REFERENCE_COLOR`, since a cell color
+  field's entries come before it. The engine could return the row
+  background beside `legend`.
+
 ## Where R still draws differently from JBrowse
 
 - **Insertion details.** R draws no serifs (on an insertion under 10 bp at
