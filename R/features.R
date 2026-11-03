@@ -363,6 +363,16 @@ geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
       ggplot2::aes(x = x, y = y, group = id, fill = I(color)), list(...)))
 }
 
+# The display's extent in pixels behind each row of `d`: across the regions
+# at the bp per px the engine laid them out at, and down its section
+display_extent <- function(d, x) {
+  n <- nrow(d)
+  d$px_wide <- rep(diff(xlim_of(x)) / x$bp_per_px, n)
+  d$px_tall <- if (is.null(d$section)) rep(x$height, n)
+    else section_px(x)[as.integer(d$section)]
+  d
+}
+
 #' @rdname geom_jbrowse_glyphs
 #' @export
 geom_jbrowse_amino_acids <- function(mapping = NULL, data = NULL, ...) {
@@ -371,11 +381,8 @@ geom_jbrowse_amino_acids <- function(mapping = NULL, data = NULL, ...) {
     d <- x$amino_acids[nzchar(x$amino_acids$text), , drop = FALSE]
     n <- nrow(d)
     d$position <- (d$start + d$end) / 2
-    d$px_wide <- rep(diff(xlim_of(x)) / x$bp_per_px, n)
-    d$px_tall <- if (is.null(d$section)) rep(x$height, n)
-      else section_px(x)[as.integer(d$section)]
     d$halo <- rep(x$glyph$aminoAcidHalo, n)
-    d
+    display_extent(d, x)
   }
   jbrowse_layer(GeomDisplayText, data, lettered, mapping,
     ggplot2::aes(x = position, y = y, label = text, colour = I(color),
@@ -392,10 +399,7 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
     d <- x$labels
     n <- nrow(d)
     d$size <- rep(x$glyph$fontSize, n)
-    d$px_wide <- rep(diff(xlim_of(x)) / x$bp_per_px, n)
-    d$px_tall <- if (is.null(d$section)) rep(x$height, n)
-      else section_px(x)[as.integer(d$section)]
-    d
+    display_extent(d, x)
   }
   jbrowse_layer(GeomDisplayText, data, labels, mapping,
     ggplot2::aes(x = position, y = y, label = text, colour = I(color),
