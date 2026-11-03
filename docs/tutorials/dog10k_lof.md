@@ -117,11 +117,13 @@ certificate, so R reads JBrowse's hosted copy of the callset's record at the
 stop site, with every canid's genotype. Given the 397 GB callset's own URL,
 `jbrowse_variants()` fetches the same record by range request. The result
 has a column for each record's `filter` and INFO fields, a row for every canid
-in the callset and a cell for each non-reference call:
+in the callset and a cell for each non-reference call. JBrowse's copies are
+read at the release this tutorial follows:
 
 
 ``` r
-callset <- "https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_cyp1a2_stop_site.vcf.gz"
+hosted <- "https://jbrowse.org/code/jb2/v5.0.0-beta.20/test_data/dog10k"
+callset <- file.path(hosted, "dog10k_cyp1a2_stop_site.vcf.gz")
 everyone <- jbrowse_variants(callset, sprintf("chr30:%d-%d", stop_site, stop_site))
 everyone$variants |> select(start, ref, alt, filter, AC, AN)
 #>      start ref alt filter  AC   AN
@@ -152,7 +154,7 @@ test data:
 
 
 ``` r
-slice <- "https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_cyp1a2_snvs.vcf.gz"
+slice <- file.path(hosted, "dog10k_cyp1a2_snvs.vcf.gz")
 ```
 
 ## Genotypes across breeds and wolves
@@ -163,7 +165,7 @@ breed and category. The matrix labels each row with its breed, and
 
 
 ``` r
-meta <- read_tsv("https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_sample_table.tsv",
+meta <- read_tsv(file.path(hosted, "dog10k_sample_table.tsv"),
   show_col_types = FALSE) |>
   transmute(name = sampleName, breed = Breed.Type, category = Category)
 
@@ -397,7 +399,7 @@ reads it as a table:
 
 ``` r
 cohort <- read_tsv(
-  "https://jbrowse.org/code/jb2/main/test_data/dog10k/dog10k_cyp1a2_cohort_cn.bed.gz",
+  file.path(hosted, "dog10k_cyp1a2_cohort_cn.bed.gz"),
   col_names = c("chrom", "start", "end", "name", "score", "strand",
     "thickStart", "thickEnd", "itemRgb", "name_sample", "copyNumber"),
   col_types = cols(itemRgb = "c", .default = col_guess())) |>

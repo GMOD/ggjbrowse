@@ -115,8 +115,9 @@ reference bases.
 
 Found 2026-11-02 comparing the gallery halves. Each is JBrowse's decision,
 so R does not copy it: the fix is in jbrowse-components, then an engine bump
-here. Local jbrowse-components `main` is 106 commits past the pinned
-v5.0.0-beta.20, and a bump from it takes those too.
+here. On 2026-11-03 local jbrowse-components `main` was 195 commits past the
+pinned v5.0.0-beta.20, none of them fixing these, and a bump from it takes
+those too.
 
 - **Synteny ribbons stop short of the view's edges.** `inversion_synteny`'s
   top-right corner and `amylase_zoom`'s corners are white where JBrowse
