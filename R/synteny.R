@@ -51,6 +51,12 @@ snake <- function(d) {
 }
 
 
+# The assemblies a pairwise adapter config names, in query, target order
+adapter_assemblies <- function(config) {
+  unlist(config$assemblyNames) %||%
+    unlist(c(config$queryAssembly, config$targetAssembly))
+}
+
 comparative_args <- function(file, index, display) {
   args <- list(adapterConfig = adapter_of(file, function()
     synteny_adapter(file, index)))
@@ -87,8 +93,7 @@ display_names <- function(names, labels, config) {
       stop("`labels` is a named vector, or a pair in query, target order",
         call. = FALSE)
     }
-    names(labels) <- unlist(config$assemblyNames) %||%
-      unlist(c(config$queryAssembly, config$targetAssembly))
+    names(labels) <- adapter_assemblies(config)
   }
   hit <- match(names, names(labels))
   ifelse(is.na(hit), names, unname(labels)[hit])
@@ -97,8 +102,7 @@ display_names <- function(names, labels, config) {
 # The assembly each axis is on, first and second: `assemblies` where given,
 # else the adapter's own names, reversed by `swap`
 axis_assemblies <- function(config, assemblies, swap) {
-  names <- assemblies %||% unlist(config$assemblyNames) %||%
-    unlist(c(config$queryAssembly, config$targetAssembly))
+  names <- assemblies %||% adapter_assemblies(config)
   if (!swap) return(names)
   if (length(names) < 2) {
     stop("swap = TRUE needs two assembly names, the adapter's or `assemblies`",
@@ -310,38 +314,60 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
                             display = NULL, width = DEFAULT_WIDTH,
                             assemblies = NULL, swap = FALSE, labels = NULL,
                             index = NULL) {
-  args <- comparative_args(file, index, display)
-  axes <- comparative_axes(args$adapterConfig, query, target, assemblies, swap)
-  q <- axes$first
-  t <- axes$second
-  args <- c(args, list(query = axis_args(q, axes$names[1], width),
-    target = axis_args(t, axes$names[2], width)))
-  read <- warned_call("synteny", args)
-  r <- read$value
-  regions <- rbind(axis_rows(q, "query", axes$names[1]),
-    axis_rows(t, "target", axes$names[2]))
-  alignments <- keyed_alignments(r$alignments)
-  ribbons <- snake_frame(r$ribbons)
-  ribbons$alignment <- as.integer(ribbons$alignment) + 1L
-  ribbons$query_region <- ribbons$query_region + 1
-  ribbons$target_region <- ribbons$target_region + 1 + nrow(q)
+  p <- pairwise_read("synteny", file, query, target,
+    c(query = width, target = width), display, assemblies, swap, labels, index)
+  r <- p$r
   offscreen <- snake_frame(r$offscreen)
   offscreen$region <- offscreen$region + 1 +
-    ifelse(offscreen$axis == "target", nrow(q), 0)
-  key <- legend_key(r, max(r$alpha, 0.45))
+    ifelse(offscreen$axis == "target", p$first_regions, 0)
   contigs <- snake_frame(r$offscreenContigs)
   comparative_result("jbrowse_synteny", "ribbons",
-    list(alignments = alignments, ribbons = ribbons, offscreen = offscreen,
-      offscreen_contigs = contigs),
-    regions, width, r$config,
-    c(list(ribbons = key), offscreen_keys(offscreen, contigs)),
-    ramp_frames(r$ramps),
-    unique(c(axes$warnings, read$warnings)),
+    list(alignments = p$alignments, ribbons = p$children(r$ribbons),
+      offscreen = offscreen, offscreen_contigs = contigs),
+    p$regions, width, r$config,
+    c(list(ribbons = p$key), offscreen_keys(offscreen, contigs)),
+    ramp_frames(r$ramps), p$warnings,
     list(offscreen_strip = list(marks = snake_frame(r$offscreenStrip$marks),
         labels = snake_frame(r$offscreenStrip$labels),
         font_px = r$offscreenStrip$fontPx),
-      assemblies = display_names(unlist(r$assemblyNames), labels,
-        args$adapterConfig)))
+      assemblies = p$assemblies))
+}
+
+# The floor under the alpha a pairwise view's key draws its chips at,
+# synteny-core's LEGEND_CHIP_ALPHA_FLOOR
+PAIRWISE_CHIP_ALPHA_FLOOR <- 0.45
+
+# A pairwise view's read: the engine's `view` tables of `file` over the
+# `first` and `second` axes, named and sized by `px`, with what both views
+# make of them. `children()` keys a table's rows to their alignment and each
+# axis's regions, the second's after the first's.
+pairwise_read <- function(view, file, first, second, px, display, assemblies,
+                          swap, labels, index) {
+  args <- comparative_args(file, index, display)
+  axes <- comparative_axes(args$adapterConfig, first, second, assemblies, swap)
+  sides <- names(px)
+  args[[sides[1]]] <- axis_args(axes$first, axes$names[1], px[[1]])
+  args[[sides[2]]] <- axis_args(axes$second, axes$names[2], px[[2]])
+  read <- warned_call(view, args)
+  r <- read$value
+  first_regions <- nrow(axes$first)
+  children <- function(table) {
+    d <- snake_frame(table)
+    d$alignment <- as.integer(d$alignment) + 1L
+    on_first <- paste0(sides[1], "_region")
+    on_second <- paste0(sides[2], "_region")
+    d[[on_first]] <- d[[on_first]] + 1
+    d[[on_second]] <- d[[on_second]] + 1 + first_regions
+    d
+  }
+  list(r = r, children = children, first_regions = first_regions,
+    regions = rbind(axis_rows(axes$first, sides[1], axes$names[1]),
+      axis_rows(axes$second, sides[2], axes$names[2])),
+    alignments = keyed_alignments(r$alignments),
+    key = legend_key(r, max(r$alpha, PAIRWISE_CHIP_ALPHA_FLOOR)),
+    warnings = unique(c(axes$warnings, read$warnings)),
+    assemblies = display_names(unlist(r$assemblyNames), labels,
+      args$adapterConfig))
 }
 
 #' @export
@@ -783,27 +809,14 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
                             width = DEFAULT_WIDTH, height = width,
                             assemblies = NULL, swap = FALSE, labels = NULL,
                             index = NULL) {
-  args <- comparative_args(file, index, display)
-  axes <- comparative_axes(args$adapterConfig, x, y, assemblies, swap)
-  xr <- axes$first
-  yr <- axes$second
-  args <- c(args, list(x = axis_args(xr, axes$names[1], width),
-    y = axis_args(yr, axes$names[2], height)))
-  read <- warned_call("dotplot", args)
-  r <- read$value
-  alignments <- keyed_alignments(r$alignments)
-  segments <- snake_frame(r$segments)
-  segments$alignment <- as.integer(segments$alignment) + 1L
-  segments$x_region <- segments$x_region + 1
-  segments$y_region <- segments$y_region + 1 + nrow(xr)
+  p <- pairwise_read("dotplot", file, x, y, c(x = width, y = height), display,
+    assemblies, swap, labels, index)
+  r <- p$r
   comparative_result("jbrowse_dotplot", "segments",
-    list(alignments = alignments, segments = segments),
-    rbind(axis_rows(xr, "x", axes$names[1]), axis_rows(yr, "y", axes$names[2])),
-    width, r$config, list(segments = legend_key(r, max(r$alpha, 0.45))), ramp_frames(r$ramps),
-    unique(c(axes$warnings, read$warnings)),
-    list(height = height,
-      assemblies = display_names(unlist(r$assemblyNames), labels,
-        args$adapterConfig), skipped = r$skipped))
+    list(alignments = p$alignments, segments = p$children(r$segments)),
+    p$regions, width, r$config, list(segments = p$key), ramp_frames(r$ramps),
+    p$warnings,
+    list(height = height, assemblies = p$assemblies, skipped = r$skipped))
 }
 
 #' @export
