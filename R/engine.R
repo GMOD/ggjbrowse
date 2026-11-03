@@ -147,8 +147,8 @@ limit_json <- function(limit) {
 # the call, as it did when V8 raised it.
 #
 # The session holds the engine's V8 context, `ctx`, the cache `limit` a
-# restarted engine takes again, the `pid` it may start in, and that queue's
-# R side, `warnings`.
+# restarted engine takes again, the `pid` it may start in, that queue's R
+# side, `warnings`, and the engine's palette, `base_colors`.
 session <- new.env()
 session$warnings <- character(0)
 

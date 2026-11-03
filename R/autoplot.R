@@ -1,15 +1,12 @@
 # The engine's palette's color for each base, which the sequence band tints
 # the reference's bases by
-base_colors <- local({
-  colors <- NULL
-  function() {
-    if (is.null(colors)) {
-      colors <<- unlist(jsonlite::fromJSON(in_engine(function(ctx)
-        ctx$eval("jbrowse.alignmentColors()")))$bases)
-    }
-    colors
+base_colors <- function() {
+  if (is.null(session$base_colors)) {
+    session$base_colors <- unlist(jsonlite::fromJSON(in_engine(function(ctx)
+      ctx$eval("jbrowse.alignmentColors()")))$bases)
   }
-})
+  session$base_colors
+}
 
 # Each read as its aligned blocks: the read split at its splice skips
 read_blocks <- function(x) {
