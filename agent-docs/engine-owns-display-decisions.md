@@ -152,3 +152,17 @@ those too.
   where a bar passes its domain; R paints none. In `dnase_rows`, K562 peaks
   at 427 on a 0–260 domain. The engine could flag each clipped mark in
   `marks` and return the strip's color and px.
+- **A deletion's fade depends on where the view starts.** In
+  `hg008t_cuzd1_deletion.bam` the 28 reads' 1,798 bp deletion at
+  chr10:122,835,344 fade 0.451 read over `122,835,000-122,836,200`, 1 over
+  `122,836,201-122,837,500` and 0.847 over `122,835,345-122,837,500`, and
+  each region's copy of it differs in a multi-region read.
+  - Cause: `deletionStartFrequencies()` anchors a deletion's frequency at its
+    start, but `computePositionFrequencies()` takes the depth through
+    `depthNear()`, which clamps the position to `coverageStartPos`, while
+    the count comes from the `rare` map of starts outside the window. A
+    deletion starting before the window is counted against the depth inside
+    itself, where the deleted reads are missing, so it saturates.
+    (`plugins/alignments/src/shared/computeFrequenciesAndThresholds.ts`.)
+  - The browser runs the same pipeline per region, so a block that starts
+    inside a deletion likely draws it opaque too.
