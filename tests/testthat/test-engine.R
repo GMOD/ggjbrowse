@@ -106,7 +106,7 @@ test_that("a forked worker refuses to start the engine, and inherits a started o
     read()
   }), started)
   expect_equal(in_fork(function() tryCatch({
-    engine(drop = TRUE)
+    drop_engine()
     read()
   }, ggjbrowse_forked = function(e) "refused")), "refused")
 })
@@ -210,7 +210,7 @@ test_that("a limit of Inf is none, and a restarted engine takes it again", {
   limit <- jbrowse_cache()$limit
   on.exit(jbrowse_cache(limit = limit))
   expect_equal(jbrowse_cache(limit = Inf)$limit, Inf)
-  engine(drop = TRUE)
+  drop_engine()
   expect_equal(jbrowse_cache()$limit, Inf)
 })
 
@@ -219,7 +219,7 @@ test_that("an engine that cannot empty its caches restarts, and says so", {
   local_mocked_bindings(in_engine = function(...) stop("unreachable"))
   expect_warning(jbrowse_reset(),
     "could not empty its caches, so it restarts: unreachable")
-  expect_null(engine(start = FALSE))
+  expect_null(session$ctx)
 })
 
 test_that("jbrowse_reset() empties the caches and keeps the limit", {

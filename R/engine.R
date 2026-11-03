@@ -28,42 +28,42 @@ read_range <- function(url, start, end) {
   list(status = r$status_code, size = size, bytes = r$content)
 }
 
-engine <- local({
-  ctx <- NULL
-  function(start = TRUE, drop = FALSE) {
-    if (drop) {
-      ctx <<- NULL
-      return(invisible())
-    }
-    if (is.null(ctx) && start) {
-      if (engine_forked(deferred$pid)) {
-        rlang::abort(paste("the engine cannot start in a forked worker",
-          "(parallel::mclapply(), future's multicore, BiocParallel's",
-          "MulticoreParam), where V8 hangs: read in a socket cluster, such",
-          "as parallel::makeCluster() or future's multisession, whose",
-          "workers load ggjbrowse afresh"), class = "ggjbrowse_forked",
-          call = NULL)
-      }
-      fresh <- V8::v8()
-      fresh$eval(paste(
-        "var jbrowseHost = { readRange: function(url, start, end) {",
-        "return console.r.call('ggjbrowse:::read_range_deferring',",
-        "{ url: url, start: start, end: end }) } };",
-        "var ggjbrowseQueued = { warnings: [], errors: [] };",
-        "function ggjbrowseQueue(kind) { return function() {",
-        "ggjbrowseQueued[kind].push(Array.prototype.join.call(arguments, ' '))",
-        "} }",
-        "console.warn = ggjbrowseQueue('warnings');",
-        "console.error = ggjbrowseQueue('errors')"))
-      fresh$source(system.file("js", "jbrowse-tables.js", package = "ggjbrowse"))
-      if (!is.null(deferred$limit)) {
-        fresh$call("jbrowse.cache", limit_json(deferred$limit), await = TRUE)
-      }
-      ctx <<- fresh
-    }
-    ctx
+engine <- function() {
+  if (is.null(session$ctx)) session$ctx <- start_engine()
+  session$ctx
+}
+
+drop_engine <- function() {
+  session$ctx <- NULL
+  invisible()
+}
+
+start_engine <- function() {
+  if (engine_forked(session$pid)) {
+    rlang::abort(paste("the engine cannot start in a forked worker",
+      "(parallel::mclapply(), future's multicore, BiocParallel's",
+      "MulticoreParam), where V8 hangs: read in a socket cluster, such",
+      "as parallel::makeCluster() or future's multisession, whose",
+      "workers load ggjbrowse afresh"), class = "ggjbrowse_forked",
+      call = NULL)
   }
-})
+  ctx <- V8::v8()
+  ctx$eval(paste(
+    "var jbrowseHost = { readRange: function(url, start, end) {",
+    "return console.r.call('ggjbrowse:::read_range_deferring',",
+    "{ url: url, start: start, end: end }) } };",
+    "var ggjbrowseQueued = { warnings: [], errors: [] };",
+    "function ggjbrowseQueue(kind) { return function() {",
+    "ggjbrowseQueued[kind].push(Array.prototype.join.call(arguments, ' '))",
+    "} }",
+    "console.warn = ggjbrowseQueue('warnings');",
+    "console.error = ggjbrowseQueue('errors')"))
+  ctx$source(system.file("js", "jbrowse-tables.js", package = "ggjbrowse"))
+  if (!is.null(session$limit)) {
+    ctx$call("jbrowse.cache", limit_json(session$limit), await = TRUE)
+  }
+  ctx
+}
 
 #' Empty the engine's caches
 #'
@@ -75,10 +75,10 @@ engine <- local({
 #' @return `NULL`, invisibly.
 #' @export
 jbrowse_reset <- function() {
-  if (!is.null(engine(start = FALSE))) {
+  if (!is.null(session$ctx)) {
     tryCatch(in_engine(function(ctx) ctx$call("jbrowse.clearCache",
       await = TRUE)), error = function(e) {
-        engine(drop = TRUE)
+        drop_engine()
         warning("the engine could not empty its caches, so it restarts: ",
           conditionMessage(e), call. = FALSE)
       })
@@ -128,7 +128,7 @@ jbrowse_reset <- function() {
 jbrowse_cache <- function(limit = NULL) {
   json <- in_engine(function(ctx) ctx$call("jbrowse.cache",
     if (is.null(limit)) "{}" else limit_json(limit), await = TRUE))
-  if (!is.null(limit)) deferred$limit <- limit
+  if (!is.null(limit)) session$limit <- limit
   held <- jsonlite::fromJSON(json)
   held$limit <- held$limit %||% Inf
   lapply(held, as.numeric)
@@ -145,18 +145,22 @@ limit_json <- function(limit) {
 # The engine's warnings and errors, and read_range()'s warnings, wait in a
 # queue that in_engine() raises once its call has returned: an error stops
 # the call, as it did when V8 raised it.
-deferred <- new.env()
-deferred$warnings <- character(0)
+#
+# The session holds the engine's V8 context, `ctx`, the cache `limit` a
+# restarted engine takes again, the `pid` it may start in, and that queue's
+# R side, `warnings`.
+session <- new.env()
+session$warnings <- character(0)
 
-# The process that loaded ggjbrowse, the only one engine() starts V8 in: a
+# The process that loaded ggjbrowse, the only one the engine starts in: a
 # forked child inherits a started engine, but one starting there hangs
 .onLoad <- function(libname, pkgname) {
-  deferred$pid <- Sys.getpid()
+  session$pid <- Sys.getpid()
 }
 
 read_range_deferring <- function(url, start, end) {
   withCallingHandlers(read_range(url, start, end), warning = function(w) {
-    deferred$warnings <- c(deferred$warnings, conditionMessage(w))
+    session$warnings <- c(session$warnings, conditionMessage(w))
     invokeRestart("muffleWarning")
   })
 }
@@ -182,8 +186,8 @@ in_engine <- function(use, display = NULL) {
 drain_queue <- function(ctx) {
   queued <- ctx$get("ggjbrowseQueued")
   ctx$eval("ggjbrowseQueued = { warnings: [], errors: [] }")
-  warnings <- unique(c(deferred$warnings, unlist(queued$warnings)))
-  deferred$warnings <- character(0)
+  warnings <- unique(c(session$warnings, unlist(queued$warnings)))
+  session$warnings <- character(0)
   for (w in warnings) warning(w, call. = FALSE)
   unique(as.character(unlist(queued$errors)))
 }
