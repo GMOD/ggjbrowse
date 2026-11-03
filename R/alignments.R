@@ -144,8 +144,8 @@ alignments_adapter <- function(file, index) {
 #'   * `overlaps`: under `unit = "chain"` and a read height of 3 or more,
 #'     each span where two reads of one row both align: `start`, `end`, `row`
 #'     and the neutral `color` the display fills it with, which is neither
-#'     read's color, and the reads' key ends with the display's row for it;
-#'     empty otherwise, as the display draws none
+#'     read's color, and the reads' key ends with the display's row for each
+#'     kind of overlap drawn; empty otherwise, as the display draws none
 #'   * `insertions`: `position`, `length`, `sequence`, `read`, `fade`
 #'   * `clips`: `position`, `length`, `type` (`"soft"` or `"hard"`), `read`,
 #'     `fade`

@@ -154,8 +154,8 @@ across it; empty otherwise
 \item \code{overlaps}: under \code{unit = "chain"} and a read height of 3 or more,
 each span where two reads of one row both align: \code{start}, \code{end}, \code{row}
 and the neutral \code{color} the display fills it with, which is neither
-read's color, and the reads' key ends with the display's row for it;
-empty otherwise, as the display draws none
+read's color, and the reads' key ends with the display's row for each
+kind of overlap drawn; empty otherwise, as the display draws none
 \item \code{insertions}: \code{position}, \code{length}, \code{sequence}, \code{read}, \code{fade}
 \item \code{clips}: \code{position}, \code{length}, \code{type} (\code{"soft"} or \code{"hard"}), \code{read},
 \code{fade}
