@@ -56,9 +56,24 @@ jbrowse_stack <- function(..., width = NULL) {
   same_regions(results)
   tracks <- with_shared_keys(tracks)
   px <- width %||% stack_px(results)
-  stack_bands(unname(Map(function(track, name)
-    titled(band_of(track, results[[1]], px), name), tracks,
-    names(tracks) %||% rep("", length(tracks)))))
+  stack_bands(titled_bands(tracks,
+    function(track) band_of(track, results[[1]], px)))
+}
+
+# Each track's band, `as_band(track)`, titled by its name in the list
+titled_bands <- function(tracks, as_band) {
+  unname(Map(function(t, name) titled(as_band(t), name), tracks,
+    names(tracks)))
+}
+
+# A view's own band, `height` px, between the bands of the tracks above and
+# below it, its x axis kept where `main_axis` says and none drawn otherwise
+around_band <- function(main, height, above, below, main_axis) {
+  if (length(above) || length(below)) {
+    own <- if (main_axis) sum(lengths(lapply(above, `[[`, "plots"))) + 1 else 0
+    stack_bands(c(above, list(list(plots = list(main), heights = height)),
+      below), axis_at = own)
+  } else main
 }
 
 # An argument's tracks, a lone track named by the argument and a list's by
@@ -228,6 +243,26 @@ loci_of <- function(x) loci_of_layout(x$regions)
 # The loci a result reads, for its print header
 print_loci <- function(x) paste(loci_of(x), collapse = ", ")
 
+# Whether a track reads `layout`'s regions, a contig spelt with or without
+# its `chr`
+same_loci <- function(read, layout) {
+  identical(paste(bare_contig(read$chrom), read$start, read$end),
+    paste(bare_contig(layout$chrom), layout$start, layout$end))
+}
+
+# A position in a region on the axis that lays the regions at their offsets
+on_offsets <- function(r, i, at) at - r$start[i] + r$offset[i]
+
+# Each region's round breaks placed by `px(r, region, at)`, labelled in the
+# region's own coordinates
+region_ticks <- function(r, px) {
+  at <- region_breaks(r)
+  list(breaks = unlist(lapply(seq_len(nrow(r)), function(i)
+      px(r, rep(i, length(at[[i]])), at[[i]]))),
+    labels = format(unlist(at), big.mark = ",", trim = TRUE,
+      scientific = FALSE))
+}
+
 # Each region's round breaks in its own coordinates, about as many as its
 # share of the axis earns, none on an edge facing another region
 region_breaks <- function(r) {
@@ -395,20 +430,16 @@ genomic_x <- function(x, ...) {
       list(labels = scales::label_comma(), limits = xlim_of(x),
         oob = scales::oob_keep), ...))
   }
-  at <- region_breaks(r)
-  breaks <- unlist(lapply(seq_len(nrow(r)), function(i)
-    at[[i]] - r$start[i] + r$offset[i]))
-  labels <- format(unlist(at), big.mark = ",", trim = TRUE,
-    scientific = FALSE)
+  ticks <- region_ticks(r, on_offsets)
+  breaks <- ticks$breaks
   room <- 0.09 * (max(r$cum_end) - min(r$cum_start))
   kept <- Reduce(function(k, i)
     if (!length(k) || breaks[i] - breaks[k[length(k)]] >= room) c(k, i)
     else k, seq_along(breaks), integer(0))
-  seams <- (utils::head(r$cum_end, -1) + r$offset[-1]) / 2
   list(scale_with(ggplot2::scale_x_continuous, list(breaks = breaks[kept],
-      labels = labels[kept], limits = xlim_of(x), oob = scales::oob_keep),
+      labels = ticks$labels[kept], limits = xlim_of(x), oob = scales::oob_keep),
       ...),
-    ggplot2::geom_vline(xintercept = seams, colour = REGION_SEPARATOR,
+    ggplot2::geom_vline(xintercept = layout_seams(r), colour = REGION_SEPARATOR,
       linewidth = 0.9))
 }
 

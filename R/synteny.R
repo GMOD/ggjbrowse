@@ -622,14 +622,8 @@ layout_breaks <- function(layout, px, width) {
     edges <- px(r, c(1, n), c(r$start[1], r$end[n]))
     keep <- thin_labels((mid - edges[1]) / diff(edges) * width,
       r$end - r$start)
-    return(list(breaks = mid[keep], labels = r$chrom[keep]))
-  }
-  at <- region_breaks(r)
-  list(
-    breaks = unlist(lapply(seq_len(nrow(r)), function(i)
-      px(r, rep(i, length(at[[i]])), at[[i]]))),
-    labels = format(unlist(at), big.mark = ",", trim = TRUE,
-      scientific = FALSE))
+    list(breaks = mid[keep], labels = r$chrom[keep])
+  } else region_ticks(r, px)
 }
 
 layout_label <- function(layout, assembly = "") {
@@ -687,9 +681,7 @@ upright_names <- function(layout, axis) {
 row_tracks <- function(tracks, layout, row) {
   tracks <- named_tracks(tracks, "")
   for (t in tracks) {
-    r <- t$regions
-    if (!identical(paste(bare_contig(r$chrom), r$start, r$end),
-      paste(bare_contig(layout$chrom), layout$start, layout$end))) {
+    if (!same_loci(t$regions, layout)) {
       stop("a ", row, " track draws over the ", row, " row's regions, ",
         paste(loci_of_layout(layout), collapse = ", "), ", but one reads ",
         paste(loci_of(t), collapse = ", "), call. = FALSE)
@@ -700,13 +692,6 @@ row_tracks <- function(tracks, layout, row) {
     t$regions[axis] <- layout[axis]
     t
   })
-}
-
-# Each track's bands, titled by its name in the list as jbrowse_stack()
-# titles them
-titled_bands <- function(tracks) {
-  unname(Map(function(t, name) titled(track_bands(t), name), tracks,
-    names(tracks)))
 }
 
 #' Draw a pairwise alignment as JBrowse's linear synteny view
@@ -744,14 +729,10 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
                                      curves = NULL, ...) {
   rlang::check_dots_empty()
   band <- synteny_band(object, curves)
-  above <- row_tracks(above, on_axis_of(object$regions, "query"), "top")
-  below <- row_tracks(below, on_axis_of(object$regions, "target"), "bottom")
-  if (!length(above) && !length(below)) return(band)
-  bands <- c(titled_bands(above),
-    list(list(plots = list(band), heights = object$display$height)),
-    titled_bands(below))
-  own <- sum(lengths(lapply(bands[seq_along(above)], `[[`, "plots"))) + 1
-  stack_bands(bands, axis_at = own)
+  row_bands <- function(tracks, axis, row) titled_bands(
+    row_tracks(tracks, on_axis_of(object$regions, axis), row), track_bands)
+  around_band(band, object$display$height, row_bands(above, "query", "top"),
+    row_bands(below, "target", "bottom"), main_axis = TRUE)
 }
 
 #' Read a pairwise alignment as JBrowse's dotplot view draws it
@@ -872,8 +853,7 @@ geom_jbrowse_dotplot <- function(mapping = NULL, data = NULL, ...) {
 # An axis of regions laid end to end: breaks at round positions in each,
 # labelled in the region's own coordinates
 layout_scale <- function(scale, layout, width) {
-  b <- layout_breaks(layout, function(r, i, at) at - r$start[i] + r$offset[i],
-    width)
+  b <- layout_breaks(layout, on_offsets, width)
   scale(breaks = b$breaks, labels = b$labels)
 }
 

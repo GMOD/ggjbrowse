@@ -417,8 +417,7 @@ lane_band <- function(track, x, lane, where) {
   anchor <- lane == 1 && nrow(a) > 1
   if (!nrow(s) || !all(read$chrom %in% s$chrom) ||
     min(read$start) > min(s$start) || max(read$end) < max(s$end) ||
-    (anchor && !identical(paste(read$start, read$end),
-      paste(a$start, a$end)))) {
+    (anchor && !same_loci(read, a))) {
     stop("a track ", where, " the stack draws over ", x$lanes$locus[lane],
       ", but one reads ", paste(loci_of(track), collapse = ", "),
       call. = FALSE)
@@ -488,15 +487,8 @@ autoplot.jbrowse_multiway <- function(object, above = NULL, below = NULL,
                                       curves = NULL, ...) {
   rlang::check_dots_empty()
   stack <- multiway_stack(object, curves)
-  band <- function(tracks, lane, where) {
-    named <- named_tracks(tracks, "")
-    unname(Map(function(t, name) titled(lane_band(t, object, lane, where),
-      name), named, names(named)))
-  }
-  top <- band(above, 1, "above")
-  bottom <- band(below, nrow(object$lanes), "below")
-  if (!length(top) && !length(bottom)) return(stack)
-  bands <- c(top, list(list(plots = list(stack), heights = object$height)),
-    bottom)
-  stack_bands(bands, axis_at = 0)
+  lane_bands <- function(tracks, lane, where) titled_bands(
+    named_tracks(tracks, ""), function(t) lane_band(t, object, lane, where))
+  around_band(stack, object$height, lane_bands(above, 1, "above"),
+    lane_bands(below, nrow(object$lanes), "below"), main_axis = FALSE)
 }
