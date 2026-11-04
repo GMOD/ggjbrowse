@@ -248,6 +248,7 @@ jbrowse_alignments <- function(file, region = NULL, display = NULL,
       class = "ggjbrowse_too_large", limit = "span_limit", call = NULL)
   }
   t <- read_regions("alignments", adapter, regions, assembly, display,
+    row_limit = max(WHOLE_FILE_ROWS, span_limit),
     byteLimit = byte_limit, spanLimit = span_limit)
   x <- alignments_result(t, assembly)
   x$junctions$region <- junction_region(x$junctions,

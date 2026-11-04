@@ -2,7 +2,8 @@ LOCUS <- "^(.+):([0-9,]+)(-|\\.\\.)([0-9,]+)$"
 
 # A read with no region reads the whole file: each contig the file lists, to
 # its length where the file or `assembly` states one, refused past
-# WHOLE_FILE_ROWS rows in any one table, which a region read has no need of.
+# WHOLE_FILE_ROWS rows in any one table, which a region read has no need of;
+# alignments' coverage holds a row per base, so they cap at `span_limit` too.
 # A contig the index shows empty is left out; one it cannot tell about stays.
 WHOLE_FILE_ROWS <- 5e6
 
@@ -102,13 +103,13 @@ engine_regions <- function(regions) {
 
 # The engine's `table` read of `regions`, as reader_regions() gives them,
 # named in `assembly` and drawn under `display`, with the reader's own args
-# in `...`; a whole file's read caps its rows at WHOLE_FILE_ROWS
+# in `...`; a whole file's read caps its rows at `row_limit`
 read_regions <- function(table, adapter, regions, assembly, display = NULL,
-                         ...) {
+                         row_limit = WHOLE_FILE_ROWS, ...) {
   args <- list(adapterConfig = adapter, regions = engine_regions(regions),
     ...)
   args$assembly <- assembly
-  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- WHOLE_FILE_ROWS
+  if (isTRUE(attr(regions, "whole"))) args$rowLimit <- row_limit
   args$display <- display_config(display)
   call_engine(table, args)
 }
