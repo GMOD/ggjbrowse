@@ -80,12 +80,33 @@ test_that("a chain puts a read's mates and split segments on one row, joined by 
   name_of <- function(read) chained$reads$name[match(read, chained$reads$read)]
   expect_equal(name_of(c$mate), name_of(c$read))
   expect_true(all(c$kind %in% c("straight", "curve", "loop")))
-  drawn <- c[c$end_region == c$region, ]
+})
+
+test_that("each connector draws the curve the engine places, end to end on its rows", {
+  chained <- read(display = list(unit = "chain"))
+  c <- chained$connectors
+  dips <- which(c$kind != "straight" & c$dip > 0)
+  expect_gt(length(dips), 0)
+  paths <- connector_paths(on_axis(chained), 1200)
+  by_path <- split(paths, paths$path)[seq_len(nrow(c))]
+  expect_equal(vapply(by_path, function(p) p$x[1], 0), c$start,
+    ignore_attr = TRUE)
+  expect_equal(vapply(by_path, function(p) p$x[nrow(p)], 0), c$end,
+    ignore_attr = TRUE)
+  expect_equal(vapply(by_path, function(p) p$y[1], 0), c$row + 0.5,
+    ignore_attr = TRUE)
+  depth <- function(paths, i) {
+    p <- paths[paths$path == i, ]
+    max(p$y) - (max(c$row[i], c$end_row[i]) + 0.5)
+  }
+  wide <- vapply(dips, function(i) depth(paths, i), 0)
+  expect_true(all(wide > 0))
+  narrow <- connector_paths(on_axis(chained), 60)
+  expect_true(all(vapply(dips, function(i) depth(narrow, i), 0) < wide))
   built <- ggplot2::ggplot_build(ggplot2::autoplot(chained, "pileup"))$data
-  lines <- Filter(function(d) all(c("xend", "yend") %in% names(d)) &&
-    nrow(d) == nrow(drawn) && "linetype" %in% names(d), built)
-  expect_length(lines, 1)
-  expect_equal(-lines[[1]]$yend, drawn$end_row + 0.5)
+  drawn <- Filter(function(d) "group" %in% names(d) &&
+    nrow(d) == nrow(paths) && "linetype" %in% names(d), built)
+  expect_length(drawn, 1)
 })
 
 test_that("a chain over an inversion frames the split segments' strands against each other", {

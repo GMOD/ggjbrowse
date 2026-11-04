@@ -31,7 +31,7 @@ geom_jbrowse_deletion_lengths(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_overlaps(mapping = NULL, data = NULL, ...)
 
-geom_jbrowse_connectors(mapping = NULL, data = NULL, ...)
+geom_jbrowse_connectors(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_chains(mapping = NULL, data = NULL, ...)
 
@@ -127,8 +127,11 @@ writes a deletion's length in it where the box is wide enough
 \item \code{geom_jbrowse_overlaps()}: under \code{unit = "chain"}, the neutral fill over
 the span where two reads of a chain both align
 \item \code{geom_jbrowse_connectors()}: the line from each read to its mate or split
-segment, in the connection's arc color, dashed over segments not in view;
-drawn straight, within one region. \code{geom_jbrowse_chains()} is its
+segment, in the connection's arc color, dashed over segments not in view:
+straight, a curve dipping under its rows or bowing over them, or a loop
+with its arrowhead, each curve placed by the engine's
+\code{alignmentConnectorCurves} at the figure's pixels per base, so a dip
+flattens as the figure zooms out. \code{geom_jbrowse_chains()} is its
 deprecated name
 \item \code{geom_jbrowse_mismatches()}, \code{geom_jbrowse_insertions()},
 \code{geom_jbrowse_clips()}, \code{geom_jbrowse_modifications()}: the marks on the

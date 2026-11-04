@@ -151,10 +151,13 @@ carry that base there, over the depth), \code{quality}, \code{fade}
 \item \code{connectors}: each connector the pileup draws, always under
 \code{unit = "chain"} and otherwise under \code{pileup$connectors$show}: \code{start}
 and \code{end} (the two ends), \code{row} and \code{end_row}, \code{end_region}, \code{color}
-(the connection's arc color), \code{kind} (\code{"straight"}, \code{"curve"} or
-\code{"loop"}), \code{dashed} (the junction steps over segments not in view),
-\code{dip} (the px a curve dips, which the display flattens where its ends
-sit close on screen), and \code{read} and \code{mate}; empty otherwise
+(the connection's arc color) at \code{opacity}, \code{width} (the stroke in px),
+\code{kind} (\code{"straight"}, \code{"curve"} or \code{"loop"}), \code{dashed} (the junction
+steps over segments not in view), \code{dip} (the px a curve or loop dips,
+0 for one that bows up, which the display flattens where its ends sit
+close on screen), \code{strand}, \code{end_strand} and \code{leading} (which way each
+end's curve leaves its read), \code{arrow} (a loop's arrowhead), and \code{read}
+and \code{mate}; empty otherwise
 \item \code{overlaps}: under \code{unit = "chain"} and a read height of 3 or more,
 each span where two reads of one row both align: \code{start}, \code{end}, \code{row}
 and the neutral \code{color} the display fills it with, which is neither

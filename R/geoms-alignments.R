@@ -72,8 +72,11 @@ with_inset <- function(d, model) {
 #' * `geom_jbrowse_overlaps()`: under `unit = "chain"`, the neutral fill over
 #'   the span where two reads of a chain both align
 #' * `geom_jbrowse_connectors()`: the line from each read to its mate or split
-#'   segment, in the connection's arc color, dashed over segments not in view;
-#'   drawn straight, within one region. `geom_jbrowse_chains()` is its
+#'   segment, in the connection's arc color, dashed over segments not in view:
+#'   straight, a curve dipping under its rows or bowing over them, or a loop
+#'   with its arrowhead, each curve placed by the engine's
+#'   `alignmentConnectorCurves` at the figure's pixels per base, so a dip
+#'   flattens as the figure zooms out. `geom_jbrowse_chains()` is its
 #'   deprecated name
 #' * `geom_jbrowse_mismatches()`, `geom_jbrowse_insertions()`,
 #'   `geom_jbrowse_clips()`, `geom_jbrowse_modifications()`: the marks on the
@@ -170,16 +173,58 @@ geom_jbrowse_overlaps <- function(mapping = NULL, data = NULL, ...) {
 
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_connectors <- function(mapping = NULL, data = NULL, ...) {
+geom_jbrowse_connectors <- function(mapping = NULL, data = NULL,
+                                    width = NULL, ...) {
   data <- replacing(data, "connectors", "geom_jbrowse_connectors")
-  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
-    d <- summary_table(x, "connectors")
-    d[d$end_region == d$region, , drop = FALSE]
-  }, mapping,
-    ggplot2::aes(x = start, xend = end, y = row + 0.5, yend = end_row + 0.5,
-      colour = I(color), linetype = I(ifelse(dashed, "22", "solid"))),
-    list(linewidth = px_to_mm(1), ...))
+  jbrowse_layer(ggplot2::GeomPath, data,
+    function(x) connector_paths(x, width), mapping,
+    ggplot2::aes(x = x, y = y, group = path, colour = I(color),
+      alpha = I(opacity), linewidth = I(px_to_mm(width)),
+      linetype = I(ifelse(dashed, "22", "solid"))),
+    list(lineend = "butt", ...))
 }
+
+# Each connector as the pileup draws it at the figure's px per bp: the
+# engine's alignmentConnectorCurves places each cubic, sampled here as a path
+# through its row centres, and a loop's arrowhead as two more paths
+connector_paths <- function(x, width) {
+  d <- summary_table(x, "connectors")
+  none <- data.frame(x = numeric(), y = numeric(), path = integer(),
+    color = character(), opacity = numeric(), width = numeric(),
+    dashed = logical())
+  if (!nrow(d)) return(none)
+  p <- x$read_pitch
+  curves <- call_engine("alignmentConnectorCurves", list(
+    pxPerBp = px_of(x, width), featureHeight = p$featureHeight,
+    featureSpacing = p$featureSpacing,
+    connectors = lapply(list(start = d$start, end = d$end, row = d$row,
+      endRow = d$end_row, kind = d$kind, dip = d$dip, strand = d$strand,
+      endStrand = d$end_strand, leading = d$leading, arrow = d$arrow), I)))
+  t <- seq(0, 1, length.out = CONNECTOR_SEGMENTS + 1)
+  cubic <- function(a, b, c, e) as.vector(t(outer(a, (1 - t)^3) +
+    outer(b, 3 * (1 - t)^2 * t) + outer(c, 3 * (1 - t) * t^2) + outer(e, t^3)))
+  n <- nrow(d)
+  each <- function(v) rep(v, each = length(t))
+  paths <- data.frame(
+    x = cubic(d$start, curves$handle, curves$endHandle, d$end),
+    y = cubic(d$row, curves$handleRow, curves$endHandleRow, d$end_row) + 0.5,
+    path = each(seq_len(n)), color = each(d$color),
+    opacity = each(d$opacity), width = each(d$width), dashed = each(d$dashed))
+  heads <- which(as.logical(curves$arrow))
+  arms <- lapply(c(-1, 1), function(side) data.frame(
+    x = as.vector(rbind(curves$arrowBack[heads], d$end[heads])),
+    y = as.vector(rbind(d$end_row[heads] + 0.5 + side * curves$arrowRows,
+      d$end_row[heads] + 0.5)),
+    path = rep(n + seq_along(heads) + (side > 0) * length(heads), each = 2),
+    color = rep(d$color[heads], each = 2),
+    opacity = rep(d$opacity[heads], each = 2),
+    width = rep(d$width[heads], each = 2),
+    dashed = rep(FALSE, 2 * length(heads))))
+  rbind(paths, arms[[1]], arms[[2]])
+}
+
+# The chords the display's connector strip is built from
+CONNECTOR_SEGMENTS <- 48
 
 #' @rdname geom_jbrowse_reads
 #' @export

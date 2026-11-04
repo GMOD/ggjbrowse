@@ -296,7 +296,9 @@ on_axis <- function(x) {
   for (name in names(x)) {
     if (!is.data.frame(x[[name]]) || name == "regions") next
     x[[name]] <- if (name %in% c("arcs", "junctions"))
-      arcs_on_axis(x[[name]], r) else frame_on_axis(x[[name]], r)
+      arcs_on_axis(x[[name]], r)
+    else if (name == "connectors") connectors_on_axis(x[[name]], r)
+    else frame_on_axis(x[[name]], r)
   }
   structure(joined(x, families), class = cls, on_axis = TRUE)
 }
@@ -350,6 +352,18 @@ arcs_on_axis <- function(d, regions) {
       r$chrom[pmax(d$endRegion, 0) + 1L]
     d$y[across] <- abs(d$end[across] - d$start[across]) / 2
   }
+  structure(d, on_axis = TRUE)
+}
+
+# The connectors on that axis: each end moved by its own region's offset and
+# never cut, as the engine places each end inside its region, so a connector
+# whose ends sit in two regions spans the gap between them
+connectors_on_axis <- function(d, regions) {
+  if (is_on_axis(d) || !has_regions(d, regions)) return(d)
+  if (nrow(regions) == 1) return(structure(d, on_axis = TRUE))
+  r <- regions
+  d$start <- d$start - r$start[d$region] + r$offset[d$region]
+  d$end <- d$end - r$start[d$end_region] + r$offset[d$end_region]
   structure(d, on_axis = TRUE)
 }
 

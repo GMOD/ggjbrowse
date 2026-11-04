@@ -181,7 +181,7 @@ pileup_plot <- function(x, o) {
     geom_jbrowse_mismatches(width = px) +
     geom_jbrowse_insertions(width = px) +
     geom_jbrowse_clips(width = px) +
-    geom_jbrowse_connectors() +
+    geom_jbrowse_connectors(width = px) +
     geom_jbrowse_deletion_lengths(width = px)
   if (o$letters) p <- p + geom_jbrowse_letters()
   band(p + ggplot2::scale_y_reverse(), x, rows = TRUE) + no_y

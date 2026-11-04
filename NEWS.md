@@ -1,5 +1,11 @@
 # ggjbrowse (development version)
 
+- Under `unit = "chain"` the `chains` table gives way to `connectors`, every
+  connector the pileup draws, and `geom_jbrowse_connectors()` draws each as
+  the display does: straight, a curve dipping under its rows or bowing over
+  them, or a loop with its arrowhead, placed by the engine at the figure's
+  pixels per base, across regions too. `geom_jbrowse_chains()` is its
+  deprecated name.
 - `jbrowse_alignments()`'s `reads` table drops `category` for `level`, the
   read's value as the color's `scale$domain` names it (`"1"`, `"-1"`,
   `"RL"`, `"short"`, a MAPQ, a tag's value, or `""`). The `arcs` table
