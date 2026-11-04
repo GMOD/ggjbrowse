@@ -358,7 +358,7 @@ fig <- jbrowse_stack(
     display = chain_display), width = 1200)
 ```
 
-```{r chain-reads-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "Tumor split reads across chr3, chr10 and chr12, one row per molecule with its segments joined across the loci and an arc at each breakend: coverage on chr10 and chr12 exists only between each locus's two breakends, and on chr3 it halves at the second"}
+```{r chain-reads-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "Tumor split reads across chr3, chr10 and chr12, one row per molecule with its segments joined across the loci and an arc at each breakend: coverage on chr10 and chr12 rises only between each locus's two breakends, and on chr3 it steps down at each"}
 fig
 ```
 

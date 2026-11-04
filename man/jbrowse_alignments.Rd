@@ -212,7 +212,9 @@ itself), \code{support} (the reads behind it) and \code{width} (the stroke in px
 \item \code{arc_ticks}: the interchromosomal ticks: \code{position}, \code{support},
 \code{partners} (the contigs reached), \code{color}, \code{width}
 \item \code{sections}: under \code{display$facet}, each section's \code{key} and \code{label} in stacking
-order; ungrouped, one section labelled \code{""}
+order; ungrouped, one section labelled \code{""}; and \code{dip_reserve}, the px
+the display keeps under the section's last row for its deepest
+dipping connector
 }
 
 \code{keys} holds \code{reads}, \code{bases} (empty while a modifications or bisulfite

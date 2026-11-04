@@ -54,10 +54,10 @@ jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
 `chr3:25,358,500-25,359,800`
 
 <table>
-<tr><td width="50%"><img src="../gallery/long_reads_sv-jbrowse.webp" alt="COLO829 der(3) split reads chained across its two chr3 breakpoints in JBrowse. Coverage halves at the first breakpoint, and each read's segments share a row, overlapping in dark grey and colored by strand past it, joined by duplication-type arcs." width="100%"></td><td width="50%"><img src="../gallery/long_reads_sv-r.webp" alt="COLO829 der(3) split reads chained across its two chr3 breakpoints drawn by ggjbrowse. Coverage halves at the first breakpoint, and each read's segments share a row, overlapping in dark grey and colored by strand past it, joined by duplication-type arcs." width="100%"></td></tr>
+<tr><td width="50%"><img src="../gallery/long_reads_sv-jbrowse.webp" alt="COLO829 der(3) split reads chained across its two chr3 breakpoints in JBrowse. Coverage steps down at the first breakpoint, and each read's segments share a row, overlapping in dark grey and colored by strand past it, joined by duplication-type arcs and by connectors looping back under the rows." width="100%"></td><td width="50%"><img src="../gallery/long_reads_sv-r.webp" alt="COLO829 der(3) split reads chained across its two chr3 breakpoints drawn by ggjbrowse. Coverage steps down at the first breakpoint, and each read's segments share a row, overlapping in dark grey and colored by strand past it, joined by duplication-type arcs and by connectors looping back under the rows." width="100%"></td></tr>
 </table>
 
-Coverage halves at the first breakpoint, and each read's segments share a row, overlapping in dark grey and colored by strand past it, joined by duplication-type arcs.
+Coverage steps down at the first breakpoint, and each read's segments share a row, overlapping in dark grey and colored by strand past it, joined by duplication-type arcs and by connectors looping back under the rows.
 
 ```r
 autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),

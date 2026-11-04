@@ -184,7 +184,17 @@ pileup_plot <- function(x, o) {
     geom_jbrowse_connectors(width = px) +
     geom_jbrowse_deletion_lengths(width = px)
   if (o$letters) p <- p + geom_jbrowse_letters()
-  band(p + ggplot2::scale_y_reverse(), x, rows = TRUE) + no_y
+  band(p + ggplot2::scale_y_reverse(), x, rows = TRUE,
+    ylim = dip_reserved_rows(x)) + no_y
+}
+
+# The pileup's rows and the room the display keeps under them for its
+# deepest dipping connector, where it keeps any, so a row stays one pitch tall
+dip_reserved_rows <- function(x) {
+  p <- x$read_pitch
+  reserve <- sum(x$sections$dip_reserve) / (p$featureHeight + p$featureSpacing)
+  rows <- if (nrow(x$reads)) max(x$reads$row) + 1 else 0
+  if (reserve > 0) c(0, rows + reserve)
 }
 
 shown <- function(d) d$shown %||% rep(TRUE, nrow(d))
@@ -300,7 +310,7 @@ alignment_px <- function(object, o) {
   c(junctions = s$sashimi$height,
     coverage = s$coverage$height,
     arcs = s$readConnections$height,
-    pileup = max(30, rows * pitch))[shown]
+    pileup = max(30, rows * pitch + sum(object$sections$dip_reserve)))[shown]
 }
 
 # A section's bands one after another, as the display stacks each section's

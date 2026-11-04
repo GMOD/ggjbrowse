@@ -456,7 +456,7 @@ fig <- jbrowse_stack(
 fig
 ```
 
-![Tumor split reads across chr3, chr10 and chr12, one row per molecule with its segments joined across the loci and an arc at each breakend: coverage on chr10 and chr12 exists only between each locus's two breakends, and on chr3 it halves at the second](figures/cancer_sv-chain-reads-plot-1.png)
+![Tumor split reads across chr3, chr10 and chr12, one row per molecule with its segments joined across the loci and an arc at each breakend: coverage on chr10 and chr12 rises only between each locus's two breakends, and on chr3 it steps down at each](figures/cancer_sv-chain-reads-plot-1.png)
 
 ## The derivative allele
 

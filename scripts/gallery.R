@@ -202,7 +202,7 @@ genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"),
 jbrowse_stack(genes, reads)
 )-"),
   long_reads_sv = list(
-    caption = "Coverage halves at the first breakpoint, and each read's segments share a row, overlapping in dark grey and colored by strand past it, joined by duplication-type arcs.",
+    caption = "Coverage steps down at the first breakpoint, and each read's segments share a row, overlapping in dark grey and colored by strand past it, joined by duplication-type arcs and by connectors looping back under the rows.",
     title = "COLO829 der(3) split reads chained across its two chr3 breakpoints",
     locus = "chr3:25,358,500-25,359,800",
     jbrowse = c(hg38, "--bam", inst("colo829_tumor_chr3.bam"),
