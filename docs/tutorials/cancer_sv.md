@@ -435,7 +435,7 @@ length(Reduce(intersect, tumor_names))
 
 `jbrowse_stack()` lays the three loci end to end, as the breakpoint split view
 lays out its panels. `unit = "chain"` puts a read's split segments on one row
-with a hairline across it, and `readConnections = list(show = TRUE)` draws an
+joined by connectors, and `readConnections = list(show = TRUE)` draws an
 arc for each split between chromosomes:
 
 

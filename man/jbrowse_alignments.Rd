@@ -85,7 +85,7 @@ its own: \code{list(field = "strand")} (or \code{"pairOrientation"},
 \code{"tags.HP"}, ...), with optional \code{sort} (section keys in stacking
 order) and \code{hidden} (keys left out)
 \item \code{unit}: what one row stands for, \code{"read"}, or \code{"chain"} for a read
-with its mate and split segments on one row, a hairline across it, and
+with its mate and split segments on one row joined by connectors, and
 the strand colors framed against the chain's own
 \item the four bands, each a list with its own \code{show}:
 \code{coverage} (\code{height}; \code{interbase}, whose \code{filter} on \code{depth} and
@@ -148,9 +148,13 @@ reaches, its copies sharing \code{read} and \code{row}
 carry that base there, over the depth), \code{quality}, \code{fade}
 \item \code{gaps}: \code{start}, \code{end}, \code{length}, \code{type} (\code{"deletion"} or \code{"skip"}),
 \code{read}, \code{fade}
-\item \code{chains}: under \code{unit = "chain"}, each chain of more than one read:
-\code{start}, \code{end}, \code{row}, and the \code{color} and \code{opacity} of the hairline
-across it; empty otherwise
+\item \code{connectors}: each connector the pileup draws, always under
+\code{unit = "chain"} and otherwise under \code{pileup$connectors$show}: \code{start}
+and \code{end} (the two ends), \code{row} and \code{end_row}, \code{end_region}, \code{color}
+(the connection's arc color), \code{kind} (\code{"straight"}, \code{"curve"} or
+\code{"loop"}), \code{dashed} (the junction steps over segments not in view),
+\code{dip} (the px a curve dips, which the display flattens where its ends
+sit close on screen), and \code{read} and \code{mate}; empty otherwise
 \item \code{overlaps}: under \code{unit = "chain"} and a read height of 3 or more,
 each span where two reads of one row both align: \code{start}, \code{end}, \code{row}
 and the neutral \code{color} the display fills it with, which is neither

@@ -91,7 +91,7 @@ alignments_adapter <- function(file, index) {
 #'     `"tags.HP"`, ...), with optional `sort` (section keys in stacking
 #'     order) and `hidden` (keys left out)
 #'   * `unit`: what one row stands for, `"read"`, or `"chain"` for a read
-#'     with its mate and split segments on one row, a hairline across it, and
+#'     with its mate and split segments on one row joined by connectors, and
 #'     the strand colors framed against the chain's own
 #'   * the four bands, each a list with its own `show`:
 #'     `coverage` (`height`; `interbase`, whose `filter` on `depth` and
@@ -138,9 +138,13 @@ alignments_adapter <- function(file, index) {
 #'     carry that base there, over the depth), `quality`, `fade`
 #'   * `gaps`: `start`, `end`, `length`, `type` (`"deletion"` or `"skip"`),
 #'     `read`, `fade`
-#'   * `chains`: under `unit = "chain"`, each chain of more than one read:
-#'     `start`, `end`, `row`, and the `color` and `opacity` of the hairline
-#'     across it; empty otherwise
+#'   * `connectors`: each connector the pileup draws, always under
+#'     `unit = "chain"` and otherwise under `pileup$connectors$show`: `start`
+#'     and `end` (the two ends), `row` and `end_row`, `end_region`, `color`
+#'     (the connection's arc color), `kind` (`"straight"`, `"curve"` or
+#'     `"loop"`), `dashed` (the junction steps over segments not in view),
+#'     `dip` (the px a curve dips, which the display flattens where its ends
+#'     sit close on screen), and `read` and `mate`; empty otherwise
 #'   * `overlaps`: under `unit = "chain"` and a read height of 3 or more,
 #'     each span where two reads of one row both align: `start`, `end`, `row`
 #'     and the neutral `color` the display fills it with, which is neither
@@ -296,7 +300,13 @@ alignments_result <- function(t, assembly) {
     d
   }
   mismatches <- on_read(t$mismatches)
-  chains <- frame(t$chains)
+  connectors <- frame(t$connectors)
+  connectors$read <- connectors$key + 1L
+  connectors$mate <- connectors$mateKey + 1L
+  names(connectors)[names(connectors) == "endRow"] <- "end_row"
+  connectors$end_region <- connectors$endRegion + 1L
+  connectors <- connectors[!names(connectors) %in% c("key", "mateKey",
+    "endRegion")]
   overlaps <- frame(t$overlaps)
   gaps <- on_read(t$gaps)
   gaps$length <- gaps$end - gaps$start
@@ -318,7 +328,8 @@ alignments_result <- function(t, assembly) {
   interbase_key <- engine_key(t$interbaseLegend, t$interbaseLegendTitle)
   junction_key <- engine_key(t$junctionLegend, t$junctionLegendTitle)
   structure(
-    list(reads = reads, mismatches = mismatches, gaps = gaps, chains = chains,
+    list(reads = reads, mismatches = mismatches, gaps = gaps,
+      connectors = connectors,
       overlaps = overlaps,
       insertions = insertions, clips = clips, modifications = modifications,
       qualities = qualities,

@@ -67,20 +67,25 @@ test_that("an arc rises as high as it is wide, the band reaching its pixels at t
   expect_equal(reach(3000), arc_top(a) / 2)
 })
 
-test_that("a chain puts a read's mates and split segments on one row, a hairline across it", {
+test_that("a chain puts a read's mates and split segments on one row, joined by connectors", {
   plain <- read()
   chained <- read(display = list(unit = "chain"))
-  expect_equal(nrow(plain$chains), 0)
-  expect_gt(nrow(chained$chains), 10)
+  expect_equal(nrow(plain$connectors), 0)
+  expect_gt(nrow(chained$connectors), 10)
   expect_equal(chained$reads$start, plain$reads$start)
   rows <- tapply(chained$reads$row, chained$reads$name, function(r) length(unique(r)))
   expect_true(all(rows == 1))
-  expect_true(all(chained$chains$end > chained$chains$start))
+  c <- chained$connectors
+  expect_equal(c$end_row, c$row)
+  name_of <- function(read) chained$reads$name[match(read, chained$reads$read)]
+  expect_equal(name_of(c$mate), name_of(c$read))
+  expect_true(all(c$kind %in% c("straight", "curve", "loop")))
+  drawn <- c[c$end_region == c$region, ]
   built <- ggplot2::ggplot_build(ggplot2::autoplot(chained, "pileup"))$data
   lines <- Filter(function(d) all(c("xend", "yend") %in% names(d)) &&
-    nrow(d) == nrow(chained$chains), built)
+    nrow(d) == nrow(drawn) && "linetype" %in% names(d), built)
   expect_length(lines, 1)
-  expect_equal(-lines[[1]]$yend, chained$chains$row + 0.5)
+  expect_equal(-lines[[1]]$yend, drawn$end_row + 0.5)
 })
 
 test_that("a chain over an inversion frames the split segments' strands against each other", {

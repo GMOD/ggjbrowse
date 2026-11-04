@@ -108,7 +108,7 @@ FAMILIES <- list(
 # The tables an alignments track summarizes its reads in, which the engine
 # computed over every read and a filter in R leaves as they were
 SUMMARIES <- c("coverage", "allele_coverage", "modification_coverage",
-  "interbase_coverage", "indicators", "junctions", "chains", "overlaps",
+  "interbase_coverage", "indicators", "junctions", "connectors", "overlaps",
   "arcs", "arc_ticks")
 
 families_of <- function(x) {

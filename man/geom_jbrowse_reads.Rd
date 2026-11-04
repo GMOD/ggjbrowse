@@ -4,6 +4,7 @@
 \alias{geom_jbrowse_reads}
 \alias{geom_jbrowse_deletion_lengths}
 \alias{geom_jbrowse_overlaps}
+\alias{geom_jbrowse_connectors}
 \alias{geom_jbrowse_chains}
 \alias{geom_jbrowse_skips}
 \alias{geom_jbrowse_deletions}
@@ -29,6 +30,8 @@ geom_jbrowse_reads(mapping = NULL, data = NULL, ...)
 geom_jbrowse_deletion_lengths(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_overlaps(mapping = NULL, data = NULL, ...)
+
+geom_jbrowse_connectors(mapping = NULL, data = NULL, ...)
 
 geom_jbrowse_chains(mapping = NULL, data = NULL, ...)
 
@@ -123,9 +126,10 @@ lines and the deletions' boxes, and \code{geom_jbrowse_deletion_lengths()}
 writes a deletion's length in it where the box is wide enough
 \item \code{geom_jbrowse_overlaps()}: under \code{unit = "chain"}, the neutral fill over
 the span where two reads of a chain both align
-\item \code{geom_jbrowse_chains()}: under \code{unit = "chain"}, the hairline across a
-row from the first to the last read of a chain, a read's mate or split
-segments sharing it
+\item \code{geom_jbrowse_connectors()}: the line from each read to its mate or split
+segment, in the connection's arc color, dashed over segments not in view;
+drawn straight, within one region. \code{geom_jbrowse_chains()} is its
+deprecated name
 \item \code{geom_jbrowse_mismatches()}, \code{geom_jbrowse_insertions()},
 \code{geom_jbrowse_clips()}, \code{geom_jbrowse_modifications()}: the marks on the
 reads; \code{geom_jbrowse_letters()} writes the mismatched bases and the

@@ -131,7 +131,7 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
   parent's: `geom_jbrowse_reads(data = ...)` errors, pointing to assignment.
 - The summary tables an alignments track computes over every read
   (`coverage`, `allele_coverage`, `modification_coverage`,
-  `interbase_coverage`, `indicators`, `junctions`, `chains`, `overlaps`,
+  `interbase_coverage`, `indicators`, `junctions`, `connectors`, `overlaps`,
   `arcs`, `arc_ticks`) don't recompute after `reads` is filtered. Drawing one
   then warns once: read again with `display = list(filter = ...)`.
 

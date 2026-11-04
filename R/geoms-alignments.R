@@ -71,9 +71,10 @@ with_inset <- function(d, model) {
 #'   writes a deletion's length in it where the box is wide enough
 #' * `geom_jbrowse_overlaps()`: under `unit = "chain"`, the neutral fill over
 #'   the span where two reads of a chain both align
-#' * `geom_jbrowse_chains()`: under `unit = "chain"`, the hairline across a
-#'   row from the first to the last read of a chain, a read's mate or split
-#'   segments sharing it
+#' * `geom_jbrowse_connectors()`: the line from each read to its mate or split
+#'   segment, in the connection's arc color, dashed over segments not in view;
+#'   drawn straight, within one region. `geom_jbrowse_chains()` is its
+#'   deprecated name
 #' * `geom_jbrowse_mismatches()`, `geom_jbrowse_insertions()`,
 #'   `geom_jbrowse_clips()`, `geom_jbrowse_modifications()`: the marks on the
 #'   reads; `geom_jbrowse_letters()` writes the mismatched bases and the
@@ -169,12 +170,22 @@ geom_jbrowse_overlaps <- function(mapping = NULL, data = NULL, ...) {
 
 #' @rdname geom_jbrowse_reads
 #' @export
+geom_jbrowse_connectors <- function(mapping = NULL, data = NULL, ...) {
+  data <- replacing(data, "connectors", "geom_jbrowse_connectors")
+  jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
+    d <- summary_table(x, "connectors")
+    d[d$end_region == d$region, , drop = FALSE]
+  }, mapping,
+    ggplot2::aes(x = start, xend = end, y = row + 0.5, yend = end_row + 0.5,
+      colour = I(color), linetype = I(ifelse(dashed, "22", "solid"))),
+    list(linewidth = px_to_mm(1), ...))
+}
+
+#' @rdname geom_jbrowse_reads
+#' @export
 geom_jbrowse_chains <- function(mapping = NULL, data = NULL, ...) {
-  data <- replacing(data, "chains", "geom_jbrowse_chains")
-  jbrowse_layer(ggplot2::GeomSegment, data,
-    function(x) summary_table(x, "chains"), mapping,
-    ggplot2::aes(x = start, xend = end, y = row + 0.5, yend = row + 0.5,
-      colour = I(color), alpha = I(opacity)), list(linewidth = px_to_mm(1), ...))
+  .Deprecated("geom_jbrowse_connectors")
+  geom_jbrowse_connectors(mapping, data, ...)
 }
 
 #' @rdname geom_jbrowse_reads

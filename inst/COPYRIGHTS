@@ -115,7 +115,7 @@ the JBrowse authors) with the packages below, minified.
 - @jbrowse/display-ui 5.0.0-beta.20
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/jexl 7.2.0
+- @jbrowse/jexl 8.0.0
   License: MIT
   Copyright: Copyright (c) 2025 Colin Diesh; Copyright (c) 2020 Tom Shawver
 - @jbrowse/mobx-state-tree 6.10.0
@@ -167,6 +167,9 @@ the JBrowse authors) with the packages below, minified.
   License: MIT
   Copyright: Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 - @jbrowse/render-core 5.0.0-beta.20
+  License: Apache-2.0
+  Copyright: JBrowse Team
+- @jbrowse/sv-core 5.0.0-beta.20
   License: Apache-2.0
   Copyright: JBrowse Team
 - @jbrowse/synteny-core 5.0.0-beta.20
@@ -238,7 +241,7 @@ the JBrowse authors) with the packages below, minified.
 - md5 2.3.0
   License: BSD-3-Clause
   Copyright: Copyright (c) 2011-2012, Paul Vorbach.; Copyright (c) 2009, Jeff Mott.
-- mobx 7.1.3
+- mobx 7.1.4
   License: MIT
   Copyright: Copyright (c) 2015 Michel Weststrate
 - mobx-react 10.0.3
