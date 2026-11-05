@@ -1,5 +1,15 @@
 # ggjbrowse (development version)
 
+- A multi-way read frames its anchor locus in its contig as the display
+  does: it fetches the view's blocks around the window, so `blocks` and
+  `ribbons` can run past 0 and `width` for the plot to clip, an alignment's
+  `id` and `group` name the fetched block, and the legend and lane order
+  cover what was fetched. The contig length comes from the anchor's genome
+  in `assemblies`.
+- A synteny read drops the ribbons the band culls past its overdraw, and
+  `offscreen`, `offscreenContigs` and `offscreenStrip` mark a ribbon whose
+  mate lies past the facing row's view, as the band's strip does.
+
 - A locus reads as JBrowse frames it: a window into its whole contig, with
   the view's margin fetched around it, so rows lay out as the display lays
   them out. The tables list what the window shows, plus what a listed row
