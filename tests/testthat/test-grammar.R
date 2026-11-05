@@ -138,7 +138,10 @@ test_that("a multi-sample VCF reads as the display paints its genotypes", {
   expect_equal(on_axis(v)$cells$start,
     of(v$cells, v$variants, "variant")$start)
   hom <- unique(v$cells$color[v$cells$genotype == "1/1"])
-  expect_equal(as.character(hom), as.character(v$variants$color[1]))
+  genotypes <- v$keys$genotypes
+  expect_equal(as.character(hom),
+    genotypes$color[genotypes$label == "Alt, full dosage (hom)"])
+  expect_equal(unique(as.character(v$variants$color)), "#daa520")
   for (layout in c("genomic", "columns")) {
     built <- ggplot_build(autoplot(v, layout = layout))
     expect_equal(as.character(built$data[[1]]$fill),

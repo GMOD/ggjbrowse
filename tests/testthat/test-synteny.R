@@ -22,7 +22,7 @@ test_that("a PAF reads as the synteny band lays out and colors it", {
   expect_equal(match$query_start > match$query_end, reversed)
   expect_true(all(match$target_start < match$target_end))
   expect_equal(unique(as.character(match$color)), "#ff0000")
-  expect_equal(s$keys$ribbons$label, c("match", "insertion", "deletion"))
+  expect_length(s$keys$ribbons$label, 0)
   expect_true("deletion" %in% s$ribbons$kind)
   expect_type(s$ribbons$color, "character")
   expect_equal(nrow(s$offscreen), 0)

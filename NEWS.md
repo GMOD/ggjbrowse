@@ -1,5 +1,18 @@
 # ggjbrowse (development version)
 
+- `jbrowse_variants()`'s `variants$color` is what the records band paints:
+  the record's structural-variant class color, or goldenrod (`"#daa520"`)
+  for a record with none, where it was the full-dosage genotype color.
+  `cells$color` keeps the genotype colors `keys$genotypes` lists.
+- A synteny or dotplot result with no color field keys nothing, as the view
+  shows no key there; `keys$ribbons` is empty.
+- With `coverage = list(show = FALSE)`, `jbrowse_alignments()`'s coverage
+  scale is `[0, 0]` with no ticks, as the hidden band draws no axis.
+- Rows given as a tree (`rows$tree`) come in the tree's leaf order, as the
+  display draws them, where they came in the file's order.
+- A multi-way result labels its lanes by `rows$labels` and keeps a chosen
+  lane with no alignments in the window.
+
 - Under `unit = "chain"` the `chains` table gives way to `connectors`, every
   connector the pileup draws, and `geom_jbrowse_connectors()` draws each as
   the display does: straight, a curve dipping under its rows or bowing over
