@@ -169,12 +169,12 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
     colorByFrame = color_by_cds, aminoAcids = amino_acids,
     byteLimit = byte_limit)
   key <- engine_key(t$legend, t$legendTitle)
-  features <- as_frame(t$features)
+  features <- table_of(t, "features")
   features <- cbind(feature = match(features$id, unique(features$id)),
     features)
-  subfeatures <- as_frame(t$subfeatures)
+  subfeatures <- table_of(t, "subfeatures")
   subfeature_key <- match(subfeatures$id, unique(subfeatures$id))
-  sections <- as_frame(t$sections)
+  sections <- table_of(t, "sections")
   vcf <- vcf_columns(t$vcf, features$feature, names(features))
   taken <- c(names(features), names(subfeatures), "strand", "section")
   attributes <- typed_columns(t$attributes, t$attributeFields,
@@ -184,8 +184,8 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
   features$section <- factor(features$section, levels = sections$label)
   features <- cbind(features, attributes$frame)
   if (!is.null(vcf)) features <- cbind(features, vcf$records)
-  on_feature <- function(table) {
-    d <- as_frame(table)
+  on_feature <- function(name) {
+    d <- table_of(t, name)
     d$feature <- features$feature[d$feature + 1L]
     if (!is.null(d$subfeature)) {
       at <- as.integer(d$subfeature) + 1L
@@ -195,14 +195,14 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
     d
   }
   subfeatures <- cbind(subfeature = subfeature_key,
-    on_feature(t$subfeatures), subfeature_attributes)
-  arrows <- on_feature(t$arrows)
+    on_feature("subfeatures"), subfeature_attributes)
+  arrows <- on_feature("arrows")
   names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
   tables <- list(features = features, subfeatures = subfeatures,
-    rects = on_feature(t$rects), lines = on_feature(t$lines),
-    chevrons = on_feature(t$chevrons), arrows = arrows,
-    amino_acids = snake(on_feature(t$aminoAcids)),
-    labels = on_feature(t$labels), sections = sections,
+    rects = on_feature("rects"), lines = on_feature("lines"),
+    chevrons = on_feature("chevrons"), arrows = arrows,
+    amino_acids = snake(on_feature("aminoAcids")),
+    labels = on_feature("labels"), sections = sections,
     samples = vcf$samples, annotations = vcf$annotations)
   fields <- list(
     attributes = if (nrow(attributes$fields)) attributes$fields,

@@ -120,49 +120,19 @@ reference bases.
 
 ## Waiting on the engine
 
-Found 2026-11-02 comparing the gallery halves. Each is JBrowse's decision,
-so R does not copy it: the fix is in jbrowse-components, then an engine bump
-here. On 2026-11-03 local jbrowse-components `main` was 195 commits past the
-pinned v5.0.0-beta.20, none of them fixing these, and a bump from it takes
-those too.
+Nothing, as of jbrowse-components c40fbdc6ba (2026-11-05). The four items
+found comparing the gallery halves on 2026-11-02 were fixed there:
 
-- **Synteny ribbons stop short of the view's edges.** `inversion_synteny`'s
-  top-right corner and `amylase_zoom`'s corners are white where JBrowse
-  fills them. In chr8, alignment 2 runs to 25,080,663, but its ribbon ends
-  at 13,998,216, where the bottom row's region ends.
-  - Cause: the live display's displayed region is the whole contig, and
-    `syntenyFetchRegions()` buffers the visible window inside it. The
-    tables engine (`plugins/linear-comparative-view/src/tables.ts`) makes
-    the requested loci the displayed regions and passes them as the fetch
-    and target windows, so `buildSyntenyGeometry` trims each ribbon where
-    either row's window ends.
-  - `place()` clamps each foot to its region on its own, so a wider window
-    alone would skew a partly off-screen ribbon, where it should clip.
-    Fixing it changes how the tables lay out an axis: each ribbon's region
-    and its px.
-- **A dotplot with no color field keys "Default / alignment".** The views'
-  `colorScales` (synteny-core `TrackColorsMixin`) show no key unless
-  `hasLegendKey`, which needs a track, strand, measurement or column field.
-  `comparativeLegend()` returns chips for every field, and
-  `packages/tables/src/synteny.test.ts` asserts the default
-  `['match', 'insertion', 'deletion']`, so the tables' key is deliberate
-  there. Settle which rule the tables follow before changing it.
-- **Clipped wiggle bars carry no flag.** JBrowse paints a `CLIP_STRIP_PX`
-  strip of `CLIP_STRIP_COLOR` (render-core `clipStrip`) across a row's edge
-  where a bar passes its domain; R paints none. In `dnase_rows`, K562 peaks
-  at 427 on a 0–260 domain. The engine could flag each clipped mark in
-  `marks` and return the strip's color and px.
-- **A deletion's fade depends on where the view starts.** In
-  `hg008t_cuzd1_deletion.bam` the 28 reads' 1,798 bp deletion at
-  chr10:122,835,344 fade 0.451 read over `122,835,000-122,836,200`, 1 over
-  `122,836,201-122,837,500` and 0.847 over `122,835,345-122,837,500`, and
-  each region's copy of it differs in a multi-region read.
-  - Cause: `deletionStartFrequencies()` anchors a deletion's frequency at its
-    start, but `computePositionFrequencies()` takes the depth through
-    `depthNear()`, which clamps the position to `coverageStartPos`, while
-    the count comes from the `rare` map of starts outside the window. A
-    deletion starting before the window is counted against the depth inside
-    itself, where the deleted reads are missing, so it saturates.
-    (`plugins/alignments/src/shared/computeFrequenciesAndThresholds.ts`.)
-  - The browser runs the same pipeline per region, so a block that starts
-    inside a deletion likely draws it opaque too.
+- Synteny ribbons run to the view's edges: the tables frame each axis in its
+  contig (from the assembly, or the lengths the PAF or chain states), fetch
+  the view's margin, and clip ribbons at the window.
+- A dotplot or synteny result with no color field keys nothing, as the views
+  do.
+- A wiggle bar its axis clips carries `clip_side`, and the result
+  `clip_strip`; `geom_jbrowse_wiggle()` draws the strip.
+- A deletion's fade no longer depends on where the window starts: one
+  starting before it is measured with its carriers added back.
+
+The parity suites in jbrowse-components (`packages/tables/src/parity/`) now
+display a locus as the app does, so a window-dependent difference like these
+shows there rather than by eye in the gallery.

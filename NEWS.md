@@ -1,5 +1,11 @@
 # ggjbrowse (development version)
 
+- `jbrowse_features()` warns when the layout's rows cannot hold every
+  feature in view and some are left out of its tables, with the count; a
+  dense track read whole under `heightMode = "grow"` dropped them silently.
+- A table the engine always returns that comes back missing is an error
+  naming it, where it read as an empty table.
+
 - A multi-way read frames its anchor locus in its contig as the display
   does: it fetches the view's blocks around the window, so `blocks` and
   `ribbons` can run past 0 and `width` for the plot to clip, an alignment's

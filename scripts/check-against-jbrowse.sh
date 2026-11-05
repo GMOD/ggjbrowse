@@ -10,7 +10,8 @@ scripts/build-js.sh
 lib=$(mktemp -d)
 R CMD INSTALL -l "$lib" .
 R_LIBS="$lib" Rscript -e 'testthat::test_dir("tests/testthat",
-  package = "ggjbrowse", load_package = "installed", stop_on_failure = TRUE)'
+  package = "ggjbrowse", load_package = "installed", stop_on_failure = TRUE,
+  stop_on_warning = TRUE)'
 # The R tutorials pull sections of the website tutorials, and a website edit
 # that removes text a directive matches fails their expansion. Linting them
 # against this checkout's own pages fails the night of that edit, rather than

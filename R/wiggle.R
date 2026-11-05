@@ -70,12 +70,12 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
   bp_per_px <- sum(regions$end - regions$start) / width
   t <- read_regions("wiggle", adapter, regions, assembly, display,
     bpPerPx = bp_per_px)
-  marks <- as_frame(t$marks)
+  marks <- table_of(t, "marks")
   names(marks)[names(marks) == "clipSide"] <- "clip_side"
-  bins <- as_frame(t$bins)
-  rules <- as_frame(t$rules)
+  bins <- table_of(t, "bins")
+  rules <- table_of(t, "rules")
   in_one_call(structure(
-    list(bins = bins, marks = marks, sources = as_frame(t$sources),
+    list(bins = bins, marks = marks, sources = table_of(t, "sources"),
       rules = rules, display = t$config, keys = list(),
       ramps = ramp_frames(t$ramps), y_scale = y_scale(t$scoreScale),
       fields = list(), mark = t$mark, interpolate = t$interpolate,

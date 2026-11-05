@@ -404,6 +404,16 @@ shorthand_uri <- function(path) {
 # A table's columns as a data frame, a nested column kept a list column. An
 # empty column says nothing of its type, so it reads as vctrs' unspecified
 # vector, which binds to a column of any type from another region's table.
+# A table the engine always returns, refused when it is missing: a key the
+# bundled engine renamed would otherwise read as an empty table
+table_of <- function(t, name) {
+  if (is.null(t[[name]])) {
+    stop("the engine returned no `", name, "` table; ggjbrowse's R code and ",
+      "its bundled engine disagree", call. = FALSE)
+  }
+  as_frame(t[[name]])
+}
+
 as_frame <- function(columns) {
   columns <- lapply(columns, function(x)
     if (is.null(x) || (is.list(x) && !length(x))) vctrs::unspecified(0)

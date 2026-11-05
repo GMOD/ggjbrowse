@@ -219,12 +219,17 @@ test_that("several regions' indicators land on the axis that lays them end to en
 })
 
 test_that("the display's sort object lays the rows out", {
-  site <- bam$mismatches$position[1]
+  m <- bam$mismatches[bam$mismatches$position >= 1000 &
+    bam$mismatches$position < 6000, ]
+  by_count <- as.numeric(names(sort(table(m$position), decreasing = TRUE)))
+  site <- Find(function(p) sum(bam$reads$start <= p & bam$reads$end > p) >
+    length(unique(m$read[m$position == p])), by_count)
   s <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",
     display = list(sort = list(field = "base", pos = site)))
   covering <- which(s$reads$start <= site & s$reads$end > site)
   mismatched <- unique(s$mismatches$read[s$mismatches$position == site])
   expect_gt(length(mismatched), 0)
+  expect_gt(length(setdiff(covering, mismatched)), 0)
   expect_lt(max(s$reads$row[mismatched]),
     min(s$reads$row[setdiff(covering, mismatched)]))
   l <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-6,000",

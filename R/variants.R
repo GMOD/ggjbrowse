@@ -131,7 +131,7 @@ jbrowse_variants <- function(file, region = NULL, display = NULL,
 }
 
 variants_result <- function(t) {
-  variants <- as_frame(t$variants)
+  variants <- table_of(t, "variants")
   variants <- cbind(variant = variants$key + 1L,
     variants[names(variants) != "key"])
   variants$filter <- as.character(variants$filter)
@@ -140,9 +140,9 @@ variants_result <- function(t) {
   variants <- cbind(variants, info$frame)
   info_fields <- info$fields
   annotations <- annotation_frame(t$annotations, "variant", variants$variant)
-  rows <- as_frame(t$rows)
-  bands <- as_frame(t$bands)[c("key", "label")]
-  cells <- as_frame(t$cells)
+  rows <- table_of(t, "rows")
+  bands <- table_of(t, "bands")[c("key", "label")]
+  cells <- table_of(t, "cells")
   cells$variant <- variants$variant[cells$variant + 1L]
   cells$row <- factor(cells$row, levels = rows$name)
   genotypes <- engine_key(t$legend, t$legendTitle)

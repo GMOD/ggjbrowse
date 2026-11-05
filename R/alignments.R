@@ -286,27 +286,27 @@ region_bases <- function(assembly, regions) {
 }
 
 alignments_result <- function(t, assembly) {
-  sections <- as_frame(t$sections)
+  sections <- table_of(t, "sections")
   names(sections)[names(sections) == "dipReserve"] <- "dip_reserve"
-  frame <- function(table) {
-    d <- as_frame(table)
+  frame <- function(name) {
+    d <- table_of(t, name)
     if (!is.null(d$section)) {
       d$section <- factor(d$section, levels = sections$label)
     }
     d
   }
-  reads <- frame(t$reads)
+  reads <- frame("reads")
   reads <- cbind(read = reads$key + 1L, reads[names(reads) != "key"])
   names(reads)[names(reads) == "insertSize"] <- "insert_size"
   names(reads)[names(reads) == "pairOrientation"] <- "pair_orientation"
-  on_read <- function(table) {
-    d <- as_frame(table)
+  on_read <- function(name) {
+    d <- table_of(t, name)
     d$read <- reads$read[d$read + 1L]
     d$section <- NULL
     d
   }
-  mismatches <- on_read(t$mismatches)
-  connectors <- frame(t$connectors)
+  mismatches <- on_read("mismatches")
+  connectors <- frame("connectors")
   connectors$read <- connectors$key + 1L
   connectors$mate <- connectors$mateKey + 1L
   names(connectors)[names(connectors) == "endRow"] <- "end_row"
@@ -314,21 +314,21 @@ alignments_result <- function(t, assembly) {
   connectors$end_region <- connectors$endRegion + 1L
   connectors <- connectors[!names(connectors) %in% c("key", "mateKey",
     "endRegion")]
-  overlaps <- frame(t$overlaps)
-  gaps <- on_read(t$gaps)
+  overlaps <- frame("overlaps")
+  gaps <- on_read("gaps")
   gaps$length <- gaps$end - gaps$start
-  insertions <- on_read(t$insertions)
-  clips <- on_read(t$clips)
-  modifications <- on_read(t$modifications)
-  qualities <- on_read(t$qualities)
-  coverage <- frame(t$coverage)
-  alleles <- frame(t$alleleCoverage)
-  modification_coverage <- frame(t$modificationCoverage)
-  interbase_coverage <- frame(t$interbaseCoverage)
-  indicators <- frame(t$indicators)
-  junctions <- frame(t$junctions)
-  arcs <- frame(t$arcs)
-  arc_ticks <- frame(t$arcTicks)
+  insertions <- on_read("insertions")
+  clips <- on_read("clips")
+  modifications <- on_read("modifications")
+  qualities <- on_read("qualities")
+  coverage <- frame("coverage")
+  alleles <- frame("alleleCoverage")
+  modification_coverage <- frame("modificationCoverage")
+  interbase_coverage <- frame("interbaseCoverage")
+  indicators <- frame("indicators")
+  junctions <- frame("junctions")
+  arcs <- frame("arcs")
+  arc_ticks <- frame("arcTicks")
   read_key <- engine_key(t$legend, t$legendTitle)
   arc_key <- engine_key(t$arcLegend, t$arcLegendTitle)
   base_key <- engine_key(t$baseLegend, t$baseLegendTitle)
