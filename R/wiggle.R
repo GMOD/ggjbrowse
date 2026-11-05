@@ -40,7 +40,10 @@
 #'     `source`, `row`, `start`, `end`, `score`, `low` (where the mark reaches
 #'     down to: the origin, or a whisker band's min), `band`, `color` and
 #'     `opacity`; under a min-max extent the max and min bands come back as
-#'     layers of their own, tinted as the display tints them
+#'     layers of their own, tinted as the display tints them; `clip_side` is
+#'     1 on a bar whose score passes the axis's top, -1 its bottom, else 0,
+#'     where the display paints `clip_strip` (its `color`, `px` tall) across
+#'     the row's edge
 #'   * `sources`: `name`, `label`, `group`, `color`; `bins` and `marks` name
 #'     their source by `name`, and assigning `sources` drops the bins and
 #'     marks of the sources it leaves out
@@ -68,6 +71,7 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
   t <- read_regions("wiggle", adapter, regions, assembly, display,
     bpPerPx = bp_per_px)
   marks <- as_frame(t$marks)
+  names(marks)[names(marks) == "clipSide"] <- "clip_side"
   bins <- as_frame(t$bins)
   rules <- as_frame(t$rules)
   in_one_call(structure(
@@ -76,7 +80,7 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
       ramps = ramp_frames(t$ramps), y_scale = y_scale(t$scoreScale),
       fields = list(), mark = t$mark, interpolate = t$interpolate,
       summary_field = t$summaryField, origin = t$origin,
-      row_layout = t$rowLayout,
+      row_layout = t$rowLayout, clip_strip = t$clipStrip,
       height = t$height, bp_per_px = bp_per_px),
     primary = "marks",
     class = c("jbrowse_wiggle", "jbrowse_result")),
@@ -200,6 +204,23 @@ in_rows <- function(x, d) {
   d
 }
 
+# The strip the display paints across a row's edge over each bar its axis
+# clips, `clip_strip$px` of the row's height, on the axis's own scale
+clip_strips <- function(x) {
+  d <- pixel_wide(x, !x$marks$band & x$marks$clip_side != 0)
+  t <- score_transform(x$y_scale)
+  lim <- t$transform(x$y_scale$domain)
+  rows <- if (isTRUE(x$row_layout)) nrow(x$sources) else 1
+  frac <- x$clip_strip$px * rows / x$height
+  edge <- function(at) t$inverse(lim[1] + at * diff(lim))
+  top <- d$clip_side > 0
+  d$low <- ifelse(top, edge(1 - frac), x$y_scale$domain[1])
+  d$score <- ifelse(top, x$y_scale$domain[2], edge(frac))
+  d <- in_rows(x, d)
+  d$color <- rep(x$clip_strip$color, nrow(d))
+  d
+}
+
 # A line segment that changes color across the origin draws each side in its
 # own color, as the display's shader does: a point at the crossing takes the
 # next point's color, since a path segment takes its start point's.
@@ -285,7 +306,11 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
     jbrowse_layer(ggplot2::GeomPath, data, of("line", centers, "linear"),
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = score, colour = I(color), group = run),
-      list(...)))
+      list(...)),
+    jbrowse_layer(ggplot2::GeomRect, data, of("bar", clip_strips),
+      for_geom(mapping, ggplot2::GeomRect),
+      ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
+        fill = I(color)), list(...)))
 }
 
 #' @rdname geom_jbrowse_wiggle

@@ -54,7 +54,10 @@ summarizes the bin
 \code{source}, \code{row}, \code{start}, \code{end}, \code{score}, \code{low} (where the mark reaches
 down to: the origin, or a whisker band's min), \code{band}, \code{color} and
 \code{opacity}; under a min-max extent the max and min bands come back as
-layers of their own, tinted as the display tints them
+layers of their own, tinted as the display tints them; \code{clip_side} is
+1 on a bar whose score passes the axis's top, -1 its bottom, else 0,
+where the display paints \code{clip_strip} (its \code{color}, \code{px} tall) across
+the row's edge
 \item \code{sources}: \code{name}, \code{label}, \code{group}, \code{color}; \code{bins} and \code{marks} name
 their source by \code{name}, and assigning \code{sources} drops the bins and
 marks of the sources it leaves out

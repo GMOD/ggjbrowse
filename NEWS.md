@@ -1,5 +1,25 @@
 # ggjbrowse (development version)
 
+- A locus reads as JBrowse frames it: a window into its whole contig, with
+  the view's margin fetched around it, so rows lay out as the display lays
+  them out. The tables list what the window shows, plus what a listed row
+  draws from just outside it (a read a connector joins, a feature whose
+  label reaches in, the bins a line runs in from), and every index between
+  tables names a listed row.
+- Synteny and dotplot ribbons run to the window's edges, clipped there as
+  the band clips them, where they stopped at the requested loci; a ribbon's
+  px may fall outside `[0, width]`. The contig comes from the assembly, or
+  from the lengths the PAF or chain file states.
+- `jbrowse_wiggle()`'s `marks$clip_side` flags a bar its axis clips (1 at
+  the top, -1 the bottom) and `clip_strip` gives the strip JBrowse paints
+  there; `geom_jbrowse_wiggle()` draws it.
+- A deletion that starts before the window fades as it does inside it,
+  where it was drawn opaque.
+- Alignments rows, connectors and dip reserve come from the display's own
+  layout code; a faceted, collapsed pileup puts every read on one row.
+- A malformed region (no end, an end before its start) is an error, and a
+  refusal over `byte_limit` names the region asked for.
+
 - `jbrowse_variants()`'s `variants$color` is what the records band paints:
   the record's structural-variant class color, or goldenrod (`"#daa520"`)
   for a record with none, where it was the full-dosage genotype color.

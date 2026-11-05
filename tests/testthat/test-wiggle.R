@@ -104,7 +104,7 @@ test_that("a stepped line joins its bins, and a rule is labelled in its color", 
   path <- built$data[[5]]
   expect_equal(length(unique(path$group)), 1)
   expect_equal(path$x[2], path$x[3])
-  labels <- built$data[[8]]
+  labels <- built$data[[9]]
   expect_equal(labels$label, "gain")
 })
 
@@ -231,4 +231,24 @@ test_that("a BigWig with no region reads whole, each contig it lists", {
   expect_equal(whole$regions[c("chrom", "start", "end")],
     data.frame(chrom = "ctgA", start = 0, end = 50001))
   expect_gt(nrow(whole$marks), 0)
+})
+
+test_that("a bar its axis clips carries the strip the display paints at the axis's edge", {
+  clipped <- jbrowse_wiggle(bw, "ctgA:1-50,000",
+    display = list(encoding = list(y = list(scale = list(domainMin = -20,
+      domainMax = 20)))))
+  m <- clipped$marks
+  expect_equal(m$clip_side[m$score > 20], rep(1, sum(m$score > 20)))
+  expect_equal(m$clip_side[m$score < -20], rep(-1, sum(m$score < -20)))
+  expect_true(all(m$clip_side[abs(m$score) <= 20] == 0))
+  expect_equal(clipped$clip_strip$px, 2)
+  expect_match(clipped$clip_strip$color, "^#[0-9a-f]{6}$")
+  expect_true(all(w$marks$clip_side == 0))
+  strips <- ggplot2::layer_data(ggplot2::ggplot(clipped) +
+    geom_jbrowse_wiggle(), 7)
+  expect_equal(nrow(strips), sum(m$clip_side != 0))
+  expect_true(all(strips$fill == clipped$clip_strip$color))
+  top <- strips$ymax == 20
+  expect_equal(sum(top), sum(m$clip_side > 0))
+  expect_true(all(strips$ymin[top] > 19 & strips$ymin[top] < 20))
 })

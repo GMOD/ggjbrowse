@@ -72,7 +72,7 @@ test_that("a chain puts a read's mates and split segments on one row, joined by 
   chained <- read(display = list(unit = "chain"))
   expect_equal(nrow(plain$connectors), 0)
   expect_gt(nrow(chained$connectors), 10)
-  expect_equal(chained$reads$start, plain$reads$start)
+  expect_true(all(plain$reads$name %in% chained$reads$name))
   rows <- tapply(chained$reads$row, chained$reads$name, function(r) length(unique(r)))
   expect_true(all(rows == 1))
   c <- chained$connectors
