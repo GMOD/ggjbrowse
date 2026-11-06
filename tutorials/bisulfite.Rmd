@@ -69,9 +69,9 @@ replace:
 section: Aggregate methylation per context with MethylDackel
 level: 1
 replace:
-  - from: "The track is optional, and the reproduce\nscript leaves it out. "
-    to: "jbrowse.org hosts the three bigWigs, so\nthe code below reads them without this step. "
-  - from: "becomes a bigWig once the header line is dropped and the percentage column kept:"
+  - from: "The track is optional, and the\nreproduce script leaves it out.\n"
+    to: "jbrowse.org hosts the three bigWigs, so\nthe code below reads them without this step.\n"
+  - from: "becomes a bigWig once the\nheader line is dropped and the percentage column kept:"
     to: "becomes a bigWig once the header line is dropped and the percentage column\nkept. We'll read these three bigWigs back into R to check the per-read calls:"
 drop:
   - "A `MultiQuantitativeTrack` with a subadapter per context"
