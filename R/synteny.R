@@ -333,10 +333,6 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
       assemblies = p$assemblies))
 }
 
-# The floor under the alpha a pairwise view's key draws its chips at,
-# synteny-core's LEGEND_CHIP_ALPHA_FLOOR
-PAIRWISE_CHIP_ALPHA_FLOOR <- 0.45
-
 # A pairwise view's read: the engine's `view` tables of `file` over the
 # `first` and `second` axes, named and sized by `px`, with what both views
 # make of them. `children()` keys a table's rows to their alignment and each
@@ -364,7 +360,7 @@ pairwise_read <- function(view, file, first, second, px, display, assemblies,
     regions = rbind(axis_rows(axes$first, sides[1], axes$names[1]),
       axis_rows(axes$second, sides[2], axes$names[2])),
     alignments = keyed_alignments(r$alignments),
-    key = legend_key(r, max(r$alpha, PAIRWISE_CHIP_ALPHA_FLOOR)),
+    key = legend_key(r, r$legendAlpha),
     warnings = unique(c(axes$warnings, read$warnings)),
     assemblies = display_names(unlist(r$assemblyNames), labels,
       args$adapterConfig))

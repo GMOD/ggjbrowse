@@ -58,13 +58,16 @@ test_that("read connections come back as the display's band draws them", {
 test_that("an arc rises as high as it is wide, the band reaching its pixels at the figure's scale", {
   a <- read(display = list(readConnections = list(show = TRUE)))
   span <- 32000 - 18000
-  expect_equal(arc_top(a), a$display$readConnections$height / (1500 / span))
+  s <- a$arc_scale
+  expect_equal(s$reachPx, s$heightPx - s$marginPx)
+  expect_equal(arc_top(a), s$reachPx / (1500 / span))
   expect_lt(median(a$arcs$y), arc_top(a))
   expect_gt(max(a$arcs$y), arc_top(a))
-  reach <- function(width) {
+  band <- function(width) {
     ggplot2::autoplot(a, "arcs", width = width)$coordinates$limits$y[2]
   }
-  expect_equal(reach(3000), arc_top(a) / 2)
+  expect_equal(band(3000), s$heightPx / (3000 / span))
+  expect_equal(arc_top(a, 3000), arc_top(a) / 2)
 })
 
 test_that("a chain puts a read's mates and split segments on one row, joined by connectors", {

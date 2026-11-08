@@ -91,23 +91,11 @@ reference bases.
 - **A one-pixel floor.** `geom_jbrowse_deletions()` widens a deletion to a
   pixel, as gap.slang does, and `position_rects()` draws a one-base mark a
   pixel wide at least.
-- **`label_fade()`:** `labelFadeOpacity`, the ramp that fades a deletion's
-  length label, at the thresholds the engine returns in `glyph$label`.
-- **A key chip's alpha.** `jbrowse_synteny()` and `jbrowse_dotplot()` draw
-  their key's chips at the ribbons' alpha floored at 0.45, synteny-core's
-  `LEGEND_CHIP_ALPHA_FLOOR`; `jbrowse_multiway()`'s are opaque, as
-  `SvgColorLegend` draws them. The engine could return the chip alpha beside
-  `legend`.
-- **A letter's floor.** `geom_jbrowse_letters()` writes no mismatch letter
-  under 5% opacity, the display's `MIN_QUALITY_LETTER_OPACITY`; the letter's
-  fade itself is `alignmentMarkAlpha`'s.
-
-- **The genotype rows' background.** `variants_result()` keeps, as the
-  genotype key's `background` attribute, the color of the entry the engine
-  labels "Homozygous reference" (or "Reference" for haplotype rows), the
-  display's `REFERENCE_COLOR`, since a cell color field's entries come
-  before it; `reference_rows()` fills each row with it. The engine could return the row
-  background beside `legend`.
+- **The genotype matrix and the wiggle score matrix.** `as.matrix()` builds
+  each from the result's own tables, so it follows rows and cells a caller
+  edits. The engine's `genotypeMatrix` and `scoreMatrix` reads return the
+  display's own, the score matrix on a log or symlog axis's scale, but
+  re-read the file.
 
 ## Where R still draws differently from JBrowse
 
@@ -118,6 +106,10 @@ reference bases.
 - **A multi-row wiggle's range.** JBrowse writes the rows' shared domain,
   `[0, 200]`, at the top right; R's rows show no scale. This is R's to draw,
   from `y_scale$domain`.
+- **Arcs over the coverage band.** Under `readConnections$placement` "up"
+  with coverage shown, JBrowse draws the arcs inside the coverage band
+  (`arcScale$band` is `"coverage"`); R draws them in a band of their own,
+  `readConnections$height` tall.
 - **A transcript past the view's edge.** JBrowse marks it with `≫` at the
   edge (the `amino_acids` gallery figure); R does not. Not yet traced to
   where JBrowse decides it.

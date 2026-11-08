@@ -448,3 +448,14 @@ test_that("a VCF's CSQ reads as a row per record and consequence", {
   expect_equal(f$annotations$SYMBOL, c("GENE1", "GENE2"))
   expect_null(f$features$CSQ)
 })
+
+test_that("a feature listed for its label in the margin keeps its file's fields", {
+  margin <- jbrowse_features(gff, "ctgA:1,003-1,400")
+  snp <- margin$features[margin$features$name %in% "FakeSNP", ]
+  expect_equal(nrow(snp), 1)
+  expect_equal(snp$ID, "FakeSNP1")
+  expect_equal(snp$source, "example")
+  vcf <- jbrowse_features(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
+    "chr30:38,258,004-38,258,203")
+  expect_false(anyNA(vcf$features$ref))
+})

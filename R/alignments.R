@@ -347,7 +347,8 @@ alignments_result <- function(t, assembly) {
         junctions = junction_key, interbase = interbase_key),
       ramps = ramp_frames(t$ramps), y_scale = y_scale(t$coverageScale),
       fields = list(),
-      read_pitch = t$readPitch, glyph = t$glyph, arc_span_max = t$arcSpanMax),
+      read_pitch = t$readPitch, glyph = t$glyph, arc_span_max = t$arcSpanMax,
+      arc_scale = t$arcScale),
     primary = "reads",
     class = c("jbrowse_alignments", "jbrowse_result"))
 }

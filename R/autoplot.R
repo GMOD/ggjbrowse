@@ -212,13 +212,18 @@ junctions_plot <- function(x, o) {
   band(p, x, ylim = c(0, 1.08)) + no_y
 }
 
-# The read-connection band as the display draws it under the coverage: arcs,
-# or the read cloud on a log insert-size axis, hanging from the band's top
-# under placement "down" and rising from its bottom under "up"
+# The read-connection band on the engine's arc scale: arcs, or the read cloud
+# on a log insert-size axis inset from the band's edges, hanging from the
+# band's top under placement "down" and rising from its bottom under "up"
 arcs_plot <- function(x, o) {
+  s <- x$arc_scale
   cloud <- is_cloud(x)
-  down <- identical(x$display$readConnections$placement, "down")
-  transform <- c(if (cloud) "log10", if (down) "reverse")
+  transform <- c(if (cloud) "log10", if (s$reverse) "reverse")
+  ylim <- if (cloud) {
+    pad <- diff(log10(s$domain)) * s$insetPx /
+      (arc_band_px(x) - 2 * s$insetPx)
+    10^(log10(s$domain) + c(-pad, pad))
+  } else c(0, arc_band_px(x) / px_of(x, o$width))
   p <- band(ggplot2::ggplot(x) +
     geom_jbrowse_arc_ticks(width = o$width) +
     geom_jbrowse_arcs(width = o$width) +
@@ -226,7 +231,7 @@ arcs_plot <- function(x, o) {
     ggplot2::scale_y_continuous(transform = if (length(transform)) {
       scales::transform_compose(transform)
     } else "identity"),
-    x, ylim = c(if (cloud) 1 else 0, arc_top(x, o$width)))
+    x, ylim = ylim)
   if (cloud) p + ggplot2::labs(y = "insert size (bp)") else p + no_y
 }
 
@@ -311,7 +316,7 @@ alignment_px <- function(object, o) {
     pileup = o$pileup)
   c(junctions = s$sashimi$height,
     coverage = s$coverage$height,
-    arcs = s$readConnections$height,
+    arcs = arc_band_px(object),
     pileup = max(30, rows * pitch + sum(object$sections$dip_reserve)))[shown]
 }
 

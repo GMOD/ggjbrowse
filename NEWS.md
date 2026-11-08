@@ -1,5 +1,15 @@
 # ggjbrowse (development version)
 
+- The engine decides what R copied: the read-connection band's scale
+  (`arc_scale`, so an arc's apex keeps clear of the band's edge by half its
+  widest stroke and the read cloud's axis reaches 1,000 bp at least), a
+  deletion label's and a mismatch letter's opacity, a comparative key's chip
+  alpha, the genotype rows' background (drawn under a picked cell color too)
+  and height, and the anchor region a multi-way block lies in.
+- A feature listed for a label that reaches in from the margin keeps its
+  file's fields, and a VCF record there reads, where it errored.
+- A record two regions list has its `samples` and `annotations` once.
+
 - The read-connection band hangs from its top under `readConnections`'
   default placement, `"down"`, the read cloud included, and rises from its
   bottom under `"up"`, as the display draws it; the cloud drew upside down.

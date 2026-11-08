@@ -20,7 +20,10 @@ read_inset <- function(x) {
 # pileup draws it at the figure's px per bp: the engine's alignmentMarkAlpha
 # of the `marks` columns, its `alpha` and, for an insertion, `widthPx`
 mark_alpha <- function(x, width, kind, marks) {
-  if (!nrow(marks)) return(list(alpha = numeric(), widthPx = numeric()))
+  if (!nrow(marks)) {
+    return(list(alpha = numeric(), widthPx = numeric(), labelAlpha = numeric(),
+      letterAlpha = numeric()))
+  }
   pileup <- x$display$pileup
   args <- list(pxPerBp = px_of(x, width),
     featureHeight = x$read_pitch$featureHeight,
@@ -136,30 +139,17 @@ geom_jbrowse_deletion_lengths <- function(mapping = NULL, data = NULL,
                                           width = NULL, ...) {
   data <- replacing(data, "gaps", "geom_jbrowse_deletion_lengths")
   jbrowse_layer(ggplot2::GeomText, data, function(x) {
-    rule <- x$glyph$label
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
-    if (x$read_pitch$featureHeight < rule$minHeight) d <- d[0, , drop = FALSE]
     window <- xlim_of(x)
     from <- pmax(d$start, window[1])
     to <- pmin(d$end, window[2])
     d$middle <- (from + to) / 2
-    d$alpha <- label_fade((to - from) * px_of(x, width),
-      nchar(d$length) * rule$digitPx, rule)
+    d$alpha <- mark_alpha(x, width, "deletions", data.frame(length = d$length,
+      fade = d$fade, visibleLength = to - from))$labelAlpha
     d[d$alpha > 0, , drop = FALSE]
   }, mapping, ggplot2::aes(x = middle, y = row + 0.5,
     label = length, alpha = I(alpha)),
     list(size = 1.7, colour = "white", fontface = "bold", ...))
-}
-
-# A size label's opacity from the pixels its feature spans and the pixels its
-# digits need: none below `fadeLo` times the need, then `fadeFloor` ramping to
-# one at `fadeHi` times it, as the display fades a deletion's length
-label_fade <- function(span_px, need_px, rule) {
-  t <- pmin(1, pmax(0, (span_px - need_px) / (need_px * rule$fadeHi -
-    need_px)))
-  ramp <- t * t * (3 - 2 * t)
-  ifelse(span_px < need_px * rule$fadeLo, 0,
-    rule$fadeFloor + (1 - rule$fadeFloor) * ramp)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -343,9 +333,6 @@ geom_jbrowse_clips <- function(mapping = NULL, data = NULL,
     list(linewidth = px_to_mm(1), ...), rows = TRUE)
 }
 
-# The display's MIN_QUALITY_LETTER_OPACITY, under which it writes no letter
-MIN_QUALITY_LETTER_OPACITY <- 0.05
-
 #' @rdname geom_jbrowse_reads
 #' @export
 geom_jbrowse_letters <- function(mapping = NULL, data = NULL, width = NULL,
@@ -353,8 +340,9 @@ geom_jbrowse_letters <- function(mapping = NULL, data = NULL, width = NULL,
   data <- replacing(data, NULL, "geom_jbrowse_letters")
   letters <- function(x) {
     d <- x$mismatches
-    d$alpha <- mark_alpha(x, width, "mismatches", d[c("fade", "quality")])$alpha
-    d[d$alpha >= MIN_QUALITY_LETTER_OPACITY, , drop = FALSE]
+    d$alpha <- mark_alpha(x, width, "mismatches",
+      d[c("fade", "quality")])$letterAlpha
+    d[d$alpha > 0, , drop = FALSE]
   }
   list(
     jbrowse_layer(ggplot2::GeomText, data, letters,
@@ -553,11 +541,8 @@ connection_domes <- function(arcs, top) {
   d
 }
 
-# The read cloud is the band's `rule` mark
-is_cloud <- function(x) {
-  band <- x$display$readConnections
-  band$show && identical(band$mark$type, "rule")
-}
+# The read cloud is the band's log insert-size axis
+is_cloud <- function(x) identical(x$arc_scale$type, "log")
 
 #' @rdname geom_jbrowse_reads
 #' @export
@@ -571,7 +556,7 @@ geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, width = NULL,
   bars <- function(x) {
     b <- summary_table(x, "arcs")
     b <- b[b$shape != "arc", , drop = FALSE]
-    b$y <- pmax(1, b$y)
+    b$y <- pmax(x$arc_scale$domain[1], b$y)
     b
   }
   feet <- function(x) {
@@ -602,7 +587,7 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
   data <- replacing(data, "arc_ticks", "geom_jbrowse_arc_ticks")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     t <- summary_table(x, "arc_ticks")
-    t$bottom <- rep(if (is_cloud(x)) 1 else 0, nrow(t))
+    t$bottom <- rep(arc_floor(x), nrow(t))
     t$top <- rep(arc_top(x, width), nrow(t))
     t
   }, mapping, ggplot2::aes(x = position, xend = position, y = bottom,
@@ -610,11 +595,22 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
     list(...))
 }
 
-# The arc band's reach: the read cloud's widest insert, or as many bp as the
-# band's pixels span in a figure `width` pixels across, so an arc rises as
-# high as it is wide and one wider than the band runs off it, as the display
-# draws it
+# The arc band's reach, as the engine's arc scale gives it: the read cloud's
+# widest insert, or as many bp as the arcs' pixels span in a figure `width`
+# pixels across, so an arc rises as high as it is wide and one wider than the
+# band runs off it, as the display draws it
 arc_top <- function(x, width = NULL) {
-  if (is_cloud(x)) max(2, x$arc_span_max)
-  else x$display$readConnections$height / px_of(x, width)
+  s <- x$arc_scale
+  if (is_cloud(x)) s$domain[2]
+  else (arc_band_px(x) - s$marginPx) / px_of(x, width)
 }
+
+# The arc band's pixels: the engine's, or, where the display draws the arcs
+# over the coverage band, the arc band's own height, as R draws them apart
+arc_band_px <- function(x) {
+  s <- x$arc_scale
+  if (identical(s$band, "arcs")) s$heightPx
+  else x$display$readConnections$height
+}
+
+arc_floor <- function(x) if (is_cloud(x)) x$arc_scale$domain[1] else 0

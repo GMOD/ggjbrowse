@@ -175,25 +175,21 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   segments <- one_based(snake_frame(r$segments), "lane")
   layout <- lane_regions(lane_frame, segments, regions)
   lane_frame$locus <- lane_loci(lane_frame, layout)
-  axis <- function(lane) lane_frame$assembly[lane]
-  mid <- function(d, prefix = "") (d[[paste0(prefix, "start")]] +
-    d[[paste0(prefix, "end")]]) / 2
-  segments$region <- region_at(layout, axis(segments$lane), segments$chrom,
-    mid(segments))
+  in_layout <- function(lane, region) {
+    match(lane_frame$assembly[lane], layout$axis) + region
+  }
+  segments$region <- in_layout(segments$lane, segments$region)
   blocks <- one_based(snake_frame(r$blocks), "lane")
-  blocks$region <- region_at(layout, axis(blocks$lane), blocks$chrom,
-    mid(blocks))
+  blocks$region <- in_layout(blocks$lane, blocks$region)
   ribbons <- one_based(snake_frame(r$ribbons),
     c("alignment", "gutter", "upper_lane", "lower_lane"))
   ribbons$alignment <- as.integer(ribbons$alignment)
-  ribbons$upper_region <- region_at(layout, axis(ribbons$upper_lane),
-    ribbons$upper_chrom, mid(ribbons, "upper_"))
-  ribbons$lower_region <- region_at(layout, axis(ribbons$lower_lane),
-    ribbons$lower_chrom, mid(ribbons, "lower_"))
+  ribbons$upper_region <- in_layout(ribbons$upper_lane, ribbons$upper_region)
+  ribbons$lower_region <- in_layout(ribbons$lower_lane, ribbons$lower_region)
   comparative_result("jbrowse_multiway", "ribbons",
     list(lanes = lane_frame, segments = segments, blocks = blocks,
       ribbons = ribbons, alignments = keyed_alignments(r$alignments)),
-    layout, width, r$config, list(ribbons = legend_key(r, 1)),
+    layout, width, r$config, list(ribbons = legend_key(r, r$legendAlpha)),
     ramp_frames(r$ramps),
     unique(c(attr(missing, "warning"), read$warnings)),
     list(height = r$height, tick_interval = r$tickInterval,
@@ -227,16 +223,6 @@ lane_regions <- function(lanes, segments, anchor) {
     axis_rows(data.frame(chrom = s$chrom[1], start = min(s$start),
       end = max(s$end)), name, name)
   }))
-}
-
-# The row of `regions` on each `axis` and contig holding `at`, or its first
-# on that contig where none holds it
-region_at <- function(regions, axis, chrom, at) {
-  vapply(seq_along(axis), function(i) {
-    on <- which(regions$axis == axis[i] & regions$chrom == chrom[i])
-    inside <- on[at[i] >= regions$start[on] & at[i] <= regions$end[on]]
-    c(inside, on, NA_integer_)[1]
-  }, 1L)
 }
 
 # Each lane's regions as loci, NA for a lane placing nothing

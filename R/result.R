@@ -37,7 +37,10 @@
 #' `bp_per_px`, the layout's pixel sizes; a [jbrowse_wiggle()] result
 #' `mark`, `interpolate`, `summary_field`, `origin`, `row_layout`, `height`
 #' and `bp_per_px`; a
-#' [jbrowse_alignments()] result `read_pitch`, `glyph`, `arc_span_max` and
+#' [jbrowse_alignments()] result `read_pitch`, `glyph`, `arc_span_max`,
+#' `arc_scale` (the read-connection band's y scale as the display builds it:
+#' `band`, `heightPx`, `type`, `reverse`, `marginPx`, `reachPx`, `insetPx`
+#' and the read cloud's `domain`; `NULL` while the band is off) and
 #' `sequence`, each region's reference bases where `assembly` has a sequence,
 #' which the sequence band draws; and a [jbrowse_variants()] result the
 #' `tree` a caller sets.

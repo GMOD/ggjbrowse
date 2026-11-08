@@ -45,7 +45,10 @@ A \code{\link[=jbrowse_features]{jbrowse_features()}} result also holds \code{gl
 \code{bp_per_px}, the layout's pixel sizes; a \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result
 \code{mark}, \code{interpolate}, \code{summary_field}, \code{origin}, \code{row_layout}, \code{height}
 and \code{bp_per_px}; a
-\code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result \code{read_pitch}, \code{glyph}, \code{arc_span_max} and
+\code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result \code{read_pitch}, \code{glyph}, \code{arc_span_max},
+\code{arc_scale} (the read-connection band's y scale as the display builds it:
+\code{band}, \code{heightPx}, \code{type}, \code{reverse}, \code{marginPx}, \code{reachPx}, \code{insetPx}
+and the read cloud's \code{domain}; \code{NULL} while the band is off) and
 \code{sequence}, each region's reference bases where \code{assembly} has a sequence,
 which the sequence band draws; and a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result the
 \code{tree} a caller sets.

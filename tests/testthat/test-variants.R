@@ -264,15 +264,15 @@ test_that("the rows' background is the reference grey under a cell color field",
   v <- read_people(list(encoding = list(color = list(field = "AF"))))
   expect_false(v$keys$genotypes$label[1] == "Homozygous reference")
   background <- ggplot2::layer_data(ggplot2::autoplot(v), 1)
-  expect_equal(as.character(background$fill), "#cccccc")
+  expect_equal(as.character(background$fill), "#ccc")
   v$keys$genotypes$label[] <- "relabelled"
   background <- ggplot2::layer_data(ggplot2::autoplot(v), 1)
-  expect_equal(as.character(background$fill), "#cccccc")
+  expect_equal(as.character(background$fill), "#ccc")
 })
 
 test_that("the rows' grey background shows only while reference calls draw no cell", {
   v <- read_people()
-  expect_equal(attr(v$keys$genotypes, "background"), "#cccccc")
+  expect_equal(attr(v$keys$genotypes, "background"), "#ccc")
   expect_equal(nrow(ggplot2::layer_data(autoplot(v), 1)), 1)
   shown <- read_people(list(genotypes = list(reference = list(show = TRUE))))
   expect_true(is.na(attr(shown$keys$genotypes, "background")))
@@ -282,7 +282,7 @@ test_that("the rows' grey background shows only while reference calls draw no ce
 test_that("tracks sharing a genotype key keep its row background", {
   v <- read_people()
   stacked <- with_shared_keys(list(v, v))
-  expect_equal(attr(stacked[[1]]$keys$genotypes, "background"), "#cccccc")
+  expect_equal(attr(stacked[[1]]$keys$genotypes, "background"), "#ccc")
 })
 
 test_that("a record two regions list has its samples listed once", {

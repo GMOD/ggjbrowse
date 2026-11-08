@@ -151,17 +151,9 @@ variants_result <- function(t) {
   cells$row <- factor(cells$row, levels = rows$name)
   genotypes <- engine_key(t$legend, t$legendTitle)
   attr(genotypes, "background") <-
-    if (isTRUE(t$config[["genotypes"]][["reference"]][["show"]])) {
-      NA_character_
-    } else {
-      genotypes$color[genotypes$label %in%
-        c("Homozygous reference", "Reference")][1]
-    }
-  # an unwritten height is the 200 px the display's rows take
-  # (jbrowse-components' DEFAULT_VARIANT_DISPLAY_HEIGHT); `[[`, since `$`
-  # would partially match `heightMode`
+    if (nzchar(t$rowBackground)) t$rowBackground else NA_character_
   display <- t$config
-  display$height <- display[["height"]] %||% 200
+  display$height <- t$height
   structure(
     list(variants = variants, cells = cells, rows = rows, bands = bands,
       annotations = annotations, display = display,
@@ -198,8 +190,8 @@ typed_columns <- function(values, fields, n, taken, prefix) {
 
 # A VCF read as features' own columns, aligned to the features `keys` name:
 # each record's `ref`, `alt`, `filter` and INFO in `records`, and each
-# sample's FORMAT values in `samples`, once per record however many regions
-# list it, `feature` its record's key; NULL for a file that is not a VCF
+# sample's FORMAT values in `samples`, `feature` its record's key; NULL for a
+# file that is not a VCF
 vcf_columns <- function(vcf, keys, taken) {
   if (is.null(vcf)) return(NULL)
   n <- length(keys)
@@ -212,12 +204,8 @@ vcf_columns <- function(vcf, keys, taken) {
     sample = as.character(vcf$samples$sample))
   format <- typed_columns(vcf$format, vcf$formatFields, nrow(samples),
     c(names(samples), "chrom"), "format")
-  samples <- cbind(samples, format$frame)
-  samples <- samples[!duplicated(samples[c("feature", "sample")]), ,
-    drop = FALSE]
-  rownames(samples) <- NULL
   list(records = cbind(records, info$frame), info_fields = info$fields,
-    samples = samples, format_fields = format$fields,
+    samples = cbind(samples, format$frame), format_fields = format$fields,
     annotations = annotation_frame(vcf$annotations, "feature", keys),
     annotation_fields = annotation_fields(vcf$annotationFields))
 }
@@ -338,9 +326,8 @@ density_alpha <- function(variants, bp_per_px) {
   alpha
 }
 
-# Every row's background in the reference call's grey, as the display paints
-# a row behind the cells it draws while reference calls draw no cell: the key's
-# reference entry as read, and none where the key has none
+# Every row's background in the fill the display paints behind its rows,
+# none while reference calls draw cells
 reference_rows <- function(x) {
   color <- attr(x$keys$genotypes, "background")
   background <- data.frame(xmin = -Inf, xmax = Inf, ymin = 0.5,
