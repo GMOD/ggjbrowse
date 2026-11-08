@@ -223,7 +223,9 @@ ribbon's `upper_region` and `lower_region`, each a row of `regions`.
   `Number=1` a plain column, and `A`, `R`, `G` or `.` a list column of
   vectors. `fields$info` names each key's column.
 - `jbrowse_variants()` keeps a record only where a sample calls an allele, as
-  the genotype matrix does, so a calls VCF with no GT keeps none.
+  the genotype matrix does, so a calls VCF with no GT keeps none. A one-sample
+  VCF draws no genotype row unless `genotypes$show` is `TRUE`, so its records
+  are all listed, with `rows` and `cells` empty.
   `jbrowse_features()` reads every record, as the plain variant track draws
   them: `features` gains `ref`, `alt`, `filter` and the INFO columns, and
   `samples` holds a row per record and sample with a column per FORMAT key,

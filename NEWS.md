@@ -1,5 +1,12 @@
 # ggjbrowse (development version)
 
+- `jbrowse_variants()` on a one-sample VCF lists its records as the display
+  draws them, with no genotype row: every record the filters keep, as on a
+  sites-only VCF, so a calls VCF with no GT lists its records where it
+  listed none. `rows` and `cells` stay empty unless `genotypes$show` is
+  `TRUE`, and while no genotype row draws, `minorAlleleFrequency` and
+  `missingness` filters test nothing.
+
 - `jbrowse_features()` warns when the layout's rows cannot hold every
   feature in view and some are left out of its tables, with the count; a
   dense track read whole under `heightMode = "grow"` dropped them silently.

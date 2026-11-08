@@ -124,7 +124,7 @@ test_that("an inline alias list of one alias stays a list", {
     "12:6,534,201-6,538,700", assembly = config)$reads), 73)
 })
 
-test_that("a calls VCF with no GT reads as features with its FILTER, INFO and FORMAT", {
+test_that("a one-sample calls VCF with no GT lists the records the display draws, with no genotype row, and reads as features with its FILTER, INFO and FORMAT", {
   vcf <- tempfile(fileext = ".vcf")
   writeLines(c("##fileformat=VCFv4.3",
     "##FILTER=<ID=Too_low_VAF,Description=\"Low VAF\">",
@@ -138,8 +138,16 @@ test_that("a calls VCF with no GT reads as features with its FILTER, INFO and FO
       "SVTYPE=DEL;SVLEN=-400", "DP:AD", "40:12", sep = "\t"),
     paste("12", "6535000", "i_2", "G", "<INS>", ".", "Too_low_VAF",
       "SVTYPE=INS", "DP:AD", "35:2", sep = "\t")), vcf)
-  expect_equal(nrow(jbrowse_variants(vcf, "12:6,534,201-6,538,700")$variants),
-    0)
+  records <- jbrowse_variants(vcf, "12:6,534,201-6,538,700")
+  v <- records$variants
+  expect_equal(v$name, c("d_1", "i_2"))
+  expect_equal(v$start, c(6534299, 6534999))
+  expect_equal(v$filter, c("PASS", "Too_low_VAF"))
+  expect_equal(v$SVTYPE, c("DEL", "INS"))
+  expect_equal(nrow(records$rows), 0)
+  expect_equal(nrow(records$cells), 0)
+  expect_equal(nrow(jbrowse_variants(vcf, "12:6,534,201-6,538,700",
+    display = list(genotypes = list(show = TRUE)))$variants), 0)
   calls <- jbrowse_features(vcf, locus, assembly = hg38)
   f <- calls$features
   expect_equal(f$name, c("d_1", "i_2"))

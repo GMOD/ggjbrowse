@@ -129,9 +129,9 @@ a color field.
 
 A VCF reads as JBrowse's plain variant track draws it, every record
 whether or not it calls a genotype, so a calls VCF with no GT reads
-here where \code{\link[=jbrowse_variants]{jbrowse_variants()}} keeps none. \code{features} then also holds
-each record's \code{ref}, \code{alt}, \code{filter} and a column per INFO key, typed as
-\code{\link[=jbrowse_variants]{jbrowse_variants()}} types them, and the result adds:
+here where \code{\link[=jbrowse_variants]{jbrowse_variants()}}'s genotype rows keep none. \code{features}
+then also holds each record's \code{ref}, \code{alt}, \code{filter} and a column per
+INFO key, typed as \code{\link[=jbrowse_variants]{jbrowse_variants()}} types them, and the result adds:
 \itemize{
 \item \code{samples}: a row per record and sample, \code{feature}, \code{sample} and a
 column per FORMAT key, typed as INFO is (\code{AD}, \code{DP}, ...), named

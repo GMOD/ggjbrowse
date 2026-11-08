@@ -18,10 +18,13 @@ variants_adapter <- function(file, index, samples) {
 #' paints each cell, its hue shaded by the alt dosage. Coordinates are 0-based,
 #' half-open, on the reference.
 #'
-#' The display keeps a record only where some sample calls an allele, so a
-#' calls VCF whose FORMAT has no GT, such as a somatic SV caller's, keeps
-#' none. [jbrowse_features()] reads its records as JBrowse's plain variant
-#' track draws them, with their FILTER, INFO and FORMAT columns.
+#' While genotype rows draw, the display keeps a record only where some
+#' sample calls an allele, so a calls VCF whose FORMAT has no GT, such as a
+#' somatic SV caller's, keeps none. A one-sample VCF draws no genotype row
+#' unless `genotypes$show` is `TRUE`, so its records are all listed, with
+#' `rows` and `cells` empty, as on a sites-only VCF. [jbrowse_features()]
+#' reads every record as JBrowse's plain variant track draws it, with its
+#' FILTER, INFO and FORMAT columns.
 #'
 #' @param file a VCF, bgzipped with a tabix or CSI index beside it, or plain;
 #'   a path or a URL; or a JBrowse track's `adapter` config, as a list
@@ -38,9 +41,10 @@ variants_adapter <- function(file, index, samples) {
 #'   any of `color` (a field such as `"svType"` or `"impact"`, or a
 #'   list of the color object's slots), `filter` (a list of any of
 #'   jexl expressions, and `minorAlleleFrequency` and `missingness` field
-#'   tests),
-#'   `genotypes` (`list(reference = list(show = TRUE))` gives each reference
-#'   call a cell), `rows`
+#'   tests, which test nothing while no genotype row draws),
+#'   `genotypes` (`list(show = TRUE)` draws a one-sample VCF's genotype row;
+#'   `list(reference = list(show = TRUE))` gives each reference call a cell),
+#'   `rows`
 #'   ([jbrowse_rows()]: its `field`, `"sample"` for a row per sample or
 #'   `"haplotype"` for a row per haplotype, named `"<sample> HP1"`, `"HP2"`;
 #'   the arrangement a session saves, `sort`, `labels`, `colors`, `kept`

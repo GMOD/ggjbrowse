@@ -125,9 +125,9 @@ features_adapter <- function(file, index) {
 #'
 #'   A VCF reads as JBrowse's plain variant track draws it, every record
 #'   whether or not it calls a genotype, so a calls VCF with no GT reads
-#'   here where [jbrowse_variants()] keeps none. `features` then also holds
-#'   each record's `ref`, `alt`, `filter` and a column per INFO key, typed as
-#'   [jbrowse_variants()] types them, and the result adds:
+#'   here where [jbrowse_variants()]'s genotype rows keep none. `features`
+#'   then also holds each record's `ref`, `alt`, `filter` and a column per
+#'   INFO key, typed as [jbrowse_variants()] types them, and the result adds:
 #'   * `samples`: a row per record and sample, `feature`, `sample` and a
 #'     column per FORMAT key, typed as INFO is (`AD`, `DP`, ...), named
 #'     `format_<key>` where the key names a column above

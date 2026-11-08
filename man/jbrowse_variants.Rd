@@ -33,9 +33,10 @@ entry writes them for a \code{LinearVariantDisplay}: a list with
 any of \code{color} (a field such as \code{"svType"} or \code{"impact"}, or a
 list of the color object's slots), \code{filter} (a list of any of
 jexl expressions, and \code{minorAlleleFrequency} and \code{missingness} field
-tests),
-\code{genotypes} (\code{list(reference = list(show = TRUE))} gives each reference
-call a cell), \code{rows}
+tests, which test nothing while no genotype row draws),
+\code{genotypes} (\code{list(show = TRUE)} draws a one-sample VCF's genotype row;
+\code{list(reference = list(show = TRUE))} gives each reference call a cell),
+\code{rows}
 (\code{\link[=jbrowse_rows]{jbrowse_rows()}}: its \code{field}, \code{"sample"} for a row per sample or
 \code{"haplotype"} for a row per haplotype, named \code{"<sample> HP1"}, \code{"HP2"};
 the arrangement a session saves, \code{sort}, \code{labels}, \code{colors}, \code{kept}
@@ -123,10 +124,13 @@ paints each cell, its hue shaded by the alt dosage. Coordinates are 0-based,
 half-open, on the reference.
 }
 \details{
-The display keeps a record only where some sample calls an allele, so a
-calls VCF whose FORMAT has no GT, such as a somatic SV caller's, keeps
-none. \code{\link[=jbrowse_features]{jbrowse_features()}} reads its records as JBrowse's plain variant
-track draws them, with their FILTER, INFO and FORMAT columns.
+While genotype rows draw, the display keeps a record only where some
+sample calls an allele, so a calls VCF whose FORMAT has no GT, such as a
+somatic SV caller's, keeps none. A one-sample VCF draws no genotype row
+unless \code{genotypes$show} is \code{TRUE}, so its records are all listed, with
+\code{rows} and \code{cells} empty, as on a sites-only VCF. \code{\link[=jbrowse_features]{jbrowse_features()}}
+reads every record as JBrowse's plain variant track draws it, with its
+FILTER, INFO and FORMAT columns.
 }
 \examples{
 vcf <- system.file("extdata", "1000g_dcst2.vcf.gz", package = "ggjbrowse")

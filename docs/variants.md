@@ -13,9 +13,11 @@ the fill the display paints it, its hue shaded by the alt dosage
   per INFO key (`AC`, `AN`, ...), typed by the header. A key with a value per
   alt, such as `AC`, is a list column. `v$fields$info` lists each key's
   header line.
-- The matrix keeps a record only where a sample calls an allele. A calls VCF
-  with no GT, such as a somatic SV caller's, reads through
-  `jbrowse_features()` instead, as JBrowse's plain variant track draws it.
+- The matrix keeps a record only where a sample calls an allele. A one-sample
+  VCF draws no genotype row unless `genotypes$show` is `TRUE`, so its records
+  are all listed, as on a sites-only VCF. A calls VCF with no GT, such as a
+  somatic SV caller's, reads through `jbrowse_features()` for its FORMAT
+  values, as JBrowse's plain variant track draws it.
   Its `features` hold each record's `filter` and INFO columns, and its
   `samples` each sample's FORMAT values (`AD`, `DP`, ...).
 - `rows`, written with `jbrowse_rows()`, arranges the rows as a saved session

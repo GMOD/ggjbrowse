@@ -88,8 +88,8 @@ genome <- jbrowse_contigs(hg38)
 
 nanomonsv's calls come as a VCF with one sample column, whose FORMAT holds the
 tumor's read counts (`DP`, `AF`, `AD`) and the normal's (`NDP`, `NAF`, `NAD`)
-but no genotype. `jbrowse_variants()` draws a genotype matrix, which keeps a
-record only where a sample calls an allele, so it keeps none of these.
+but no genotype. `jbrowse_variants()` lists a one-sample VCF's records with
+no genotype row, but holds no FORMAT values.
 `jbrowse_features()` reads a VCF as JBrowse's plain variant track draws it,
 every record with its FILTER and a column per INFO key, and each sample's
 FORMAT values in `samples`. Read over every contig in `genome`, it holds the
