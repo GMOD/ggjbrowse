@@ -183,7 +183,7 @@ pileup_plot <- function(x, o) {
     geom_jbrowse_clips(width = px) +
     geom_jbrowse_connectors(width = px) +
     geom_jbrowse_deletion_lengths(width = px)
-  if (o$letters) p <- p + geom_jbrowse_letters()
+  if (o$letters) p <- p + geom_jbrowse_letters(width = px)
   band(p + ggplot2::scale_y_reverse(), x, rows = TRUE,
     ylim = dip_reserved_rows(x)) + no_y
 }
@@ -214,15 +214,20 @@ junctions_plot <- function(x, o) {
   band(p, x, ylim = c(0, 1.08)) + no_y
 }
 
-# The read-connection band as the display draws it under the coverage: arcs
-# hanging from the top, or the read cloud on a log insert-size axis
+# The read-connection band as the display draws it under the coverage: arcs,
+# or the read cloud on a log insert-size axis, hanging from the band's top
+# under placement "down" and rising from its bottom under "up"
 arcs_plot <- function(x, o) {
   cloud <- is_cloud(x)
+  down <- identical(x$display$readConnections$placement, "down")
+  transform <- c(if (cloud) "log10", if (down) "reverse")
   p <- band(ggplot2::ggplot(x) +
     geom_jbrowse_arc_ticks(width = o$width) +
     geom_jbrowse_arcs(width = o$width) +
     guides_jbrowse(x, "arcs", ramps = FALSE) +
-    if (cloud) ggplot2::scale_y_log10() else ggplot2::scale_y_reverse(),
+    ggplot2::scale_y_continuous(transform = if (length(transform)) {
+      scales::transform_compose(transform)
+    } else "identity"),
     x, ylim = c(if (cloud) 1 else 0, arc_top(x, o$width)))
   if (cloud) p + ggplot2::labs(y = "insert size (bp)") else p + no_y
 }

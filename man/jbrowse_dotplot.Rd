@@ -66,8 +66,9 @@ Assigning \code{alignments} drops the segments of the blocks it leaves out.
 \code{keys$segments} is the key the view shows, \code{ramps} a continuous field's
 color bar. \code{regions} lays out both axes, its \code{axis} \code{"x"} or \code{"y"}. \code{display}
 holds the view's settings as the engine resolves them, \code{color} and
-\code{opacity} as config objects and \code{lineWidth} a line's pixels. \code{skipped} counts the blocks
-neither axis places.
+\code{opacity} as config objects and \code{lineWidth} a line's pixels. \code{skipped}
+is the blocks neither axis places: their \code{count} of the \code{total} read,
+and the contigs they lie on, \code{x_chroms} and \code{y_chroms}.
 }
 \description{
 Runs JBrowse's own dotplot display in V8: the alignment blocks between the

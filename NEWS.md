@@ -1,5 +1,15 @@
 # ggjbrowse (development version)
 
+- The read-connection band hangs from its top under `readConnections`'
+  default placement, `"down"`, the read cloud included, and rises from its
+  bottom under `"up"`, as the display draws it; the cloud drew upside down.
+- `geom_jbrowse_letters()` fades each mismatch letter as its box fades under
+  the base-quality encoding, and writes none under 5% opacity; it takes
+  `width`, as the box geoms do.
+- A multi-way key's chips are opaque, as the display draws them.
+- `jbrowse_dotplot()`'s `skipped` is `count`, `total`, `x_chroms` and
+  `y_chroms`, each contig list a character vector.
+
 - A locus past its contig's end stops at the end the file or assembly
   states, as the location box cuts it, and one starting past the end is a
   `ggjbrowse_bad_region` error.

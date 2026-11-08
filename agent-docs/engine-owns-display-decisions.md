@@ -95,8 +95,12 @@ reference bases.
   length label, at the thresholds the engine returns in `glyph$label`.
 - **A key chip's alpha.** `jbrowse_synteny()` and `jbrowse_dotplot()` draw
   their key's chips at the ribbons' alpha floored at 0.45, synteny-core's
-  `LEGEND_CHIP_ALPHA_FLOOR`, and `jbrowse_multiway()` at 0.6. The engine
-  could return the chip alpha beside `legend`.
+  `LEGEND_CHIP_ALPHA_FLOOR`; `jbrowse_multiway()`'s are opaque, as
+  `SvgColorLegend` draws them. The engine could return the chip alpha beside
+  `legend`.
+- **A letter's floor.** `geom_jbrowse_letters()` writes no mismatch letter
+  under 5% opacity, the display's `MIN_QUALITY_LETTER_OPACITY`; the letter's
+  fade itself is `alignmentMarkAlpha`'s.
 
 - **The genotype rows' background.** `variants_result()` keeps, as the
   genotype key's `background` attribute, the color of the entry the engine

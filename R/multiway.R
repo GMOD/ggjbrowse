@@ -1,6 +1,3 @@
-# The alpha a multi-way view's key draws its chips at
-MULTIWAY_CHIP_ALPHA <- 0.6
-
 # A multi-genome alignment file's adapter, read off its extension: an
 # all-vs-all PAF of PanSN-named sequences (plain or gzipped), or the same
 # indexed as a PIF
@@ -196,7 +193,7 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   comparative_result("jbrowse_multiway", "ribbons",
     list(lanes = lane_frame, segments = segments, blocks = blocks,
       ribbons = ribbons, alignments = keyed_alignments(r$alignments)),
-    layout, width, r$config, list(ribbons = legend_key(r, MULTIWAY_CHIP_ALPHA)),
+    layout, width, r$config, list(ribbons = legend_key(r, 1)),
     ramp_frames(r$ramps),
     unique(c(attr(missing, "warning"), read$warnings)),
     list(height = r$height, tick_interval = r$tickInterval,

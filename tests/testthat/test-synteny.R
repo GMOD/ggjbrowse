@@ -106,6 +106,7 @@ test_that("a PAF reads as the dotplot lays out and colors it", {
   expect_equal(d$display$lineWidth, 2.5)
   expect_equal(d$display$encoding$opacity$value, 1)
   expect_equal(d$skipped$count, 0)
+  expect_identical(d$skipped$x_chroms, character(0))
   built <- ggplot2::ggplot_build(autoplot(d))
   expect_equal(nrow(built$data[[3]]), nrow(d$segments))
   plain <- jbrowse_dotplot(paf, query, target,

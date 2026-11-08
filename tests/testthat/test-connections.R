@@ -143,3 +143,22 @@ test_that("insertSizeAndOrientation colors by level, in the band normalInsertSiz
   expect_equal(unique(teal$reads$color[teal$reads$level == "LL"]), "#008080")
   expect_false("#008080" %in% teal$reads$color[teal$reads$level != "LL"])
 })
+
+test_that("the arcs and the read cloud hang from the band's top under placement down, and rise under up", {
+  y_transform <- function(x) {
+    ggplot2::ggplot_build(ggplot2::autoplot(x, "arcs"))$layout$
+      panel_scales_y[[1]]$get_transformation()$name
+  }
+  arcs <- read(display = list(readConnections = list(show = TRUE)))
+  expect_equal(arcs$display$readConnections$placement, "down")
+  expect_match(y_transform(arcs), "reverse")
+  cloud <- read(display = list(readConnections = list(show = TRUE,
+    mark = "rule")))
+  expect_match(y_transform(cloud), "log-10.*reverse")
+  up <- read(display = list(readConnections = list(show = TRUE,
+    mark = "rule", placement = "up")))
+  expect_match(y_transform(up), "log-10")
+  expect_no_match(y_transform(up), "reverse")
+  expect_equal(y_transform(read(display = list(readConnections =
+    list(show = TRUE, placement = "up")))), "identity")
+})

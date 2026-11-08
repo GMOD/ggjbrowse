@@ -282,11 +282,12 @@ on_axis_of <- function(regions, axis) {
 #'     `query_x2`, `target_x1` and `target_x2`, the pixel across `width` of
 #'     each foot at `*_start` and `*_end`, within its region; `color`,
 #'     `alpha`, and `thin`, whether the band draws it as a one-pixel line
-#'   * `offscreen`: the blocks on one `axis` whose mate lies on a contig the
-#'     other row is not showing, the `region` they lie in, their span and
-#'     their mate's, the
-#'     `color` and `alpha` the strip along that row's edge paints them, and
-#'     `drawn`, whether they clear the strip's length and contig floors
+#'   * `offscreen`: the blocks on one `axis` whose mate the other row is not
+#'     showing, on a contig it does not show or past its window and the
+#'     band's overdraw, the `region` they lie in, their span and their
+#'     mate's, the `color` and `alpha` the strip along that row's edge paints
+#'     them, and `drawn`, whether they clear the strip's length and contig
+#'     floors
 #'   * `offscreen_contigs`: each contig those mates lie on, by `axis`:
 #'     `mate_chrom`, `count`, `aligned_bp`, the `label` the strip's hover
 #'     prints, `color` and `alpha`
@@ -771,8 +772,9 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   `keys$segments` is the key the view shows, `ramps` a continuous field's
 #'   color bar. `regions` lays out both axes, its `axis` `"x"` or `"y"`. `display`
 #'   holds the view's settings as the engine resolves them, `color` and
-#'   `opacity` as config objects and `lineWidth` a line's pixels. `skipped` counts the blocks
-#'   neither axis places.
+#'   `opacity` as config objects and `lineWidth` a line's pixels. `skipped`
+#'   is the blocks neither axis places: their `count` of the `total` read,
+#'   and the contigs they lie on, `x_chroms` and `y_chroms`.
 #' @export
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
@@ -791,7 +793,10 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
     list(alignments = p$alignments, segments = p$children(r$segments)),
     p$regions, width, r$config, list(segments = p$key), ramp_frames(r$ramps),
     p$warnings,
-    list(height = height, assemblies = p$assemblies, skipped = r$skipped))
+    list(height = height, assemblies = p$assemblies, skipped = list(
+      count = r$skipped$count, total = r$skipped$total,
+      x_chroms = as.character(unlist(r$skipped$xChroms)),
+      y_chroms = as.character(unlist(r$skipped$yChroms)))))
 }
 
 #' @export

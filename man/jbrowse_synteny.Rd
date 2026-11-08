@@ -90,11 +90,12 @@ the ribbon joins \code{query_start} to \code{target_start} and \code{query_end} 
 \code{query_x2}, \code{target_x1} and \code{target_x2}, the pixel across \code{width} of
 each foot at \verb{*_start} and \verb{*_end}, within its region; \code{color},
 \code{alpha}, and \code{thin}, whether the band draws it as a one-pixel line
-\item \code{offscreen}: the blocks on one \code{axis} whose mate lies on a contig the
-other row is not showing, the \code{region} they lie in, their span and
-their mate's, the
-\code{color} and \code{alpha} the strip along that row's edge paints them, and
-\code{drawn}, whether they clear the strip's length and contig floors
+\item \code{offscreen}: the blocks on one \code{axis} whose mate the other row is not
+showing, on a contig it does not show or past its window and the
+band's overdraw, the \code{region} they lie in, their span and their
+mate's, the \code{color} and \code{alpha} the strip along that row's edge paints
+them, and \code{drawn}, whether they clear the strip's length and contig
+floors
 \item \code{offscreen_contigs}: each contig those mates lie on, by \code{axis}:
 \code{mate_chrom}, \code{count}, \code{aligned_bp}, the \code{label} the strip's hover
 prints, \code{color} and \code{alpha}

@@ -866,3 +866,21 @@ test_that("a deletion's length label fades and centres on the part in view", {
   expect_true(all(pieces$x[pieces$label == "1798"] <
     two$regions$cum_end[1]))
 })
+
+test_that("a mismatch's letter fades with its box, and none draws under 5% opacity", {
+  close <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-1,150")
+  boxes <- ggplot2::layer_data(ggplot2::ggplot(close) +
+    geom_jbrowse_mismatches())
+  letters <- ggplot2::layer_data(ggplot2::ggplot(close) +
+    geom_jbrowse_letters(), 1)
+  expect_equal(nrow(letters), nrow(boxes))
+  expect_equal(sort(letters$alpha), sort(boxes$alpha))
+  faint <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-1,150",
+    display = list(pileup = list(mismatches = list(encoding = list(opacity =
+      list(scale = list(range = list("0", "1"))))))))
+  faint$mismatches$quality <- rep(c(0, 30), length.out =
+    nrow(faint$mismatches))
+  kept <- ggplot2::layer_data(ggplot2::ggplot(faint) +
+    geom_jbrowse_letters(), 1)
+  expect_equal(nrow(kept), sum(faint$mismatches$quality == 30))
+})

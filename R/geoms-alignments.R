@@ -80,8 +80,8 @@ with_inset <- function(d, model) {
 #'   deprecated name
 #' * `geom_jbrowse_mismatches()`, `geom_jbrowse_insertions()`,
 #'   `geom_jbrowse_clips()`, `geom_jbrowse_modifications()`: the marks on the
-#'   reads; `geom_jbrowse_letters()` writes the mismatched bases and the
-#'   insertion lengths
+#'   reads; `geom_jbrowse_letters()` writes the mismatched bases, faded as
+#'   their boxes are and none under 5% opacity, and the insertion lengths
 #' * `geom_jbrowse_coverage()`, `geom_jbrowse_alleles()`,
 #'   `geom_jbrowse_modification_coverage()`: the coverage band's depth and its
 #'   stacks
@@ -343,14 +343,24 @@ geom_jbrowse_clips <- function(mapping = NULL, data = NULL,
     list(linewidth = px_to_mm(1), ...), rows = TRUE)
 }
 
+# The display's MIN_QUALITY_LETTER_OPACITY, under which it writes no letter
+MIN_QUALITY_LETTER_OPACITY <- 0.05
+
 #' @rdname geom_jbrowse_reads
 #' @export
-geom_jbrowse_letters <- function(mapping = NULL, data = NULL, ...) {
+geom_jbrowse_letters <- function(mapping = NULL, data = NULL, width = NULL,
+                                 ...) {
   data <- replacing(data, NULL, "geom_jbrowse_letters")
+  letters <- function(x) {
+    d <- x$mismatches
+    d$alpha <- mark_alpha(x, width, "mismatches", d[c("fade", "quality")])$alpha
+    d[d$alpha >= MIN_QUALITY_LETTER_OPACITY, , drop = FALSE]
+  }
   list(
-    jbrowse_layer(ggplot2::GeomText, data, function(x) x$mismatches,
+    jbrowse_layer(ggplot2::GeomText, data, letters,
       for_geom(mapping, ggplot2::GeomText),
-      ggplot2::aes(x = position + 0.5, y = row + 0.5, label = base),
+      ggplot2::aes(x = position + 0.5, y = row + 0.5, label = base,
+        alpha = I(alpha)),
       list(size = 2.6, colour = "black", ...)),
     jbrowse_layer(ggplot2::GeomLabel, data, function(x) x$insertions,
       for_geom(mapping, ggplot2::GeomLabel),

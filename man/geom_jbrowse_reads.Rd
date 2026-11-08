@@ -49,7 +49,7 @@ geom_jbrowse_insertions(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_clips(mapping = NULL, data = NULL, width = NULL, ...)
 
-geom_jbrowse_letters(mapping = NULL, data = NULL, ...)
+geom_jbrowse_letters(mapping = NULL, data = NULL, width = NULL, ...)
 
 geom_jbrowse_coverage(mapping = NULL, data = NULL, ...)
 
@@ -135,8 +135,8 @@ flattens as the figure zooms out. \code{geom_jbrowse_chains()} is its
 deprecated name
 \item \code{geom_jbrowse_mismatches()}, \code{geom_jbrowse_insertions()},
 \code{geom_jbrowse_clips()}, \code{geom_jbrowse_modifications()}: the marks on the
-reads; \code{geom_jbrowse_letters()} writes the mismatched bases and the
-insertion lengths
+reads; \code{geom_jbrowse_letters()} writes the mismatched bases, faded as
+their boxes are and none under 5\% opacity, and the insertion lengths
 \item \code{geom_jbrowse_coverage()}, \code{geom_jbrowse_alleles()},
 \code{geom_jbrowse_modification_coverage()}: the coverage band's depth and its
 stacks
