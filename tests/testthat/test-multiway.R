@@ -184,3 +184,20 @@ test_that("an anchor contig or kept lane the file lacks is refused, not read emp
   expect_error(jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     lanes = "volvox_typo"), "no lane for")
 })
+
+test_that("lanes keep the row labels display sets beside them", {
+  labelled <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
+    lanes = c("volvox_ins", "volvox_del"),
+    display = list(rows = list(labels = list(volvox_ins = "ins"))))
+  expect_equal(labelled$lanes$label, c("volvox", "ins", "volvox_del"))
+})
+
+test_that("genomes frames the anchor's window in its contig", {
+  volvox <- jbrowse_assembly(system.file("extdata", "volvox.fa",
+    package = "ggjbrowse"), name = "volvox")
+  framed <- jbrowse_multiway(paf, "ctgA:40,001-50,001", "volvox",
+    genomes = volvox)
+  expect_lt(min(framed$blocks$x1), 0)
+  expect_equal(min(jbrowse_multiway(paf, "ctgA:40,001-50,001",
+    "volvox")$blocks$x1), 0)
+})

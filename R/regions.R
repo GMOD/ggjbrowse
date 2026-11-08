@@ -93,6 +93,24 @@ reader_regions <- function(adapter, region, assembly = NULL) {
       canonical_of(assembly))]
     regions$end[is.na(regions$end)] <- WHOLE_CONTIG_END
   }
+  if (is.null(region)) regions
+  else within_contigs(regions, contigs(), canonical_of(assembly))
+}
+
+# Regions cut at the end of a contig whose length the file or assembly
+# states, as the location box cuts a locus past it; refused where one starts
+# past that end
+within_contigs <- function(regions, file, canonical = NULL) {
+  size <- file$end[contig_index(regions$chrom, file, canonical)]
+  known <- !is.na(size) & size < WHOLE_CONTIG_END
+  past <- which(known & regions$start >= size)
+  if (length(past)) {
+    rlang::abort(sprintf("the region %s starts past the end of %s, %s bp long",
+      loci_of_layout(regions[past[1], ]), regions$chrom[past[1]],
+      format(size[past[1]], big.mark = ",", scientific = FALSE)),
+      class = "ggjbrowse_bad_region", call = NULL)
+  }
+  regions$end[known] <- pmin(regions$end[known], size[known])
   regions
 }
 

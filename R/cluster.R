@@ -34,14 +34,15 @@ as.matrix.jbrowse_variants <- function(x, ...) {
     m[cbind(i, v)] <- cells$dosage
     return(m)
   }
-  alts <- lengths(strsplit(variants$alt, ",", fixed = TRUE))
+  alts <- pmax(1L, lengths(strsplit(as.character(variants$alt), ",",
+    fixed = TRUE)))
   first <- cumsum(c(0, alts))[seq_along(alts)]
   columns <- unlist(lapply(seq_along(alts), function(k)
     if (alts[k] == 1) as.character(variants$variant[k])
     else paste0(variants$variant[k], ".", seq_len(alts[k]))))
   m <- matrix(0, length(rows), length(columns),
     dimnames = list(rows, columns))
-  alleles <- strsplit(cells$genotype, "[/|]")
+  alleles <- strsplit(as.character(cells$genotype), "[/|]")
   called <- lapply(alleles, function(a) suppressWarnings(as.integer(a[a != "."])))
   n <- lengths(called)
   cell <- rep(seq_along(called), n)

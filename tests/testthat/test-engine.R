@@ -269,3 +269,8 @@ test_that("a region with no records binds to one with records", {
   expect_equal(nrow(both), nrow(reads$reads))
   expect_type(both$id, typeof(reads$reads$id))
 })
+
+test_that("a list column of arrays keeps each row's arrays", {
+  rows <- list_column(c(2, 1), list(c(1, 2), 3, 4))
+  expect_equal(rows, list(list(c(1, 2), 3), list(4)))
+})

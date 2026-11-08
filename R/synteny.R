@@ -417,17 +417,12 @@ band_feet <- function(r) {
 }
 
 # The pieces `pts` of ribbons `r` as one frame, each piece a `ribbon` group
-# in its ribbon's color, alpha, kind and alignment
+# with every column of its ribbon
 ribbon_marks <- function(r, pts) {
-  if (!nrow(r)) {
-    return(data.frame(x = numeric(0), y = numeric(0), ribbon = integer(0),
-      color = character(0), alpha = numeric(0)))
-  }
-  d <- do.call(rbind, pts)
-  for (column in c("color", "alpha", "kind", "alignment")) {
-    d[[column]] <- r[[column]][d$ribbon]
-  }
-  d
+  d <- do.call(rbind, c(list(data.frame(x = numeric(0), y = numeric(0),
+    ribbon = integer(0))), pts))
+  r <- r[setdiff(names(r), names(d))]
+  cbind(d, r[d$ribbon, , drop = FALSE], row.names = NULL)
 }
 
 # Each filled ribbon's outline, top to bottom on its first edge and back up

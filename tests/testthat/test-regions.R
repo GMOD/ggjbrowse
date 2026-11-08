@@ -130,7 +130,7 @@ test_that("an axis of several regions is labelled in each region's own positions
     c("ctgA:1,001-4,000", "ctgA:6,001-9,000"))
   b <- ggplot2::ggplot_build(ggplot2::autoplot(w))
   expect_equal(b$layout$panel_params[[1]]$x$get_labels(),
-    c("1,000", "2,000", "3,000", "7,000", "8,000", "9,000"))
+    c("2,000", "3,000", "4,000", "7,000", "8,000", "9,000"))
 })
 
 test_that("print names the loci read, however many regions", {
@@ -166,7 +166,7 @@ test_that("a plain ggplot of several regions draws them, and one's own layers, e
     ggplot2::geom_point(ggplot2::aes(position, 1), data = a$mismatches)
   b <- ggplot2::ggplot_build(p)
   expect_equal(b$layout$panel_params[[1]]$x$get_labels(),
-    c("1,000", "2,000", "3,000", "7,000", "8,000", "9,000"))
+    c("2,000", "3,000", "4,000", "7,000", "8,000", "9,000"))
   r <- a$regions
   expect_lte(max(b$data[[2]]$x), max(r$cum_end))
   m <- a$mismatches
@@ -360,4 +360,24 @@ test_that("regions on several contigs the file lacks warn once", {
     "2 contigs are not the file's and read empty: chr1, chr2")
   expect_length(r$warnings, 1)
   expect_equal(r$regions$missing != "", c(FALSE, TRUE, TRUE))
+})
+
+test_that("a locus past its contig's end stops there, and one starting past it is refused", {
+  past <- jbrowse_alignments(bam, "ctgA:49,001-60,000")
+  expect_equal(past$regions$end, 50001)
+  expect_error(jbrowse_alignments(bam, "ctgA:60,001-70,000"),
+    class = "ggjbrowse_bad_region")
+  expect_equal(jbrowse_features(gff, "ctgA:49,001-60,000")$regions$end, 60000)
+})
+
+test_that("a ruler tick labelled N sits at base N's left edge, as the view ticks", {
+  g <- jbrowse_features(gff, "ctgA:1,001-2,000")
+  scale <- genomic_x(g)
+  at <- scale$get_breaks(xlim_of(g))
+  expect_equal(scale$get_labels(at), format(at + 1, big.mark = ",",
+    trim = TRUE))
+  expect_true(all((at + 1) %% 250 == 0))
+  two <- region_ticks(jbrowse_features(gff, c("ctgA:1,001-2,000",
+    "ctgA:3,001-4,000"))$regions, function(r, i, at) at)
+  expect_equal(two$breaks + 1, as.numeric(gsub(",", "", two$labels)))
 })

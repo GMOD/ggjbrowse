@@ -121,7 +121,7 @@ jbrowse_contigs <- function(x, assembly = NULL, index = NULL) {
 
 PAIRWISE_ADAPTERS <- c("PAFAdapter", "PairwiseIndexedPAFAdapter",
   "DeltaAdapter", "ChainAdapter", "MashMapAdapter", "MCScanAnchorsAdapter",
-  "MCScanSimpleAnchorsAdapter", "BlastTabularAdapter", "AllVsAllPAFAdapter")
+  "MCScanSimpleAnchorsAdapter", "BlastTabularAdapter")
 
 # Whether `x` is an assembly, a pairwise alignment file or a linear file:
 # a list by its adapter `type`, which an assembly config lacks, and a path by

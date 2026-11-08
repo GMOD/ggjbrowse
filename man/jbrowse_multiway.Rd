@@ -12,7 +12,8 @@ jbrowse_multiway(
   lanes = NULL,
   display = NULL,
   width = DEFAULT_WIDTH,
-  index = NULL
+  index = NULL,
+  genomes = NULL
 )
 }
 \arguments{
@@ -53,6 +54,11 @@ such as \code{list(field = "length", gte = 10000)}, and its
 each lane's zoom and which ribbons are wide enough to draw}
 
 \item{index}{the tabix or CSI index of a \code{.pif.gz}, if not beside it}
+
+\item{genomes}{the lanes' genomes: a \code{\link[=jbrowse_assembly]{jbrowse_assembly()}} or a JBrowse
+assembly config, or a list of them, each named by its lane's assembly
+name. The anchor's frames its window in its contig, and a lane's line
+stops at its contig's ends, where with none it runs to the view's edge}
 }
 \value{
 a \code{jbrowse_multiway} list, beside the slots \link{jbrowse_result} lists:

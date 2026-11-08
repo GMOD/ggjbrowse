@@ -20,7 +20,7 @@ The matrix the multi-row quantitative display's "Cluster rows" clusters: a
 row per source of \code{x$sources}, in its order, named by its \code{name}, and a
 column per pixel of the \code{width} the track was read at, holding the mean of
 the bin summary the display's \code{y} names over the bins covering that pixel,
-0 where none does. \code{hclust(dist(as.matrix(w)), "average")} is the R script the
+\code{NA} where none does. \code{hclust(dist(as.matrix(w)), "average")} is the R script the
 display's clustering dialog writes.
 }
 \examples{

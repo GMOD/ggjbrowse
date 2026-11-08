@@ -445,3 +445,11 @@ test_that("a curved edge traces the display's Bezier, control points at mid heig
   expect_equal(e$x, 100 * (3 * t^2 - 2 * t^3))
   expect_equal(e$y, 1.5 * t * (1 - t) + t^3)
 })
+
+test_that("a ribbon's pieces carry every column of their ribbon", {
+  pieces <- ribbon_polygons(s$ribbons, FALSE)
+  expect_true(all(setdiff(names(s$ribbons), "ribbon") %in% names(pieces)))
+  expect_equal(pieces$query_chrom, s$ribbons$query_chrom[pieces$ribbon])
+  none <- ribbon_lines(s$ribbons[0, ], FALSE)
+  expect_true(all(c("kind", "alignment", "query_chrom") %in% names(none)))
+})

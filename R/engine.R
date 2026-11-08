@@ -320,7 +320,9 @@ dict_column <- function(levels, codes) {
 
 list_column <- function(lengths, values) {
   lengths <- as.integer(unlist(lengths))
-  if (is.list(values)) values <- unlist(values) %||% logical(0)
+  if (is.list(values) && all(lengths(values) == 1L)) {
+    values <- unlist(values) %||% logical(0)
+  }
   rows <- split(values, factor(rep(seq_along(lengths), pmax(lengths, 0L)),
     levels = seq_along(lengths)))
   names(rows) <- NULL
@@ -382,7 +384,8 @@ adapter_of <- function(file, guess) {
 }
 
 # A config with each location in it, a `uri` or `localPath`, a path or URL
-# the engine reads, and an adapter's own `uri` the shorthand it expands
+# the engine reads, and an adapter's own `uri` and a MultiWiggleAdapter's
+# `bigWigs` the shorthand it expands
 readable <- function(x) {
   if (!is.list(x)) return(x)
   path <- x[["uri"]] %||% x[["localPath"]]
@@ -390,6 +393,9 @@ readable <- function(x) {
   if (single && is.null(x[["type"]])) return(location(path))
   x <- lapply(x, readable)
   if (single && !is.null(x[["uri"]])) x$uri <- shorthand_uri(path)
+  if (is.character(x[["bigWigs"]])) {
+    x$bigWigs <- lapply(x[["bigWigs"]], shorthand_uri)
+  }
   x
 }
 

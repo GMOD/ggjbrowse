@@ -76,7 +76,8 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
   rules <- table_of(t, "rules")
   in_one_call(structure(
     list(bins = bins, marks = marks, sources = table_of(t, "sources"),
-      rules = rules, display = t$config, keys = list(),
+      rules = rules, display = t$config,
+      keys = list(scores = engine_key(t$legend, t$legendTitle)),
       ramps = ramp_frames(t$ramps), y_scale = y_scale(t$scoreScale),
       fields = list(), mark = t$mark, interpolate = t$interpolate,
       summary_field = t$summaryField, origin = t$origin,
@@ -93,7 +94,7 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
 #' row per source of `x$sources`, in its order, named by its `name`, and a
 #' column per pixel of the `width` the track was read at, holding the mean of
 #' the bin summary the display's `y` names over the bins covering that pixel,
-#' 0 where none does. `hclust(dist(as.matrix(w)), "average")` is the R script the
+#' `NA` where none does. `hclust(dist(as.matrix(w)), "average")` is the R script the
 #' display's clustering dialog writes.
 #' @param x a [jbrowse_wiggle()] result
 #' @param ... unused
@@ -112,29 +113,35 @@ jbrowse_wiggle <- function(file, region = NULL, display = NULL,
 #' w$tree <- hclust(dist(as.matrix(w)), "average")
 as.matrix.jbrowse_wiggle <- function(x, ...) {
   r <- x$regions
-  per_px <- 1 / x$bp_per_px
-  columns <- pmax(0, floor((r$end - r$start) * per_px))
+  bp <- x$bp_per_px
+  columns <- pmax(0, column_floor((r$end - r$start) / bp))
   offset <- cumsum(c(0, columns))[seq_along(columns)]
   b <- x$bins[x$bins$source %in% x$sources$name, , drop = FALSE]
-  value <- switch(x$summary_field, minScore = b$min, maxScore = b$max,
-    b$score)
-  i <- b$region
-  from <- pmax(0, trunc((b$start - r$start[i]) * per_px))
-  to <- pmin(columns[i], pmax(trunc((b$end - r$start[i]) * per_px), from + 1))
+  value <- as.numeric(switch(x$summary_field, minScore = b$min,
+    maxScore = b$max, b$score))
+  i <- as.integer(b$region)
+  from <- pmax(0, column_floor((b$start - r$start[i]) / bp))
+  to <- pmin(columns[i], pmax(column_floor((b$end - r$start[i]) / bp),
+    from + 1))
   keep <- b$end > r$start[i] & to > from & !is.na(value)
   n <- (to - from)[keep]
   row <- rep(match(b$source[keep], x$sources$name), n)
   column <- rep(offset[i][keep] + from[keep], n) + sequence(n)
   cell <- (column - 1) * nrow(x$sources) + row
-  sums <- rowsum(rep(value[keep], n), cell)
-  counts <- rowsum(rep(1, length(cell)), cell)
-  m <- matrix(0, nrow(x$sources), sum(columns),
+  m <- matrix(NA_real_, nrow(x$sources), sum(columns),
     dimnames = list(x$sources$name, unlist(lapply(seq_len(nrow(r)),
       function(k) sprintf("%s:%.0f", r$chrom[k],
-        r$start[k] + floor((seq_len(columns[k]) - 1) * x$bp_per_px) + 1)))))
-  m[as.numeric(rownames(sums))] <- sums / counts
+        r$start[k] + floor((seq_len(columns[k]) - 1) * bp) + 1)))))
+  if (length(cell)) {
+    sums <- rowsum(rep(value[keep], n), cell)
+    counts <- rowsum(rep(1, length(cell)), cell)
+    m[as.numeric(rownames(sums))] <- sums / counts
+  }
   m
 }
+
+# 1,000 bp over 228 columns is 227.99999999999997 columns
+column_floor <- function(x) floor(x + 1e-9 * pmax(1, abs(x)))
 
 #' @export
 print.jbrowse_wiggle <- function(x, ...) {
@@ -182,7 +189,7 @@ scale_y_jbrowse <- function(object, ...) {
 # track of 1 bp sites stays visible zoomed out.
 pixel_wide <- function(x, keep) {
   m <- x$marks[keep, , drop = FALSE]
-  if (!is.null(x$bp_per_px)) m$end <- pmax(m$end, m$start + x$bp_per_px)
+  m$end <- pmax(m$end, m$start + sum(x$regions$end - x$regions$start) / x$width)
   m
 }
 

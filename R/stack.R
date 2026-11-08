@@ -123,6 +123,10 @@ with_shared_keys <- function(tracks) {
     attr(key, "shared") <- TRUE
     alpha <- unlist(lapply(flat[titles == title], attr, "alpha"))
     if (length(alpha)) attr(key, "alpha") <- alpha[[1]]
+    first <- flat[titles == title][[1]]
+    for (a in setdiff(names(attributes(first)), names(attributes(key)))) {
+      attr(key, a) <- attr(first, a)
+    }
     key
   })
   tracks[is_result] <- Map(function(track, own) {
@@ -259,20 +263,22 @@ on_offsets <- function(r, i, at) at - r$start[i] + r$offset[i]
 region_ticks <- function(r, px) {
   at <- region_breaks(r)
   list(breaks = unlist(lapply(seq_len(nrow(r)), function(i)
-      px(r, rep(i, length(at[[i]])), at[[i]]))),
+      px(r, rep(i, length(at[[i]])), at[[i]] - 1))),
     labels = format(unlist(at), big.mark = ",", trim = TRUE,
       scientific = FALSE))
 }
 
-# Each region's round breaks in its own coordinates, about as many as its
-# share of the axis earns, none on an edge facing another region
+# Each region's round 1-based positions, about as many as its share of the
+# axis earns, none on an edge facing another region. The view ticks base N at
+# its left edge, 0-based N - 1.
 region_breaks <- function(r) {
   w <- r$end - r$start
   lapply(seq_len(nrow(r)), function(i) {
-    b <- pretty(c(r$start[i], r$end[i]), n = max(2, round(6 * w[i] / sum(w))))
+    b <- pretty(c(r$start[i] + 1, r$end[i]),
+      n = max(2, round(6 * w[i] / sum(w))))
     lo <- if (i == 1) r$start[i] else r$start[i] + 1
     hi <- if (i == nrow(r)) r$end[i] else r$end[i] - 1
-    b[b >= lo & b <= hi]
+    b[b - 1 >= lo & b - 1 <= hi]
   })
 }
 
@@ -428,8 +434,10 @@ genomic_x <- function(x, ...) {
   r <- x$regions
   if (nrow(r) == 1) {
     return(scale_with(ggplot2::scale_x_continuous,
-      list(labels = scales::label_comma(), limits = xlim_of(x),
-        oob = scales::oob_keep), ...))
+      list(breaks = function(limits) scales::breaks_extended()(limits + 1) - 1,
+        labels = if ("breaks" %in% ...names()) scales::label_comma()
+          else function(at) scales::label_comma()(at + 1),
+        limits = xlim_of(x), oob = scales::oob_keep), ...))
   }
   ticks <- region_ticks(r, on_offsets)
   breaks <- ticks$breaks

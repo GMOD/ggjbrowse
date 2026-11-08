@@ -1,16 +1,16 @@
 #' A row display's row axis: what a row is, which rows show, and how they read
 #'
-#' The `rows` setting of a display that draws a row per sample, source or
-#' group, as a track config's `displays` entry writes it, for a reader's
-#' `display`: `display = list(rows = jbrowse_rows(field = "haplotype"))`. A
-#' plain list works as well; this names each member and writes a named vector
-#' as the map JBrowse reads. A row is named by its `name` in the reader's
+#' The `rows` setting of a display that draws a row per sample or source, as
+#' a track config's `displays` entry writes it, for a reader's `display`:
+#' `display = list(rows = jbrowse_rows(field = "haplotype"))`. A plain list
+#' works as well; this names each member and writes a named vector as the map
+#' JBrowse reads. A row is named by its `name` in the reader's
 #' `rows` table, a haplotype row `"<sample> HP1"`, `"HP2"`, where a sample's
 #' name also names its haplotypes.
 #'
 #' @param field what one row is: on [jbrowse_variants()], `"sample"` (the
-#'   default) or `"haplotype"`; on a wiggle or feature display, the field
-#'   whose values each take a row, such as `"source"`
+#'   default) or `"haplotype"`; on a wiggle display, the field whose values
+#'   each take a row, such as `"source"`
 #' @param sort row names, the rows that lead, in order; the rest follow in
 #'   the file's order
 #' @param kept row names, the rows shown; a name matching no row draws no
@@ -26,8 +26,6 @@
 #'   gives the row
 #' @param color the row attribute the rows are colored by, such as a
 #'   samples file column, or a list of `field` and its color `scale`
-#' @param groups on a feature display, a list of `list(match, group)`
-#'   entries, the `group` attribute a row takes when its name matches
 #' @param step the row height in px, or `"fit"`, the default, the rows
 #'   dividing the display's height
 #' @param tree a newick tree of the rows, labelled by row name, or a list of
@@ -44,7 +42,7 @@
 #' head(v$rows)
 jbrowse_rows <- function(field = NULL, sort = NULL, kept = NULL,
                          filter = NULL, labels = NULL, colors = NULL,
-                         color = NULL, groups = NULL, step = NULL,
+                         color = NULL, step = NULL,
                          tree = NULL, axis = NULL) {
   check_row_map(labels, "labels")
   check_row_map(colors, "colors")
@@ -56,7 +54,7 @@ jbrowse_rows <- function(field = NULL, sort = NULL, kept = NULL,
     filter = if ("field" %in% names(filter)) list(filter) else filter,
     labels = as.list(labels), colors = as.list(colors),
     color = if (is.character(color)) list(field = color) else color,
-    groups = groups, step = step, tree = tree, axis = axis)
+    step = step, tree = tree, axis = axis)
   rows[!vapply(rows, function(m) is.null(m) || identical(m, list()), NA)]
 }
 

@@ -110,3 +110,13 @@ test_that("a matrix stacks at the display's rows step, and fits without one", {
     fitted$display$height)
   expect_equal(jbrowse_stack(tall)$patches$layout$heights, 12 * rows)
 })
+
+test_that("as.matrix() of rows with no cells is every row's reference call", {
+  people <- extdata("1000g_dcst2.vcf.gz")
+  v <- jbrowse_variants(people, "1:155,000,001-155,001,000",
+    display = list(rows = jbrowse_rows(kept = "HG00096")))
+  expect_equal(nrow(v$cells), 0)
+  m <- as.matrix(v)
+  expect_equal(dim(m), c(1, nrow(v$variants)))
+  expect_true(all(m == 0))
+})

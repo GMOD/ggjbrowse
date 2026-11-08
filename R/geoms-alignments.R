@@ -139,12 +139,15 @@ geom_jbrowse_deletion_lengths <- function(mapping = NULL, data = NULL,
   jbrowse_layer(ggplot2::GeomText, data, function(x) {
     rule <- x$glyph$label
     d <- x$gaps[x$gaps$type == "deletion", , drop = FALSE]
-    tall <- x$read_pitch$featureHeight >= rule$minHeight
-    d$alpha <- label_fade(d$length * px_of(x, width),
+    if (x$read_pitch$featureHeight < rule$minHeight) d <- d[0, , drop = FALSE]
+    window <- xlim_of(x)
+    from <- pmax(d$start, window[1])
+    to <- pmin(d$end, window[2])
+    d$middle <- (from + to) / 2
+    d$alpha <- label_fade((to - from) * px_of(x, width),
       nchar(d$length) * rule$digitPx, rule)
-    if (!tall) d$alpha[] <- 0
     d[d$alpha > 0, , drop = FALSE]
-  }, mapping, ggplot2::aes(x = (start + end) / 2, y = row + 0.5,
+  }, mapping, ggplot2::aes(x = middle, y = row + 0.5,
     label = length, alpha = I(alpha)),
     list(size = 1.7, colour = "white", fontface = "bold", ...))
 }

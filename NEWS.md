@@ -1,5 +1,31 @@
 # ggjbrowse (development version)
 
+- A locus past its contig's end stops at the end the file or assembly
+  states, as the location box cuts it, and one starting past the end is a
+  `ggjbrowse_bad_region` error.
+- The ruler ticks base N at its left edge, 0-based N - 1, as the view does,
+  where the tick sat a base to the right.
+- A deletion's length label fades and centres on the part of it in view,
+  so one running off the panel keeps its label and a sliver of one in a
+  second region loses it.
+- `jbrowse_wiggle()` keys the engine's categorical colors, such as a
+  threshold scale's bands, in `keys$scores`, and the one-pixel floor of a
+  mark is a pixel of the width the track draws at.
+- `as.matrix()` of a wiggle result is `NA` in a pixel no bin covers, as the
+  display's clustering script writes it, snaps a column count a few ulps
+  short of a whole number, and of a result with no bins, or a variants
+  result with no cells, returns the matrix where it errored. A record with
+  no ALT takes one column, as the display's matrix gives it.
+- The genotype rows' grey background draws only while reference calls draw
+  no cell, and survives a key two stacked tracks share.
+- A VCF record two regions list has its `samples` listed once.
+- `geom_jbrowse_ribbons()` and its multi-way kin map any ribbon column, and
+  `kind` and `alignment` when no ribbon is thin.
+- `jbrowse_multiway()`'s `lanes` keep the row `labels` in `display`, and its
+  new `genomes` takes the lanes' assemblies.
+- A `MultiWiggleAdapter`'s `bigWigs` may name local files.
+- `jbrowse_rows()` loses `groups`, which no reader's display accepts.
+
 - `jbrowse_variants()` on a one-sample VCF lists its records as the display
   draws them, with no genotype row: every record the filters keep, as on a
   sites-only VCF, so a calls VCF with no GT lists its records where it
@@ -17,8 +43,9 @@
   does: it fetches the view's blocks around the window, so `blocks` and
   `ribbons` can run past 0 and `width` for the plot to clip, an alignment's
   `id` and `group` name the fetched block, and the legend and lane order
-  cover what was fetched. The contig length comes from the anchor's genome
-  in `assemblies`.
+  cover what was fetched. `jbrowse_multiway(genomes = )` takes the lanes'
+  assemblies, which give the anchor's contig its length and stop each lane's
+  line at its contig's ends.
 - A synteny read drops the ribbons the band culls past its overdraw, and
   `offscreen`, `offscreenContigs` and `offscreenStrip` mark a ribbon whose
   mate lies past the facing row's view, as the band's strip does.

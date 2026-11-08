@@ -12,7 +12,6 @@ jbrowse_rows(
   labels = NULL,
   colors = NULL,
   color = NULL,
-  groups = NULL,
   step = NULL,
   tree = NULL,
   axis = NULL
@@ -20,8 +19,8 @@ jbrowse_rows(
 }
 \arguments{
 \item{field}{what one row is: on \code{\link[=jbrowse_variants]{jbrowse_variants()}}, \code{"sample"} (the
-default) or \code{"haplotype"}; on a wiggle or feature display, the field
-whose values each take a row, such as \code{"source"}}
+default) or \code{"haplotype"}; on a wiggle display, the field whose values
+each take a row, such as \code{"source"}}
 
 \item{sort}{row names, the rows that lead, in order; the rest follow in
 the file's order}
@@ -43,9 +42,6 @@ gives the row}
 \item{color}{the row attribute the rows are colored by, such as a
 samples file column, or a list of \code{field} and its color \code{scale}}
 
-\item{groups}{on a feature display, a list of \code{list(match, group)}
-entries, the \code{group} attribute a row takes when its name matches}
-
 \item{step}{the row height in px, or \code{"fit"}, the default, the rows
 dividing the display's height}
 
@@ -59,11 +55,11 @@ its \code{newick} and \code{provenance}}
 the \code{rows} list, unset members left out
 }
 \description{
-The \code{rows} setting of a display that draws a row per sample, source or
-group, as a track config's \code{displays} entry writes it, for a reader's
-\code{display}: \code{display = list(rows = jbrowse_rows(field = "haplotype"))}. A
-plain list works as well; this names each member and writes a named vector
-as the map JBrowse reads. A row is named by its \code{name} in the reader's
+The \code{rows} setting of a display that draws a row per sample or source, as
+a track config's \code{displays} entry writes it, for a reader's \code{display}:
+\code{display = list(rows = jbrowse_rows(field = "haplotype"))}. A plain list
+works as well; this names each member and writes a named vector as the map
+JBrowse reads. A row is named by its \code{name} in the reader's
 \code{rows} table, a haplotype row \code{"<sample> HP1"}, \code{"HP2"}, where a sample's
 name also names its haplotypes.
 }

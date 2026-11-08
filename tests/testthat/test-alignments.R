@@ -850,3 +850,19 @@ test_that("a deletion split across two regions is labelled with its whole length
     geom_jbrowse_deletion_lengths(data = a))$label
   expect_true(all(labels > 1000))
 })
+
+test_that("a deletion's length label fades and centres on the part in view", {
+  del <- extdata("hg008t_cuzd1_deletion.bam")
+  one <- jbrowse_alignments(del, "chr10:122,836,801-122,837,300")
+  long <- ggplot2::layer_data(ggplot2::ggplot() +
+    geom_jbrowse_deletion_lengths(data = one))
+  long <- long[long$label == "1798", ]
+  expect_gt(nrow(long), 0)
+  expect_equal(unique(long$x), (122836800 + 122837142) / 2)
+  two <- jbrowse_alignments(del, c("chr10:122,835,000-122,837,135",
+    "chr10:122,837,136-122,838,000"))
+  pieces <- ggplot2::layer_data(ggplot2::ggplot() +
+    geom_jbrowse_deletion_lengths(data = two))
+  expect_true(all(pieces$x[pieces$label == "1798"] <
+    two$regions$cum_end[1]))
+})

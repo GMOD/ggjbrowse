@@ -252,3 +252,45 @@ test_that("a bar its axis clips carries the strip the display paints at the axis
   expect_equal(sum(top), sum(m$clip_side > 0))
   expect_true(all(strips$ymin[top] > 19 & strips$ymin[top] < 20))
 })
+
+test_that("as.matrix() is NA where no bin covers a pixel", {
+  gapdh <- system.file("extdata", "gapdh_phylop100way.bw",
+    package = "ggjbrowse")
+  empty <- jbrowse_wiggle(gapdh, "chr12:100,000,001-100,010,000")
+  expect_equal(nrow(empty$bins), 0)
+  m <- as.matrix(empty)
+  expect_equal(dim(m), c(1, empty$width))
+  expect_true(all(is.na(m)))
+})
+
+test_that("as.matrix() snaps a column count a few ulps short", {
+  expect_equal(ncol(as.matrix(jbrowse_wiggle(bw, "ctgA:1-1,000",
+    width = 228))), 228)
+})
+
+test_that("a threshold scale keys its bands", {
+  banded <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(encoding =
+    list(color = list(scale = list(type = "threshold", domain = list("2"),
+      range = list("#2166ac", "#b2182b"))))))
+  expect_equal(banded$keys$scores$color, c("#2166ac", "#b2182b"))
+  expect_equal(attr(banded$keys$scores, "title"), "Score")
+  expect_equal(nrow(w$keys$scores), 0)
+})
+
+test_that("a mark's one-pixel floor is a pixel of the width it draws at", {
+  sparse <- w
+  sparse$marks <- w$marks[1, ]
+  sparse$marks$end <- sparse$marks$start + 1
+  drawn <- ggplot2::layer_data(ggplot2::ggplot(drawn_at(sparse,
+    3 * w$width)) + geom_jbrowse_wiggle(), 2)
+  expect_equal(drawn$xmax - drawn$xmin, w$bp_per_px / 3)
+})
+
+test_that("a MultiWiggleAdapter's bigWigs read as local paths", {
+  cells <- c("gm12878", "k562")
+  files <- system.file("extdata", sprintf("hbb_dnase_%s.bw", cells),
+    package = "ggjbrowse")
+  m <- jbrowse_wiggle(list(type = "MultiWiggleAdapter", bigWigs = files),
+    "chr11:5,270,001-5,320,000")
+  expect_equal(m$sources$name, paste0("hbb_dnase_", cells))
+})

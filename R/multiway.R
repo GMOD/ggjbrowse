@@ -91,6 +91,10 @@ lane_pin <- function(locus) {
 #' @param width the view's pixels, 1,500 as for the linear readers, which set
 #'   each lane's zoom and which ribbons are wide enough to draw
 #' @param index the tabix or CSI index of a `.pif.gz`, if not beside it
+#' @param genomes the lanes' genomes: a [jbrowse_assembly()] or a JBrowse
+#'   assembly config, or a list of them, each named by its lane's assembly
+#'   name. The anchor's frames its window in its contig, and a lane's line
+#'   stops at its contig's ends, where with none it runs to the view's edge
 #' @return a `jbrowse_multiway` list, beside the slots [jbrowse_result] lists:
 #'   * `lanes`: one row per lane, top to bottom: `lane`, `assembly`,
 #'     `label`, `anchor`, `chrom`, `flipped` (the lane runs right to left),
@@ -142,7 +146,7 @@ lane_pin <- function(locus) {
 #' head(m$ribbons)
 jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
                              display = NULL, width = DEFAULT_WIDTH,
-                             index = NULL) {
+                             index = NULL, genomes = NULL) {
   if (is.null(anchor) && !is.list(file)) {
     stop("name the anchor lane's assembly, the PanSN sample its sequences ",
       "are named after", call. = FALSE)
@@ -150,12 +154,18 @@ jbrowse_multiway <- function(file, region, anchor = NULL, lanes = NULL,
   regions <- anchor_regions(region)
   choice <- lane_choice(lanes)
   config <- display %||% list()
-  config$rows <- choice$rows %||% config$rows
+  if (length(choice$rows)) {
+    config$rows <- utils::modifyList(config$rows %||% list(), choice$rows)
+  }
   args <- list(adapterConfig = adapter_of(file, function()
     multiway_adapter(file, index)),
     anchor = axis_args(regions, anchor, width),
     display = display_config(config) %||% list())
   if (length(choice$pins)) args$pins <- choice$pins
+  if (is.list(genomes) && !is.null(genomes[["name"]])) {
+    genomes <- list(genomes)
+  }
+  if (length(genomes)) args$assemblies <- lapply(genomes, assembly_config)
   read <- warned_call("multiway", args)
   r <- read$value
   missing <- check_missing(as.list(unlist(r$missingContigs)), regions$chrom)
