@@ -176,15 +176,7 @@ assembly_config <- function(assembly) {
     assembly$refNameAliases <- list(adapter = alias_adapter(aliases$uri))
   }
   assembly[] <- lapply(assembly, readable)
-  alias_arrays(assembly)
-}
-
-# A config with each `aliases` an array, even of one alias
-alias_arrays <- function(x) {
-  if (!is.list(x) || inherits(x, "AsIs")) return(x)
-  x[] <- lapply(x, alias_arrays)
-  if (is.character(x[["aliases"]])) x$aliases <- I(x[["aliases"]])
-  x
+  json_arrays(assembly)
 }
 
 # The adapter an alias file is read with, by its name as the engine's

@@ -176,7 +176,7 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
   subfeature_key <- match(subfeatures$id, unique(subfeatures$id))
   sections <- table_of(t, "sections")
   vcf <- vcf_columns(t$vcf, features$feature, names(features))
-  taken <- c(names(features), names(subfeatures), "strand", "section")
+  taken <- c(names(features), names(subfeatures))
   attributes <- typed_columns(t$attributes, t$attributeFields,
     nrow(features), taken, "attr")
   subfeature_attributes <- typed_columns(t$subfeatureAttributes,
@@ -196,11 +196,9 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
   }
   subfeatures <- cbind(subfeature = subfeature_key,
     on_feature("subfeatures"), subfeature_attributes)
-  arrows <- on_feature("arrows")
-  names(arrows)[names(arrows) == "headHalfHeight"] <- "head_half_height"
   tables <- list(features = features, subfeatures = subfeatures,
     rects = on_feature("rects"), lines = on_feature("lines"),
-    chevrons = on_feature("chevrons"), arrows = arrows,
+    chevrons = on_feature("chevrons"), arrows = snake(on_feature("arrows")),
     amino_acids = snake(on_feature("aminoAcids")),
     labels = on_feature("labels"), sections = sections,
     samples = vcf$samples, annotations = vcf$annotations)
@@ -259,7 +257,7 @@ makeContent.ggjbrowse_display_text <- function(x) {
 print.jbrowse_features <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_features> %s, %d features, %d transcripts, %d boxes, %d labels, %.0f px tall\n",
-    print_loci(x), nrow(x$features),
+    loci_text(x$regions), nrow(x$features),
     nrow(x$subfeatures), nrow(x$rects), nrow(x$labels), x$height))
   invisible(x)
 }
@@ -368,8 +366,7 @@ geom_jbrowse_glyphs <- function(mapping = NULL, data = NULL, ...) {
 display_extent <- function(d, x) {
   n <- nrow(d)
   d$px_wide <- rep(diff(xlim_of(x)) / x$bp_per_px, n)
-  d$px_tall <- if (is.null(d$section)) rep(x$height, n)
-    else section_px(x)[as.integer(d$section)]
+  d$px_tall <- section_px(x)[as.integer(d$section)]
   d
 }
 
@@ -434,7 +431,7 @@ geom_jbrowse_labels <- function(mapping = NULL, data = NULL, ...) {
 autoplot.jbrowse_features <- function(object, width = NULL, ...) {
   rlang::check_dots_empty()
   object <- on_axis(drawn_at(object, width))
-  faceted <- !identical(object$sections$label %||% "", "")
+  faceted <- !identical(object$sections$label, "")
   p <- ggplot2::ggplot(object)
   if (faceted) p <- p + section_extents(object)
   p +
@@ -458,7 +455,7 @@ autoplot.jbrowse_features <- function(object, width = NULL, ...) {
 # stands in for
 section_rows <- function(x) {
   s <- x$sections
-  chip <- x$glyph$sectionLabelHeight %||% 0
+  chip <- x$glyph$sectionLabelHeight
   data.frame(section = factor(s$label, levels = s$label),
     top = s$top + chip, bottom = s$top + s$height)
 }

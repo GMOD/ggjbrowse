@@ -15,7 +15,6 @@ read_inset <- function(x) {
   (1 - p$featureHeight / (p$featureHeight + p$featureSpacing)) / 2
 }
 
-fades <- function(x) !isFALSE(x$display$pileup$fadeLowFrequency)
 
 # Each mark of one `kind` (insertions, deletions, mismatches or clips) as the
 # pileup draws it at the figure's px per bp: the engine's alignmentMarkAlpha
@@ -25,8 +24,8 @@ mark_alpha <- function(x, width, kind, marks) {
   pileup <- x$display$pileup
   args <- list(pxPerBp = px_of(x, width),
     featureHeight = x$read_pitch$featureHeight,
-    fadeLowFrequency = fades(x),
-    mismatchOpacity = pileup$mismatches$encoding$opacity %||% list())
+    fadeLowFrequency = pileup$fadeLowFrequency,
+    mismatchOpacity = pileup$mismatches$encoding$opacity)
   args[[kind]] <- lapply(marks, I)
   lapply(call_engine("alignmentMarkAlpha", args)[[kind]], as.numeric)
 }
@@ -203,11 +202,12 @@ connector_paths <- function(x, width) {
     connectors = lapply(list(start = d$start, end = d$end, row = d$row,
       endRow = d$end_row, kind = d$kind, dip = d$dip, strand = d$strand,
       endStrand = d$end_strand, leading = d$leading, arrow = d$arrow), I)))
-  t <- seq(0, 1, length.out = CONNECTOR_SEGMENTS + 1)
-  cubic <- function(a, b, c, e) as.vector(t(outer(a, (1 - t)^3) +
-    outer(b, 3 * (1 - t)^2 * t) + outer(c, 3 * (1 - t) * t^2) + outer(e, t^3)))
+  at <- seq(0, 1, length.out = CONNECTOR_SEGMENTS + 1)
+  cubic <- function(a, b, c, e) as.vector(t(outer(a, (1 - at)^3) +
+    outer(b, 3 * (1 - at)^2 * at) + outer(c, 3 * (1 - at) * at^2) +
+    outer(e, at^3)))
   n <- nrow(d)
-  each <- function(v) rep(v, each = length(t))
+  each <- function(v) rep(v, each = length(at))
   paths <- data.frame(
     x = cubic(d$start, curves$handle, curves$endHandle, d$end),
     y = cubic(d$row, curves$handleRow, curves$endHandleRow, d$end_row) + 0.5,
@@ -242,7 +242,7 @@ geom_jbrowse_skips <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "gaps", "geom_jbrowse_skips")
   jbrowse_layer(ggplot2::GeomSegment, data, function(x) {
     d <- x$gaps[x$gaps$type == "skip", , drop = FALSE]
-    d$alpha <- rep(x$glyph$intronAlpha %||% 1, nrow(d))
+    d$alpha <- rep(x$glyph$intronAlpha, nrow(d))
     d
   }, mapping, ggplot2::aes(x = start, xend = end, y = row + 0.5,
     yend = row + 0.5, colour = I(color), alpha = I(alpha)),
@@ -387,19 +387,19 @@ geom_jbrowse_alleles <- function(mapping = NULL, data = NULL, width = NULL,
                                  ...) {
   position_rects("allele_coverage", "geom_jbrowse_alleles", data, mapping,
     width, list(...), with_defaults(ggplot2::aes(fill = I(color)), stack_rect),
-    rows = FALSE, prep = function(a, x) on_bar(x, a[shown(a), , drop = FALSE]))
+    rows = FALSE, prep = function(a, x) on_bar(a[a$shown, , drop = FALSE], x))
 }
 
 stack_rect <- ggplot2::aes(ymin = low, ymax = high)
 
 # The depth the band's bars grow from: the axis's bottom, which a log axis
 # floors at one read
-bar_base <- function(x) x$y_scale$domain[1] %||% 0
+bar_base <- function(x) x$y_scale$domain[1]
 
 # A stack's `from` and `to` as the display places them, shares of its bar's
 # drawn height from the bar's base, so a share means the same length on a
 # log or symlog axis as on a linear one
-on_bar <- function(x, d) {
+on_bar <- function(d, x) {
   tr <- score_transform(x$y_scale)
   base <- tr$transform(bar_base(x))
   at <- function(share) tr$inverse(base + share * (tr$transform(d$depth) -
@@ -497,10 +497,8 @@ geom_jbrowse_modification_coverage <- function(mapping = NULL, data = NULL,
   position_rects("modification_coverage", "geom_jbrowse_modification_coverage",
     data, mapping, width, list(...),
     with_defaults(ggplot2::aes(fill = I(color), alpha = I(opacity)), stack_rect),
-    rows = FALSE, prep = on_bar_of)
+    rows = FALSE, prep = on_bar)
 }
-
-on_bar_of <- function(d, x) on_bar(x, d)
 
 # Each junction the band draws as its arc's points, its stroke the engine's
 # px as a linewidth at the figure's PX_PER_INCH
@@ -555,12 +553,10 @@ connection_domes <- function(arcs, top) {
   d
 }
 
-# The read cloud is the band's `rule` mark, written as the bare type or the
-# mark object
+# The read cloud is the band's `rule` mark
 is_cloud <- function(x) {
   band <- x$display$readConnections
-  type <- if (is.list(band$mark)) band$mark$type else band$mark
-  isTRUE(band$show) && identical(type, "rule")
+  band$show && identical(band$mark$type, "rule")
 }
 
 #' @rdname geom_jbrowse_reads

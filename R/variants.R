@@ -145,7 +145,7 @@ variants_result <- function(t) {
   info_fields <- info$fields
   annotations <- annotation_frame(t$annotations, "variant", variants$variant)
   rows <- table_of(t, "rows")
-  bands <- table_of(t, "bands")[c("key", "label")]
+  bands <- table_of(t, "bands")
   cells <- table_of(t, "cells")
   cells$variant <- variants$variant[cells$variant + 1L]
   cells$row <- factor(cells$row, levels = rows$name)
@@ -261,7 +261,7 @@ whole_numbers <- function(x) {
 print.jbrowse_variants <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_variants> %s, %d records, %d rows, %d cells\n",
-    print_loci(x), nrow(x$variants),
+    loci_text(x$regions), nrow(x$variants),
     nrow(x$rows), nrow(x$cells)))
   invisible(x)
 }
@@ -303,18 +303,18 @@ geom_jbrowse_genotypes <- function(mapping = NULL, data = NULL,
   layout <- match.arg(layout)
   cells <- function(x) {
     d <- x$cells
-    d$alpha <- rep(1, nrow(d))
     if (layout == "columns") {
       column <- match(d$variant, unique(x$variants$variant))
       d$xmin <- column - 0.5
       d$xmax <- column + 0.5
+      d$alpha <- rep(1, nrow(d))
     } else {
       floor_bp <- 2 / px_of(x, width)
       mid <- (d$start + d$end) / 2
       half <- pmax(d$end - d$start, floor_bp) / 2
       d$xmin <- mid - half
       d$xmax <- mid + half
-      d$alpha <- d$opacity %||% d$alpha
+      d$alpha <- d$opacity
     }
     d$y <- match(as.character(d$row), x$rows$name)
     d[!is.na(d$y), , drop = FALSE]
@@ -342,7 +342,7 @@ density_alpha <- function(variants, bp_per_px) {
 # a row behind the cells it draws while reference calls draw no cell: the key's
 # reference entry as read, and none where the key has none
 reference_rows <- function(x) {
-  color <- attr(x$keys$genotypes, "background") %||% NA_character_
+  color <- attr(x$keys$genotypes, "background")
   background <- data.frame(xmin = -Inf, xmax = Inf, ymin = 0.5,
     ymax = nrow(x$rows) + 0.5, color = color)[!is.na(color), , drop = FALSE]
   ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin,
@@ -371,7 +371,7 @@ autoplot.jbrowse_variants <- function(object,
   rlang::check_dots_empty()
   layout <- match.arg(layout)
   object <- on_axis(drawn_at(object, width))
-  rows <- as.character(object$rows$label %||% object$rows$name)
+  rows <- as.character(object$rows$label)
   genomic <- layout == "genomic"
   xlim <- if (genomic) xlim_of(object)
     else c(0.5, length(unique(object$variants$variant)) + 0.5)

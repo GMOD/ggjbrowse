@@ -119,7 +119,7 @@ contigs_of <- function(config) {
     chrom <- as.character(unlist(r[[name]]$refName))
     data.frame(side = rep(name, length(chrom)),
       assembly = rep(r[[name]]$assemblyName, length(chrom)), chrom = chrom,
-      length = as.numeric(unlist(r[[name]]$length) %||% numeric(0)))
+      length = as.numeric(unlist(r[[name]]$length)))
   }
   rbind(side("query"), side("target"))
 }
@@ -374,8 +374,8 @@ pairwise_read <- function(view, file, first, second, px, display, assemblies,
 print.jbrowse_synteny <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_synteny> %s over %s, %d alignments, %d ribbons, %d off screen\n",
-    paste(loci_of_layout(on_axis_of(x$regions, "query")), collapse = ", "),
-    paste(loci_of_layout(on_axis_of(x$regions, "target")), collapse = ", "),
+    loci_text(on_axis_of(x$regions, "query")),
+    loci_text(on_axis_of(x$regions, "target")),
     nrow(x$alignments), nrow(x$ribbons), nrow(x$offscreen)))
   invisible(x)
 }
@@ -386,8 +386,7 @@ print.jbrowse_synteny <- function(x, ...) {
 band_px <- function(regions, axis, region, coord, width) {
   lo <- tapply(regions$cum_start, regions$axis, min)[axis]
   hi <- tapply(regions$cum_end, regions$axis, max)[axis]
-  shift <- regions$offset[region] - regions$start[region]
-  unname((coord + shift - lo) / (hi - lo) * width)
+  unname((on_offsets(regions, region, coord) - lo) / (hi - lo) * width)
 }
 
 # The result with its ribbons and off-screen blocks marked as on the band's
@@ -400,13 +399,14 @@ synteny_on_axis <- function(x) {
   x
 }
 
-# The points of each ribbon edge from (x0, y0) to (x1, y1): a straight line,
-# or the band's cubic Bezier with both control points at mid height
+# The points of each ribbon edge from (x0, y0) to (x1, y1), a row per edge:
+# a straight line, or the band's cubic Bezier with both control points at mid
+# height
 edge_points <- function(x0, x1, y0, y1, curves, n = 16) {
-  if (!curves) return(list(x = c(x0, x1), y = c(y0, y1)))
-  t <- seq(0, 1, length.out = n)
-  list(x = x0 + (x1 - x0) * t * t * (3 - 2 * t),
-    y = y0 + (y1 - y0) * (1.5 * t * (1 - t) + t^3))
+  at <- if (curves) seq(0, 1, length.out = n) else c(0, 1)
+  ease_x <- if (curves) at * at * (3 - 2 * at) else at
+  ease_y <- if (curves) 1.5 * at * (1 - at) + at^3 else at
+  list(x = x0 + outer(x1 - x0, ease_x), y = y0 + outer(y1 - y0, ease_y))
 }
 
 # Where each ribbon's feet sit: px along its upper and lower edges, and the
@@ -417,11 +417,11 @@ band_feet <- function(r) {
     y_top = rep(1, nrow(r)), y_bottom = rep(0, nrow(r)))
 }
 
-# The pieces `pts` of ribbons `r` as one frame, each piece a `ribbon` group
-# with every column of its ribbon
-ribbon_marks <- function(r, pts) {
-  d <- do.call(rbind, c(list(data.frame(x = numeric(0), y = numeric(0),
-    ribbon = integer(0))), pts))
+# Ribbons `r` as one frame of points, ribbon by ribbon along the rows of `x`
+# and `y`, each point carrying every column of its ribbon
+ribbon_marks <- function(r, x, y) {
+  d <- data.frame(x = as.vector(t(x)), y = as.vector(t(y)),
+    ribbon = rep(seq_len(nrow(r)), each = ncol(x)))
   r <- r[setdiff(names(r), names(d))]
   cbind(d, r[d$ribbon, , drop = FALSE], row.names = NULL)
 }
@@ -429,24 +429,19 @@ ribbon_marks <- function(r, pts) {
 # Each filled ribbon's outline, top to bottom on its first edge and back up
 # its second
 ribbon_polygons <- function(r, curves, feet = band_feet(r)) {
-  ribbon_marks(r, lapply(seq_len(nrow(r)), function(i) {
-    down <- edge_points(feet$top1[i], feet$bottom1[i], feet$y_top[i],
-      feet$y_bottom[i], curves)
-    up <- edge_points(feet$bottom2[i], feet$top2[i], feet$y_bottom[i],
-      feet$y_top[i], curves)
-    data.frame(x = c(down$x, up$x), y = c(down$y, up$y), ribbon = i)
-  }))
+  down <- edge_points(feet$top1, feet$bottom1, feet$y_top, feet$y_bottom,
+    curves)
+  up <- edge_points(feet$bottom2, feet$top2, feet$y_bottom, feet$y_top,
+    curves)
+  ribbon_marks(r, cbind(down$x, up$x), cbind(down$y, up$y))
 }
 
 # Each thin ribbon's centerline, from the middle of its top edge to the
 # middle of its bottom edge
 ribbon_lines <- function(r, curves, feet = band_feet(r)) {
-  ribbon_marks(r, lapply(seq_len(nrow(r)), function(i) {
-    e <- edge_points((feet$top1[i] + feet$top2[i]) / 2,
-      (feet$bottom1[i] + feet$bottom2[i]) / 2, feet$y_top[i],
-      feet$y_bottom[i], curves)
-    data.frame(x = e$x, y = e$y, ribbon = i)
-  }))
+  e <- edge_points((feet$top1 + feet$top2) / 2,
+    (feet$bottom1 + feet$bottom2) / 2, feet$y_top, feet$y_bottom, curves)
+  ribbon_marks(r, e$x, e$y)
 }
 
 #' A synteny band's ribbons as ggplot layers
@@ -628,7 +623,7 @@ layout_label <- function(layout, assembly = "") {
       paste0(assembly, ", ") else "", nrow(layout)))
   }
   what <- if (nrow(layout) == 1) layout$chrom
-    else paste(loci_of_layout(layout), collapse = ", ")
+    else loci_text(layout)
   name <- if (nzchar(assembly)) paste0(assembly, " ") else ""
   sprintf("%s%s (bp%s)", name, what,
     if (nrow(layout) == 1) "" else ", end to end")
@@ -679,8 +674,8 @@ row_tracks <- function(tracks, layout, row) {
   for (t in tracks) {
     if (!same_loci(t$regions, layout)) {
       stop("a ", row, " track draws over the ", row, " row's regions, ",
-        paste(loci_of_layout(layout), collapse = ", "), ", but one reads ",
-        paste(loci_of(t), collapse = ", "), call. = FALSE)
+        loci_text(layout), ", but one reads ",
+        loci_text(t$regions), call. = FALSE)
     }
   }
   lapply(tracks, function(t) {
@@ -803,8 +798,8 @@ jbrowse_dotplot <- function(file, x = NULL, y = NULL, display = NULL,
 print.jbrowse_dotplot <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_dotplot> %s against %s, %d alignments, %d segments\n",
-    paste(loci_of_layout(on_axis_of(x$regions, "x")), collapse = ", "),
-    paste(loci_of_layout(on_axis_of(x$regions, "y")), collapse = ", "),
+    loci_text(on_axis_of(x$regions, "x")),
+    loci_text(on_axis_of(x$regions, "y")),
     nrow(x$alignments), nrow(x$segments)))
   invisible(x)
 }
@@ -814,11 +809,10 @@ dotplot_on_axis <- function(x) {
   s <- x$segments
   if (is_on_axis(s)) return(x)
   r <- x$regions
-  shift <- function(region) r$offset[region] - r$start[region]
-  s$x_start <- s$x_start + shift(s$x_region)
-  s$x_end <- s$x_end + shift(s$x_region)
-  s$y_start <- s$y_start + shift(s$y_region)
-  s$y_end <- s$y_end + shift(s$y_region)
+  s$x_start <- on_offsets(r, s$x_region, s$x_start)
+  s$x_end <- on_offsets(r, s$x_region, s$x_end)
+  s$y_start <- on_offsets(r, s$y_region, s$y_start)
+  s$y_end <- on_offsets(r, s$y_region, s$y_end)
   x$segments <- structure(s, on_axis = TRUE)
   x
 }

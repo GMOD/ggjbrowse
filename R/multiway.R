@@ -398,7 +398,7 @@ lane_names <- function(x) {
 
 multiway_stack <- function(x, curves) {
   x <- on_axis(x)
-  p <- ggplot2::ggplot(x) +
+  ggplot2::ggplot(x) +
     geom_jbrowse_lane_ribbons(curves = curves) +
     geom_jbrowse_lanes() +
     guides_jbrowse(x) +
@@ -410,7 +410,6 @@ multiway_stack <- function(x, curves) {
     ggplot2::theme(panel.grid = ggplot2::element_blank(),
       axis.text.x = ggplot2::element_blank(),
       axis.text.y = ggplot2::element_text(hjust = 1, lineheight = 0.9))
-  p
 }
 
 # A track over a lane's window drawn on the stack's pixels: each genomic
@@ -426,7 +425,7 @@ lane_band <- function(track, x, lane, where) {
     min(read$start) > min(s$start) || max(read$end) < max(s$end) ||
     (anchor && !same_loci(read, a))) {
     stop("a track ", where, " the stack draws over ", x$lanes$locus[lane],
-      ", but one reads ", paste(loci_of(track), collapse = ", "),
+      ", but one reads ", loci_text(track$regions),
       call. = FALSE)
   }
   bp <- c(rbind(s$start, s$end))

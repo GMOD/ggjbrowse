@@ -241,11 +241,8 @@ loci_of_layout <- function(layout) {
   sprintf("%s:%s-%s", layout$chrom, bp(layout$start + 1), bp(layout$end))
 }
 
-# The loci a result reads
-loci_of <- function(x) loci_of_layout(x$regions)
-
-# The loci a result reads, for its print header
-print_loci <- function(x) paste(loci_of(x), collapse = ", ")
+# The loci `layout` lays out, joined for a message or a print header
+loci_text <- function(layout) paste(loci_of_layout(layout), collapse = ", ")
 
 # Whether a track reads `layout`'s regions, a contig spelt with or without
 # its `chr`, and a PanSN row's contig as its name past the last `#`
@@ -254,9 +251,6 @@ same_loci <- function(read, layout) {
   identical(paste(contig(read$chrom), read$start, read$end),
     paste(contig(layout$chrom), layout$start, layout$end))
 }
-
-# A position in a region on the axis that lays the regions at their offsets
-on_offsets <- function(r, i, at) at - r$start[i] + r$offset[i]
 
 # Each region's round breaks placed by `px(r, region, at)`, labelled in the
 # region's own coordinates
@@ -296,9 +290,8 @@ same_regions <- function(results) {
   differ <- which(spans != spans[1])
   if (length(differ)) {
     stop("jbrowse_stack draws its tracks over the same regions, but track ",
-      differ[1], " reads ", paste(loci_of(results[[differ[1]]]),
-        collapse = ", "), " and track 1 ", paste(loci_of(results[[1]]),
-        collapse = ", "), call. = FALSE)
+      differ[1], " reads ", loci_text(results[[differ[1]]]$regions),
+      " and track 1 ", loci_text(results[[1]]$regions), call. = FALSE)
   }
   first <- results[[1]]$regions$chrom
   for (i in seq_along(results)[-1]) {
@@ -306,8 +299,8 @@ same_regions <- function(results) {
     pairs <- unique(data.frame(a = first, b = chrom))
     if (anyDuplicated(pairs$a) || anyDuplicated(pairs$b)) {
       stop("jbrowse_stack draws its tracks over the same contigs, but track ",
-        i, " reads ", paste(loci_of(results[[i]]), collapse = ", "),
-        " and track 1 ", paste(loci_of(results[[1]]), collapse = ", "),
+        i, " reads ", loci_text(results[[i]]$regions),
+        " and track 1 ", loci_text(results[[1]]$regions),
         call. = FALSE)
     }
     renamed <- pairs[bare_contig(pairs$a) != bare_contig(pairs$b), , drop = FALSE]
@@ -417,7 +410,7 @@ axis_label <- function(x) {
   r <- x$regions
   if (nrow(r) == 1) return(sprintf("%s (bp)", r$chrom))
   if (nrow(r) <= 2) {
-    return(sprintf("%s (bp, end to end)", paste(loci_of(x), collapse = ", ")))
+    return(sprintf("%s (bp, end to end)", loci_text(x$regions)))
   }
   sprintf("%s, %d regions (bp, end to end)",
     paste(unique(r$chrom), collapse = ", "), nrow(r))

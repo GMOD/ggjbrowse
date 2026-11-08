@@ -797,8 +797,8 @@ test_that("a result carries the display's resolved config and read pitch", {
   expect_equal(read_inset(compact), 0)
   off <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
      display = list(pileup = list(fadeLowFrequency = FALSE)))
-  expect_false(fades(off))
-  expect_true(fades(bam))
+  expect_false(off$display$pileup$fadeLowFrequency)
+  expect_true(bam$display$pileup$fadeLowFrequency)
 })
 
 test_that("the junction band hides non-canonical junctions where the display does", {

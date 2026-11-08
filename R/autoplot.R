@@ -126,7 +126,7 @@ band <- function(p, x, rows = FALSE, ylim = NULL, expand = FALSE) {
 # labels, the triangles sitting in the top one
 coverage_plot <- function(x, o) {
   scale <- x$y_scale
-  interbase <- !isFALSE(x$display$coverage$interbase$show)
+  interbase <- x$display$coverage$interbase$show
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_coverage() +
     geom_jbrowse_alleles(width = o$width) +
@@ -197,18 +197,16 @@ dip_reserved_rows <- function(x) {
   if (reserve > 0) c(0, rows + reserve)
 }
 
-shown <- function(d) d$shown %||% rep(TRUE, nrow(d))
-
 shown_junctions <- function(x) {
   j <- summary_table(x, "junctions")
-  j[shown(j), , drop = FALSE]
+  j[j$shown, , drop = FALSE]
 }
 
 junctions_plot <- function(x, o) {
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_junctions() +
     guides_jbrowse(x, "junctions", ramps = FALSE)
-  if (isTRUE(x$display$sashimi$labels$show)) {
+  if (x$display$sashimi$labels$show) {
     p <- p + geom_jbrowse_junction_counts()
   }
   band(p, x, ylim = c(0, 1.08)) + no_y
@@ -289,14 +287,13 @@ autoplot.jbrowse_alignments <- function(object,
 
 alignment_options <- function(object, letters = NULL) {
   s <- object$display
-  tall <- (object$read_pitch$featureHeight %||% 0) >=
-    (object$glyph$label$minHeight %||% Inf)
+  tall <- object$read_pitch$featureHeight >= object$glyph$label$minHeight
   list(
     letters = letters %||% (tall &&
       px_of(object, NULL) >= object$glyph$label$minPxPerBp),
-    coverage = !isFALSE(s$coverage$show),
-    pileup = !isFALSE(s$pileup$show),
-    junctions = !isFALSE(s$sashimi$show))
+    coverage = s$coverage$show,
+    pileup = s$pileup$show,
+    junctions = s$sashimi$show)
 }
 
 # Each band an alignments track draws, top to bottom, by its height in the

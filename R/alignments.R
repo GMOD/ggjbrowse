@@ -278,8 +278,8 @@ region_bases <- function(assembly, regions) {
     error = function(e) NA_character_), "")
   blank <- is.na(bases) | !nzchar(bases)
   if (any(blank)) {
-    warning("the assembly holds no bases of ", paste(loci_of_layout(
-      regions[blank, , drop = FALSE]), collapse = ", "), ", which the ",
+    warning("the assembly holds no bases of ", loci_text(
+      regions[blank, , drop = FALSE]), ", which the ",
       "sequence band leaves blank", call. = FALSE)
   }
   bases
@@ -290,9 +290,7 @@ alignments_result <- function(t, assembly) {
   names(sections)[names(sections) == "dipReserve"] <- "dip_reserve"
   frame <- function(name) {
     d <- table_of(t, name)
-    if (!is.null(d$section)) {
-      d$section <- factor(d$section, levels = sections$label)
-    }
+    d$section <- factor(d$section, levels = sections$label)
     d
   }
   reads <- frame("reads")
@@ -419,45 +417,11 @@ paints_bisulfite <- function(display) {
   is.list(bases) && isTRUE(bases$show) && identical(field, "bisulfite")
 }
 
-# The display config slots the schemas type as arrays, at any depth:
-# a color's `domain` and `names`, a facet's or row arrangement's `sort`,
-# `kept`, a field predicate's `oneOf`. A boolean in one of these slots is
-# another slot of the same name, such as `rows$axis$labels`
-ARRAY_SLOTS <- c("domain", "names", "sort", "range", "labels", "hidden", "kept",
-  "oneOf", "laneGeneTracks", "tracks")
-
-# A config with each unnamed vector but a logical in an ARRAY_SLOTS slot a JSON
-# array however many values it holds, where jsonlite would write one as a
-# scalar, and each named vector a JSON object, where jsonlite would drop its
-# names, so `rows$colors = c(HG002 = "red")` is a map
-json_arrays <- function(x) {
-  if (inherits(x, "AsIs")) return(x)
-  if (is.atomic(x) && !is.null(names(x))) return(as.list(x))
-  if (!is.list(x)) return(x)
-  x[] <- lapply(x, json_arrays)
-  for (slot in intersect(names(x), ARRAY_SLOTS)) {
-    value <- x[[slot]]
-    if (is.atomic(value) && !is.logical(value) && length(value) &&
-      is.null(names(value))) {
-      x[[slot]] <- I(value)
-    }
-  }
-  x
-}
-
-# A display config as the engine reads it, a bare character `filter` a list
-# of entries however many it holds; NULL for an empty one
-display_config <- function(display) {
-  if (!length(display)) return(NULL)
-  if (is.character(display$filter)) display$filter <- I(display$filter)
-  json_arrays(display)
-}
-
 #' @export
 print.jbrowse_alignments <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_alignments> %s, %d reads in %d sections, %d mismatches, %d gaps, %d insertions, %d clips, %d indicators, %d modifications, %d junctions, %d arcs\n",
-    print_loci(x), nrow(x$reads),
+    loci_text(x$regions), nrow(x$reads),
     nrow(x$sections), nrow(x$mismatches), nrow(x$gaps),
     nrow(x$insertions), nrow(x$clips), nrow(x$indicators),
     nrow(x$modifications), nrow(x$junctions), nrow(x$arcs)))

@@ -112,7 +112,7 @@ in_row_order <- function(x) {
 # drops them
 in_source_order <- function(x) {
   x$sources <- by_tree(x$sources, x$tree, "x$sources")
-  if (isTRUE(x$row_layout)) {
+  if (x$row_layout) {
     x$marks$row <- match(x$marks$source, x$sources$name) - 1
   }
   x

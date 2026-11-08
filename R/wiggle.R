@@ -147,7 +147,7 @@ column_floor <- function(x) floor(x + 1e-9 * pmax(1, abs(x)))
 print.jbrowse_wiggle <- function(x, ...) {
   cat(sprintf(
     "<jbrowse_wiggle> %s, %d bins from %d source(s), drawn as %s on %s axis %g to %g\n",
-    print_loci(x), nrow(x$bins),
+    loci_text(x$regions), nrow(x$bins),
     nrow(x$sources), x$mark, x$y_scale$type, x$y_scale$domain[1],
     x$y_scale$domain[2]))
   invisible(x)
@@ -198,8 +198,8 @@ pixel_wide <- function(x, keep) {
 # between rows, on the display's own scale; `base` is the slice's floor
 in_rows <- function(x, d) {
   n <- nrow(x$sources)
-  d$base <- if (isTRUE(x$row_layout)) n - 1 - d$row else rep(0, nrow(d))
-  if (isTRUE(x$row_layout)) {
+  if (x$row_layout) {
+    d$base <- n - 1 - d$row
     t <- score_transform(x$y_scale)
     lim <- t$transform(x$y_scale$domain)
     at <- function(v) {
@@ -207,6 +207,8 @@ in_rows <- function(x, d) {
     }
     d$low <- at(d$low)
     d$score <- at(d$score)
+  } else {
+    d$base <- rep(0, nrow(d))
   }
   d
 }
@@ -217,7 +219,7 @@ clip_strips <- function(x) {
   d <- pixel_wide(x, !x$marks$band & x$marks$clip_side != 0)
   t <- score_transform(x$y_scale)
   lim <- t$transform(x$y_scale$domain)
-  rows <- if (isTRUE(x$row_layout)) nrow(x$sources) else 1
+  rows <- if (x$row_layout) nrow(x$sources) else 1
   frac <- x$clip_strip$px * rows / x$height
   edge <- function(at) t$inverse(lim[1] + at * diff(lim))
   top <- d$clip_side > 0
@@ -234,7 +236,6 @@ clip_strips <- function(x) {
 cut_at_origin <- function(d, origin) {
   n <- nrow(d)
   if (n < 2) return(d)
-  origin <- origin %||% 0
   i <- which(d$run[-1] == d$run[-n] & d$color[-1] != d$color[-n] &
     (d$score[-n] - origin) * (d$score[-1] - origin) < 0)
   if (!length(i)) return(d)
@@ -325,7 +326,7 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
 geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "rules", "geom_jbrowse_rules")
   rules <- function(x) {
-    r <- if (x$mark == "rect" || isTRUE(x$row_layout)) x$rules[0, ]
+    r <- if (x$mark == "rect" || x$row_layout) x$rules[0, ]
       else x$rules
     r$x <- rep(xlim_of(x)[1], nrow(r))
     r
@@ -367,7 +368,7 @@ autoplot.jbrowse_wiggle <- function(object, width = NULL, ...) {
   rlang::check_dots_empty()
   object <- on_axis(drawn_at(object, width))
   density <- object$mark == "rect"
-  rows <- isTRUE(object$row_layout)
+  rows <- object$row_layout
   tree <- rows && !is.null(object$tree)
   n <- nrow(object$sources)
   p <- ggplot2::ggplot(object) +

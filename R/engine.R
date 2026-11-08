@@ -264,6 +264,40 @@ as_engine_json <- function(args) {
     digits = I(17)))
 }
 
+# The config slots the schemas type as arrays, at any depth: a color's
+# `domain` and `names`, a facet's or row arrangement's `sort`, `kept`, a field
+# predicate's `oneOf`, an assembly's `aliases`. A boolean in one of these
+# slots is another slot of the same name, such as `rows$axis$labels`
+ARRAY_SLOTS <- c("domain", "names", "sort", "range", "labels", "hidden", "kept",
+  "oneOf", "laneGeneTracks", "tracks", "aliases")
+
+# A config with each unnamed vector but a logical in an ARRAY_SLOTS slot a JSON
+# array however many values it holds, where jsonlite would write one as a
+# scalar, and each named vector a JSON object, where jsonlite would drop its
+# names, so `rows$colors = c(HG002 = "red")` is a map
+json_arrays <- function(x) {
+  if (inherits(x, "AsIs")) return(x)
+  if (is.atomic(x) && !is.null(names(x))) return(as.list(x))
+  if (!is.list(x)) return(x)
+  x[] <- lapply(x, json_arrays)
+  for (slot in intersect(names(x), ARRAY_SLOTS)) {
+    value <- x[[slot]]
+    if (is.atomic(value) && !is.logical(value) && length(value) &&
+      is.null(names(value))) {
+      x[[slot]] <- I(value)
+    }
+  }
+  x
+}
+
+# A display config as the engine reads it, a bare character `filter` a list
+# of entries however many it holds; NULL for an empty one
+display_config <- function(display) {
+  if (!length(display)) return(NULL)
+  if (is.character(display$filter)) display$filter <- I(display$filter)
+  json_arrays(display)
+}
+
 call_engine <- function(table, args) {
   wire <- in_engine(function(ctx) {
     json <- ctx$call(sprintf("jbrowse.%s", table), as_engine_json(args),

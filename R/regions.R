@@ -16,8 +16,8 @@ file_contigs <- function(adapter, assembly = NULL) {
   r <- call_engine("fileRegions", args)
   d <- region_frame(r)
   d$canonical <- as.character(r$canonical)
-  d$has_data <- as.logical(unlist(r$hasData) %||% logical(0))
-  d$length_known <- as.logical(unlist(r$lengthKnown) %||% logical(0))
+  d$has_data <- as.logical(unlist(r$hasData))
+  d$length_known <- as.logical(unlist(r$lengthKnown))
   d$end[!d$length_known] <- WHOLE_CONTIG_END
   d
 }
@@ -360,7 +360,7 @@ arcs_on_axis <- function(d, regions) {
   r <- regions
   place <- function(pos, foot) {
     i <- ifelse(foot >= 0, foot + 1L, d$region)
-    pmin(pmax(pos, r$start[i]), r$end[i]) - r$start[i] + r$offset[i]
+    on_offsets(r, i, pmin(pmax(pos, r$start[i]), r$end[i]))
   }
   d$start <- place(d$start, d$startRegion)
   d$end <- place(d$end, d$endRegion)
@@ -380,10 +380,13 @@ connectors_on_axis <- function(d, regions) {
   if (is_on_axis(d) || !has_regions(d, regions)) return(d)
   if (nrow(regions) == 1) return(structure(d, on_axis = TRUE))
   r <- regions
-  d$start <- d$start - r$start[d$region] + r$offset[d$region]
-  d$end <- d$end - r$start[d$end_region] + r$offset[d$end_region]
+  d$start <- on_offsets(r, d$region, d$start)
+  d$end <- on_offsets(r, d$end_region, d$end)
   structure(d, on_axis = TRUE)
 }
+
+# A position in a region on the axis that lays the regions at their offsets
+on_offsets <- function(r, i, at) at - r$start[i] + r$offset[i]
 
 # A table's rows on the axis `regions` lays end to end: each moved by its
 # region's offset, a span cut to its region and a mark outside it dropped, so
@@ -411,9 +414,8 @@ frame_on_axis <- function(d, regions) {
     d <- d[d[[point]] >= r$start[d$region] &
       d[[point]] < r$end[d$region], , drop = FALSE]
   }
-  shift <- r$offset[d$region] - r$start[d$region]
   for (column in intersect(c("start", "end", "position"), names(d))) {
-    d[[column]] <- d[[column]] + shift
+    d[[column]] <- on_offsets(r, d$region, d[[column]])
   }
   structure(d, on_axis = TRUE)
 }
