@@ -141,7 +141,7 @@ only:
 replace:
   - from: " There are\ntwo ways to open one:"
     to: ""
-  - from: "Check **Follow further breakends at each end** to add the rest\nof the chain:"
+  - from: "Check **Follow further breakends at each end** to add the rest of the chain:"
     to: "The dialog's **Follow further breakends at each end** adds the rest of the\nchain by this search, which `walk()` below repeats in R:"
 -->
 
@@ -224,9 +224,9 @@ _TRHDE-AS1_, beside two of them.
 section: Tumor and normal coverage as bigWigs
 title: Coverage in the tumor and the normal
 only:
-  - "The demo config also has tumor and normal coverage tracks"
+  - "The demo config also carries tumor and normal coverage tracks"
 replace:
-  - from: "converted to bigWig the same way for\neach sample:"
+  - from: "converted to\nbigWig the same way for each sample:"
     to: "converted to bigWig for the browser. `readr` reads the BED as it is.\nWe'll take the ratio of the two samples' depth per window, each over its own\nmedian, and mark the chain's breakends on it:"
 -->
 

@@ -109,8 +109,7 @@ cat(sprintf("%s CDS %d bp, %d codons\ncodon 373 = %s (%s) at chr30:%d\n",
 ```
 
 The C>T at chr30:38,261,635 truncates the protein at residue 373 of 513.
-Reading the callset at exactly that position finds it, passing every
-filter.
+Checking the callset at exactly that position finds it, passing every filter.
 
 The callset's host, kiddlabshare.med.umich.edu, serves an expired TLS
 certificate, so R reads JBrowse's hosted copy of the callset's record at the

@@ -104,8 +104,8 @@ title: false
 only:
   - "The C>T at chr30:38,261,635"
 replace:
-  - from: "callset has a record at exactly that position, passing every filter:"
-    to: "callset has a record at exactly that position, passing every\nfilter."
+  - from: "Checking the callset at exactly that position finds it, passing every filter:"
+    to: "Checking the callset at exactly that position finds it, passing every filter."
 -->
 
 The callset's host, kiddlabshare.med.umich.edu, serves an expired TLS
