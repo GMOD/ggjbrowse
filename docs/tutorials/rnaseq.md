@@ -233,7 +233,7 @@ skips <- one_skip |>
   count(start, end, refseq, name = "reads") |>
   arrange(desc(reads))
 skips
-#> # A tibble: 56 × 4
+#> # A tibble: 57 × 4
 #>      start     end refseq reads
 #>      <int>   <int> <lgl>  <int>
 #>  1 5567816 5567911 TRUE     449
@@ -246,7 +246,7 @@ skips
 #>  8 5567407 5567764 FALSE      2
 #>  9 5406822 5816038 FALSE      1
 #> 10 5566917 5567212 FALSE      1
-#> # ℹ 46 more rows
+#> # ℹ 47 more rows
 ```
 
 ## Picking out spliced reads
@@ -279,19 +279,19 @@ bind_rows("file order" = spliced_rows(file_order),
 #> # A tibble: 2 × 4
 #>   sort          spliced_reads last_row pileup_rows
 #>   <chr>                 <int>    <int>       <dbl>
-#> 1 file order              856     2057        2058
-#> 2 spliced first           856      459        2060
+#> 1 file order              857     2057        2058
+#> 2 spliced first           857      459        2060
 ```
 
-The filter keeps the reads whose CIGAR has a skip. The one read it keeps beyond
-the count of reads with a skip in view has its skip left of the window:
+The filter keeps the reads whose CIGAR has a skip, the same count as the reads
+with a skip in view:
 
 
 ``` r
 c(reads = nrow(file_order$reads), kept_by_filter = nrow(only_spliced$reads),
   with_a_skip_in_view = sum(is_spliced(file_order)))
 #>               reads      kept_by_filter with_a_skip_in_view 
-#>               10422                 857                 856
+#>               10422                 857                 857
 ```
 
 
@@ -757,7 +757,7 @@ both <- inner_join(from_table, from_reads, by = c("start", "end"))
 c(in_table = nrow(from_table), in_reads = nrow(from_reads),
   in_both = nrow(both), same_count = sum(both$table == both$reads))
 #>   in_table   in_reads    in_both same_count 
-#>         18         53         18         18
+#>         18         55         18         18
 ```
 
 

@@ -204,8 +204,8 @@ bind_rows("file order" = spliced_rows(file_order),
   .id = "sort")
 ```
 
-The filter keeps the reads whose CIGAR has a skip. The one read it keeps beyond
-the count of reads with a skip in view has its skip left of the window:
+The filter keeps the reads whose CIGAR has a skip, the same count as the reads
+with a skip in view:
 
 ```{r spliced-filter}
 c(reads = nrow(file_order$reads), kept_by_filter = nrow(only_spliced$reads),

@@ -111,9 +111,9 @@ and whether the call is unmodified:
 reads$modifications |>
   count(name)
 #>             name    n
-#> 1           5hmC  277
-#> 2            5mC 5885
-#> 3 Unmodified 5mC 4189
+#> 1           5hmC  346
+#> 2            5mC 8339
+#> 3 Unmodified 5mC 5464
 ```
 
 The reads interleave methylated and unmethylated molecules, so the figure looks
@@ -133,10 +133,10 @@ We'll facet on the `HP` tag, which `tags.HP` names:
 by_haplotype <- jbrowse_alignments(bam, locus,
   display = list(pileup = bases, facet = list(field = "tags.HP")))
 by_haplotype$sections
-#>   key    label
-#> 1   1    HP: 1
-#> 2   2    HP: 2
-#> 3     HP: none
+#>   key    label dip_reserve
+#> 1   1    HP: 1           0
+#> 2   2    HP: 2           0
+#> 3     HP: none           0
 ```
 
 The pileup stacks into one section per haplotype, one methylated over the
