@@ -5,17 +5,10 @@
 
 Genome browser tracks as ggplot2 layers.
 
-- **In:** a region of a BAM, CRAM, GFF3, GTF, BED, BigBed, BigWig or VCF, or
-  two regions a PAF aligns.
-- **Out:** the tables the [JBrowse 2](https://jbrowse.org) genome browser's
-  own display draws from, run in V8: reads on pileup rows, gene glyphs,
-  binned scores, genotypes and synteny ribbons, with the colors the display
-  paints them.
-- **Also:** reads CRAM, which Rsamtools cannot, and needs no Bioconductor
-  packages.
-- **Drawn with:** a geom per table, so a figure is an ordinary ggplot that
-  `+` changes piece by piece. `autoplot()` composes the geoms into the
-  browser's track.
+- **In:** a region of a BAM, CRAM, GFF3, GTF, BED, BigBed, BigWig or VCF, or two regions a PAF aligns.
+- **Out:** the tables the [JBrowse 2](https://jbrowse.org) genome browser's own display draws from, run in V8, with the colors it paints them.
+- **Also:** reads CRAM, which Rsamtools cannot, and needs no Bioconductor packages.
+- **Drawn with:** a geom per table, so a figure is an ordinary ggplot. `autoplot()` composes the geoms into the browser's track.
 
 ```r
 remotes::install_github("GMOD/ggjbrowse")
@@ -23,11 +16,8 @@ remotes::install_github("GMOD/ggjbrowse")
 
 ## Gallery
 
-- Every figure is drawn twice from data installed with the package, by
-  JBrowse's own renderer (`jb2export` from `@jbrowse/img`) on the left and by
-  ggjbrowse on the right.
-- A title links to the figure's R and `jb2export` recipes in
-  [docs/gallery.md](docs/gallery.md).
+- Every figure is drawn from data installed with the package, by `jb2export` from `@jbrowse/img` on the left and by ggjbrowse on the right.
+- A title links to the figure's R and `jb2export` recipes in [docs/gallery.md](docs/gallery.md).
 
 <!-- gallery -->
 <table>
@@ -107,96 +97,48 @@ ggplot(a) +
   scale_y_reverse()
 ```
 
-- **Data:** every example runs as written on clips of public human data
-  installed with the package. `scripts/extdata-*.sh` make the clips.
-- **Regions:** a locus as JBrowse's location box writes it, 1-based
-  (`"chr12:6,534,201-6,538,700"`), a contig name alone for the whole contig,
-  a data frame of `chrom`, `start` and `end` in 0-based half-open
-  coordinates, or a GRanges. Several regions draw end to end.
-- **Whole files:** leave out the region and a reader reads every contig the
-  file lists.
+- **Data:** every example runs on clips of public human data installed with the package (`scripts/extdata-*.sh`).
+- **Regions:** a locus as `"chr12:6,534,201-6,538,700"` (1-based), a contig name, a `chrom`/`start`/`end` data frame (0-based half-open) or a GRanges.
+- **Several regions** draw end to end.
+- **Whole files:** leave out the region and a reader reads every contig the file lists.
 - **Files:** a path or a URL. CRAM needs its FASTA as `assembly`.
-- **Filters:** `a$reads <- subset(a$reads, mapq >= 20)` drops the left-out
-  reads' mismatches, gaps and clips too, since each names its read by a key.
-- **Colors and keys:** the geoms paint the display's colors as they are, so
-  a scale of your own sits beside them, and `guides_jbrowse(a)` adds the
-  display's keys.
-- **The display's decisions** are columns: `a$junctions$shown <-
-  a$junctions$count >= 5` draws the junctions with five reads or more.
-- **Saved results:** a result saved with `saveRDS()` draws again without its
-  files.
-- **The file's own fields:** a GFF3's attributes, a BigBed's autoSql columns
-  and a VCF's INFO, FORMAT and consequence fields come back as columns,
-  keyed as the file writes them, so nothing needs parsing again in R.
-- **Contig names:** where files spell a contig differently (`chr7` in a BAM,
-  `7` in the FASTA), give each reader `assembly = jbrowse_assembly(fasta,
-  aliases)`, with an alias table such as UCSC's `chromAlias.txt`. A region
-  may then name the contig either way, and the reader names it in its tables
-  as the region does.
+- **Filters:** `a$reads <- subset(a$reads, mapq >= 20)` drops the left-out reads' mismatches, gaps and clips too.
+- **Colors and keys:** the geoms paint the display's colors as they are, and `guides_jbrowse(a)` adds the display's keys.
+- **The display's decisions** are columns: `a$junctions$shown <- a$junctions$count >= 5` draws the junctions with five reads or more.
+- **Saved results:** a result saved with `saveRDS()` draws again without its files.
+- **The file's own fields:** a GFF3's attributes, a BigBed's autoSql columns and a VCF's INFO, FORMAT and consequence fields come back as columns.
+- **Contig names:** where files spell a contig differently (`chr7` in a BAM, `7` in the FASTA), give each reader `assembly = jbrowse_assembly(fasta, aliases)`.
 
 ## Tutorials
 
-Whole analyses done in R, each on the data and question of a
-[JBrowse tutorial](https://jbrowse.org/jb2/docs/tutorials/):
+Whole analyses done in R, each on the data and question of a [JBrowse tutorial](https://jbrowse.org/jb2/docs/tutorials/):
 
-- [Methylation (bisulfite) in R](docs/tutorials/bisulfite.md): per-read CpG,
-  CHG and CHH calls from an _Arabidopsis_ WGBS run, counted over a gene and a
-  transposon and checked against MethylDackel
-- [Methylation (long-read) in R](docs/tutorials/methylation.md): HG002
-  nanopore 5mC split by haplotype at the _SNRPN_ imprinting center, checked
-  against modkit and smoothed across the imprinted domain
-- [Differential transcript usage in R](docs/tutorials/dtu.md): satuRn on
-  ENCODE muscle and liver quantifications, written into GENCODE and drawn over
-  each tissue's coverage, checked at the exon that tells _ATP5F1C_'s isoforms
-  apart
-- [Selection scans (Drosophila DGRP) in R](docs/tutorials/population_genomics.md):
-  Fst, π and Tajima's D at the _Cyp6g1_ sweep and the `In(2L)t` inversion,
-  each ranked against the rest of the genome
-- [A loss-of-function allele across breeds (Dog10K) in R](docs/tutorials/dog10k_lof.md):
-  the _CYP1A2_ stop codon derived from the reference, its frequency per breed
-  with wolves and coyotes as controls, and the gene's copy number
-- [RNA-seq splicing and strand in R](docs/tutorials/rnaseq.md): _ACTB_'s splice junctions from
-  the reads, strand-specific coverage, IsoSeq isoforms, and a regtools junction
-  table checked against the engine's own counts
-- [Complex rearrangements and derivative alleles (COLO829) in R](docs/tutorials/cancer_sv.md):
-  the chr3, chr10 and chr12 rearrangement chain walked from the calls, split
-  reads counted in tumor and normal, and the der(3) allele against the truth
-  set
+- [Methylation (bisulfite) in R](docs/tutorials/bisulfite.md): per-read CpG, CHG and CHH calls from an _Arabidopsis_ WGBS run, checked against MethylDackel
+- [Methylation (long-read) in R](docs/tutorials/methylation.md): HG002 nanopore 5mC by haplotype at the _SNRPN_ imprinting center, checked against modkit
+- [Differential transcript usage in R](docs/tutorials/dtu.md): satuRn on ENCODE muscle and liver quantifications, drawn over each tissue's coverage
+- [Selection scans (Drosophila DGRP) in R](docs/tutorials/population_genomics.md): Fst, π and Tajima's D at the _Cyp6g1_ sweep and the `In(2L)t` inversion
+- [A loss-of-function allele across breeds (Dog10K) in R](docs/tutorials/dog10k_lof.md): the _CYP1A2_ stop codon, its frequency per breed and the gene's copy number
+- [RNA-seq splicing and strand in R](docs/tutorials/rnaseq.md): _ACTB_'s splice junctions, strand-specific coverage and IsoSeq isoforms
+- [Complex rearrangements and derivative alleles (COLO829) in R](docs/tutorials/cancer_sv.md): the chr3, chr10 and chr12 rearrangement chain and the der(3) allele
 
 ## Docs
 
-- [Get started](vignettes/ggjbrowse.Rmd): a track, its tables, the display's
-  settings, a stack, genotypes and synteny, each on the installed data.
-  `vignette("ggjbrowse")` once installed with `build_vignettes = TRUE`
-- [docs/alignments.md](docs/alignments.md): BAM and CRAM reads
-  (`jbrowse_alignments()`): color, filter, sort, split and chain reads,
-  methylation
-- [docs/features.md](docs/features.md): GFF3, GTF, BED and BigBed
-  (`jbrowse_features()`): gene glyphs, labels, facets
-- [docs/wiggle.md](docs/wiggle.md): BigWig (`jbrowse_wiggle()`): bars, lines,
-  density, rows per source, clustering
-- [docs/variants.md](docs/variants.md): VCF (`jbrowse_variants()`): genotypes
-  by sample, bands, clustering
-- [docs/synteny.md](docs/synteny.md): PAF, PIF, delta, chain and MashMap
-  (`jbrowse_synteny()`, `jbrowse_dotplot()`, `jbrowse_multiway()`): ribbons,
-  dotplots, several genomes
-- [docs/stack.md](docs/stack.md): several tracks (`jbrowse_stack()`):
-  end-to-end regions, collapsed introns, figure size, the **Export R script**
-  JBrowse menu item
-- [docs/grammar.md](docs/grammar.md): the geoms, keys, scales and facets that
-  `autoplot()` composes
-- [docs/api.md](docs/api.md): every reader, helper and geom, what each
-  returns, and the keys that tie the tables together
+- [Get started](vignettes/ggjbrowse.Rmd): a track, its tables, a stack, genotypes and synteny. `vignette("ggjbrowse")` needs `build_vignettes = TRUE`
+- [docs/alignments.md](docs/alignments.md): BAM and CRAM reads (`jbrowse_alignments()`): color, filter, sort, split and chain reads, methylation
+- [docs/features.md](docs/features.md): GFF3, GTF, BED and BigBed (`jbrowse_features()`): gene glyphs, labels, facets
+- [docs/wiggle.md](docs/wiggle.md): BigWig (`jbrowse_wiggle()`): bars, lines, density, rows per source, clustering
+- [docs/variants.md](docs/variants.md): VCF (`jbrowse_variants()`): genotypes by sample, bands, clustering
+- [docs/synteny.md](docs/synteny.md): PAF, PIF, delta, chain and MashMap (`jbrowse_synteny()`, `jbrowse_dotplot()`, `jbrowse_multiway()`)
+- [docs/stack.md](docs/stack.md): several tracks (`jbrowse_stack()`): end-to-end regions, collapsed introns, figure size
+- [docs/grammar.md](docs/grammar.md): the geoms, keys, scales and facets that `autoplot()` composes
+- [docs/api.md](docs/api.md): every reader, helper and geom, what each returns, and the keys that tie the tables together
 - [docs/gallery.md](docs/gallery.md): the R and `jb2export` code of each figure
-- [docs/faq.md](docs/faq.md): how the engine works, what one call does, common
-  errors
+- [docs/faq.md](docs/faq.md): how the engine works, what one call does, common errors
 - [CONTRIBUTING.md](CONTRIBUTING.md): setup, rebuilding the engine, CI
 
 ## Not yet
 
-- A CRAN submission: `R CMD check --as-cran` leaves the new-submission NOTE,
-  and the 7.9 MB installed size, 4.3 MB of it `inst/extdata`, may need
-  trimming or a word to CRAN
+- A CRAN submission: `R CMD check --as-cran` leaves the new-submission NOTE, and the 7.9 MB installed size may need trimming
 
 ## See also
 
@@ -210,9 +152,7 @@ Other R tools
 
 ## Academic use
 
-Written with [NHGRI](https://www.genome.gov) funding as part of
-[JBrowse](https://jbrowse.org). If you use this in a publication, please cite the
-most recent JBrowse paper at [jbrowse.org](https://jbrowse.org).
+Written with [NHGRI](https://www.genome.gov) funding as part of [JBrowse](https://jbrowse.org). If you use this in a publication, please cite the most recent JBrowse paper at [jbrowse.org](https://jbrowse.org).
 
 ## License
 
