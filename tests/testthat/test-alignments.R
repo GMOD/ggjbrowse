@@ -617,7 +617,7 @@ test_that("reads draw at the display's read height, and the pileup band is as ta
     d <- ggplot2::layer_data(ggplot2::ggplot(x) + geom_jbrowse_reads(), 1)
     unique(round(d$ymax - d$ymin, 6))
   }
-  expect_equal(body(normal), 7 / 9)
+  expect_equal(body(normal), 7 / 9, tolerance = 1e-5)
   expect_equal(body(compact), 1)
   rows <- max(normal$reads$row) + 1
   tall <- jbrowse_stack(normal)
