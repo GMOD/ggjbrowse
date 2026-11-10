@@ -1,3 +1,5 @@
+# ggjbrowse (development version)
+
 # ggjbrowse 0.12.0
 
 - `geom_jbrowse_wiggle()` draws abutting bars of one color as one area,
