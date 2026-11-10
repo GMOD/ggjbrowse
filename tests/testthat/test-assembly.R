@@ -40,6 +40,13 @@ test_that("a contig's alias alone reads the file's contig whole", {
     class = "ggjbrowse_bad_region")
 })
 
+test_that("one name or several reach the assembly's canonical names", {
+  config <- assembly_config(hg38)
+  expect_equal(canonical_names(config, "12"), "chr12")
+  expect_equal(canonical_names(config, c("NC_000012.12", "chrZ")),
+    c("chr12", "chrZ"))
+})
+
 test_that("a region frame naming a contig by its alias reads to the contig's end", {
   gff <- extdata("gapdh_gencode.gff3.gz")
   open <- jbrowse_features(gff,

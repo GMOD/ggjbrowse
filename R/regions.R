@@ -59,7 +59,7 @@ assembly_contigs <- function(config) {
 # assembly does not know as given
 canonical_names <- function(assembly, names) {
   as.character(call_engine("canonicalNames", list(assembly = assembly,
-    refNames = I(names)))$canonical)
+    refNames = names))$canonical)
 }
 
 # The canonical_names() of `assembly`, NULL for none
