@@ -224,7 +224,7 @@ _TRHDE-AS1_, beside two of them.
 section: Tumor and normal coverage as bigWigs
 title: Coverage in the tumor and the normal
 only:
-  - "The demo config also carries tumor and normal coverage tracks"
+  - "The demo config also"
 replace:
   - from: "converted to\nbigWig the same way for each sample:"
     to: "converted to bigWig for the browser. `readr` reads the BED as it is.\nWe'll take the ratio of the two samples' depth per window, each over its own\nmedian, and mark the chain's breakends on it:"

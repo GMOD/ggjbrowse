@@ -67,7 +67,9 @@ replace:
 <!-- jbrowse
 section: Building Fst, π and Tajima's D bigWigs with vcftools
 replace:
-  - from: "[refname aliasing](/docs/developer_guides/refname_aliasing) maps one to the\nother. A mismatch with no alias draws an empty track and raises no error."
+  - from:
+      - "[refname aliasing](/docs/developer_guides/refname_aliasing) maps one to the\nother. A mismatch with no alias draws an empty track and raises no error."
+      - "[refname aliasing](/docs/developer_guides/refname_aliasing) maps one to the\nother. With a mismatch and no alias, JBrowse draws an empty track and raises no\nerror."
     to: "the R code below names each file's contigs the way that file spells them."
 -->
 

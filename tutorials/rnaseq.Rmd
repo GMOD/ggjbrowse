@@ -262,7 +262,9 @@ only:
 replace:
   - from: "Type `chr9:136,214,000-136,229,000` into the\nlocation box, then pick this path from the track menu:"
     to: "We'll read `chr9:136,214,000-136,229,000`."
-  - from: "To compare the strands over a whole gene,\n**Group by → First-of-pair strand** applies a `facet`, one section per strand,\neach with a coverage histogram drawn from that section's reads, forward and\nreverse on one autoscaled axis. **Show → Pileup**, unticked, hides the reads and\nleaves the two histograms."
+  - from:
+      - "To compare the strands over a whole gene,\n**Group by → First-of-pair strand** applies a `facet`, one section per strand,\neach with a coverage histogram drawn from that section's reads, forward and\nreverse on one autoscaled axis. **Show → Pileup**, unticked, hides the reads and\nleaves the two histograms."
+      - "To compare the strands over a whole gene,\n**Group by → First-of-pair strand** applies a `facet`, one section per strand,\neach with a coverage histogram drawn from that section's reads, forward and\nreverse on one autoscaled axis. **Show → Show pileup**, unticked, hides the\nreads and leaves the two histograms."
     to: "To compare the strands over a whole gene,\n`facet = list(field = \"firstOfPairStrand\")` makes one section per strand,\neach with a coverage histogram drawn from that section's reads, forward and\nreverse on one autoscaled axis. `pileup = list(show = FALSE)` hides the reads\nand leaves the two histograms."
 -->
 

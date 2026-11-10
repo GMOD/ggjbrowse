@@ -30,8 +30,9 @@
 #   title: Aligning the reads      # renames the heading; `false` drops it
 #   drop: [bwameth.py index]       # drops each block holding the text
 #   keep: [MethylDackel extract]   # keeps a block the defaults would drop
-#   replace:                       # each `from` must occur exactly once
-#     - {from: JBrowse makes, to: The engine makes}
+#   replace:                       # each `from` must occur exactly once,
+#     - {from: JBrowse makes, to: The engine makes}   # however it wraps
+#     - {from: [pin's words, HEAD's], to: R's}        # either wording
 #   -->
 #
 # A directive with `assign` writes an R chunk instead, each variable taking a
@@ -221,9 +222,15 @@ browser_only <- function(b) {
 
 block_text <- function(b) paste(b$lines, collapse = "\n")
 
+# `text` as a pattern any run of whitespace in it matches any other, so a
+# website edit that only rewraps a paragraph leaves a directive matching
+across_wraps <- function(text) {
+  gsub("\\s+", "\\\\s+", gsub("([][{}()*+?.\\\\^$|])", "\\\\\\1", text))
+}
+
 matches <- function(blocks, text) {
-  which(vapply(blocks, function(b) grepl(text, block_text(b), fixed = TRUE),
-    TRUE))
+  which(vapply(blocks, function(b) grepl(across_wraps(text), block_text(b),
+    perl = TRUE), TRUE))
 }
 
 one_match <- function(blocks, text, what, section, report) {
@@ -280,15 +287,17 @@ pull_section <- function(spec, s, tutorial, level_offset, report) {
     }
   }
   for (r in spec[["replace"]]) {
+    from <- paste(vapply(unlist(r$from), across_wraps, ""), collapse = "|")
     count <- vapply(body, function(b) lengths(regmatches(block_text(b),
-      gregexpr(r$from, block_text(b), fixed = TRUE))), 0)
+      gregexpr(from, block_text(b), perl = TRUE))), 0)
     if (sum(count) != 1) {
-      report(sprintf("replace '%s' matches %d times in section '%s'", r$from,
-        sum(count), section))
+      report(sprintf("replace '%s' matches %d times in section '%s'",
+        paste(unlist(r$from), collapse = "' or '"), sum(count), section))
     } else {
       k <- which(count == 1)
-      body[[k]]$lines <- strsplit(sub(r$from, r$to, block_text(body[[k]]),
-        fixed = TRUE), "\n")[[1]]
+      text <- block_text(body[[k]])
+      regmatches(text, regexpr(from, text, perl = TRUE)) <- r$to
+      body[[k]]$lines <- strsplit(text, "\n")[[1]]
     }
   }
   out <- vapply(body, function(b) {
