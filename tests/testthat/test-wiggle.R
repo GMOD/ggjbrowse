@@ -416,3 +416,14 @@ test_that("a row layout never joins one source's last bar to the next source's f
     all(v >= 0.5 - 1e-6))
   expect_true(all(in_one_row))
 })
+
+test_that("a density cell reaches under the next cell of its row, which paints over it", {
+  d <- jbrowse_wiggle(bw, "ctgA:1-50,000", display = list(mark = "rect"))
+  cells <- ggplot2::layer_data(ggplot2::autoplot(d), 3)
+  m <- d$marks[!d$marks$band, ]
+  n <- nrow(m)
+  expect_equal(nrow(cells), n)
+  expect_equal(cells$xmax[-n], m$end[-1])
+  expect_equal(cells$xmin, m$start)
+  expect_equal(cells$xmax[n], m$end[n])
+})

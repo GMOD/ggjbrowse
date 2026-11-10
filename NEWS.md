@@ -5,6 +5,9 @@
   showed a light seam between bars narrower than a device pixel and washed
   out the track's color. Where a bar widened to a pixel overlaps the next,
   the area takes the taller, as the display paints it.
+- Density cells each reach under the next cell of their row, which paints
+  over them, so a zoomed-out density track keeps its colors in a PDF or SVG
+  viewer rather than washing toward white at every cell's edge.
 - `jbrowse_synteny()` and `jbrowse_dotplot()` take a `jbrowse_assembly()`
   or assembly config in `assemblies` for either axis. A whole-genome axis then
   lays its contigs in the assembly's order, and a color by contig deals its

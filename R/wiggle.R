@@ -307,6 +307,16 @@ GeomJBrowseBars <- ggplot2::ggproto("GeomJBrowseBars", ggplot2::GeomRect,
       panel_params, coord, lineend = lineend, linejoin = linejoin)
   })
 
+# Each density cell reaches under the next cell of its row, which paints over
+# it, so no antialiased seam shows between cells narrower than a device pixel
+under_next <- function(d) {
+  n <- nrow(d)
+  abuts <- c(d$row[-1] == d$row[-n] & d$start[-1] >= d$start[-n] &
+    d$start[-1] <= d$end[-n], FALSE)
+  d$end[abuts] <- d$end[which(abuts) + 1]
+  d
+}
+
 #' A quantitative track's marks as ggplot layers
 #'
 #' `geom_jbrowse_wiggle()` draws the marks as the display's plot type draws
@@ -339,6 +349,7 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
     if (drawn) d else d[0, , drop = FALSE]
   }
   marks <- function(x) in_rows(x, pixel_wide(x, !x$marks$band))
+  cells <- function(x) under_next(marks(x))
   band <- function(x) in_rows(x, pixel_wide(x, x$marks$band))
   steps <- function(x) {
     m <- pixel_wide(x, !x$marks$band)
@@ -360,7 +371,7 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
       for_geom(mapping, GeomJBrowseBars),
       ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
         fill = I(color), group = row), list(...)),
-    jbrowse_layer(ggplot2::GeomRect, data, of("rect", marks),
+    jbrowse_layer(ggplot2::GeomRect, data, of("rect", cells),
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = base, ymax = base + 1,
         fill = I(color)), list(...)),
