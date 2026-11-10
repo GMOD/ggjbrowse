@@ -27,8 +27,8 @@ them: bars from the origin, a stepped or interpolated line with its
 whisker band, points, or density, each in the display's color. Map
 \code{score}, \code{source} or any other column of the marks table to draw it your
 own way. A line breaks into the \code{run}s the display breaks it into.
-\code{geom_jbrowse_rules()} draws the reference lines \code{encoding$y$rules}
-declares, each labelled above its line as the display labels it.
+\code{geom_jbrowse_rules()} draws the result's \code{rules}, each labelled above
+its line as the display labels it, in every row of a row layout.
 }
 \examples{
 bw <- system.file("extdata", "gapdh_phylop100way.bw",

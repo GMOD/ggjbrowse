@@ -47,7 +47,8 @@
 #'   * `sources`: `name`, `label`, `group`, `color`; `bins` and `marks` name
 #'     their source by `name`, and assigning `sources` drops the bins and
 #'     marks of the sources it leaves out
-#'   * `rules`: the reference lines `encoding$y$rules` draws
+#'   * `rules`: the reference lines `encoding$y$rules` declares, as the
+#'     display draws them: none under density, which maps the score to color
 #'
 #'   `y_scale` is the score axis the display autoscales to, `ramps` the
 #'   score's color bar where one ramp paints every row (density, or a
@@ -213,6 +214,19 @@ in_rows <- function(x, d) {
   d
 }
 
+# Rules as a row layout draws them: each one inside the shared domain, in
+# every row's slice of the axis
+in_each_row <- function(x, rules) {
+  lim <- x$y_scale$domain
+  rules <- rules[rules$value >= lim[1] & rules$value <= lim[2], , drop = FALSE]
+  n <- nrow(x$sources)
+  d <- rules[rep(seq_len(nrow(rules)), each = n), , drop = FALSE]
+  d$row <- rep(seq_len(n) - 1, nrow(rules))
+  d$value <- in_rows(x, transform(d, low = value, score = value))$score
+  rownames(d) <- NULL
+  d[names(d) != "row"]
+}
+
 # The strip the display paints across a row's edge over each bar its axis
 # clips, `clip_strip$px` of the row's height, on the axis's own scale
 clip_strips <- function(x) {
@@ -253,8 +267,8 @@ cut_at_origin <- function(d, origin) {
 #' whisker band, points, or density, each in the display's color. Map
 #' `score`, `source` or any other column of the marks table to draw it your
 #' own way. A line breaks into the `run`s the display breaks it into.
-#' `geom_jbrowse_rules()` draws the reference lines `encoding$y$rules`
-#' declares, each labelled above its line as the display labels it.
+#' `geom_jbrowse_rules()` draws the result's `rules`, each labelled above
+#' its line as the display labels it, in every row of a row layout.
 #' @param mapping aesthetics that override the defaults
 #' @param data a [jbrowse_wiggle()] result, `NULL` for the plot's,
 #'   or a data frame in place of the table the geom draws from the plot's
@@ -326,8 +340,7 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
 geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
   data <- replacing(data, "rules", "geom_jbrowse_rules")
   rules <- function(x) {
-    r <- if (x$mark == "rect" || x$row_layout) x$rules[0, ]
-      else x$rules
+    r <- if (x$row_layout) in_each_row(x, x$rules) else x$rules
     r$x <- rep(xlim_of(x)[1], nrow(r))
     r
   }

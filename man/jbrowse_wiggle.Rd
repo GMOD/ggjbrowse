@@ -61,7 +61,8 @@ the row's edge
 \item \code{sources}: \code{name}, \code{label}, \code{group}, \code{color}; \code{bins} and \code{marks} name
 their source by \code{name}, and assigning \code{sources} drops the bins and
 marks of the sources it leaves out
-\item \code{rules}: the reference lines \code{encoding$y$rules} draws
+\item \code{rules}: the reference lines \code{encoding$y$rules} declares, as the
+display draws them: none under density, which maps the score to color
 }
 
 \code{y_scale} is the score axis the display autoscales to, \code{ramps} the

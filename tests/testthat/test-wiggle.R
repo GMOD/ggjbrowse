@@ -155,6 +155,30 @@ test_that("a row layout packs its sources into the display's height, a slice eac
   expect_gt(nrow(path), 2 * nrow(lines$marks))
 })
 
+test_that("a row layout draws each rule inside its domain in every row, and density none", {
+  bw <- normalizePath(system.file("extdata", "volvox_microarray_posneg.bw",
+    package = "ggjbrowse"))
+  multi <- list(type = "MultiWiggleAdapter", subadapters = lapply(1:3,
+    function(i) list(type = "BigWigAdapter", name = sprintf("s%d", i),
+      bigWigLocation = list(uri = bw))))
+  ruled <- function(mark) jbrowse_wiggle(multi, "ctgA:1-50,000",
+    display = list(mark = mark, encoding = list(y = list(
+      scale = list(domainMax = 500),
+      rules = list(list(value = 0, label = "zero"), list(value = 5000))))))
+  bars <- ruled("bar")
+  expect_true(bars$row_layout)
+  expect_equal(bars$rules$value, c(0, 5000))
+  p <- autoplot(bars)
+  is_layer <- function(geom) vapply(p$layers, function(l)
+    inherits(l$geom, geom), NA)
+  lines <- ggplot2::layer_data(p, which(is_layer("GeomHline")))
+  lim <- bars$y_scale$domain
+  expect_equal(sort(lines$yintercept), 0:2 + (0 - lim[1]) / diff(lim))
+  labels <- ggplot2::layer_data(p, which(is_layer("GeomText"))[1])
+  expect_equal(labels$label, rep("zero", 3))
+  expect_equal(nrow(ruled("rect")$rules), 0)
+})
+
 test_that("several regions share one score axis and color ramp", {
   loci <- c("ctgA:1-10000", "ctgA:20001-30000")
   d <- jbrowse_wiggle(bw, loci, display = list(mark = "rect"))

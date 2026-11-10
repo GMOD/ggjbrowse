@@ -1,5 +1,8 @@
 # ggjbrowse (development version)
 
+- `geom_jbrowse_rules()` draws each of a row layout's rules in every row,
+  as the multi-row display does, where it drew none, and draws whatever
+  `rules` the engine lists, which is none under density.
 - A variants result's `display$height` is the config as written, `NULL`
   where unset, and the result holds the display's own `height` and
   `row_height`, which `jbrowse_stack()` sizes the genotype band by.
