@@ -260,6 +260,53 @@ cut_at_origin <- function(d, origin) {
   rbind(d, cut)[order(c(seq_len(n), i + 0.5)), , drop = FALSE]
 }
 
+# Abutting bars of one style as one area, as overlapping bars paint it, so no
+# antialiased seam shows between bars narrower than a device pixel
+GeomJBrowseBars <- ggplot2::ggproto("GeomJBrowseBars", ggplot2::GeomRect,
+  draw_panel = function(self, data, panel_params, coord, lineend = "butt",
+                        linejoin = "mitre") {
+    data <- vctrs::vec_slice(data,
+      stats::complete.cases(data[c("xmin", "xmax", "ymin", "ymax")]))
+    left <- pmin(data$xmin, data$xmax)
+    data$xmax <- pmax(data$xmin, data$xmax)
+    data$xmin <- left
+    n <- nrow(data)
+    style <- paste(data$group, data$fill, data$alpha, data$colour,
+      data$linewidth, data$linetype)
+    joined <- c(FALSE, style[-1] == style[-n] &
+      data$xmin[-1] >= data$xmin[-n] & data$xmin[-1] <= data$xmax[-n] + 1e-9)
+    data$run <- cumsum(!joined)
+    edges <- vctrs::vec_unique(data.frame(run = rep(data$run, 2),
+      x = c(data$xmin, data$xmax)))
+    edges <- vctrs::vec_slice(edges, order(edges$run, edges$x))
+    from <- vctrs::vec_match(data[c("run", "xmin")], setNames(edges,
+      c("run", "xmin")))
+    to <- vctrs::vec_match(data[c("run", "xmax")], setNames(edges,
+      c("run", "xmax")))
+    spans <- to - from
+    bar <- rep(seq_len(n), spans)
+    piece <- data.frame(at = rep(from, spans) + sequence(spans) - 1,
+      hi = pmax(data$ymin, data$ymax)[bar],
+      lo = pmin(data$ymin, data$ymax)[bar])
+    hi <- vctrs::vec_slice(piece, order(piece$at, -piece$hi))
+    hi <- vctrs::vec_slice(hi, !duplicated(hi$at))
+    lo <- vctrs::vec_slice(piece, order(piece$at, piece$lo))
+    lo <- vctrs::vec_slice(lo, !duplicated(lo$at))
+    m <- nrow(hi)
+    corner <- vctrs::vec_slice(data,
+      rep(match(edges$run[hi$at], data$run), each = 4))
+    corner$x <- vctrs::vec_interleave(edges$x[hi$at], edges$x[hi$at + 1],
+      edges$x[hi$at], edges$x[hi$at + 1])
+    corner$y <- vctrs::vec_interleave(hi$hi, hi$hi, lo$lo, lo$lo)
+    corner$group <- corner$run
+    bottom <- rep(c(FALSE, FALSE, TRUE, TRUE), m)
+    along <- seq_len(4 * m)
+    ggplot2::GeomPolygon$draw_panel(
+      vctrs::vec_slice(corner,
+        order(corner$run, bottom, ifelse(bottom, -along, along))),
+      panel_params, coord, lineend = lineend, linejoin = linejoin)
+  })
+
 #' A quantitative track's marks as ggplot layers
 #'
 #' `geom_jbrowse_wiggle()` draws the marks as the display's plot type draws
@@ -305,14 +352,14 @@ geom_jbrowse_wiggle <- function(mapping = NULL, data = NULL, ...) {
     in_rows(x, cut_at_origin(d, x$origin))
   }
   list(
-    jbrowse_layer(ggplot2::GeomRect, data, band,
-      for_geom(mapping, ggplot2::GeomRect),
+    jbrowse_layer(GeomJBrowseBars, data, band,
+      for_geom(mapping, GeomJBrowseBars),
       ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
-        fill = I(color), alpha = I(opacity)), list(...)),
-    jbrowse_layer(ggplot2::GeomRect, data, of("bar", marks),
-      for_geom(mapping, ggplot2::GeomRect),
+        fill = I(color), group = row, alpha = I(opacity)), list(...)),
+    jbrowse_layer(GeomJBrowseBars, data, of("bar", marks),
+      for_geom(mapping, GeomJBrowseBars),
       ggplot2::aes(xmin = start, xmax = end, ymin = low, ymax = score,
-        fill = I(color)), list(...)),
+        fill = I(color), group = row), list(...)),
     jbrowse_layer(ggplot2::GeomRect, data, of("rect", marks),
       for_geom(mapping, ggplot2::GeomRect),
       ggplot2::aes(xmin = start, xmax = end, ymin = base, ymax = base + 1,

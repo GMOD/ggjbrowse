@@ -318,3 +318,101 @@ test_that("a MultiWiggleAdapter's bigWigs read as local paths", {
     "chr11:5,270,001-5,320,000")
   expect_equal(m$sources$name, paste0("hbb_dnase_", cells))
 })
+
+test_that("abutting bars of one color draw as one area, so no seam shows between them", {
+  bars <- ggplot2::layer_grob(ggplot2::autoplot(w), 2)[[1]]
+  m <- w$marks
+  n <- nrow(m)
+  areas <- 1 + sum(m$color[-1] != m$color[-n] | m$start[-1] > m$end[-n])
+  expect_s3_class(bars, "polygon")
+  expect_equal(length(unique(bars$id)), areas)
+  expect_lt(areas, n / 10)
+})
+
+test_that("a row layout's bars draw an area per source, none joined across rows", {
+  cells <- c("gm12878", "k562")
+  files <- system.file("extdata", sprintf("hbb_dnase_%s.bw", cells),
+    package = "ggjbrowse")
+  m <- jbrowse_wiggle(list(type = "MultiWiggleAdapter", bigWigs = files),
+    "chr11:5,270,001-5,320,000")
+  bars <- ggplot2::layer_grob(ggplot2::autoplot(m), 2)[[1]]
+  rows <- split(m$marks, m$marks$source)
+  areas <- sum(vapply(rows, function(r) {
+    n <- nrow(r)
+    1 + sum(r$start[-1] > r$end[-n])
+  }, numeric(1)))
+  expect_equal(length(unique(bars$id)), areas)
+})
+
+bars_outline <- function(bars, coord = ggplot2::coord_cartesian(
+  xlim = c(0, 3), ylim = c(0, 5), expand = FALSE)) {
+  p <- ggplot2::ggplot(bars) +
+    ggplot2::layer(geom = GeomJBrowseBars, stat = "identity",
+      position = "identity", mapping = ggplot2::aes(xmin = xmin,
+        xmax = xmax, ymin = ymin, ymax = ymax), params = list()) +
+    coord
+  g <- ggplot2::layer_grob(p, 1)[[1]]
+  data.frame(x = as.numeric(g$x), y = as.numeric(g$y), id = g$id)
+}
+
+test_that("abutting bars outline their tops, then back along the origin", {
+  o <- bars_outline(data.frame(xmin = 0:2, xmax = 1:3, ymin = 0,
+    ymax = c(1, 4, 2) * 1.25))
+  expect_equal(o$x * 3, c(0, 1, 1, 2, 2, 3, 3, 2, 2, 1, 1, 0))
+  expect_equal(o$y * 5, c(1, 1, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0) * 1.25)
+})
+
+test_that("a bar widened to a pixel over its neighbour shows the taller of the two", {
+  o <- bars_outline(data.frame(xmin = c(0, 1), xmax = c(2, 3), ymin = 0,
+    ymax = c(5, 1)))
+  top <- o[seq_len(nrow(o) / 2), ]
+  expect_equal(top$x * 3, c(0, 1, 1, 2, 2, 3))
+  expect_equal(top$y * 5, c(5, 5, 5, 5, 1, 1))
+})
+
+test_that("flipped bars lie along the y axis", {
+  o <- bars_outline(data.frame(xmin = 0:2, xmax = 1:3, ymin = 0,
+    ymax = c(1, 4, 2)), ggplot2::coord_flip(xlim = c(0, 3),
+      ylim = c(0, 5), expand = FALSE))
+  expect_equal(range(o$y * 3), c(0, 3))
+  expect_equal(range(o$x * 5), c(0, 4))
+})
+
+test_that("a bar a limit leaves NA is skipped, its neighbours drawn square", {
+  o <- bars_outline(data.frame(xmin = 0:2, xmax = 1:3, ymin = 0,
+    ymax = c(4, NA, 2)))
+  expect_equal(sort(unique(round(o$x * 3, 6))), c(0, 1, 2, 3))
+  expect_equal(length(unique(o$id)), 2)
+  expect_setequal(round(o$y * 5, 6), c(0, 4, 2))
+})
+
+test_that("bars on a reversed x axis draw", {
+  p <- ggplot2::autoplot(w) + ggplot2::scale_x_reverse()
+  expect_s3_class(ggplot2::layer_grob(p, 2)[[1]], "polygon")
+})
+
+test_that("a log axis keeps the bars its zero floor sends to -Inf", {
+  o <- bars_outline(data.frame(xmin = 0:2, xmax = 1:3, ymin = 0,
+    ymax = c(1, 4, 2) * 1.25), ggplot2::coord_trans(y = "log10",
+      xlim = c(0, 3), ylim = c(1, 5), expand = FALSE))
+  expect_equal(length(unique(o$id)), 1)
+})
+
+test_that("a row layout never joins one source's last bar to the next source's first", {
+  cells <- c("gm12878", "k562")
+  files <- system.file("extdata", sprintf("hbb_dnase_%s.bw", cells),
+    package = "ggjbrowse")
+  m <- jbrowse_wiggle(list(type = "MultiWiggleAdapter", bigWigs = files),
+    "chr11:5,270,001-5,320,000", width = 300)
+  m$marks$color <- m$marks$color[1]
+  first <- m$marks$source == m$sources$name[1]
+  last <- max(m$marks$start[first & m$marks$start < 5295000])
+  m$marks <- m$marks[(first & m$marks$start <= last) |
+    (!first & m$marks$start >= last), ]
+  expect_true(m$row_layout)
+  bars <- ggplot2::layer_grob(ggplot2::autoplot(m), 2)[[1]]
+  y <- as.numeric(bars$y)
+  in_one_row <- tapply(y, bars$id, function(v) all(v <= 0.5 + 1e-6) ||
+    all(v >= 0.5 - 1e-6))
+  expect_true(all(in_one_row))
+})

@@ -1,5 +1,10 @@
 # ggjbrowse (development version)
 
+- `geom_jbrowse_wiggle()` draws abutting bars of one color as one area,
+  where it drew a rectangle per bin: a PDF or SVG viewer, or RStudio's pane,
+  showed a light seam between bars narrower than a device pixel and washed
+  out the track's color. Where a bar widened to a pixel overlaps the next,
+  the area takes the taller, as the display paints it.
 - `jbrowse_synteny()` and `jbrowse_dotplot()` take a `jbrowse_assembly()`
   or assembly config in `assemblies` for either axis. A whole-genome axis then
   lays its contigs in the assembly's order, and a color by contig deals its
