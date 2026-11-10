@@ -1,4 +1,4 @@
-# ggjbrowse (development version)
+# ggjbrowse 0.12.0
 
 - `geom_jbrowse_wiggle()` draws abutting bars of one color as one area,
   where it drew a rectangle per bin: a PDF or SVG viewer, or RStudio's pane,
@@ -183,8 +183,8 @@
 - `autoplot()` of a synteny or multi-way result titles each track a named
   list passes as `above` or `below`, as `jbrowse_stack()` titles a named
   track, where it dropped the names.
-- The engine is `@jbrowse/tables` 5.0.0-beta.20, bundled in
-  `inst/js/jbrowse-tables.js`.
+- The engine is `@jbrowse/tables` 5.0.0-beta.21 at jbrowse-components
+  3e7631461b, bundled in `inst/js/jbrowse-tables.js`.
 
 # ggjbrowse 0.11.0
 
