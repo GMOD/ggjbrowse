@@ -617,12 +617,12 @@ test_that("reads draw at the display's read height, and the pileup band is as ta
     d <- ggplot2::layer_data(ggplot2::ggplot(x) + geom_jbrowse_reads(), 1)
     unique(round(d$ymax - d$ymin, 6))
   }
-  expect_equal(body(normal), 7 / 8)
+  expect_equal(body(normal), 7 / 9)
   expect_equal(body(compact), 1)
   rows <- max(normal$reads$row) + 1
   tall <- jbrowse_stack(normal)
   short <- jbrowse_stack(compact)
-  expect_equal(tall$patches$layout$heights, c(45, rows * 8))
+  expect_equal(tall$patches$layout$heights, c(45, rows * 9))
   expect_equal(short$patches$layout$heights, c(45, rows * 3))
   expect_lt(jbrowse_height(short), jbrowse_height(tall))
 })
@@ -790,7 +790,7 @@ test_that("a result carries the display's resolved config and read pitch", {
     bam$display$filter)
   expect_equal(floor[[1]]$gte, 2)
   expect_false(bam$display$readConnections$show)
-  expect_equal(bam$read_pitch, list(featureHeight = 7L, featureSpacing = 1L))
+  expect_equal(bam$read_pitch, list(featureHeight = 7L, featureSpacing = 2L))
   compact <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-2,000",
      display = list(pileup = list(mark = list(height = 3))))
   expect_equal(compact$read_pitch$featureSpacing, 0)
