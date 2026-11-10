@@ -586,8 +586,8 @@ draw_r <- function(name, example) {
   figure <- recipe_figure(example)
   height <- tryCatch(jbrowse_height(figure), error = function(e)
     example$height %||% 4)
-  ggsave(png_of(name, "r"), figure, width = width / 120, height = height,
-    dpi = 120)
+  across <- tryCatch(jbrowse_width(figure), error = function(e) width / 96)
+  ggsave(png_of(name, "r"), figure, width = across, height = height, dpi = 96)
 }
 
 to_webp <- function(name, sides = c("jbrowse", "r")) {
