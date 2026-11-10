@@ -224,9 +224,11 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
 GeomDisplayText <- ggplot2::ggproto("GeomDisplayText", ggplot2::GeomText,
   default_aes = ggplot2::aes(!!!ggplot2::GeomText$default_aes,
     px_wide = NA, px_tall = NA, halo = NA, halo_px = 1),
-  draw_panel = function(self, data, panel_params, coord, ...) {
+  draw_panel = function(self, data, panel_params, coord, parse = FALSE,
+                        na.rm = FALSE, check_overlap = FALSE) {
     text <- ggplot2::ggproto_parent(ggplot2::GeomText, self)$draw_panel(data,
-      panel_params, coord, ...)
+      panel_params, coord, parse = parse, na.rm = na.rm,
+      check_overlap = check_overlap)
     grid::gTree(children = grid::gList(text), px_wide = data$px_wide[1],
       px_tall = data$px_tall[1], halo = as.vector(data$halo),
       halo_px = data$halo_px[1],

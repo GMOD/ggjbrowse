@@ -8,6 +8,14 @@
 - Density cells each reach under the next cell of their row, which paints
   over them, so a zoomed-out density track keeps its colors in a PDF or SVG
   viewer rather than washing toward white at every cell's edge.
+- `jbrowse_width()` and `jbrowse_height()` size a figure at 96 display
+  pixels an inch, the browser's own, where they took 150: a saved figure's
+  feature labels print at 8 pt beside the theme's 9 pt titles, as the
+  browser draws them, rather than at 5 pt. Panels come out 1.56 times wider,
+  whole figures 1.3 to 1.6 times; read the tracks at a smaller `width` (672
+  for a 7 inch panel) for a narrower figure.
+- `geom_jbrowse_labels()` and `geom_jbrowse_amino_acids()` take
+  `geom_text()`'s `check_overlap`, `parse` and `na.rm`, which they dropped.
 - `jbrowse_synteny()` and `jbrowse_dotplot()` take a `jbrowse_assembly()`
   or assembly config in `assemblies` for either axis. A whole-genome axis then
   lays its contigs in the assembly's order, and a color by contig deals its

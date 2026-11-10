@@ -179,7 +179,7 @@ test_that("a figure at jbrowse_width() draws labels the same size at any view wi
     }
   }
   expect_equal(label_pt(2500), label_pt(800), tolerance = 0.05)
-  expect_equal(label_pt(800), 11 / 150 * 72.27, tolerance = 0.05)
+  expect_equal(label_pt(800), 11 / 96 * 72.27, tolerance = 0.05)
 })
 
 test_that("the display's facet packs a section per value, each on its own rows", {
@@ -458,4 +458,13 @@ test_that("a feature listed for its label in the margin keeps its file's fields"
   vcf <- jbrowse_features(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
     "chr30:38,258,004-38,258,203")
   expect_false(anyNA(vcf$features$ref))
+})
+
+test_that("a label layer takes geom_text's own parameters", {
+  label_grob <- function(...) {
+    p <- ggplot2::ggplot(g) + geom_jbrowse_labels(...)
+    ggplot2::layer_grob(p, 1)[[1]]$children[[1]]
+  }
+  expect_false(label_grob()$check.overlap)
+  expect_true(label_grob(check_overlap = TRUE)$check.overlap)
 })

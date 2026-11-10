@@ -455,7 +455,7 @@ geom_jbrowse_indicators <- function(mapping = NULL, data = NULL, ...) {
 # A display's px in grid's points, which are 72.27 to the inch
 px_to_pt <- function(px) px / PX_PER_INCH * 72.27
 
-# Pixels at the figure's 150 an inch as ggplot's linewidth, in mm
+# Pixels at the figure's PX_PER_INCH as ggplot's linewidth, in mm
 px_to_mm <- function(px) px / PX_PER_INCH * 25.4
 
 # A triangle `width` by `height` points at each `x`, its apex pointing down

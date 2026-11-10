@@ -149,9 +149,9 @@ band_of <- function(track, axis, px = NULL) {
 #' The figure height that draws a stack at its display's sizes
 #'
 #' The inches a [jbrowse_stack()] figure needs to give each band the pixels
-#' the JBrowse display gives it, at 150 pixels an inch, the scale
-#' [jbrowse_width()] gives the panels across, with room for the x axis and for the keys beside
-#' the stack, measured as ggplot2 lays them out: a compact pileup makes a
+#' the JBrowse display gives it, at the browser's 96 pixels an inch, the
+#' scale [jbrowse_width()] gives the panels across, with room for the x axis
+#' and for the keys beside the stack, measured as ggplot2 lays them out: a compact pileup makes a
 #' shorter figure than a normal one. Pass it as `ggsave()`'s `height`.
 #' @param fig a [jbrowse_stack()] figure, restyled or not
 #' @return inches, from 2 to 49
@@ -178,7 +178,7 @@ jbrowse_height <- function(fig) {
 #' The figure width that draws a stack at its display's sizes
 #'
 #' The inches a [jbrowse_stack()] figure needs to give its panels the pixels
-#' the tracks were read at, at the 150 pixels an inch [jbrowse_height()]
+#' the tracks were read at, at the 96 pixels an inch [jbrowse_height()]
 #' gives each band, with room for the y axis and the keys beside the stack.
 #' A track read at a `width` of 2,500 pixels then draws its labels as large
 #' as one read at 800, where a fixed figure width would shrink them to fit.
@@ -226,12 +226,12 @@ drawn_at <- function(x, width) {
 # The readers whose regions lie on several axes, each drawing its own
 COMPARATIVE <- c("jbrowse_synteny", "jbrowse_dotplot", "jbrowse_multiway")
 
-# The display pixels a figure gives an inch: a 1,500 pixel view across 10
-# inches
-PX_PER_INCH <- 150
+# The display pixels a figure gives an inch: the CSS inch the browser draws
+# at, so a label sits beside the theme's text as it sits beside the view's
+PX_PER_INCH <- 96
 
-# The pixels a reader lays its regions out across, unless given: a 10 inch
-# figure at PX_PER_INCH, and jb2export's default
+# The pixels a reader lays its regions out across, unless given: jb2export's
+# default
 DEFAULT_WIDTH <- 1500
 
 

@@ -14,7 +14,7 @@ inches, at most 49
 }
 \description{
 The inches a \code{\link[=jbrowse_stack]{jbrowse_stack()}} figure needs to give its panels the pixels
-the tracks were read at, at the 150 pixels an inch \code{\link[=jbrowse_height]{jbrowse_height()}}
+the tracks were read at, at the 96 pixels an inch \code{\link[=jbrowse_height]{jbrowse_height()}}
 gives each band, with room for the y axis and the keys beside the stack.
 A track read at a \code{width} of 2,500 pixels then draws its labels as large
 as one read at 800, where a fixed figure width would shrink them to fit.

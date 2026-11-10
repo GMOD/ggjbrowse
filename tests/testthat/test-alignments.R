@@ -171,9 +171,9 @@ test_that("a stack hangs from the triangles' tip, as deep a share of the depth a
   expect_equal(d$hang_end, ib$to / top)
   grob <- ggplot2::layer_grob(ggplot2::ggplot(sv) + geom_jbrowse_interbase() +
     geom_jbrowse_coverage(), 1)[[1]]
-  # in a 1 inch panel: 72.27 points, a display px 1/150 of an inch
+  # in a 1 inch panel: 72.27 points, a display px 1/96 of an inch
   inch <- 72.27
-  pt <- function(px) px / 150 * inch
+  pt <- function(px) px / 96 * inch
   deepest <- which.max(ib$to)
   expect_equal(grob_y_pt(grob, grob$y)[deepest],
     inch - pt(4) - ib$from[deepest] / top * (inch - 2 * pt(5)))
@@ -631,7 +631,7 @@ test_that("a short pileup's figure is still tall enough for its keys", {
   r <- jbrowse_alignments(extdata("volvox-sorted.bam"), "ctgA:1,001-1,400",
     display = list(pileup = list(mark = list(height = 1)), encoding = list(color = list(field = "strand"))))
   fig <- jbrowse_stack(r)
-  bands <- sum(fig$patches$layout$heights) / 150 + 0.86
+  bands <- sum(fig$patches$layout$heights) / PX_PER_INCH + 0.86
   expect_lt(bands, 2)
   expect_gt(jbrowse_height(fig), 2.2)
   expect_equal(jbrowse_height(fig & ggplot2::theme_classic()),

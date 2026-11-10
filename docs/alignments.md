@@ -69,7 +69,7 @@ resolved config it decided from:
   `a$keys` with the browser's keys and titles, such as "Sashimi arcs".
 - `junctions$shown` marks the arcs the sashimi band draws, by
   `filter$junctions`. Each arc rises to its `arcHeight` share of the band and
-  strokes `strokeWidth` px, which R draws at 150 px an inch.
+  strokes `strokeWidth` px, which R draws at 96 px an inch, as the browser does.
 - `allele_coverage$shown` marks the alleles the coverage band stacks, by
   `coverage$alleles$filter`, such as
   `list(list(field = "fraction", gte = 0.2))`.
