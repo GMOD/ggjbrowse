@@ -1,10 +1,13 @@
 # A synteny file's adapter, read off its extension: PAF (plain or gzipped),
 # indexed PIF, MUMmer delta, UCSC chain or MashMap output. The adapter names
-# its sides `query` and `target`, as the file's columns do.
-synteny_adapter <- function(file, index) {
+# its sides `query` and `target`, as the file's columns do, unless `names`
+# gives two others, in query, target order.
+synteny_adapter <- function(file, index, names = NULL) {
   a <- guess_adapter(file, index, SYNTENY_FORMATS,
     ".paf (optionally .gz), .pif.gz with its index, .delta, .chain or .out")
-  c(a, list(assemblyNames = c("query", "target")))
+  sides <- c("query", "target")
+  named <- length(names) == 2 && !all(names %in% sides)
+  c(a, list(assemblyNames = if (named) names else sides))
 }
 
 SYNTENY_FORMATS <- list(
@@ -18,13 +21,15 @@ SYNTENY_FORMATS <- list(
 # One axis of a comparative view for the engine: its regions, the assembly
 # they are on where the caller names it, the pixels it spans, and its side's
 # contigs in the order a whole-genome axis lays them, which hand out the
-# palette a color by contig paints
-axis_args <- function(regions, assembly, width) {
+# palette a color by contig paints where no assembly `config` deals it in the
+# assembly's own order
+axis_args <- function(regions, assembly, width, config = NULL) {
   a <- list(regions = lapply(seq_len(nrow(regions)), function(i)
     list(refName = regions$chrom[i], start = regions$start[i],
       end = regions$end[i])), width = width,
     refNames = I(unique(c(attr(regions, "contigs"), regions$chrom))))
   if (!is.null(assembly) && !is.na(assembly)) a$assemblyName <- assembly
+  a$assembly <- config
   a
 }
 
@@ -56,9 +61,9 @@ adapter_assemblies <- function(config) {
     unlist(c(config$queryAssembly, config$targetAssembly))
 }
 
-comparative_args <- function(file, index, display) {
+comparative_args <- function(file, index, display, names = NULL) {
   args <- list(adapterConfig = adapter_of(file, function()
-    synteny_adapter(file, index)))
+    synteny_adapter(file, index, names)))
   args$view <- display_config(display)
   args
 }
@@ -98,16 +103,42 @@ display_names <- function(names, labels, config) {
   ifelse(is.na(hit), names, unname(labels)[hit])
 }
 
-# The assembly each axis is on, first and second: `assemblies` where given,
-# else the adapter's own names, reversed by `swap`
-axis_assemblies <- function(config, assemblies, swap) {
-  names <- assemblies %||% adapter_assemblies(config)
-  if (!swap) return(names)
+# `assemblies` as names, and as the engine's assembly configs where it gives
+# them, NULL for an axis it names alone: a pair of names, or a list of two,
+# each a name, a jbrowse_assembly() or an assembly config
+given_assemblies <- function(assemblies) {
+  if (is.null(assemblies) || is.character(assemblies)) {
+    return(list(names = assemblies, configs = list(NULL, NULL)))
+  }
+  if (!is.list(assemblies) || length(assemblies) != 2 ||
+    inherits(assemblies, "jbrowse_assembly") || !is.null(assemblies$name)) {
+    stop("`assemblies` is two assembly names, or a list of two assemblies",
+      call. = FALSE)
+  }
+  configs <- lapply(unname(assemblies), function(a)
+    if (!is.character(a)) assembly_config(a))
+  names <- vapply(seq_len(2), function(i) {
+    name <- if (is.null(configs[[i]])) assemblies[[i]] else configs[[i]]$name
+    if (!is.character(name) || length(name) != 1) {
+      stop("each assembly config in `assemblies` has a `name`", call. = FALSE)
+    }
+    name
+  }, "")
+  list(names = names, configs = configs)
+}
+
+# The assembly each axis is on, first and second, its name and config:
+# `given`'s where it names them, else the adapter's own names, reversed by
+# `swap`
+axis_assemblies <- function(config, given, swap) {
+  names <- given$names %||% adapter_assemblies(config)
+  configs <- given$configs
+  if (!swap) return(list(names = names, configs = configs))
   if (length(names) < 2) {
     stop("swap = TRUE needs two assembly names, the adapter's or `assemblies`",
       call. = FALSE)
   }
-  rev(names[1:2])
+  list(names = rev(names[1:2]), configs = rev(configs))
 }
 
 # Each side's contigs in the order the file first names them: `side`
@@ -132,13 +163,24 @@ memo <- function(f) {
   }
 }
 
-# The regions an axis shows, each with its missing-contig message, `""`
-# where the file has its contig: any region a linear reader takes, a data
-# frame's rows narrowed to the axis's assembly where it names an `assembly`,
-# and with none given every contig of the axis's assembly in natural order,
-# which the `contigs` attribute holds either way. `side` picks the file's side
-# where the axis names no assembly the file has.
-axis_regions <- function(given, contigs, assembly, side) {
+# The file's contigs `chrom` in the order a whole-genome axis lays them: the
+# assembly `config` lists them in, by their canonical names, then any it does
+# not list, in natural order, as all are with no assembly
+axis_order <- function(chrom, config) {
+  natural <- integer(length(chrom))
+  natural[natural_order(chrom)] <- seq_along(chrom)
+  if (is.null(config)) return(chrom[order(natural)])
+  listed <- match(canonical_names(config, chrom),
+    assembly_contigs(config)$canonical)
+  chrom[order(listed, natural)]
+}
+
+# The regions an axis shows: any region a linear reader takes, a data frame's
+# rows narrowed to the axis's assembly where it names an `assembly`, and with
+# none given every contig of the axis's assembly in `axis_order()`, which the
+# `contigs` attribute holds either way. `side` picks the file's side where the
+# axis names no assembly the file has.
+axis_regions <- function(given, contigs, assembly, side, config = NULL) {
   all <- contigs()
   named <- length(assembly) && !is.na(assembly) && assembly %in% all$assembly
   name <- if (named) assembly else side
@@ -148,7 +190,7 @@ axis_regions <- function(given, contigs, assembly, side) {
     else paste("assembly", name)
   bad <- function(...) rlang::abort(paste0(...), class = "ggjbrowse_bad_region",
       call = NULL)
-  contigs <- own$chrom[natural_order(own$chrom)]
+  contigs <- axis_order(own$chrom, config)
   if (is.null(given)) {
     if (!nrow(own)) bad("the file names no contig on its ", where)
     given <- contigs
@@ -168,26 +210,19 @@ axis_regions <- function(given, contigs, assembly, side) {
     bad("the file does not state the length of ", regions$chrom[
       is.na(regions$end)][1], ": give the axis its regions, as loci")
   }
-  regions$missing <- if (!nrow(own)) "" else ifelse(regions$chrom %in%
-    own$chrom, "", sprintf("%s is not a contig of the file's %s, whose contigs are %s",
-      regions$chrom, where, paste(utils::head(own$chrom, 20), collapse = ", ")))
   attr(regions, "contigs") <- contigs
   regions
 }
 
-# Both axes of a comparative view: the assembly each is on and its regions.
-# Axes none of whose contigs the file has stop; a region on a contig the file
-# lacks beside others warns, its warning in `warnings`. A row with no contig
-# of the file still draws the strip of the other row's off-screen mates.
-comparative_axes <- function(config, first, second, assemblies, swap) {
-  names <- axis_assemblies(config, assemblies, swap)
+# Both axes of a comparative view: the assembly each is on, its config where
+# `given` has one, and its regions
+comparative_axes <- function(config, first, second, given, swap) {
+  on <- axis_assemblies(config, given, swap)
   contigs <- memo(function() contigs_of(config))
-  first <- axis_regions(first, contigs, names[1], "query")
-  second <- axis_regions(second, contigs, names[2], "target")
-  missing <- check_missing(c(first$missing, second$missing),
-    c(first$chrom, second$chrom))
-  list(names = names, first = first, second = second,
-    warnings = attr(missing, "warning"))
+  list(names = on$names, configs = on$configs,
+    first = axis_regions(first, contigs, on$names[1], "query", on$configs[[1]]),
+    second = axis_regions(second, contigs, on$names[2], "target",
+      on$configs[[2]]))
 }
 
 # An axis's rows of a result's `regions`: each region named by the `axis` it
@@ -229,7 +264,8 @@ on_axis_of <- function(regions, axis) {
 #'   `chrom`, `start` and `end` (0-based, half-open), or a GRanges. A frame
 #'   with an `assembly` column, as [jbrowse_contigs()] and a result's
 #'   `regions` write it, gives the row the regions on its assembly. With
-#'   `NULL`, the default, every contig of that row's assembly in natural
+#'   `NULL`, the default, every contig of that row's assembly, in the order
+#'   the assembly lists them where `assemblies` gives it, else in natural
 #'   order, `chr2` before `chr10`, as JBrowse shows a whole genome. A region
 #'   on a contig the file lacks reads empty and warns, and rows with none of
 #'   the file's contigs between them stop
@@ -251,10 +287,16 @@ on_axis_of <- function(regions, axis) {
 #' @param width the width in pixels both rows draw their regions across,
 #'   1,500 as for the linear readers, which decides which CIGAR ops are wide
 #'   enough to draw and which ribbons are thin enough to fade
-#' @param assemblies for an adapter config naming its assemblies, which of
-#'   them each row is on, `c(query, target)`; unset, the adapter's own order.
-#'   A pairwise file answers from either side, so `c("volvox", "volvox_del")`
-#'   on a PAF of `volvox_del` against `volvox` puts `volvox` on top
+#' @param assemblies which assembly each row is on, `c(query, target)`: two
+#'   names, or a list of two, each a name or an assembly, a
+#'   [jbrowse_assembly()] or an assembly config as a list, named by its
+#'   `name`. An assembly lays a whole-genome row in its own contig order and
+#'   deals a color by contig its palette in that order, aliases included, as
+#'   the view does. For an adapter config naming its assemblies, the names
+#'   pick its sides, so `c("volvox", "volvox_del")` on a PAF of `volvox_del`
+#'   against `volvox` puts `volvox` on top; a file guessed from its
+#'   extension takes them as its query's and target's names, unless they are
+#'   `"query"` and `"target"` themselves. Unset, the adapter's own order
 #' @param swap put the file's target side on the top row and its query side
 #'   on the bottom: the adapter's two assembly names, or `assemblies`,
 #'   reversed. A file guessed from its extension names its sides `"query"`
@@ -339,16 +381,27 @@ jbrowse_synteny <- function(file, query = NULL, target = NULL,
 # A pairwise view's read: the engine's `view` tables of `file` over the
 # `first` and `second` axes, named and sized by `px`, with what both views
 # make of them. `children()` keys a table's rows to their alignment and each
-# axis's regions, the second's after the first's.
+# axis's regions, the second's after the first's. Axes none of whose contigs
+# the file has stop; a region on a contig the file lacks beside others warns,
+# its warning in `warnings`. A row with no contig of the file still draws the
+# strip of the other row's off-screen mates.
 pairwise_read <- function(view, file, first, second, px, display, assemblies,
                           swap, labels, index) {
-  args <- comparative_args(file, index, display)
-  axes <- comparative_axes(args$adapterConfig, first, second, assemblies, swap)
+  given <- given_assemblies(assemblies)
+  args <- comparative_args(file, index, display, given$names)
+  axes <- comparative_axes(args$adapterConfig, first, second, given, swap)
   sides <- names(px)
-  args[[sides[1]]] <- axis_args(axes$first, axes$names[1], px[[1]])
-  args[[sides[2]]] <- axis_args(axes$second, axes$names[2], px[[2]])
+  args[[sides[1]]] <- axis_args(axes$first, axes$names[1], px[[1]],
+    axes$configs[[1]])
+  args[[sides[2]]] <- axis_args(axes$second, axes$names[2], px[[2]],
+    axes$configs[[2]])
   read <- warned_call(view, args)
   r <- read$value
+  said <- function(side) as.character(unlist(r$missingContigs[[side]]))
+  missing <- check_missing(c(said(sides[1]), said(sides[2])),
+    c(axes$first$chrom, axes$second$chrom))
+  axes$first$missing <- said(sides[1])
+  axes$second$missing <- said(sides[2])
   first_regions <- nrow(axes$first)
   children <- function(table) {
     d <- snake_frame(table)
@@ -364,7 +417,7 @@ pairwise_read <- function(view, file, first, second, px, display, assemblies,
       axis_rows(axes$second, sides[2], axes$names[2])),
     alignments = keyed_alignments(r$alignments),
     key = legend_key(r, r$legendAlpha),
-    warnings = unique(c(axes$warnings, read$warnings)),
+    warnings = unique(c(attr(missing, "warning"), read$warnings)),
     assemblies = display_names(unlist(r$assemblyNames), labels,
       args$adapterConfig))
 }
@@ -738,7 +791,8 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   `query` and `target` are: the horizontal axis is the adapter's query
 #'   side and the vertical its target, unless `assemblies` or `swap` says
 #'   otherwise. Unset, every contig of that axis's assembly, so
-#'   `jbrowse_dotplot(paf)` is the whole genome against the whole genome
+#'   `jbrowse_dotplot(paf)` is the whole genome against the whole genome, in
+#'   the order [jbrowse_synteny()]'s `query` describes
 #' @param display the view's settings, as a `DotplotView` snapshot writes
 #'   them: a list with any of `encoding` (its `color` and `opacity`, as for
 #'   [jbrowse_synteny()]), `filter` (a list of field predicates, such as
@@ -748,7 +802,8 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #' @param width,height the plot's pixels across and up, which decide which
 #'   blocks are wide enough for their CIGAR to show: 1,500 across as for the
 #'   linear readers, and up as many as across
-#' @param assemblies which assembly each axis is on, `c(x, y)`
+#' @param assemblies which assembly each axis is on, `c(x, y)`, in any form
+#'   [jbrowse_synteny()]'s `assemblies` takes
 #' @param swap put the file's target side on the horizontal axis and its
 #'   query on the vertical, as [jbrowse_synteny()]'s `swap` does the rows
 #' @param labels what each axis title calls its assembly, as for
@@ -767,8 +822,8 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   Assigning `alignments` drops the segments of the blocks it leaves out.
 #'   `keys$segments` is the key the view shows, `ramps` a continuous field's
 #'   color bar. `regions` lays out both axes, its `axis` `"x"` or `"y"`. `display`
-#'   holds the view's settings as the engine resolves them, `color` and
-#'   `opacity` as config objects and `lineWidth` a line's pixels. `skipped`
+#'   holds the view's settings as the engine resolves them, `encoding$color`
+#'   and `encoding$opacity` as config objects and `lineWidth` a line's pixels. `skipped`
 #'   is the blocks neither axis places: their `count` of the `total` read,
 #'   and the contigs they lie on, `x_chroms` and `y_chroms`.
 #' @export

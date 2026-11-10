@@ -27,7 +27,8 @@ config, as a list, such as an \code{MCScanAnchorsAdapter}'s}
 \code{query} and \code{target} are: the horizontal axis is the adapter's query
 side and the vertical its target, unless \code{assemblies} or \code{swap} says
 otherwise. Unset, every contig of that axis's assembly, so
-\code{jbrowse_dotplot(paf)} is the whole genome against the whole genome}
+\code{jbrowse_dotplot(paf)} is the whole genome against the whole genome, in
+the order \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s \code{query} describes}
 
 \item{display}{the view's settings, as a \code{DotplotView} snapshot writes
 them: a list with any of \code{encoding} (its \code{color} and \code{opacity}, as for
@@ -40,7 +41,8 @@ these}
 blocks are wide enough for their CIGAR to show: 1,500 across as for the
 linear readers, and up as many as across}
 
-\item{assemblies}{which assembly each axis is on, \code{c(x, y)}}
+\item{assemblies}{which assembly each axis is on, \code{c(x, y)}, in any form
+\code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s \code{assemblies} takes}
 
 \item{swap}{put the file's target side on the horizontal axis and its
 query on the vertical, as \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s \code{swap} does the rows}
@@ -67,8 +69,8 @@ to (\code{x_end}, \code{y_end}), each \verb{*_region} a row of \code{regions}, \
 Assigning \code{alignments} drops the segments of the blocks it leaves out.
 \code{keys$segments} is the key the view shows, \code{ramps} a continuous field's
 color bar. \code{regions} lays out both axes, its \code{axis} \code{"x"} or \code{"y"}. \code{display}
-holds the view's settings as the engine resolves them, \code{color} and
-\code{opacity} as config objects and \code{lineWidth} a line's pixels. \code{skipped}
+holds the view's settings as the engine resolves them, \code{encoding$color}
+and \code{encoding$opacity} as config objects and \code{lineWidth} a line's pixels. \code{skipped}
 is the blocks neither axis places: their \code{count} of the \code{total} read,
 and the contigs they lie on, \code{x_chroms} and \code{y_chroms}.
 }

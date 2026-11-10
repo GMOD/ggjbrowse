@@ -8,7 +8,9 @@ JBrowse's synteny displays.
   PAF names its sequences by assembly when they read `sample#haplotype#contig`
   ([the amylase locus](gallery.md#amylase_synteny)), and a JBrowse
   adapter config names assemblies, which `assemblies = c(query, target)` puts
-  on rows.
+  on rows. `assemblies` also takes a `jbrowse_assembly()` or assembly config
+  for either row, which lays its whole genome and deals a color by contig in
+  the assembly's own order, as the view does.
 - `swap = TRUE` puts the file's target on the top row.
 - `labels = c(query = "peach", target = "grape")` writes those names in the
   axis titles, whichever side each is on.
@@ -31,7 +33,8 @@ assembly it is on.
 - Each row of a synteny view (`query`, `target`) and each axis of a dotplot
   (`x`, `y`) takes the forms a linear reader's `region` takes: loci, bare
   contigs, a frame of `chrom`, `start` and `end`, a GRanges, or `NULL` for
-  every contig of its assembly.
+  every contig of its assembly, in the assembly's order where `assemblies`
+  gives one, else in natural order.
 - A frame with an `assembly` column gives each axis its own rows, so
   `jbrowse_synteny(paf, jbrowse_contigs(paf), jbrowse_contigs(paf))` reads
   both whole genomes, as does `jbrowse_synteny(paf)`.
@@ -71,7 +74,7 @@ opacity, with each CIGAR insertion, deletion and skip wider than a pixel
 which draws a line per block, or per CIGAR step where a block is wide enough
 on the plot, and `display` takes the `DotplotView`'s settings
 ([HG002's chr8](gallery.md#inversion_dotplot)). With no regions given,
-each axis shows every contig of its assembly in natural order, so a
+each axis shows every contig of its assembly, so a
 whole-genome dotplot is one call
 ([peach against grape](gallery.md#whole_genome)).
 `geom_jbrowse_dotplot()` draws its lines, and assigning `d$alignments` drops

@@ -255,12 +255,12 @@ test_that("assigning alignments drops the ribbons and segments of the blocks it 
 test_that("an unknown extension and a missing contig say so", {
   expect_error(jbrowse_synteny("aln.tsv", query, target), "expected .paf")
   expect_error(jbrowse_synteny(paf, "ctgY:1-1,000", "ctgZ:1-1,000"),
-    "ctgY is not a contig of the file's query side",
+    "ctgY is not a contig of this file, whose contigs are ctgA",
     class = "ggjbrowse_missing_contig")
   expect_error(jbrowse_dotplot(paf, "ctgY:1-1,000", "ctgZ:1-1,000"),
     class = "ggjbrowse_missing_contig")
   expect_warning(empty <- jbrowse_synteny(paf, query, "ctgZ:1-1,000"),
-    "ctgZ is not a contig of the file's target side")
+    "ctgZ is not a contig of this file")
   expect_equal(nrow(empty$ribbons), 0)
   expect_warning(beside <- jbrowse_synteny(paf, query,
     c(target, "ctgZ:1-1,000")), "ctgZ is not a contig")
@@ -399,6 +399,39 @@ test_that("a contig shown alone keeps the color its whole genome gives it", {
     "x_chrom"), whole)
   expect_equal(color_of(jbrowse_dotplot(grape, "Pp02", display = by_contig),
     "x_chrom"), whole)
+})
+
+test_that("an assembly lays a whole-genome axis and deals contig colors in its own order", {
+  grape <- system.file("extdata", "peach_grape.paf.gz", package = "ggjbrowse")
+  sizes <- jbrowse_contigs(grape)
+  sizes <- sizes[sizes$assembly == "target", ]
+  listed <- sort(sizes$chrom, method = "radix")
+  fa <- tempfile(fileext = ".fa")
+  file.create(fa)
+  writeLines(sprintf("%s\t%d\t0\t60\t61", listed,
+    as.integer(sizes$end[match(listed, sizes$chrom)])), paste0(fa, ".fai"))
+  grape_assembly <- jbrowse_assembly(fa, name = "grape")
+  by_contig <- list(encoding = list(color = list(field = "target")))
+  chr2 <- function(x, column) unique(x$alignments$color[
+    x$alignments[[column]] == "chr2"])
+  natural <- jbrowse_dotplot(grape, display = by_contig)
+  ordered <- jbrowse_dotplot(grape, assemblies = list("peach", grape_assembly),
+    display = by_contig)
+  expect_equal(on_axis_of(natural$regions, "y")$chrom[1:3],
+    c("chr1", "chr2", "chr3"))
+  expect_equal(on_axis_of(ordered$regions, "y")$chrom, listed)
+  expect_equal(ordered$assemblies, c("peach", "grape"))
+  expect_equal(unique(ordered$regions$assembly), c("peach", "grape"))
+  expect_length(chr2(ordered, "y_chrom"), 1)
+  expect_false(chr2(ordered, "y_chrom") == chr2(natural, "y_chrom"))
+  alone <- jbrowse_synteny(grape, NULL, "chr2",
+    assemblies = list("peach", grape_assembly), display = by_contig)
+  expect_equal(chr2(alone, "target_chrom"), chr2(ordered, "y_chrom"))
+  swapped <- jbrowse_dotplot(grape, assemblies = list("peach", grape_assembly),
+    swap = TRUE)
+  expect_equal(on_axis_of(swapped$regions, "x")$chrom, listed)
+  expect_error(jbrowse_dotplot(grape, assemblies = grape_assembly),
+    "a list of two assemblies")
 })
 
 test_that("labels name each axis's assembly in its title", {

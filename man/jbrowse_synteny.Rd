@@ -29,7 +29,8 @@ inclusive), contig names alone for whole contigs, a data frame of
 \code{chrom}, \code{start} and \code{end} (0-based, half-open), or a GRanges. A frame
 with an \code{assembly} column, as \code{\link[=jbrowse_contigs]{jbrowse_contigs()}} and a result's
 \code{regions} write it, gives the row the regions on its assembly. With
-\code{NULL}, the default, every contig of that row's assembly in natural
+\code{NULL}, the default, every contig of that row's assembly, in the order
+the assembly lists them where \code{assemblies} gives it, else in natural
 order, \code{chr2} before \code{chr10}, as JBrowse shows a whole genome. A region
 on a contig the file lacks reads empty and warns, and rows with none of
 the file's contigs between them stop}
@@ -53,10 +54,16 @@ key is an error naming these}
 1,500 as for the linear readers, which decides which CIGAR ops are wide
 enough to draw and which ribbons are thin enough to fade}
 
-\item{assemblies}{for an adapter config naming its assemblies, which of
-them each row is on, \code{c(query, target)}; unset, the adapter's own order.
-A pairwise file answers from either side, so \code{c("volvox", "volvox_del")}
-on a PAF of \code{volvox_del} against \code{volvox} puts \code{volvox} on top}
+\item{assemblies}{which assembly each row is on, \code{c(query, target)}: two
+names, or a list of two, each a name or an assembly, a
+\code{\link[=jbrowse_assembly]{jbrowse_assembly()}} or an assembly config as a list, named by its
+\code{name}. An assembly lays a whole-genome row in its own contig order and
+deals a color by contig its palette in that order, aliases included, as
+the view does. For an adapter config naming its assemblies, the names
+pick its sides, so \code{c("volvox", "volvox_del")} on a PAF of \code{volvox_del}
+against \code{volvox} puts \code{volvox} on top; a file guessed from its
+extension takes them as its query's and target's names, unless they are
+\code{"query"} and \code{"target"} themselves. Unset, the adapter's own order}
 
 \item{swap}{put the file's target side on the top row and its query side
 on the bottom: the adapter's two assembly names, or \code{assemblies},

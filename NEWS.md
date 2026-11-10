@@ -1,5 +1,14 @@
 # ggjbrowse (development version)
 
+- `jbrowse_synteny()` and `jbrowse_dotplot()` take a `jbrowse_assembly()`
+  or assembly config in `assemblies` for either axis. A whole-genome axis then
+  lays its contigs in the assembly's order, and a color by contig deals its
+  palette in that order, aliases included, as the view does; with none, the
+  axis stays in natural order. A file guessed from its extension takes the
+  assemblies' names for its query and target.
+- A synteny or dotplot region on a contig the file lacks warns, and
+  `regions$missing` says why, in the engine's words: `"ctgZ is not a contig
+  of this file, whose contigs are ctgA"`.
 - `geom_jbrowse_rules()` draws each of a row layout's rules in every row,
   as the multi-row display does, where it drew none, and draws whatever
   `rules` the engine lists, which is none under density.
