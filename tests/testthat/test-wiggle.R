@@ -392,9 +392,10 @@ test_that("bars on a reversed x axis draw", {
 })
 
 test_that("a log axis keeps the bars its zero floor sends to -Inf", {
-  o <- bars_outline(data.frame(xmin = 0:2, xmax = 1:3, ymin = 0,
-    ymax = c(1, 4, 2) * 1.25), ggplot2::coord_trans(y = "log10",
-      xlim = c(0, 3), ylim = c(1, 5), expand = FALSE))
+  expect_warning(o <- bars_outline(data.frame(xmin = 0:2, xmax = 1:3,
+    ymin = 0, ymax = c(1, 4, 2) * 1.25), ggplot2::coord_transform(
+      y = "log10", xlim = c(0, 3), ylim = c(1, 5), expand = FALSE)),
+    "infinite values")
   expect_equal(length(unique(o$id)), 1)
 })
 
