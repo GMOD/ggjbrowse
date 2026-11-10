@@ -199,6 +199,15 @@ test_that("the display slot holds the view's settings as the engine resolves the
     "unused argument")
 })
 
+test_that("a display key the view does not take is an error naming the keys it takes", {
+  expect_error(jbrowse_synteny(paf, query, target,
+    display = list(color = "red")), "view takes no color; its keys are encoding")
+  expect_error(jbrowse_dotplot(paf, query, target,
+    display = list(opacity = 0.5)), "view takes no opacity.*lineWidth")
+  lifted <- jbrowse_synteny(paf, query, target, display = list(alpha = 0.6))
+  expect_equal(lifted$display$encoding$opacity$value, 0.6)
+})
+
 test_that("a comparative result holds the slots every result holds", {
   results <- list(s, jbrowse_dotplot(paf, query, target),
     jbrowse_multiway(system.file("extdata", "volvox_all_vs_all.paf",

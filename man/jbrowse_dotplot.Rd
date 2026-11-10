@@ -30,9 +30,11 @@ otherwise. Unset, every contig of that axis's assembly, so
 \code{jbrowse_dotplot(paf)} is the whole genome against the whole genome}
 
 \item{display}{the view's settings, as a \code{DotplotView} snapshot writes
-them: a list with any of \code{color}, \code{opacity}, \code{filter} (a list of field
-predicates, such as \code{list(list(field = "identity", gte = 0.9))}),
-\code{indels} (as for \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}) and \code{lineWidth}}
+them: a list with any of \code{encoding} (its \code{color} and \code{opacity}, as for
+\code{\link[=jbrowse_synteny]{jbrowse_synteny()}}), \code{filter} (a list of field predicates, such as
+\code{list(list(field = "identity", gte = 0.9))}), \code{indels} (as for
+\code{\link[=jbrowse_synteny]{jbrowse_synteny()}}) and \code{lineWidth}. Any other key is an error naming
+these}
 
 \item{width, height}{the plot's pixels across and up, which decide which
 blocks are wide enough for their CIGAR to show: 1,500 across as for the

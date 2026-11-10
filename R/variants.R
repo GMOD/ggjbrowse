@@ -38,8 +38,8 @@ variants_adapter <- function(file, index, samples) {
 #'   file or contig is refused past 5 million rows in any one table
 #' @param display the display's settings, as a track config's `displays`
 #'   entry writes them for a `LinearVariantDisplay`: a list with
-#'   any of `color` (a field such as `"svType"` or `"impact"`, or a
-#'   list of the color object's slots), `filter` (a list of any of
+#'   any of `encoding = list(color = )` (a field such as `"svType"` or
+#'   `"impact"`, or a list of the color object's slots), `filter` (a list of any of
 #'   jexl expressions, and `minorAlleleFrequency` and `missingness` field
 #'   tests, which test nothing while no genotype row draws),
 #'   `genotypes` (`list(show = TRUE)` draws a one-sample VCF's genotype row;

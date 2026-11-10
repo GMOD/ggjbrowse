@@ -234,17 +234,20 @@ on_axis_of <- function(regions, axis) {
 #'   on a contig the file lacks reads empty and warns, and rows with none of
 #'   the file's contigs between them stop
 #' @param display the view's settings, as a `LinearSyntenyView` snapshot
-#'   writes them: a list with any of `color` (a CSS color, or the color object's
-#'   slots, such as `list(field = "strand")`, `list(field = "identity")`,
-#'   `list(field = "query")` or `list(field = "mapq")`), `opacity` (a number,
-#'   or an opacity object with a `field`), `filter` (a list of field
-#'   predicates, such as `list(list(field = "length", gte = 10000))`),
-#'   `indels` (unset for the indels in their colors,
-#'   `list(encoding = list(opacity = 0))` for the matches alone with the
-#'   indels left clear, `list(show = FALSE)` for the block alone), `axis`
-#'   (`list(grid = TRUE)` draws the location markers), `render`
+#'   writes them: a list with any of `encoding` (its `color`, a CSS color or
+#'   the color object's slots, such as `list(field = "strand")`,
+#'   `list(field = "identity")`, `list(field = "query")` or
+#'   `list(field = "mapq")`, and its `opacity`, a number or an opacity object
+#'   with a `field`, so `list(encoding = list(color = list(field =
+#'   "strand"), opacity = 0.5))`), `filter` (a list of field predicates, such
+#'   as `list(list(field = "length", gte = 10000))`), `indels` (unset for the
+#'   indels in their colors, `list(encoding = list(opacity = 0))` for the
+#'   matches alone with the indels left clear, `list(show = FALSE)` for the
+#'   block alone), `mark` (`list(interpolate = "bump")` curves each ribbon's
+#'   sides), `axis` (`list(grid = TRUE)` draws the location markers), `render`
 #'   (`list(antialias = FALSE)` stops the fade of sub-pixel ribbons; unset,
-#'   it fades once they dominate) and `height`, the band's pixels
+#'   it fades once they dominate) and `height`, the band's pixels. Any other
+#'   key is an error naming these
 #' @param width the width in pixels both rows draw their regions across,
 #'   1,500 as for the linear readers, which decides which CIGAR ops are wide
 #'   enough to draw and which ribbons are thin enough to fade
@@ -301,8 +304,8 @@ on_axis_of <- function(regions, axis) {
 #'   `keys$ribbons` is the key the view shows, `ramps` a continuous field's
 #'   color bar, as [guides_jbrowse()] draws it. `regions` lays out both rows, its `axis` `"query"` for the top row and
 #'   `"target"` for the bottom. `display` holds the view's settings as the
-#'   engine resolves them, `color` and `opacity` as config objects and
-#'   `height` the band's pixels.
+#'   engine resolves them, `encoding$color` and `encoding$opacity` as config
+#'   objects and `height` the band's pixels.
 #' @export
 #' @examples
 #' chain <- system.file("extdata", "hg002_chr8.chain", package = "ggjbrowse")
@@ -737,9 +740,11 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #'   otherwise. Unset, every contig of that axis's assembly, so
 #'   `jbrowse_dotplot(paf)` is the whole genome against the whole genome
 #' @param display the view's settings, as a `DotplotView` snapshot writes
-#'   them: a list with any of `color`, `opacity`, `filter` (a list of field
-#'   predicates, such as `list(list(field = "identity", gte = 0.9))`),
-#'   `indels` (as for [jbrowse_synteny()]) and `lineWidth`
+#'   them: a list with any of `encoding` (its `color` and `opacity`, as for
+#'   [jbrowse_synteny()]), `filter` (a list of field predicates, such as
+#'   `list(list(field = "identity", gte = 0.9))`), `indels` (as for
+#'   [jbrowse_synteny()]) and `lineWidth`. Any other key is an error naming
+#'   these
 #' @param width,height the plot's pixels across and up, which decide which
 #'   blocks are wide enough for their CIGAR to show: 1,500 across as for the
 #'   linear readers, and up as many as across

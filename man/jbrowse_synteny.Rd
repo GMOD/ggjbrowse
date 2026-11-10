@@ -35,17 +35,19 @@ on a contig the file lacks reads empty and warns, and rows with none of
 the file's contigs between them stop}
 
 \item{display}{the view's settings, as a \code{LinearSyntenyView} snapshot
-writes them: a list with any of \code{color} (a CSS color, or the color object's
-slots, such as \code{list(field = "strand")}, \code{list(field = "identity")},
-\code{list(field = "query")} or \code{list(field = "mapq")}), \code{opacity} (a number,
-or an opacity object with a \code{field}), \code{filter} (a list of field
-predicates, such as \code{list(list(field = "length", gte = 10000))}),
-\code{indels} (unset for the indels in their colors,
-\code{list(encoding = list(opacity = 0))} for the matches alone with the
-indels left clear, \code{list(show = FALSE)} for the block alone), \code{axis}
-(\code{list(grid = TRUE)} draws the location markers), \code{render}
+writes them: a list with any of \code{encoding} (its \code{color}, a CSS color or
+the color object's slots, such as \code{list(field = "strand")},
+\code{list(field = "identity")}, \code{list(field = "query")} or
+\code{list(field = "mapq")}, and its \code{opacity}, a number or an opacity object
+with a \code{field}, so \code{list(encoding = list(color = list(field = "strand"), opacity = 0.5))}), \code{filter} (a list of field predicates, such
+as \code{list(list(field = "length", gte = 10000))}), \code{indels} (unset for the
+indels in their colors, \code{list(encoding = list(opacity = 0))} for the
+matches alone with the indels left clear, \code{list(show = FALSE)} for the
+block alone), \code{mark} (\code{list(interpolate = "bump")} curves each ribbon's
+sides), \code{axis} (\code{list(grid = TRUE)} draws the location markers), \code{render}
 (\code{list(antialias = FALSE)} stops the fade of sub-pixel ribbons; unset,
-it fades once they dominate) and \code{height}, the band's pixels}
+it fades once they dominate) and \code{height}, the band's pixels. Any other
+key is an error naming these}
 
 \item{width}{the width in pixels both rows draw their regions across,
 1,500 as for the linear readers, which decides which CIGAR ops are wide
@@ -110,8 +112,8 @@ the off-screen tables summarize the band's edges as read, and stay.
 \code{keys$ribbons} is the key the view shows, \code{ramps} a continuous field's
 color bar, as \code{\link[=guides_jbrowse]{guides_jbrowse()}} draws it. \code{regions} lays out both rows, its \code{axis} \code{"query"} for the top row and
 \code{"target"} for the bottom. \code{display} holds the view's settings as the
-engine resolves them, \code{color} and \code{opacity} as config objects and
-\code{height} the band's pixels.
+engine resolves them, \code{encoding$color} and \code{encoding$opacity} as config
+objects and \code{height} the band's pixels.
 }
 \description{
 Runs JBrowse's own synteny display in V8 over two rows, the query assembly

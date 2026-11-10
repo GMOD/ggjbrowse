@@ -30,8 +30,8 @@ file or contig is refused past 5 million rows in any one table}
 
 \item{display}{the display's settings, as a track config's \code{displays}
 entry writes them for a \code{LinearVariantDisplay}: a list with
-any of \code{color} (a field such as \code{"svType"} or \code{"impact"}, or a
-list of the color object's slots), \code{filter} (a list of any of
+any of \code{encoding = list(color = )} (a field such as \code{"svType"} or
+\code{"impact"}, or a list of the color object's slots), \code{filter} (a list of any of
 jexl expressions, and \code{minorAlleleFrequency} and \code{missingness} field
 tests, which test nothing while no genotype row draws),
 \code{genotypes} (\code{list(show = TRUE)} draws a one-sample VCF's genotype row;
@@ -96,7 +96,8 @@ a reference call has no cell. A cell takes its record's
 \code{start} and \code{end} and its row's \code{sample} when drawn. \code{\link[=as.matrix]{as.matrix()}}
 gives the genotypes as the display's clustering reads them
 \item \code{rows}: \code{name}, \code{label}, \code{sample}, \code{haplotype}, \code{ploidy}, \code{band},
-its \code{facet} value, and \code{color}, the bar the display marks the row with
+its \code{facet} value, and \code{color}, the bar the display marks the row with,
+as \verb{#rrggbb},
 under \code{rows$color} or \code{rows$colors}, \code{""} where none. The rows come in the display's
 arrangement, and the matrix draws them in this table's order, and only
 these rows: reorder or filter it to rearrange them. Assigning \code{rows}
