@@ -1,5 +1,8 @@
 # ggjbrowse (development version)
 
+- A variants result's `display$height` is the config as written, `NULL`
+  where unset, and the result holds the display's own `height` and
+  `row_height`, which `jbrowse_stack()` sizes the genotype band by.
 - A variants result's `rows$color` is `#rrggbb` whatever CSS form the
   display's `rows$colors` wrote, as `keys$rows` is.
 - `jbrowse_synteny()` and `jbrowse_dotplot()` alignments list only the blocks

@@ -386,7 +386,7 @@ track_bands <- function(x, px = NULL) {
     return(alignment_bands(x, alignment_options(x)))
   }
   height <- if (inherits(x, "jbrowse_features")) max(30, x$height)
-    else if (inherits(x, "jbrowse_variants")) row_px(x) * nrow(x$rows)
+    else if (inherits(x, "jbrowse_variants")) x$row_height * nrow(x$rows)
     else x$height
   list(plots = list(ggplot2::autoplot(x)), heights = height)
 }

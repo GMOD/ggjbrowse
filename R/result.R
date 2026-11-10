@@ -42,8 +42,9 @@
 #' `band`, `heightPx`, `type`, `reverse`, `marginPx`, `reachPx`, `insetPx`
 #' and the read cloud's `domain`; `NULL` while the band is off) and
 #' `sequence`, each region's reference bases where `assembly` has a sequence,
-#' which the sequence band draws; and a [jbrowse_variants()] result the
-#' `tree` a caller sets.
+#' which the sequence band draws; and a [jbrowse_variants()] result `height`,
+#' the px the display's genotype rows take, `row_height`, the px each row
+#' draws at, and the `tree` a caller sets.
 #'
 #' A comparative result lays out several axes: [jbrowse_synteny()]'s two
 #' rows, [jbrowse_dotplot()]'s x and y, [jbrowse_multiway()]'s lanes. Its

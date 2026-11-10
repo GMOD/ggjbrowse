@@ -153,16 +153,15 @@ variants_result <- function(t) {
   genotypes <- engine_key(t$legend, t$legendTitle)
   attr(genotypes, "background") <-
     if (nzchar(t$rowBackground)) t$rowBackground else NA_character_
-  display <- t$config
-  display$height <- t$height
   structure(
     list(variants = variants, cells = cells, rows = rows, bands = bands,
-      annotations = annotations, display = display,
+      annotations = annotations, display = t$config,
       keys = list(genotypes = genotypes,
         rows = engine_key(t$rowLegend, t$rowLegendTitle)),
       ramps = ramp_frames(t$ramps), y_scale = NULL,
       fields = Filter(Negate(is.null), list(info = info_fields,
-        annotations = annotation_fields(t$annotationFields)))),
+        annotations = annotation_fields(t$annotationFields))),
+      height = t$height, row_height = t$rowHeight),
     primary = "cells",
     class = c("jbrowse_variants", "jbrowse_result"))
 }
@@ -445,13 +444,4 @@ row_bars <- function(x, xlim) {
   list(ggplot2::geom_segment(ggplot2::aes(x = x, xend = x, y = y - 0.5,
       yend = y + 0.5, colour = I(color)), data = bars, inherit.aes = FALSE,
       linewidth = 2.5, lineend = "butt"))
-}
-
-# A matrix row's height in display pixels: the display's `rows$step`, or for
-# "fit", the rows fitted to the display's height, as the display fits them.
-# `[[`, since `$` would partially match a slot the engine dropped
-row_px <- function(x) {
-  step <- x$display[["rows"]][["step"]]
-  if (is.numeric(step)) step
-  else x$display$height / max(1, nrow(x$rows))
 }
