@@ -56,7 +56,8 @@
   alone may name its contig by any alias in the assembly's alias table, so
   `"12"` reads a file's `chr12` whole. The engine reads each file under
   the file's own alias, and the reader names the contig in its tables as the
-  region does.
+  region does. `jbrowse_synteny()` and `jbrowse_dotplot()` take one per axis
+  in `assemblies`, which orders a whole-genome axis and its contig colors.
 
 ## The result
 
@@ -81,7 +82,7 @@ state:
 - wiggle: `rendering`, `origin`, `row_layout`, `height`, `bp_per_px`
 - alignments: `read_pitch`, `glyph`, `arc_span_max`, and `sequence`, each
   region's reference bases where `assembly` has a sequence
-- variants: `tree`, where a caller sets it
+- variants: `height`, `row_height`, and `tree`, where a caller sets it
 - synteny: `offscreen_strip`, `assemblies`
 - dotplot: `height`, `assemblies`, `skipped`
 - multiway: `height`, `tick_interval`, `rows_vs_anchor`
@@ -92,8 +93,8 @@ A comparative result lays out several axes in its one `regions` frame:
   `"target"` for synteny, `"x"` or `"y"` for a dotplot, and the lane's
   assembly for multiway. `assembly` names the assembly the region is on.
 - `display` holds the view's settings, or for multiway the display's
-  config, as the engine resolves them, `color` and `opacity` as config
-  objects.
+  config, as the engine resolves them, `encoding$color` and
+  `encoding$opacity` (for multiway `ribbons$encoding`'s) as config objects.
 
 ## Records and their keys
 
