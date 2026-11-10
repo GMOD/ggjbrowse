@@ -82,6 +82,13 @@ How each piece reaches R:
   takes.
 - **Defaults:** each track's resolved config, as the result's `display`,
   and for the synteny, dotplot and multi-way views their resolved settings.
+- **Sizes:** a variant track's genotype rows' `height` and `rowHeight`.
+- **Rules:** a wiggle's `rules`, only those the display draws (none under
+  density); R draws them in every row of a row layout, as the display does.
+- **Missing contigs:** each comparative axis's `missingContigs` message.
+- **Contig colors:** a comparative axis's by-contig palette, in the order of
+  the `assembly` R sends. R lays a whole-genome axis in that order too
+  (`axis_order()`), in natural order with no assembly.
 
 R keeps `base_colors()`, the engine's palette, for the sequence band's
 reference bases.
