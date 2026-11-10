@@ -133,10 +133,10 @@ We'll facet on the `HP` tag, which `tags.HP` names:
 by_haplotype <- jbrowse_alignments(bam, locus,
   display = list(pileup = bases, facet = list(field = "tags.HP")))
 by_haplotype$sections
-#>   key    label dip_reserve
-#> 1   1    HP: 1           0
-#> 2   2    HP: 2           0
-#> 3     HP: none           0
+#>   key    label
+#> 1   1    HP: 1
+#> 2   2    HP: 2
+#> 3     HP: none
 ```
 
 The pileup stacks into one section per haplotype, one methylated over the
