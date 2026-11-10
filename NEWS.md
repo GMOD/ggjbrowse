@@ -1,5 +1,16 @@
 # ggjbrowse (development version)
 
+- A variants result's `rows$color` is `#rrggbb` whatever CSS form the
+  display's `rows$colors` wrote, as `keys$rows` is.
+- `jbrowse_synteny()` and `jbrowse_dotplot()` alignments list only the blocks
+  a drawn ribbon or segment shows: a block the `filter` drops, or every block
+  under an `encoding$opacity` of 0, has no row.
+- A synteny or dotplot `display` holding a key the view does not take is an
+  error naming the keys it does, where the engine dropped it; a multi-way
+  `display` likewise, where it printed a message.
+- `jbrowse_features()` refuses a read past `byte_limit` over all its regions,
+  as the alignments and variants readers do.
+
 - The engine decides what R copied: the read-connection band's scale
   (`arc_scale`, so an arc's apex keeps clear of the band's edge by half its
   widest stroke and the read cloud's axis reaches 1,000 bp at least), a

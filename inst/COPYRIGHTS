@@ -52,7 +52,7 @@ the JBrowse authors) with the packages below, minified.
 - @emotion/weak-memoize 0.4.0
   License: MIT
   Copyright: Copyright (c) Emotion team and other contributors
-- @gmod/bam 10.1.0
+- @gmod/bam 10.2.0
   License: MIT
   Copyright: Copyright (c) 2018 Colin Diesh
 - @gmod/bbi 12.2.0
@@ -64,7 +64,7 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/bgzf-filehandle 6.8.4
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
-- @gmod/cram 14.3.2
+- @gmod/cram 14.4.0
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels, 2026 Colin Diesh
 - @gmod/gff-nostream 5.6.4
@@ -88,7 +88,7 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/tabix 3.13.1
   License: MIT
   Copyright: Copyright (c) 2017 Robert Buels
-- @gmod/trix 3.1.0
+- @gmod/trix 3.2.2
   License: Apache-2.0
   Copyright: Matt Morgan
 - @gmod/twobit 6.0.14
@@ -97,22 +97,22 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/vcf 7.4.0
   License: MIT
   Copyright: Copyright (c) 2017 Garrett Stevens
-- @jbrowse/add-track-core 5.0.0-beta.20
+- @jbrowse/add-track-core 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/alignments-core 5.0.0-beta.20
+- @jbrowse/alignments-core 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/cigar-utils 5.0.0-beta.20
+- @jbrowse/cigar-utils 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/core 5.0.0-beta.20
+- @jbrowse/core 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/display-kit 5.0.0-beta.20
+- @jbrowse/display-kit 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/display-ui 5.0.0-beta.20
+- @jbrowse/display-ui 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
 - @jbrowse/jexl 8.0.0
@@ -121,67 +121,67 @@ the JBrowse authors) with the packages below, minified.
 - @jbrowse/mobx-state-tree 6.10.0
   License: MIT
   Copyright: Copyright (c) 2016 Michel Weststrate
-- @jbrowse/modifications-utils 5.0.0-beta.20
+- @jbrowse/modifications-utils 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-alignments 5.0.0-beta.20
+- @jbrowse/plugin-alignments 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-bed 5.0.0-beta.20
+- @jbrowse/plugin-bed 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-comparative-adapters 5.0.0-beta.20
+- @jbrowse/plugin-comparative-adapters 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-config 5.0.0-beta.20
+- @jbrowse/plugin-config 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-dotplot-view 5.0.0-beta.20
+- @jbrowse/plugin-dotplot-view 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-features 5.0.0-beta.20
+- @jbrowse/plugin-features 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-gff3 5.0.0-beta.20
+- @jbrowse/plugin-gff3 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-gtf 5.0.0-beta.20
+- @jbrowse/plugin-gtf 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-linear-comparative-view 5.0.0-beta.20
+- @jbrowse/plugin-linear-comparative-view 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-marks 5.0.0-beta.20
+- @jbrowse/plugin-marks 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-sequence 5.0.0-beta.20
+- @jbrowse/plugin-sequence 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-variants 5.0.0-beta.20
+- @jbrowse/plugin-variants 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-wiggle 5.0.0-beta.20
+- @jbrowse/plugin-wiggle 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
 - @jbrowse/quick-lru 8.0.0
   License: MIT
   Copyright: Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- @jbrowse/render-core 5.0.0-beta.20
+- @jbrowse/render-core 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/sv-core 5.0.0-beta.20
+- @jbrowse/sv-core 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/synteny-core 5.0.0-beta.20
+- @jbrowse/synteny-core 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/tables 5.0.0-beta.20
+- @jbrowse/tables 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/tree-sidebar 5.0.0-beta.20
+- @jbrowse/tree-sidebar 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/wiggle-core 5.0.0-beta.20
+- @jbrowse/wiggle-core 5.0.0-beta.21
   License: Apache-2.0
   Copyright: JBrowse Team
 - @mui/icons-material 9.5.0

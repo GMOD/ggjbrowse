@@ -96,7 +96,8 @@ variants_adapter <- function(file, index, samples) {
 #'     `start` and `end` and its row's `sample` when drawn. [as.matrix()]
 #'     gives the genotypes as the display's clustering reads them
 #'   * `rows`: `name`, `label`, `sample`, `haplotype`, `ploidy`, `band`,
-#'     its `facet` value, and `color`, the bar the display marks the row with
+#'     its `facet` value, and `color`, the bar the display marks the row with,
+#'     as `#rrggbb`,
 #'     under `rows$color` or `rows$colors`, `""` where none. The rows come in the display's
 #'     arrangement, and the matrix draws them in this table's order, and only
 #'     these rows: reorder or filter it to rearrange them. Assigning `rows`

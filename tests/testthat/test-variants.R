@@ -247,7 +247,7 @@ test_that("a sample's color reaches its haplotype rows, named from HP1", {
     colors = c(HG01879 = "crimson"))))
   hg01879 <- v$rows[v$rows$sample == "HG01879", ]
   expect_equal(as.character(hg01879$name), c("HG01879 HP1", "HG01879 HP2"))
-  expect_equal(hg01879$color, c("crimson", "crimson"))
+  expect_equal(hg01879$color, c("#dc143c", "#dc143c"))
 })
 
 test_that("a boolean in an array-named slot stays a boolean, a named vector a map", {
