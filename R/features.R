@@ -89,7 +89,8 @@ features_adapter <- function(file, index) {
 #'   * `lines`: the intron and connector lines: `start`, `end`, `y`, `color`,
 #'     `feature`, `subfeature`
 #'   * `chevrons`: the strand chevrons on those lines where the display draws
-#'     them: `position`, `y`, `direction`, `color`, `feature`, `subfeature`
+#'     them: `position`, `y`, `direction`, `half_height` (flattened to fit
+#'     the row), `color`, `feature`, `subfeature`
 #'   * `arrows`: the strand arrow off a feature's end where it is wide enough
 #'     on screen: `position`, `y`, `direction`, `head_half_height`, `color`,
 #'     `feature`, `subfeature`
@@ -198,7 +199,8 @@ jbrowse_features <- function(file, region = NULL, display = NULL,
     on_feature("subfeatures"), subfeature_attributes)
   tables <- list(features = features, subfeatures = subfeatures,
     rects = on_feature("rects"), lines = on_feature("lines"),
-    chevrons = on_feature("chevrons"), arrows = snake(on_feature("arrows")),
+    chevrons = snake(on_feature("chevrons")),
+    arrows = snake(on_feature("arrows")),
     amino_acids = snake(on_feature("aminoAcids")),
     labels = on_feature("labels"), sections = sections,
     samples = vcf$samples, annotations = vcf$annotations)
@@ -268,7 +270,7 @@ print.jbrowse_features <- function(x, ...) {
 chevron_arms <- function(x) {
   chev <- x$chevrons
   half_w <- x$glyph$chevronWidth / 2 * x$bp_per_px
-  half_h <- x$glyph$chevronHeight / 2
+  half_h <- chev$half_height
   rbind(
     transform(chev, x = position - half_w * direction, y0 = y - half_h,
       xend = position + half_w * direction, yend = y),

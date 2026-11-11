@@ -92,7 +92,8 @@ the file's fields as \code{features} has them
 \item \code{lines}: the intron and connector lines: \code{start}, \code{end}, \code{y}, \code{color},
 \code{feature}, \code{subfeature}
 \item \code{chevrons}: the strand chevrons on those lines where the display draws
-them: \code{position}, \code{y}, \code{direction}, \code{color}, \code{feature}, \code{subfeature}
+them: \code{position}, \code{y}, \code{direction}, \code{half_height} (flattened to fit
+the row), \code{color}, \code{feature}, \code{subfeature}
 \item \code{arrows}: the strand arrow off a feature's end where it is wide enough
 on screen: \code{position}, \code{y}, \code{direction}, \code{head_half_height}, \code{color},
 \code{feature}, \code{subfeature}

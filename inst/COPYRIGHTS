@@ -7,10 +7,10 @@ the JBrowse authors) with the packages below, minified.
 - Each package's source is on npm under its name and version
 - The Apache-2.0 text: https://www.apache.org/licenses/LICENSE-2.0
 
-- @babel/runtime 7.29.10
+- @babel/runtime 7.29.13
   License: MIT
   Copyright: Copyright (c) 2014-present Sebastian McKenzie and other contributors
-- @babel/runtime 8.0.10
+- @babel/runtime 8.1.0
   License: MIT
   Copyright: Copyright (c) 2014-present Sebastian McKenzie and other contributors
 - @base-ui/utils 0.5.0
@@ -76,7 +76,7 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/indexedfasta 5.0.14
   License: MIT
   Copyright: Copyright (c) 2018 Colin Diesh
-- @gmod/newick 1.0.3
+- @gmod/newick 1.1.0
   License: MIT
   Copyright: Copyright (c) 2023 Colin Diesh
 - @gmod/range-cache-filehandle 2.0.0

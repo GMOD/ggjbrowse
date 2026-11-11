@@ -1,5 +1,11 @@
 # ggjbrowse (development version)
 
+- Intron chevrons sit on the display's genome grid, so a gene's isoforms
+  stack theirs in columns, and flatten to fit their row: `chevrons` gains
+  `half_height`, which the arms are drawn at, and a superCompact row no
+  longer spills its chevrons into its neighbours. The engine is
+  jbrowse-components eee39904bc.
+
 # ggjbrowse 0.12.0
 
 - `geom_jbrowse_wiggle()` draws abutting bars of one color as one area,

@@ -23,6 +23,17 @@ test_that("a GFF3 region reads as JBrowse's feature display lays it out", {
   expect_gt(nrow(g$arrows), 0)
 })
 
+test_that("a chevron flattens to fit its row", {
+  flat <- jbrowse_features(gff, "ctgA:1-25,000",
+    display = list(displayMode = "superCompact"))
+  expect_gt(nrow(flat$chevrons), 0)
+  expect_true(all(flat$chevrons$half_height < g$glyph$chevronHeight / 2))
+  expect_true(all(g$chevrons$half_height == g$glyph$chevronHeight / 2))
+  arms <- ggplot2::layer_data(ggplot2::ggplot(flat) + geom_jbrowse_glyphs(), 2)
+  expect_equal(sort(unique(abs(arms$yend - arms$y))),
+    sort(unique(flat$chevrons$half_height)))
+})
+
 test_that("the display's settings reach the tables", {
   bare <- jbrowse_features(gff, "ctgA:1-25,000",
     display = list(labels = list(name = list(show = FALSE),
