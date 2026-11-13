@@ -168,7 +168,7 @@ geom_jbrowse_overlaps <- function(mapping = NULL, data = NULL, ...) {
 geom_jbrowse_connectors <- function(mapping = NULL, data = NULL,
                                     width = NULL, ...) {
   data <- replacing(data, "connectors", "geom_jbrowse_connectors")
-  jbrowse_layer(ggplot2::GeomPath, data,
+  jbrowse_layer(GeomJbrowseConnectors, data,
     function(x) connector_paths(x, width), mapping,
     ggplot2::aes(x = x, y = y, group = path, colour = I(color),
       alpha = I(opacity), linewidth = I(px_to_mm(width)),
@@ -183,7 +183,7 @@ connector_paths <- function(x, width) {
   d <- summary_table(x, "connectors")
   none <- data.frame(x = numeric(), y = numeric(), path = integer(),
     color = character(), opacity = numeric(), width = numeric(),
-    dashed = logical())
+    dashed = logical(), section = factor())
   if (!nrow(d)) return(none)
   p <- x$read_pitch
   curves <- call_engine("alignmentConnectorCurves", list(
@@ -202,7 +202,8 @@ connector_paths <- function(x, width) {
     x = cubic(d$start, curves$handle, curves$endHandle, d$end),
     y = cubic(d$row, curves$handleRow, curves$endHandleRow, d$end_row) + 0.5,
     path = each(seq_len(n)), color = each(d$color),
-    opacity = each(d$opacity), width = each(d$width), dashed = each(d$dashed))
+    opacity = each(d$opacity), width = each(d$width), dashed = each(d$dashed),
+    section = each(d$section))
   heads <- which(as.logical(curves$arrow))
   arms <- lapply(c(-1, 1), function(side) data.frame(
     x = as.vector(rbind(curves$arrowBack[heads], d$end[heads])),
@@ -212,9 +213,32 @@ connector_paths <- function(x, width) {
     color = rep(d$color[heads], each = 2),
     opacity = rep(d$opacity[heads], each = 2),
     width = rep(d$width[heads], each = 2),
-    dashed = rep(FALSE, 2 * length(heads))))
+    dashed = rep(FALSE, 2 * length(heads)),
+    section = rep(d$section[heads], each = 2)))
   rbind(paths, arms[[1]], arms[[2]])
 }
+
+# A connector's curve trains its panel's y scale only between its two ends,
+# so a dip leaves the panel on its section's rows; it draws whole
+GeomJbrowseConnectors <- ggplot2::ggproto("GeomJbrowseConnectors",
+  ggplot2::GeomPath,
+  setup_data = function(data, params) {
+    data <- ggplot2::GeomPath$setup_data(data, params)
+    data$curve_y <- data$y
+    ends <- function(y) range(y[1], y[length(y)])
+    low <- stats::ave(data$y, data$group, FUN = function(y) ends(y)[1])
+    high <- stats::ave(data$y, data$group, FUN = function(y) ends(y)[2])
+    data$y <- pmin(pmax(data$y, low), high)
+    data
+  },
+  draw_panel = function(self, data, panel_params, coord, arrow = NULL,
+                        arrow.fill = NULL, lineend = "butt", linejoin = "round",
+                        linemitre = 10, na.rm = FALSE) {
+    data$y <- data$curve_y
+    ggplot2::ggproto_parent(ggplot2::GeomPath, self)$draw_panel(data,
+      panel_params, coord, arrow, arrow.fill, lineend, linejoin, linemitre,
+      na.rm)
+  })
 
 # The chords the display's connector strip is built from
 CONNECTOR_SEGMENTS <- 48

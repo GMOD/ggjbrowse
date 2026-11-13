@@ -127,6 +127,24 @@ test_that("every connector's curve stays within the pileup's rows, where its y a
     max(30, rows * pitch))
 })
 
+test_that("a faceted pileup draws each section's connectors in its own panel, its y axis on its rows", {
+  a <- read(display = list(facet = list(field = "pairOrientation"),
+    pileup = list(connectors = list(show = TRUE))))
+  plot <- ggplot2::autoplot(a, "pileup")
+  layer <- which(vapply(plot$layers,
+    function(l) inherits(l$geom, "GeomPath"), TRUE))
+  built <- ggplot2::ggplot_build(plot)
+  panels <- built$layout$layout
+  drawn <- built$data[[layer]]
+  paths <- connector_paths(on_axis(a), NULL)
+  expect_equal(as.vector(table(panels$section[drawn$PANEL])),
+    as.vector(table(paths$section)))
+  bare <- plot
+  bare$layers <- plot$layers[-layer]
+  ranges <- function(b) lapply(b$layout$panel_params, function(p) p$y.range)
+  expect_equal(ranges(built), ranges(ggplot2::ggplot_build(bare)))
+})
+
 test_that("a chain over an inversion frames the split segments' strands against each other", {
   chained <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
     "chr1:197,786,900-197,789,700", display = list(unit = "chain", encoding = list(color = list(field = "insertSizeAndOrientation"))))
