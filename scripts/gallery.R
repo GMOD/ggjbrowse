@@ -20,7 +20,8 @@ components <- Sys.getenv("JBROWSE_COMPONENTS", path.expand("~/src/jbrowse-compon
 jb2export <- strsplit(Sys.getenv("JB2EXPORT",
   paste("node", file.path(components, "products/jbrowse-img/esm/bin.js"))),
   " ")[[1]]
-width <- 1200
+# jb2export's view width, the px a recipe reads its tracks across by default
+width <- 1500
 dir <- "gallery"
 jb2export_version <- c(
   "It needs 5.0.0-beta or later, since 4.3.0 cannot draw most of these, and",
@@ -346,10 +347,10 @@ autoplot(w)
 bw <- e("gapdh_phylop100way.bw")
 gapdh <- "chr12:6,534,201-6,538,700"
 patchwork::wrap_plots(ncol = 1,
-  autoplot(jbrowse_wiggle(bw, gapdh, width = 1100)),
-  autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
+  autoplot(jbrowse_wiggle(bw, gapdh)),
+  autoplot(jbrowse_wiggle(bw, gapdh,
     display = list(mark = list(type = "line", interpolate = "linear")))),
-  autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
+  autoplot(jbrowse_wiggle(bw, gapdh,
     display = list(mark = "rect"))))
 )-"),
   two_regions = list(
@@ -376,7 +377,7 @@ jbrowse_stack(genes, signal, reads)
     r = r"-(
 loci <- c("chr12:6,534,811-6,534,880", "chr12:6,536,476-6,536,545")
 genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci,
-  assembly = e("gapdh_hg38.fa.gz"), width = 1200)
+  assembly = e("gapdh_hg38.fa.gz"))
 jbrowse_stack(genes)
 )-"),
   variants_by_population = list(

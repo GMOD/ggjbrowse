@@ -44,7 +44,7 @@ jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --gff inst/extdata/gapdh_gencode.gff3.gz \
   --bam inst/extdata/gapdh_direct_rna.bam legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc chr12:6,534,201-6,538,700 \
-  --width 1200 --out genes_and_reads.png
+  --width 1500 --out genes_and_reads.png
 ```
 
 <a id="long_reads_sv"></a>
@@ -69,7 +69,7 @@ autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
 jb2export --genome hg38 \
   --bam inst/extdata/colo829_tumor_chr3.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain encoding.color.field=strand split:only \
   --loc chr3:25,358,500-25,359,800 \
-  --width 1200 --out long_reads_sv.png
+  --width 1500 --out long_reads_sv.png
 ```
 
 <a id="deletion"></a>
@@ -94,7 +94,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 jb2export --genome hg38 \
   --bam inst/extdata/hg008t_cuzd1_deletion.bam legend.show=true heightMode:grow growMaxHeight=2000 sort:base \
   --loc chr10:122,831,700-122,840,800 \
-  --width 1200 --out deletion.png
+  --width 1500 --out deletion.png
 ```
 
 <a id="compact_reads"></a>
@@ -120,7 +120,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 jb2export --genome hg38 \
   --bam inst/extdata/hg008t_cuzd1_deletion.bam legend.show=true heightMode:grow growMaxHeight=2000 sort:base featureHeight:compact \
   --loc chr10:122,831,700-122,840,800 \
-  --width 1200 --out compact_reads.png
+  --width 1500 --out compact_reads.png
 ```
 
 <a id="base_zoom"></a>
@@ -145,7 +145,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
 jb2export --genome hg38 \
   --bam inst/extdata/hg008t_cuzd1_deletion.bam legend.show=true heightMode:grow growMaxHeight=2000 sort:base \
   --loc chr10:122,835,300-122,835,420 \
-  --width 1200 --out base_zoom.png
+  --width 1500 --out base_zoom.png
 ```
 
 <a id="inversion"></a>
@@ -171,7 +171,7 @@ autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
 jb2export --genome hg38 \
   --bam inst/extdata/hg00151_chr1_inversion.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain encoding.color.field=insertSizeAndOrientation facet=split coverage.height=80 \
   --loc chr1:197,786,900-197,789,700 \
-  --width 1200 --out inversion.png
+  --width 1500 --out inversion.png
 ```
 
 <a id="methylation"></a>
@@ -197,7 +197,7 @@ autoplot(jbrowse_alignments(e("methylation_clip.bam"), "20:10,001-22,000",
 jb2export --fasta inst/extdata/hg38_clip.fa \
   --bam inst/extdata/methylation_clip.bam baseColor:methylation legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc 20:10,001-22,000 \
-  --width 1200 --out methylation.png
+  --width 1500 --out methylation.png
 ```
 
 <a id="bisulfite"></a>
@@ -236,7 +236,7 @@ jb2export --fasta inst/extdata/arabidopsis_tair10.fa.gz \
   --multiwig gallery/jb2export/methyldackel.json name:MethylDackel legend.show=true \
   --bam inst/extdata/arabidopsis_wgbs.bam baseColor:bisulfite '{"pileup":{"bases":{"filter":[{"field":"context","oneOf":["CHH"]}]}}}' legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc NC_003070.9:4,398,001-4,412,000 \
-  --width 1200 --out bisulfite.png
+  --width 1500 --out bisulfite.png
 ```
 
 <a id="dnase_rows"></a>
@@ -264,7 +264,7 @@ autoplot(jbrowse_wiggle(dnase, "chr11:5,270,001-5,320,000"))
 jb2export --genome hg38 \
   --multiwig gallery/jb2export/dnase.json legend.show=true name:DNase \
   --loc chr11:5,270,001-5,320,000 \
-  --width 1200 --out dnase_rows.png
+  --width 1500 --out dnase_rows.png
 ```
 
 <a id="dnase_clustered"></a>
@@ -295,7 +295,7 @@ autoplot(w)
 jb2export --genome hg38 \
   --multiwig gallery/jb2export/dnase.json legend.show=true name:DNase mark=rect runClustering=true \
   --loc chr11:5,270,001-5,320,000 \
-  --width 1200 --out dnase_clustered.png
+  --width 1500 --out dnase_clustered.png
 ```
 
 <a id="conservation"></a>
@@ -314,10 +314,10 @@ The exons stand out as runs of high scores in bars, in a mean line over its min-
 bw <- e("gapdh_phylop100way.bw")
 gapdh <- "chr12:6,534,201-6,538,700"
 patchwork::wrap_plots(ncol = 1,
-  autoplot(jbrowse_wiggle(bw, gapdh, width = 1100)),
-  autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
+  autoplot(jbrowse_wiggle(bw, gapdh)),
+  autoplot(jbrowse_wiggle(bw, gapdh,
     display = list(mark = list(type = "line", interpolate = "linear")))),
-  autoplot(jbrowse_wiggle(bw, gapdh, width = 1100,
+  autoplot(jbrowse_wiggle(bw, gapdh,
     display = list(mark = "rect"))))
 ```
 
@@ -327,7 +327,7 @@ jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --bigwig inst/extdata/gapdh_phylop100way.bw mark.type=line mark.interpolate=linear \
   --bigwig inst/extdata/gapdh_phylop100way.bw mark=rect \
   --loc chr12:6,534,201-6,538,700 \
-  --width 1200 --out conservation.png
+  --width 1500 --out conservation.png
 ```
 
 <a id="two_regions"></a>
@@ -357,7 +357,7 @@ jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --bigwig inst/extdata/gapdh_phylop100way.bw legend.show=true \
   --bam inst/extdata/gapdh_direct_rna.bam legend.show=true heightMode:grow growMaxHeight=2000 encoding.color.field=strand \
   --loc 'chr12:6,534,201-6,535,700 chr12:6,537,201-6,538,700' \
-  --width 1200 --out two_regions.png
+  --width 1500 --out two_regions.png
 ```
 
 <a id="amino_acids"></a>
@@ -375,7 +375,7 @@ GAPDH's coding transcripts open MGKVKVGVNG, the last codon split by the intron a
 ```r
 loci <- c("chr12:6,534,811-6,534,880", "chr12:6,536,476-6,536,545")
 genes <- jbrowse_features(e("gapdh_gencode.gff3.gz"), loci,
-  assembly = e("gapdh_hg38.fa.gz"), width = 1200)
+  assembly = e("gapdh_hg38.fa.gz"))
 jbrowse_stack(genes)
 ```
 
@@ -383,7 +383,7 @@ jbrowse_stack(genes)
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --gff inst/extdata/gapdh_gencode.gff3.gz heightMode:grow growMaxHeight=2000 \
   --loc 'chr12:6,534,811-6,534,880 chr12:6,536,476-6,536,545' \
-  --width 1200 --out amino_acids.png
+  --width 1500 --out amino_acids.png
 ```
 
 <a id="variants_by_population"></a>
@@ -410,7 +410,7 @@ jb2export --genome hg19 \
   --tracks gallery/jb2export/people.tracks.json \
   --track people \
   --loc 1:155,000,001-155,050,000 \
-  --width 1200 --out variants_by_population.png
+  --width 1500 --out variants_by_population.png
 ```
 
 <a id="variants_clustered"></a>
@@ -438,7 +438,7 @@ jb2export --genome hg19 \
   --tracks gallery/jb2export/people.tracks.json \
   --track people runClustering=true \
   --loc 1:155,000,001-155,050,000 \
-  --width 1200 --out variants_clustered.png
+  --width 1500 --out variants_clustered.png
 ```
 
 <a id="variants_banded"></a>
@@ -469,7 +469,7 @@ jb2export --genome hg19 \
   --tracks gallery/jb2export/people.tracks.json \
   --track people variantLayout=genomic facet=superpopulation runClustering=true \
   --loc 1:155,000,001-155,050,000 \
-  --width 1200 --out variants_banded.png
+  --width 1500 --out variants_banded.png
 ```
 
 <a id="collapsed_introns"></a>
@@ -503,7 +503,7 @@ jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --gff inst/extdata/gapdh_gencode.gff3.gz \
   --bam inst/extdata/gapdh_direct_rna.bam sashimi:auto encoding.color.field=strand legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc 'chr12:6534497-6534589 chr12:6534790-6534881 chr12:6536474-6536613 chr12:6536664-6536810 chr12:6536900-6537030 chr12:6537081-6537236 chr12:6537289-6537410 chr12:6537564-6538016 chr12:6538081-6538391' \
-  --width 1200 --out collapsed_introns.png
+  --width 1500 --out collapsed_introns.png
 ```
 
 <a id="inversion_synteny"></a>
@@ -532,7 +532,7 @@ jb2export synteny \
   --chain inst/extdata/hg002_chr8.chain \
   --chromSizes gallery/jb2export/paternal.chrom.sizes loc:chr8_PATERNAL:5,250,001-14,250,000 \
   --view encoding.color.field=strand \
-  --width 1200 --out inversion_synteny.png
+  --width 1500 --out inversion_synteny.png
 ```
 
 <a id="inversion_dotplot"></a>
@@ -559,7 +559,7 @@ jb2export dotplot \
   --chain inst/extdata/hg002_chr8.chain \
   --chromSizes gallery/jb2export/paternal.chrom.sizes \
   --view encoding.color.field=strand \
-  --width 1200 --out inversion_dotplot.png
+  --width 1500 --out inversion_dotplot.png
 ```
 
 <a id="whole_genome"></a>
@@ -584,7 +584,7 @@ jb2export dotplot \
   --chromSizes gallery/jb2export/peach.chrom.sizes \
   --paf inst/extdata/peach_grape.paf.gz \
   --chromSizes gallery/jb2export/grape.chrom.sizes \
-  --width 1200 --out whole_genome.png
+  --width 1500 --out whole_genome.png
 ```
 
 <a id="amylase_synteny"></a>
@@ -613,7 +613,7 @@ jb2export synteny \
   --paf inst/extdata/hprc_amylase.paf \
   --chromSizes gallery/jb2export/HG00133.chrom.sizes 'loc:HG00133#1#CM090045.1:103,669,666-103,981,330' \
   --view encoding.color.field=strand \
-  --width 1200 --out amylase_synteny.png
+  --width 1500 --out amylase_synteny.png
 ```
 
 <a id="amylase_zoom"></a>
@@ -642,7 +642,7 @@ jb2export synteny \
   --paf inst/extdata/hprc_amylase.paf \
   --chromSizes gallery/jb2export/HG00133.chrom.sizes 'loc:HG00133#1#CM090045.1:103,768,401-103,771,400' \
   --view encoding.color.field=strand \
-  --width 1200 --out amylase_zoom.png
+  --width 1500 --out amylase_zoom.png
 ```
 
 <a id="synteny_genes"></a>
@@ -674,7 +674,7 @@ autoplot(s, above = gene_track("hg002_mat_genes.gff3.gz", "chr8_MATERNAL"),
 ```sh
 jb2export --config gallery/jb2export/synteny_genes.config.json \
   --spec gallery/jb2export/synteny_genes.spec.json \
-  --width 1200 --out synteny_genes.png
+  --width 1500 --out synteny_genes.png
 ```
 
 <a id="multiway"></a>
@@ -709,6 +709,6 @@ jb2export --config gallery/jb2export/multiway.config.json \
   --assembly hg38 \
   --track primates \
   --loc chr17:7,400,001-7,700,000 \
-  --width 1200 --out multiway.png
+  --width 1500 --out multiway.png
 ```
 
