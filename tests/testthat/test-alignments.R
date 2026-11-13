@@ -764,7 +764,7 @@ test_that("the junction band draws the junctions the display shows, at its heigh
   expect_equal(tapply(drawn$y, drawn$group, max), shown$arcHeight,
     tolerance = 1e-3, ignore_attr = TRUE)
   expect_equal(tapply(drawn$linewidth, drawn$group, unique),
-    shown$strokeWidth / PX_PER_INCH * 72.27 / ggplot2::.pt,
+    shown$strokeWidth / PX_PER_INCH * 96 / ggplot2::.pt,
     ignore_attr = TRUE)
   a$junctions$shown <- TRUE
   every <- ggplot2::layer_data(ggplot2::ggplot(a) + geom_jbrowse_junctions())

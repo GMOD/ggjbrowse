@@ -1,5 +1,10 @@
 # ggjbrowse (development version)
 
+- A stroke the engine sizes in px draws that many px at the figure's 96 px
+  an inch, where it drew three quarters of them: ggplot's `linewidth` counts
+  about 0.75 mm, not 1 mm. Connectors, splice gaps, sashimi and
+  read-connection arcs, synteny lines and dotplot segments draw a third
+  wider, as the browser strokes them.
 - The last section's connector curves end above its rows: the engine floors
   each `dip` to half the room between the curve's lower row and the bottom
   of the sections, as the display draws it scrolled to its end, so the

@@ -134,6 +134,28 @@ test_that("each connector draws the curve the engine places, end to end on its r
   expect_length(drawn, 1)
 })
 
+polylines <- function(g) if (inherits(g, "polyline")) list(g) else
+  unlist(lapply(g$children, polylines), recursive = FALSE)
+
+drawn_strokes <- function(plot) {
+  lines <- polylines(ggplot2::layer_grob(plot)[[1]])
+  unique(do.call(rbind, lapply(lines, function(l) data.frame(
+    px = l$gp$lwd / 96 * PX_PER_INCH,
+    alpha = grDevices::col2rgb(l$gp$col, alpha = TRUE)[4, ] / 255,
+    lty = l$gp$lty))))
+}
+
+test_that("each connector strokes the engine's width in px at its opacity", {
+  chained <- read(display = list(unit = "chain"))
+  n <- nrow(chained$connectors)
+  chained$connectors$width <- seq(1, 4, length.out = n)
+  chained$connectors$opacity <- seq(0.2, 1, length.out = n)
+  drawn <- drawn_strokes(ggplot2::ggplot(chained) + geom_jbrowse_connectors())
+  drawn <- drawn[order(drawn$px), ]
+  expect_equal(drawn$px, chained$connectors$width)
+  expect_equal(drawn$alpha, chained$connectors$opacity, tolerance = 1 / 255)
+})
+
 test_that("every connector's curve stays within the pileup's rows, where its y axis ends", {
   chained <- read(display = list(unit = "chain"))
   rows <- max(chained$reads$row) + 1

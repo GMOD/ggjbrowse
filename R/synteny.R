@@ -556,7 +556,7 @@ ribbon_layers <- function(mapping, data, curved, feet, ...) {
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = y, group = ribbon, colour = I(color),
         alpha = I(alpha)), with_defaults(list(...),
-        list(linewidth = px_to_mm(1)))))
+        list(linewidth = px_to_linewidth(1)))))
 }
 
 #' @rdname geom_jbrowse_ribbons
@@ -896,7 +896,7 @@ geom_jbrowse_dotplot <- function(mapping = NULL, data = NULL, ...) {
     for_geom(mapping, ggplot2::GeomSegment),
     ggplot2::aes(x = x_start, xend = x_end, y = y_start, yend = y_end,
       colour = I(color), alpha = I(alpha)),
-    with_defaults(list(...), list(linewidth = px_to_mm(2.5),
+    with_defaults(list(...), list(linewidth = px_to_linewidth(2.5),
       lineend = "round")))
 }
 
@@ -938,7 +938,7 @@ autoplot.jbrowse_dotplot <- function(object, ...) {
       colour = "grey70") +
     ggplot2::geom_hline(data = rows, ggplot2::aes(yintercept = y),
       colour = "grey70") +
-    geom_jbrowse_dotplot(linewidth = px_to_mm(x$display$lineWidth)) +
+    geom_jbrowse_dotplot(linewidth = px_to_linewidth(x$display$lineWidth)) +
     guides_jbrowse(x) +
     layout_scale(ggplot2::scale_x_continuous, h, x$width) +
     layout_scale(ggplot2::scale_y_continuous, v, x$height) +

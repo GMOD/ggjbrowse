@@ -173,7 +173,7 @@ geom_jbrowse_connectors <- function(mapping = NULL, data = NULL,
   jbrowse_layer(GeomJbrowseConnectors, data,
     function(x) connector_paths(x, width), mapping,
     ggplot2::aes(x = x, y = y, group = path, colour = I(color),
-      alpha = I(opacity), linewidth = I(px_to_mm(width)),
+      alpha = I(opacity), linewidth = I(px_to_linewidth(width)),
       linetype = I(ifelse(dashed, "22", "solid"))),
     list(lineend = "butt", ...))
 }
@@ -288,7 +288,7 @@ geom_jbrowse_skips <- function(mapping = NULL, data = NULL, ...) {
     d
   }, mapping, ggplot2::aes(x = start, xend = end, y = row + 0.5,
     yend = row + 0.5, colour = I(color), alpha = I(alpha)),
-    list(linewidth = px_to_mm(1), ...))
+    list(linewidth = px_to_linewidth(1), ...))
 }
 
 #' @rdname geom_jbrowse_reads
@@ -382,7 +382,7 @@ geom_jbrowse_clips <- function(mapping = NULL, data = NULL,
     d
   }, mapping, ggplot2::aes(x = position, xend = position, y = row + inset,
     yend = row + 1 - inset, colour = I(color), alpha = I(alpha)),
-    list(linewidth = px_to_mm(1), ...), rows = TRUE)
+    list(linewidth = px_to_linewidth(1), ...), rows = TRUE)
 }
 
 #' @rdname geom_jbrowse_reads
@@ -507,8 +507,9 @@ geom_jbrowse_indicators <- function(mapping = NULL, data = NULL, ...) {
 # A display's px in grid's points, which are 72.27 to the inch
 px_to_pt <- function(px) px / PX_PER_INCH * 72.27
 
-# Pixels at the figure's PX_PER_INCH as ggplot's linewidth, in mm
-px_to_mm <- function(px) px / PX_PER_INCH * 25.4
+# Pixels at the figure's PX_PER_INCH as ggplot's linewidth, which ggplot
+# multiplies by .pt into a device lwd, counted in 96ths of an inch
+px_to_linewidth <- function(px) px / PX_PER_INCH * 96 / ggplot2::.pt
 
 # A triangle `width` by `height` points at each `x`, its apex pointing down
 # from the panel's top edge, whatever the y scale
@@ -549,7 +550,7 @@ junction_paths <- function(x) {
   arcs$section <- j$section[arcs$id]
   arcs$count <- j$count[arcs$id]
   arcs$strand <- j$strand[arcs$id]
-  arcs$width <- px_to_mm(j$strokeWidth[arcs$id])
+  arcs$width <- px_to_linewidth(j$strokeWidth[arcs$id])
   arcs
 }
 
@@ -619,11 +620,11 @@ geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, width = NULL,
     jbrowse_layer(ggplot2::GeomPath, data, domes,
       for_geom(mapping, ggplot2::GeomPath),
       ggplot2::aes(x = x, y = y, group = id, colour = I(color),
-        linewidth = I(px_to_mm(.data$width))), list(...)),
+        linewidth = I(px_to_linewidth(.data$width))), list(...)),
     jbrowse_layer(ggplot2::GeomSegment, data, bars,
       for_geom(mapping, ggplot2::GeomSegment),
       ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = I(color),
-        alpha = I(opacity), linewidth = I(px_to_mm(width)),
+        alpha = I(opacity), linewidth = I(px_to_linewidth(width)),
         linetype = I(ifelse(shape == "flatSplit", "22", "solid"))),
       list(...)),
     jbrowse_layer(ggplot2::GeomPoint, data, feet,
@@ -643,7 +644,7 @@ geom_jbrowse_arc_ticks <- function(mapping = NULL, data = NULL,
     t$top <- rep(arc_top(x, width), nrow(t))
     t
   }, mapping, ggplot2::aes(x = position, xend = position, y = bottom,
-    yend = top, colour = I(color), linewidth = I(px_to_mm(.data$width))),
+    yend = top, colour = I(color), linewidth = I(px_to_linewidth(.data$width))),
     list(...))
 }
 
