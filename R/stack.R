@@ -400,8 +400,71 @@ stack_bands <- function(bands, axis_at = NULL) {
   plots <- lapply(plots, function(p)
     p + ggplot2::theme(plot.margin = ggplot2::margin(1, 26, 1, 5.5)))
   plots[bare] <- lapply(plots[bare], function(p) p + no_x)
-  patchwork::wrap_plots(plots, ncol = 1, heights = heights,
+  fig <- patchwork::wrap_plots(plots, ncol = 1, heights = heights,
     guides = "collect")
+  class(fig) <- c("ggjbrowse_stack", class(fig))
+  fig
+}
+
+# Drawn as patchwork draws it, with every band's connector curves over every
+# band's panel, as the display paints them after every section's reads
+#' @export
+print.ggjbrowse_stack <- function(x, newpage = is.null(vp), vp = NULL, ...) {
+  if (newpage) grid::grid.newpage()
+  ggplot2::set_last_plot(x)
+  if (!is.null(vp)) {
+    if (is.character(vp)) grid::seekViewport(vp) else grid::pushViewport(vp)
+  }
+  grid::grid.draw(curves_over_panels(patchwork::patchworkGrob(x)))
+  if (!is.null(vp)) grid::upViewport()
+  invisible(x)
+}
+
+curves_over_panels <- function(table) {
+  panels <- which(startsWith(table$layout$name, "panel"))
+  curves <- lapply(table$grobs[panels], spills_only)
+  lifted <- !vapply(curves, is.null, TRUE)
+  table$grobs[panels[lifted]] <- lapply(table$grobs[panels[lifted]],
+    without_spills)
+  cells <- table$layout[panels[lifted], ]
+  if (any(lifted)) {
+    table <- gtable::gtable_add_grob(table, curves[lifted],
+      t = cells$t, l = cells$l, b = cells$b, r = cells$r,
+      z = max(table$layout$z[panels]), clip = "off",
+      name = paste0("curves-", cells$name))
+  }
+  table
+}
+
+spills_only <- function(g) {
+  if (inherits(g, "ggjbrowse_spill")) {
+    g
+  } else if (inherits(g, "gtable")) {
+    kept <- lapply(g$grobs, spills_only)
+    has <- !vapply(kept, is.null, TRUE)
+    g$grobs <- kept[has]
+    g$layout <- g$layout[has, , drop = FALSE]
+    if (any(has)) g
+  } else if (inherits(g, "gTree")) {
+    kept <- Filter(Negate(is.null), lapply(g$children, spills_only))
+    if (length(kept)) {
+      grid::gTree(children = do.call(grid::gList, kept), vp = g$vp)
+    }
+  }
+}
+
+without_spills <- function(g) {
+  if (inherits(g, "ggjbrowse_spill")) {
+    grid::nullGrob()
+  } else if (inherits(g, "gtable")) {
+    g$grobs <- lapply(g$grobs, without_spills)
+    g
+  } else if (inherits(g, "gTree")) {
+    grid::setChildren(g, do.call(grid::gList,
+      lapply(g$children, without_spills)))
+  } else {
+    g
+  }
 }
 
 # The x axis's title: the contig, the two regions of an axis that lays two end

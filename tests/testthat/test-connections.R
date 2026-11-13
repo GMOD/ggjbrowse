@@ -197,6 +197,23 @@ test_that("a section's curve dipping past its last row draws over the sections b
   expect_length(unique(spill$children[[1]]$id), in_window)
 })
 
+test_that("a track draws every section's connector curves over every section's band, as the display paints them last", {
+  a <- read(display = list(facet = list(field = "pairOrientation"),
+    pileup = list(connectors = list(show = TRUE))))
+  grDevices::pdf(NULL, width = 9, height = 7)
+  on.exit(grDevices::dev.off())
+  print(ggplot2::autoplot(a))
+  grid::grid.force()
+  drawn <- grid::grid.ls(print = FALSE)
+  curves <- grep("^connectors", drawn$name)
+  bands <- which(startsWith(drawn$name, "panel") & drawn$gDepth == 1)
+  expect_length(curves, nrow(a$sections))
+  expect_gt(min(curves), max(bands))
+  dips <- vapply(drawn$name[curves],
+    function(name) grid::grid.get(name)$vp$yscale[1], 0)
+  expect_lt(min(dips), 0)
+})
+
 test_that("a chain over an inversion frames the split segments' strands against each other", {
   chained <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
     "chr1:197,786,900-197,789,700", display = list(unit = "chain", encoding = list(color = list(field = "insertSizeAndOrientation"))))

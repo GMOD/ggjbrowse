@@ -4,7 +4,9 @@
   each `dip` to half the room between the curve's lower row and the bottom
   of the sections, as the display draws it scrolled to its end, so the
   curves on the lowest rows run flatter. An earlier section's curves run
-  down over the sections below it, as the browser draws them. A connector
+  down over the sections below it, as the browser draws them, and a track,
+  `autoplot(a)` or `jbrowse_stack()`, draws them over the later sections'
+  coverage and reads, as the browser paints them last. A connector
   rising over its rows is `kind = "bow"`, where it was a `"curve"` with
   `dip` 0, and a curve floored to `dip` 0 runs along its rows. The engine is
   jbrowse-components 9132fec1fa. A result saved with `saveRDS()` under an

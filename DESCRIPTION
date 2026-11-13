@@ -27,6 +27,7 @@ Imports:
     curl,
     ggplot2 (>= 4.0.0),
     grid,
+    gtable,
     jsonlite,
     patchwork,
     rlang,
