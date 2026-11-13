@@ -11,3 +11,13 @@ drawn_guides <- function(p) {
   keys <- lapply(ggplot2::ggplot_build(p)$plot$guides$params, `[[`, "key")
   stats::setNames(keys, vapply(keys, attr, "", "title"))
 }
+
+# Every label a rendered plot or patchwork writes, guides included
+drawn_labels <- function(p) {
+  walk <- function(x) {
+    if (inherits(x, "text")) as.character(x$label)
+    else if (inherits(x, "gtable")) unlist(lapply(x$grobs, walk))
+    else if (inherits(x, "gTree")) unlist(lapply(x$children, walk))
+  }
+  walk(patchwork::patchworkGrob(p))
+}

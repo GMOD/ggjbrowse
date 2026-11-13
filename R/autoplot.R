@@ -170,10 +170,12 @@ sequence_plot <- function(x, o) {
 
 pileup_plot <- function(x, o) {
   px <- o$width
+  x$keys$arcs <- o$connector_key
+  keyed <- c("reads", "bases", if (!is.null(o$connector_key)) "arcs")
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_reads() +
     geom_jbrowse_overlaps() +
-    guides_jbrowse(x, c("reads", "bases")) +
+    guides_jbrowse(x, keyed) +
     geom_jbrowse_qualities(width = px) +
     geom_jbrowse_skips() +
     geom_jbrowse_deletions(width = px) +
@@ -253,7 +255,9 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   `show`; `"pileup"`: each read on its row, split at
 #'   its splice gaps, filled as the display's `color` object paints it and
 #'   keyed as the display keys it, with its mismatches, deletions,
-#'   insertions, clips and base modifications; `"coverage"`: the depth, each
+#'   insertions, clips and base modifications, and its connectors' colors
+#'   keyed under "Connector colors" where the read-connection band is not
+#'   there to key them; `"coverage"`: the depth, each
 #'   mismatch position's alleles stacked in its bases' colors;
 #'   `"junctions"`: the arcs alone; `"arcs"`: the read-connection band
 #'   alone, mate-pair and split-read arcs or the read cloud on a log
@@ -295,7 +299,16 @@ alignment_options <- function(object, letters = NULL) {
       px_of(object, NULL) >= object$glyph$label$minPxPerBp),
     coverage = s$coverage$show,
     pileup = s$pileup$show,
-    junctions = s$sashimi$show)
+    junctions = s$sashimi$show,
+    connector_key = connector_key(object))
+}
+
+# The connection key's rows in the colors the pileup's connectors draw, kept
+# whole across sections so every pileup panel keys the same rows
+connector_key <- function(object) {
+  if (nrow(object$connectors)) {
+    key_shown(object$keys$arcs, tolower(object$connectors$color))
+  }
 }
 
 # Each band an alignments track draws, top to bottom, by its height in the
@@ -321,6 +334,7 @@ alignment_px <- function(object, o) {
 # coverage over its own reads, the section named once, on its first band
 alignment_bands <- function(object, o = alignment_options(object)) {
   object <- on_axis(object)
+  if (nrow(object$arcs) + nrow(object$arc_ticks) > 0) o$connector_key <- NULL
   labels <- object$sections$label
   sections <- if (length(labels) > 1) {
     lapply(labels, function(l) section_of(object, l))

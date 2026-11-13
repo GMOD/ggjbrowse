@@ -10,7 +10,9 @@ CRAM region through JBrowse's alignments display.
   coverage band with each mismatch position's alleles, and its pileup, each
   read's mismatches, indels and clips faded where the browser fades them.
   `autoplot(a, "pileup")` draws one band alone, as do `"coverage"`,
-  `"junctions"` and `"arcs"`.
+  `"junctions"` and `"arcs"`. A pileup that draws connectors keys their
+  colors under "Connector colors" unless the read-connection band, which
+  keys them, is in the track.
 
 ## Display settings
 

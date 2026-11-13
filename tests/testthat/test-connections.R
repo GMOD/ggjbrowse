@@ -297,3 +297,32 @@ test_that("the arcs and the read cloud hang from the band's top under placement 
   expect_equal(y_transform(read(display = list(readConnections =
     list(show = TRUE, placement = "up")))), "identity")
 })
+
+test_that("a pileup keys the connectors it draws, and the read-connection band keys them once", {
+  colo <- extdata("colo829_tumor_chr3.bam")
+  chain <- function(...) jbrowse_alignments(colo, "chr3:25,358,500-25,359,800",
+    display = list(unit = "chain", facet = list(field = "split"), ...))
+  hidden <- "Split read (segment not in view)"
+
+  a <- chain()
+  expect_equal(a$keys$arcs$label, hidden)
+  expect_equal(attr(a$keys$arcs, "title"), "Connector colors")
+  key <- drawn_guides(autoplot(a, "pileup"))[["Connector colors"]]
+  expect_equal(key$label, hidden)
+  expect_setequal(key$color, unique(a$connectors$color))
+  expect_equal(sum(drawn_labels(autoplot(a)) == hidden), 1)
+
+  plain <- jbrowse_alignments(colo, "chr3:25,358,500-25,359,800")
+  expect_equal(nrow(plain$connectors), 0)
+  expect_false("Connector colors" %in%
+    names(drawn_guides(autoplot(plain, "pileup"))))
+  expect_false("Connector colors" %in% drawn_labels(autoplot(plain)))
+
+  banded <- chain(readConnections = list(show = TRUE))
+  expect_gt(nrow(banded$arcs), 0)
+  rows <- drawn_labels(autoplot(banded))
+  expect_equal(sum(rows == hidden), 1)
+  expect_equal(sum(rows == "Arc colors"), 1)
+  expect_false("Connector colors" %in% rows)
+  expect_equal(sum(rows == "Inter-chromosomal"), 1)
+})

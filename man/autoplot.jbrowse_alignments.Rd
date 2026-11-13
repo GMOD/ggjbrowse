@@ -23,7 +23,9 @@ drawn where the display's \code{coverage}, \code{pileup} and \code{sashimi} band
 \code{show}; \code{"pileup"}: each read on its row, split at
 its splice gaps, filled as the display's \code{color} object paints it and
 keyed as the display keys it, with its mismatches, deletions,
-insertions, clips and base modifications; \code{"coverage"}: the depth, each
+insertions, clips and base modifications, and its connectors' colors
+keyed under "Connector colors" where the read-connection band is not
+there to key them; \code{"coverage"}: the depth, each
 mismatch position's alleles stacked in its bases' colors;
 \code{"junctions"}: the arcs alone; \code{"arcs"}: the read-connection band
 alone, mate-pair and split-read arcs or the read cloud on a log

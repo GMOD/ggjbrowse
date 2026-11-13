@@ -1,5 +1,12 @@
 # ggjbrowse (development version)
 
+- A pileup keys the connectors it draws, as the browser's "Connector colors"
+  key does, where the pileup was keyed for its reads and bases alone: a
+  chain-unit figure, or any pileup with connectors and no read-connection
+  band, no longer draws coloured connectors with no key, the grey "Split read
+  (segment not in view)" among them. The key lists the rows of `a$keys$arcs`
+  whose colors the connectors draw, and a track whose read-connection band is
+  shown keys them there, once, as before.
 - The engine is jbrowse-components 4cf2846620. A split read's connector whose
   junction passes through a segment the view never fetched is the new
   `readThroughHidden` grey (#2e2e2e on a light theme, #ffffff on a dark one)
