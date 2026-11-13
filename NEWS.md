@@ -1,5 +1,8 @@
 # ggjbrowse (development version)
 
+- An alignments result's `sections` table drops `dip_reserve`, which the
+  engine stopped sending: the display keeps no room under a section's rows
+  for its connectors' dips, and neither does the pileup band.
 - Intron chevrons sit on the display's genome grid, so a gene's isoforms
   stack theirs in columns, and flatten to fit their row: `chevrons` gains
   `half_height`, which the arms are drawn at, and a superCompact row no

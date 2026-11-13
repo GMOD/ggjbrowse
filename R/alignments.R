@@ -203,9 +203,7 @@ alignments_adapter <- function(file, index) {
 #'   * `arc_ticks`: the interchromosomal ticks: `position`, `support`,
 #'     `partners` (the contigs reached), `color`, `width`
 #'   * `sections`: under `display$facet`, each section's `key` and `label` in stacking
-#'     order; ungrouped, one section labelled `""`; and `dip_reserve`, the px
-#'     the display keeps under the section's last row for its deepest
-#'     dipping connector
+#'     order; ungrouped, one section labelled `""`
 #'
 #'   `keys` holds `reads`, `bases` (empty while a modifications or bisulfite
 #'   layer greys the bases), `junctions`, `interbase` and `arcs`, and
@@ -287,7 +285,6 @@ region_bases <- function(assembly, regions) {
 
 alignments_result <- function(t, assembly) {
   sections <- table_of(t, "sections")
-  names(sections)[names(sections) == "dipReserve"] <- "dip_reserve"
   frame <- function(name) {
     d <- table_of(t, name)
     d$section <- factor(d$section, levels = sections$label)
