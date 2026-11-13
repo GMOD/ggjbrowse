@@ -82,7 +82,27 @@ test_that("a chain puts a read's mates and split segments on one row, joined by 
   expect_equal(c$end_row, c$row)
   name_of <- function(read) chained$reads$name[match(read, chained$reads$read)]
   expect_equal(name_of(c$mate), name_of(c$read))
-  expect_true(all(c$kind %in% c("straight", "curve", "loop")))
+  expect_true(all(c$kind %in% c("straight", "curve", "bow", "loop")))
+})
+
+test_that("a chain's dashed connector over a hidden segment bows over its row, where a flat curve runs along it", {
+  a <- jbrowse_alignments(extdata("volvox-simple-inv-bow.bam"),
+    c("ctgA:15,000-19,950", "ctgA:30,010-33,000"),
+    display = list(unit = "chain"))
+  c <- a$connectors
+  bows <- which(c$kind == "bow")
+  expect_length(bows, 2)
+  expect_true(all(c$dashed[bows]))
+  expect_equal(c$dip[bows], c(0, 0))
+  expect_equal(c$end_row[bows], c$row[bows])
+  flat <- a
+  flat$connectors$kind[bows] <- "curve"
+  bowed <- connector_paths(on_axis(a), NULL)
+  run <- connector_paths(on_axis(flat), NULL)
+  for (i in bows) {
+    expect_lt(min(bowed$y[bowed$path == i]), c$row[i] + 0.5)
+    expect_equal(range(run$y[run$path == i]), rep(c$row[i] + 0.5, 2))
+  }
 })
 
 test_that("each connector draws the curve the engine places, end to end on its rows", {
