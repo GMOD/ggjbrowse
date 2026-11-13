@@ -1,5 +1,11 @@
 # ggjbrowse (development version)
 
+- The engine is jbrowse-components 0981854f9b. A curved read connector is
+  1.5 px wide, as a straight one is, where it was 1, so the curves draw half
+  again as thick as before. The `connectors` table lists a connector between
+  two displayed regions whenever its span reaches into a window on screen, so
+  a split read's junction from a segment overhanging its region's edge is
+  drawn as the browser draws it.
 - Every connector draws solid, a junction over segments not in view too,
   as do the read cloud's split-read bars and a wiggle track's rules. The
   geoms read no `dashed` column, and the documentation of the `connectors`
