@@ -406,7 +406,7 @@ geom_jbrowse_rules <- function(mapping = NULL, data = NULL, ...) {
     jbrowse_layer(ggplot2::GeomHline, data, rules,
       for_geom(mapping, ggplot2::GeomHline),
       ggplot2::aes(yintercept = value, colour = I(color)),
-      list(linetype = "dashed", ...)),
+      list(...)),
     jbrowse_layer(ggplot2::GeomText, data,
       function(x) {
         r <- rules(x)

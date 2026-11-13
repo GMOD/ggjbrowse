@@ -74,9 +74,9 @@ with_inset <- function(d, model) {
 #' * `geom_jbrowse_overlaps()`: under `unit = "chain"`, the neutral fill over
 #'   the span where two reads of a chain both align
 #' * `geom_jbrowse_connectors()`: the line from each read to its mate or split
-#'   segment, in the connection's arc color, dashed over segments not in view:
-#'   straight, a curve dipping under its rows or bowing over them, or a loop
-#'   with its arrowhead, each curve placed by the engine's
+#'   segment in the connection's arc color: straight, a curve dipping under
+#'   its rows or bowing over them, or a loop with its arrowhead, each curve
+#'   placed by the engine's
 #'   `alignmentConnectorCurves` at the figure's pixels per base, so a dip
 #'   flattens as the figure zooms out. A dip below its section's last row
 #'   runs down over the sections under it, as the display draws it, and
@@ -173,8 +173,7 @@ geom_jbrowse_connectors <- function(mapping = NULL, data = NULL,
   jbrowse_layer(GeomJbrowseConnectors, data,
     function(x) connector_paths(x, width), mapping,
     ggplot2::aes(x = x, y = y, group = path, colour = I(color),
-      alpha = I(opacity), linewidth = I(px_to_linewidth(width)),
-      linetype = I(ifelse(dashed, "22", "solid"))),
+      alpha = I(opacity), linewidth = I(px_to_linewidth(width))),
     list(lineend = "butt", ...))
 }
 
@@ -185,7 +184,7 @@ connector_paths <- function(x, width) {
   d <- summary_table(x, "connectors")
   none <- data.frame(x = numeric(), y = numeric(), path = integer(),
     color = character(), opacity = numeric(), width = numeric(),
-    dashed = logical(), section = factor())
+    section = factor())
   if (!nrow(d)) return(none)
   p <- x$read_pitch
   curves <- call_engine("alignmentConnectorCurves", list(
@@ -204,7 +203,7 @@ connector_paths <- function(x, width) {
     x = cubic(d$start, curves$handle, curves$endHandle, d$end),
     y = cubic(d$row, curves$handleRow, curves$endHandleRow, d$end_row) + 0.5,
     path = each(seq_len(n)), color = each(d$color),
-    opacity = each(d$opacity), width = each(d$width), dashed = each(d$dashed),
+    opacity = each(d$opacity), width = each(d$width),
     section = each(d$section))
   heads <- which(as.logical(curves$arrow))
   arms <- lapply(c(-1, 1), function(side) data.frame(
@@ -215,7 +214,6 @@ connector_paths <- function(x, width) {
     color = rep(d$color[heads], each = 2),
     opacity = rep(d$opacity[heads], each = 2),
     width = rep(d$width[heads], each = 2),
-    dashed = rep(FALSE, 2 * length(heads)),
     section = rep(d$section[heads], each = 2)))
   rbind(paths, arms[[1]], arms[[2]])
 }
@@ -624,8 +622,7 @@ geom_jbrowse_arcs <- function(mapping = NULL, data = NULL, width = NULL,
     jbrowse_layer(ggplot2::GeomSegment, data, bars,
       for_geom(mapping, ggplot2::GeomSegment),
       ggplot2::aes(x = start, xend = end, y = y, yend = y, colour = I(color),
-        alpha = I(opacity), linewidth = I(px_to_linewidth(width)),
-        linetype = I(ifelse(shape == "flatSplit", "22", "solid"))),
+        alpha = I(opacity), linewidth = I(px_to_linewidth(width))),
       list(...)),
     jbrowse_layer(ggplot2::GeomPoint, data, feet,
       for_geom(mapping, ggplot2::GeomPoint),

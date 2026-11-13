@@ -15,5 +15,5 @@ utils::globalVariables(c(
   "xmax", "xmin", "y0", "mapq", "ribbon",
   "x_start", "x_end", "y_start", "y_end", "inset", "x1", "x2", "bp", "h",
   "hend", "hang", "hang_end", "cell", "font_size", "halo", "box_top",
-  "box_bottom", "path", "dashed", "middle"
+  "box_bottom", "path", "middle"
 ))

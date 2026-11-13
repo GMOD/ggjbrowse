@@ -152,11 +152,10 @@ carry that base there, over the depth), \code{quality}, \code{fade}
 \code{unit = "chain"} and otherwise under \code{pileup$connectors$show}: \code{start}
 and \code{end} (the two ends), \code{row} and \code{end_row}, \code{end_region}, \code{color}
 (the connection's arc color) at \code{opacity}, \code{width} (the stroke in px),
-\code{kind} (\code{"straight"}, \code{"curve"}, \code{"bow"} or \code{"loop"}), \code{dashed} (the
-junction steps over segments not in view), \code{dip} (the px a curve or
-loop dips, at most half the room between its lower row and the bottom
-of the sections, so a curve in the last section ends above its last
-row; 0 for a bow, which rises over its rows, and for a curve floored
+\code{kind} (\code{"straight"}, \code{"curve"}, \code{"bow"} or \code{"loop"}), \code{dip} (the px
+a curve or loop dips, at most half the room between its lower row and
+the bottom of the sections, so a curve in the last section ends above
+its last row; 0 for a bow, which rises over its rows, and for a curve floored
 flat, which runs along them; the display flattens a curve further
 where its ends sit close on screen), \code{strand}, \code{end_strand} and
 \code{leading} (which way each end's curve leaves its read), \code{arrow} (a

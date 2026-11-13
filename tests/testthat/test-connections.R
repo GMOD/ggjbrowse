@@ -85,14 +85,13 @@ test_that("a chain puts a read's mates and split segments on one row, joined by 
   expect_true(all(c$kind %in% c("straight", "curve", "bow", "loop")))
 })
 
-test_that("a chain's dashed connector over a hidden segment bows over its row, where a flat curve runs along it", {
+test_that("a chain's connector over a hidden segment bows over its row, where a flat curve runs along it", {
   a <- jbrowse_alignments(extdata("volvox-simple-inv-bow.bam"),
     c("ctgA:15,000-19,950", "ctgA:30,010-33,000"),
     display = list(unit = "chain"))
   c <- a$connectors
   bows <- which(c$kind == "bow")
   expect_length(bows, 2)
-  expect_true(all(c$dashed[bows]))
   expect_equal(c$dip[bows], c(0, 0))
   expect_equal(c$end_row[bows], c$row[bows])
   flat <- a
@@ -154,6 +153,15 @@ test_that("each connector strokes the engine's width in px at its opacity", {
   drawn <- drawn[order(drawn$px), ]
   expect_equal(drawn$px, chained$connectors$width)
   expect_equal(drawn$alpha, chained$connectors$opacity, tolerance = 1 / 255)
+})
+
+test_that("every connector draws solid, over a hidden segment too", {
+  a <- jbrowse_alignments(extdata("volvox-simple-inv-bow.bam"),
+    c("ctgA:15,000-19,950", "ctgA:30,010-33,000"),
+    display = list(unit = "chain"))
+  expect_gt(sum(a$connectors$kind == "bow"), 0)
+  drawn <- drawn_strokes(ggplot2::ggplot(a) + geom_jbrowse_connectors())
+  expect_true(all(drawn$lty %in% c("1", "solid")))
 })
 
 test_that("every connector's curve stays within the pileup's rows, where its y axis ends", {

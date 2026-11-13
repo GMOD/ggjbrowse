@@ -127,9 +127,9 @@ writes a deletion's length in it where the box is wide enough
 \item \code{geom_jbrowse_overlaps()}: under \code{unit = "chain"}, the neutral fill over
 the span where two reads of a chain both align
 \item \code{geom_jbrowse_connectors()}: the line from each read to its mate or split
-segment, in the connection's arc color, dashed over segments not in view:
-straight, a curve dipping under its rows or bowing over them, or a loop
-with its arrowhead, each curve placed by the engine's
+segment in the connection's arc color: straight, a curve dipping under
+its rows or bowing over them, or a loop with its arrowhead, each curve
+placed by the engine's
 \code{alignmentConnectorCurves} at the figure's pixels per base, so a dip
 flattens as the figure zooms out. A dip below its section's last row
 runs down over the sections under it, as the display draws it, and

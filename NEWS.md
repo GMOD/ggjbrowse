@@ -1,5 +1,9 @@
 # ggjbrowse (development version)
 
+- Every connector draws solid, a junction over segments not in view too,
+  as do the read cloud's split-read bars and a wiggle track's rules. The
+  geoms read no `dashed` column, and the documentation of the `connectors`
+  table drops it.
 - A stroke the engine sizes in px draws that many px at the figure's 96 px
   an inch, where it drew three quarters of them: ggplot's `linewidth` counts
   about 0.75 mm, not 1 mm. Connectors, splice gaps, sashimi and
