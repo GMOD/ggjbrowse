@@ -104,12 +104,27 @@ test_that("each connector draws the curve the engine places, end to end on its r
   }
   wide <- vapply(dips, function(i) depth(paths, i), 0)
   expect_true(all(wide > 0))
-  narrow <- connector_paths(on_axis(chained), 60)
-  expect_true(all(vapply(dips, function(i) depth(narrow, i), 0) < wide))
+  zoomed_out <- connector_paths(on_axis(chained), 60)
+  narrow <- vapply(dips, function(i) depth(zoomed_out, i), 0)
+  expect_true(all(narrow <= wide))
+  expect_true(any(narrow < wide))
   built <- ggplot2::ggplot_build(ggplot2::autoplot(chained, "pileup"))$data
   drawn <- Filter(function(d) "group" %in% names(d) &&
     nrow(d) == nrow(paths) && "linetype" %in% names(d), built)
   expect_length(drawn, 1)
+})
+
+test_that("every connector's curve stays within the pileup's rows, where its y axis ends", {
+  chained <- read(display = list(unit = "chain"))
+  rows <- max(chained$reads$row) + 1
+  pitch <- chained$read_pitch$featureHeight + chained$read_pitch$featureSpacing
+  for (width in list(NULL, 1200)) {
+    expect_lte(max(connector_paths(on_axis(chained), width)$y), rows)
+  }
+  plot <- ggplot2::autoplot(chained, "pileup")
+  expect_equal(plot$coordinates$limits$y, c(0, rows))
+  expect_equal(alignment_px(on_axis(chained), alignment_options(chained))[["pileup"]],
+    max(30, rows * pitch))
 })
 
 test_that("a chain over an inversion frames the split segments' strands against each other", {

@@ -1,5 +1,12 @@
 # ggjbrowse (development version)
 
+- A pileup connector's curve ends above the last row: the engine floors
+  each `dip` to half the room between the curve's lower row and the bottom
+  of the sections, as the display draws it scrolled to its end, so the
+  curves on the lowest rows run flatter and the pileup's y axis ends at its
+  last row. A connector rising over its rows is `kind = "bow"`, where it was
+  a `"curve"` with `dip` 0, and a curve floored to `dip` 0 runs along its
+  rows. The engine is jbrowse-components 9132fec1fa.
 - An alignments result's `sections` table drops `dip_reserve`, which the
   engine stopped sending: the display keeps no room under a section's rows
   for its connectors' dips, and neither does the pileup band.

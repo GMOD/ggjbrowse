@@ -184,7 +184,14 @@ pileup_plot <- function(x, o) {
     geom_jbrowse_connectors(width = px) +
     geom_jbrowse_deletion_lengths(width = px)
   if (o$letters) p <- p + geom_jbrowse_letters(width = px)
-  band(p + ggplot2::scale_y_reverse(), x, rows = TRUE) + no_y
+  band(p + ggplot2::scale_y_reverse(), x, rows = TRUE,
+    ylim = pileup_rows(x)) + no_y
+}
+
+# One section's rows, so a row stays one pitch tall: the engine ends each
+# curve's dip above the last row. Sections facet with their own rows.
+pileup_rows <- function(x) {
+  if (nrow(x$sections) == 1 && nrow(x$reads)) c(0, max(x$reads$row) + 1)
 }
 
 shown_junctions <- function(x) {

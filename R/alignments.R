@@ -142,12 +142,15 @@ alignments_adapter <- function(file, index) {
 #'     `unit = "chain"` and otherwise under `pileup$connectors$show`: `start`
 #'     and `end` (the two ends), `row` and `end_row`, `end_region`, `color`
 #'     (the connection's arc color) at `opacity`, `width` (the stroke in px),
-#'     `kind` (`"straight"`, `"curve"` or `"loop"`), `dashed` (the junction
-#'     steps over segments not in view), `dip` (the px a curve or loop dips,
-#'     0 for one that bows up, which the display flattens where its ends sit
-#'     close on screen), `strand`, `end_strand` and `leading` (which way each
-#'     end's curve leaves its read), `arrow` (a loop's arrowhead), and `read`
-#'     and `mate`; empty otherwise
+#'     `kind` (`"straight"`, `"curve"`, `"bow"` or `"loop"`), `dashed` (the
+#'     junction steps over segments not in view), `dip` (the px a curve or
+#'     loop dips, at most half the room between its lower row and the bottom
+#'     of the sections, so a curve in the last section ends above its last
+#'     row; 0 for a bow, which rises over its rows, and for a curve floored
+#'     flat, which runs along them; the display flattens a curve further
+#'     where its ends sit close on screen), `strand`, `end_strand` and
+#'     `leading` (which way each end's curve leaves its read), `arrow` (a
+#'     loop's arrowhead), and `read` and `mate`; empty otherwise
 #'   * `overlaps`: under `unit = "chain"` and a read height of 3 or more,
 #'     each span where two reads of one row both align: `start`, `end`, `row`
 #'     and the neutral `color` the display fills it with, which is neither
