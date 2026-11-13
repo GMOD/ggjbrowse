@@ -145,6 +145,38 @@ test_that("a faceted pileup draws each section's connectors in its own panel, it
   expect_equal(ranges(built), ranges(ggplot2::ggplot_build(bare)))
 })
 
+test_that("a section's curve dipping past its last row draws over the sections below it, clipped at its panel's sides", {
+  a <- read(display = list(facet = list(field = "pairOrientation"),
+    pileup = list(connectors = list(show = TRUE))))
+  rr <- a$sections$label[2]
+  paths <- connector_paths(on_axis(a), NULL)
+  expect_gt(max(paths$y[paths$section == rr]),
+    max(a$reads$row[a$reads$section == rr]) + 1)
+  grDevices::pdf(NULL, width = 9, height = 5)
+  on.exit(grDevices::dev.off())
+  grid::grid.newpage()
+  grid::grid.draw(ggplot2::ggplotGrob(ggplot2::autoplot(a, "pileup")))
+  grid::grid.force()
+  spill <- grid::getGrob(grid::grid.get("panel-1-2", grep = TRUE),
+    "connectors", grep = TRUE)
+  y <- as.numeric(spill$children[[1]]$y)
+  expect_true(spill$vp$clip)
+  expect_equal(spill$vp$xscale, c(0, 1))
+  expect_lt(min(y), 0)
+  expect_gte(min(y), spill$vp$yscale[1])
+  grid::grid.newpage()
+  rr_only <- section_of(on_axis(a), rr)
+  grid::grid.draw(ggplot2::ggplotGrob(ggplot2::ggplot(rr_only) +
+    geom_jbrowse_connectors() + ggplot2::scale_y_reverse() +
+    ggplot2::coord_cartesian(ylim = c(0, 2))))
+  grid::grid.force()
+  spill <- grid::grid.get("connectors", grep = TRUE)
+  in_window <- with(rr_only$connectors, sum(pmax(row, end_row) < 2))
+  expect_gt(in_window, 0)
+  expect_lt(in_window, nrow(rr_only$connectors))
+  expect_length(unique(spill$children[[1]]$id), in_window)
+})
+
 test_that("a chain over an inversion frames the split segments' strands against each other", {
   chained <- jbrowse_alignments(extdata("hg00151_chr1_inversion.bam"),
     "chr1:197,786,900-197,789,700", display = list(unit = "chain", encoding = list(color = list(field = "insertSizeAndOrientation"))))

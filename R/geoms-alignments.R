@@ -78,7 +78,9 @@ with_inset <- function(d, model) {
 #'   straight, a curve dipping under its rows or bowing over them, or a loop
 #'   with its arrowhead, each curve placed by the engine's
 #'   `alignmentConnectorCurves` at the figure's pixels per base, so a dip
-#'   flattens as the figure zooms out. `geom_jbrowse_chains()` is its
+#'   flattens as the figure zooms out. A dip below its section's last row
+#'   runs down over the sections under it, as the display draws it, and
+#'   leaves the panel's y axis on the rows. `geom_jbrowse_chains()` is its
 #'   deprecated name
 #' * `geom_jbrowse_mismatches()`, `geom_jbrowse_insertions()`,
 #'   `geom_jbrowse_clips()`, `geom_jbrowse_modifications()`: the marks on the
@@ -219,7 +221,9 @@ connector_paths <- function(x, width) {
 }
 
 # A connector's curve trains its panel's y scale only between its two ends,
-# so a dip leaves the panel on its section's rows; it draws whole
+# so a panel holds its section's rows, and draws whole: where both ends are
+# in the panel, a dip past its last row runs down over the sections below,
+# as the display draws it
 GeomJbrowseConnectors <- ggplot2::ggproto("GeomJbrowseConnectors",
   ggplot2::GeomPath,
   setup_data = function(data, params) {
@@ -234,11 +238,35 @@ GeomJbrowseConnectors <- ggplot2::ggproto("GeomJbrowseConnectors",
   draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         arrow.fill = NULL, lineend = "butt", linejoin = "round",
                         linemitre = 10, na.rm = FALSE) {
+    rows <- range(panel_params$y.range)
+    ends_in <- stats::ave(data$y >= rows[1] & data$y <= rows[2], data$group,
+      FUN = all)
     data$y <- data$curve_y
-    ggplot2::ggproto_parent(ggplot2::GeomPath, self)$draw_panel(data,
-      panel_params, coord, arrow, arrow.fill, lineend, linejoin, linemitre,
-      na.rm)
+    draw <- function(d) if (nrow(d)) {
+      ggplot2::ggproto_parent(ggplot2::GeomPath, self)$draw_panel(d,
+        panel_params, coord, arrow, arrow.fill, lineend, linejoin, linemitre,
+        na.rm)
+    } else {
+      ggplot2::zeroGrob()
+    }
+    grid::grobTree(draw(data[!ends_in, , drop = FALSE]),
+      grid::gTree(children = grid::gList(draw(data[ends_in, , drop = FALSE])),
+        name = grid::grobName(prefix = "connectors"), cl = "ggjbrowse_spill"))
   })
+
+# The panel's sides and top, its bottom moved down to the figure's
+#' @exportS3Method grid::makeContext
+makeContext.ggjbrowse_spill <- function(x) {
+  panel <- grid::convertHeight(grid::unit(1, "npc"), "in", valueOnly = TRUE)
+  below <- grid::deviceLoc(grid::unit(0, "npc"), grid::unit(0, "npc"),
+    valueOnly = TRUE)$y
+  if (panel > 0) {
+    x$vp <- grid::viewport(y = 1, just = "top",
+      height = grid::unit(panel + below, "in"), xscale = c(0, 1),
+      yscale = c(-below / panel, 1), clip = "on")
+  }
+  x
+}
 
 # The chords the display's connector strip is built from
 CONNECTOR_SEGMENTS <- 48

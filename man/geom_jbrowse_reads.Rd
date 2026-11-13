@@ -131,7 +131,9 @@ segment, in the connection's arc color, dashed over segments not in view:
 straight, a curve dipping under its rows or bowing over them, or a loop
 with its arrowhead, each curve placed by the engine's
 \code{alignmentConnectorCurves} at the figure's pixels per base, so a dip
-flattens as the figure zooms out. \code{geom_jbrowse_chains()} is its
+flattens as the figure zooms out. A dip below its section's last row
+runs down over the sections under it, as the display draws it, and
+leaves the panel's y axis on the rows. \code{geom_jbrowse_chains()} is its
 deprecated name
 \item \code{geom_jbrowse_mismatches()}, \code{geom_jbrowse_insertions()},
 \code{geom_jbrowse_clips()}, \code{geom_jbrowse_modifications()}: the marks on the
