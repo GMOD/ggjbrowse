@@ -1,5 +1,11 @@
 # ggjbrowse (development version)
 
+- The engine is jbrowse-components 4cf2846620. A split read's connector whose
+  junction passes through a segment the view never fetched is the new
+  `readThroughHidden` grey (#2e2e2e on a light theme, #ffffff on a dark one)
+  in place of its class color, and the arc colors key lists it as "Split read
+  (segment not in view)". The `connectors` table's `color` carries the grey
+  with no R change.
 - The engine is jbrowse-components 0981854f9b. A curved read connector is
   1.5 px wide, as a straight one is, where it was 1, so the curves draw half
   again as thick as before. The `connectors` table lists a connector between
