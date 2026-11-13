@@ -1,12 +1,18 @@
 # ggjbrowse (development version)
 
-- A pileup connector's curve ends above the last row: the engine floors
+- The last section's connector curves end above its rows: the engine floors
   each `dip` to half the room between the curve's lower row and the bottom
   of the sections, as the display draws it scrolled to its end, so the
-  curves on the lowest rows run flatter and the pileup's y axis ends at its
-  last row. A connector rising over its rows is `kind = "bow"`, where it was
-  a `"curve"` with `dip` 0, and a curve floored to `dip` 0 runs along its
-  rows. The engine is jbrowse-components 9132fec1fa.
+  curves on the lowest rows run flatter. An earlier section's curves run
+  down over the sections below it, as the browser draws them. A connector
+  rising over its rows is `kind = "bow"`, where it was a `"curve"` with
+  `dip` 0, and a curve floored to `dip` 0 runs along its rows. The engine is
+  jbrowse-components 9132fec1fa. A result saved with `saveRDS()` under an
+  earlier engine draws its bows flat and its unfloored dips clipped: rerun
+  `jbrowse_alignments()`.
+- A faceted pileup, `autoplot(a, "pileup")` or `facet_grid(section ~ .)`,
+  draws each section's connectors in its own panel, where it drew every
+  section's in each, and a panel's y axis spans its own rows.
 - An alignments result's `sections` table drops `dip_reserve`, which the
   engine stopped sending: the display keeps no room under a section's rows
   for its connectors' dips, and neither does the pileup band.
