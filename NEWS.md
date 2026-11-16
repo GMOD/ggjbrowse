@@ -1,5 +1,10 @@
 # ggjbrowse (development version)
 
+- The engine is jbrowse-components 48ab79c589. A track whose `display` hides
+  the pileup and sets no `height` draws 100 px tall, where it drew 250, and
+  with the pileup hidden a downward sashimi or read-connection strip keeps its
+  own height while the coverage band takes the rest, where the bands split the
+  track in proportion. Pass `height` to keep the old size.
 - A pileup keys the connectors it draws, as the browser's "Connector colors"
   key does, where the pileup was keyed for its reads and bases alone: a
   chain-unit figure, or any pileup with connectors and no read-connection
