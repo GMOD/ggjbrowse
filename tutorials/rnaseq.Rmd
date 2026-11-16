@@ -84,19 +84,21 @@ replace:
 -->
 
 `pileup = list(show = FALSE)` leaves the coverage histogram and the splice
-arcs, which the engine computes from the reads' skips:
+arcs, which the engine computes from the reads' skips. The histogram then fills
+the track, so `height = 120` sets how tall it draws:
 
 ```{r actb}
 actb <- "chr7:5,567,000-5,570,000"
 genes <- list(filter = "geneLike")
 actb_genes <- jbrowse_features(gff, actb, assembly = hg19, display = genes,
   width = 1200)
+coverage_only <- list(height = 120, pileup = list(show = FALSE))
 actb_reads <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = list(pileup = list(show = FALSE)))
+  display = coverage_only)
 fig <- jbrowse_stack(RefSeq = actb_genes, Reads = actb_reads, width = 1200)
 ```
 
-```{r actb-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "RNA-seq reads over ACTB under the RefSeq gene model: the coverage histogram with strand-colored splice arcs, each labelled with its read count"}
+```{r actb-plot, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "RNA-seq reads over ACTB under the RefSeq gene model: the coverage histogram with strand-colored splice arcs"}
 fig
 ```
 
@@ -182,8 +184,8 @@ In a deep pileup, reads with a skip sit among many more that have none. Two of
 the display's settings pull the splicing evidence out, and we'll read each:
 
 - `sort = list(field = "spliced")` gives every read with a skip the lowest rows
-- `filter = list(list(field = "spliced", equal = TRUE))` drops every read without a skip, and the
-  coverage follows
+- `filter = list(list(field = "spliced", equal = TRUE))` drops every read
+  without a skip from the pileup, and the coverage still counts every read
 
 ```{r spliced}
 is_spliced <- function(r) r$reads$read %in% r$gaps$read[r$gaps$type == "skip"]
@@ -217,21 +219,21 @@ fig <- jbrowse_stack(RefSeq = actb_genes, "Only spliced reads" = only_spliced,
   width = 1200)
 ```
 
-```{r spliced-figure, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "ACTB's spliced reads alone: the pileup keeps the reads whose CIGAR has a skip, and the coverage histogram above it follows"}
+```{r spliced-figure, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "ACTB's spliced reads alone: the pileup keeps the reads whose CIGAR has a skip, and the coverage histogram above it still counts every read"}
 fig
 ```
 
-The motif is the other filter. The junction filter's `nonCanonical = "exclude"`
+The motif is the other filter. A `filter` entry on `junction.canonical`
 drops every arc whose intron does not begin and end with GT-AG, GC-AG or
 AT-AC on either strand, and keeps one whose motif the reference cannot read.
 The junction table still lists every junction:
 
 ```{r canonical}
 all_junctions <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = list(pileup = list(show = FALSE)))
+  display = coverage_only)
 canonical <- jbrowse_alignments(bam, actb, assembly = hg19,
-  display = list(pileup = list(show = FALSE),
-    filter = list(list(field = "junction.canonical", equal = TRUE))))
+  display = c(coverage_only,
+    list(filter = list(list(field = "junction.canonical", equal = TRUE)))))
 fig <- jbrowse_stack("All junctions" = all_junctions,
   "Canonical only" = canonical)
 ```
@@ -356,7 +358,7 @@ replace:
 
 ```{r isoseq}
 iso_reads <- jbrowse_alignments(isoseq, actb, assembly = hg19,
-  display = list(pileup = list(show = FALSE)))
+  display = coverage_only)
 fig <- jbrowse_stack(RefSeq = actb_genes, IsoSeq = iso_reads, width = 1200)
 ```
 
