@@ -25,7 +25,10 @@
 #' * `y_scale`: the score axis of a [jbrowse_wiggle()] result, or the
 #'   coverage band's depth axis of a [jbrowse_alignments()] result, as the
 #'   display autoscales it: `domain`, `type` (`"linear"`, `"log"` or
-#'   `"symlog"`), `symlog_constant` and `ticks`; `NULL` for the others
+#'   `"symlog"`), `symlog_constant` and `ticks`, and for the coverage band
+#'   `height_px`, the px the display draws it at (0 while it is off; with the
+#'   pileup hidden, the band's share of the track's height rather than
+#'   `display$coverage$height`); `NULL` for the others
 #' * `fields`: the file's declarations of the columns it adds, each a data
 #'   frame: `info` and `format` (a VCF's header lines), `attributes` (a GFF3's
 #'   or BigBed's fields), and `annotations` (the fields of a VCF's `ANN` or

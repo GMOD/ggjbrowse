@@ -32,7 +32,10 @@ draws them
 \item \code{y_scale}: the score axis of a \code{\link[=jbrowse_wiggle]{jbrowse_wiggle()}} result, or the
 coverage band's depth axis of a \code{\link[=jbrowse_alignments]{jbrowse_alignments()}} result, as the
 display autoscales it: \code{domain}, \code{type} (\code{"linear"}, \code{"log"} or
-\code{"symlog"}), \code{symlog_constant} and \code{ticks}; \code{NULL} for the others
+\code{"symlog"}), \code{symlog_constant} and \code{ticks}, and for the coverage band
+\code{height_px}, the px the display draws it at (0 while it is off; with the
+pileup hidden, the band's share of the track's height rather than
+\code{display$coverage$height}); \code{NULL} for the others
 \item \code{fields}: the file's declarations of the columns it adds, each a data
 frame: \code{info} and \code{format} (a VCF's header lines), \code{attributes} (a GFF3's
 or BigBed's fields), and \code{annotations} (the fields of a VCF's \code{ANN} or

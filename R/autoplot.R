@@ -138,9 +138,13 @@ coverage_plot <- function(x, o) {
     expand = c(top = TRUE, right = FALSE, bottom = TRUE, left = FALSE)) +
     ggplot2::scale_y_continuous(breaks = scale$ticks,
       transform = score_transform(scale),
-      expand = ggplot2::expansion(mult = inset /
-        (x$display$coverage$height - 2 * inset))) +
+      expand = ggplot2::expansion(mult = inset / (coverage_px(x) - 2 * inset))) +
     ggplot2::labs(y = "depth")
+}
+
+coverage_px <- function(x) {
+  px <- x$y_scale$height_px
+  if (isTRUE(px > 0)) px else x$display$coverage$height
 }
 
 # The reference under the pileup, each base a lettered cell in its color
@@ -312,8 +316,9 @@ connector_key <- function(object) {
 }
 
 # Each band an alignments track draws, top to bottom, by its height in the
-# display's pixels: the coverage, sashimi and read-connection bands at their
-# configured heights, the pileup its rows at the read pitch
+# display's pixels: the coverage and read-connection bands at the heights the
+# engine draws them, the sashimi band at its configured height, the pileup its
+# rows at the read pitch
 alignment_px <- function(object, o) {
   s <- object$display
   pitch <- object$read_pitch$featureHeight + object$read_pitch$featureSpacing
@@ -325,7 +330,7 @@ alignment_px <- function(object, o) {
     arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
     pileup = o$pileup)
   c(junctions = s$sashimi$height,
-    coverage = s$coverage$height,
+    coverage = coverage_px(object),
     arcs = arc_band_px(object),
     pileup = max(30, rows * pitch))[shown]
 }

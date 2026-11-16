@@ -85,20 +85,28 @@ test_that("a chain puts a read's mates and split segments on one row, joined by 
   expect_true(all(c$kind %in% c("straight", "curve", "bow", "loop")))
 })
 
-test_that("a chain's connector over a hidden segment bows over its row, where a flat curve runs along it", {
+THROUGH_HIDDEN <- "Split read (skips parts aligned outside this view)"
+
+through_hidden <- function(a) {
+  which(a$connectors$color ==
+    a$keys$arcs$color[a$keys$arcs$label == THROUGH_HIDDEN])
+}
+
+test_that("a chain's connector over a hidden segment runs straight along its row, where a bow rises over it", {
   a <- jbrowse_alignments(extdata("volvox-simple-inv-bow.bam"),
     c("ctgA:15,000-19,950", "ctgA:30,010-33,000"),
     display = list(unit = "chain"))
   c <- a$connectors
-  bows <- which(c$kind == "bow")
-  expect_length(bows, 2)
-  expect_equal(c$dip[bows], c(0, 0))
-  expect_equal(c$end_row[bows], c$row[bows])
-  flat <- a
-  flat$connectors$kind[bows] <- "curve"
-  bowed <- connector_paths(on_axis(a), NULL)
-  run <- connector_paths(on_axis(flat), NULL)
-  for (i in bows) {
+  hidden <- through_hidden(a)
+  expect_length(hidden, 2)
+  expect_equal(c$kind[hidden], c("straight", "straight"))
+  expect_equal(c$dip[hidden], c(0, 0))
+  expect_equal(c$end_row[hidden], c$row[hidden])
+  bow <- a
+  bow$connectors$kind[hidden] <- "bow"
+  bowed <- connector_paths(on_axis(bow), NULL)
+  run <- connector_paths(on_axis(a), NULL)
+  for (i in hidden) {
     expect_lt(min(bowed$y[bowed$path == i]), c$row[i] + 0.5)
     expect_equal(range(run$y[run$path == i]), rep(c$row[i] + 0.5, 2))
   }
@@ -159,7 +167,7 @@ test_that("every connector draws solid, over a hidden segment too", {
   a <- jbrowse_alignments(extdata("volvox-simple-inv-bow.bam"),
     c("ctgA:15,000-19,950", "ctgA:30,010-33,000"),
     display = list(unit = "chain"))
-  expect_gt(sum(a$connectors$kind == "bow"), 0)
+  expect_gt(length(through_hidden(a)), 0)
   drawn <- drawn_strokes(ggplot2::ggplot(a) + geom_jbrowse_connectors())
   expect_true(all(drawn$lty %in% c("1", "solid")))
 })
@@ -302,7 +310,7 @@ test_that("a pileup keys the connectors it draws, and the read-connection band k
   colo <- extdata("colo829_tumor_chr3.bam")
   chain <- function(...) jbrowse_alignments(colo, "chr3:25,358,500-25,359,800",
     display = list(unit = "chain", facet = list(field = "split"), ...))
-  hidden <- "Split read (segment not in view)"
+  hidden <- THROUGH_HIDDEN
 
   a <- chain()
   expect_equal(a$keys$arcs$label, hidden)

@@ -403,10 +403,12 @@ junction_region <- function(j, contigs, regions) {
 }
 
 # A band's y axis as the display autoscales it: its domain, its type
-# (`"linear"`, `"log"` or `"symlog"`), the symlog's constant, and its ticks
+# (`"linear"`, `"log"` or `"symlog"`), the symlog's constant, its ticks and,
+# for the coverage band, the px the display draws it at
 y_scale <- function(s) {
   list(domain = unlist(s$domain), type = s$type,
-    symlog_constant = s$symlogConstant, ticks = unlist(s$ticks))
+    symlog_constant = s$symlogConstant, ticks = unlist(s$ticks),
+    height_px = s$heightPx)
 }
 
 # `pileup$bases` paints bisulfite, its color written bare or as `list(field = )`

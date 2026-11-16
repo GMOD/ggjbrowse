@@ -152,6 +152,20 @@ test_that("the coverage band draws on the display's depth axis, inset as the dis
     "coverage"))$data, 3)
 })
 
+test_that("with the pileup hidden, the coverage band takes the height the engine fits it to", {
+  a <- jbrowse_alignments(extdata("gapdh_direct_rna.bam"),
+    "chr12:6,534,201-6,538,700", display = list(pileup = list(show = FALSE)))
+  fitted <- a$y_scale$height_px
+  expect_equal(a$display$coverage$height, 45)
+  expect_gt(fitted, 45)
+  expect_equal(alignment_px(on_axis(a), alignment_options(a))[["coverage"]],
+    fitted)
+  built <- ggplot2::ggplot_build(ggplot2::autoplot(a, "coverage"))
+  inset <- a$glyph$coverageInset / (fitted - 2 * a$glyph$coverageInset)
+  expect_equal(built$layout$panel_params[[1]]$y$continuous_range,
+    a$y_scale$domain + c(-1, 1) * inset * diff(a$y_scale$domain))
+})
+
 # The panel the band draws in, 1 inch tall, and where the grob's `y` lands in
 # it, in points from the bottom
 grob_y_pt <- function(grob, y) {
