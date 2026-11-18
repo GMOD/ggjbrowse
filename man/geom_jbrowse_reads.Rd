@@ -147,7 +147,7 @@ histogram of insertions and clips, hanging from its top as the display
 hangs it (a stack as deep as the depth axis's top reaches halfway down),
 and the triangles over the positions where they pile up
 \item \code{geom_jbrowse_junctions()}, \code{geom_jbrowse_junction_counts()}: the
-sashimi arcs and their read counts
+junction arcs and their read counts
 \item \code{geom_jbrowse_arcs()}, \code{geom_jbrowse_arc_ticks()}: the read-connection
 band's arcs (or read-cloud bars, with a square at each foot) and its
 interchromosomal ticks

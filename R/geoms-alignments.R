@@ -94,7 +94,7 @@ with_inset <- function(d, model) {
 #'   hangs it (a stack as deep as the depth axis's top reaches halfway down),
 #'   and the triangles over the positions where they pile up
 #' * `geom_jbrowse_junctions()`, `geom_jbrowse_junction_counts()`: the
-#'   sashimi arcs and their read counts
+#'   junction arcs and their read counts
 #' * `geom_jbrowse_arcs()`, `geom_jbrowse_arc_ticks()`: the read-connection
 #'   band's arcs (or read-cloud bars, with a square at each foot) and its
 #'   interchromosomal ticks

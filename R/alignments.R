@@ -101,14 +101,14 @@ alignments_adapter <- function(file, index) {
 #'     `pileup` (`mark = list(height = )`, 7, or 3 and 1 for compact and
 #'     super-compact,
 #'     `mismatches`, `softClips`, `fadeLowFrequency`, ...);
-#'     `sashimi` (`height`, `placement`, `labels`);
+#'     `junctions` (`height`, `placement`, `labels`);
 #'     `readConnections` (`show = TRUE` for each mate pair's and split
 #'     read's arc, `mark = "rule"` for the read cloud, `height`,
 #'     `ordinaryPairs = list(show = FALSE)` to leave out the ordinary pairs,
 #'     `encoding = list(color = list(field = ))`),
 #'     e.g. `list(coverage = list(show = FALSE),
 #'     pileup = list(mark = list(height = 3)))`.
-#'     A band or layer set not to show (`coverage`, `pileup` or `sashimi`'s
+#'     A band or layer set not to show (`coverage`, `pileup` or `junctions`'
 #'     `show`, `coverage$interbase$show`, `coverage$alleles$show`) reads as
 #'     empty tables.
 #'     `pileup$mismatches$show = FALSE` empties `mismatches` and `insertions`

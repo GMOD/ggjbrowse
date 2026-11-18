@@ -426,7 +426,7 @@ autoplot(v)
     caption = "An arc over the coverage joins each pair of exons, and the direct RNA reads run across.",
     title = "GAPDH's nine exons side by side, with the junctions between them as arcs",
     locus = "ENST00000229239.10's exons, each padded by 20 bp", height = 7,
-    jbrowse = c(fasta, "--gff", gencode, "--bam", rna, "sashimi:auto",
+    jbrowse = c(fasta, "--gff", gencode, "--bam", rna, "junctions:auto",
       "encoding.color.field=strand", "legend.show=true", grow, "--loc",
       paste(exon_locs("ENST00000229239.10"), collapse = " ")),
     r = r"-(

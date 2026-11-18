@@ -19,7 +19,7 @@
 the reads splice, the coverage band, the read-connection band under
 \code{display$readConnections} and the pileup, one above the other on a
 shared axis, each band split into the \code{facet}'s sections, and each
-drawn where the display's \code{coverage}, \code{pileup} and \code{sashimi} bands
+drawn where the display's \code{coverage}, \code{pileup} and \code{junctions} bands
 \code{show}; \code{"pileup"}: each read on its row, split at
 its splice gaps, filled as the display's \code{color} object paints it and
 keyed as the display keys it, with its mismatches, deletions,

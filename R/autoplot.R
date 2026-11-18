@@ -209,7 +209,7 @@ junctions_plot <- function(x, o) {
   p <- ggplot2::ggplot(x) +
     geom_jbrowse_junctions() +
     guides_jbrowse(x, "junctions", ramps = FALSE)
-  if (x$display$sashimi$labels$show) {
+  if (x$display[["junctions"]]$labels$show) {
     p <- p + geom_jbrowse_junction_counts()
   }
   band(p, x, ylim = c(0, 1.08)) + no_y
@@ -255,7 +255,7 @@ BAND_PLOTS <- list(junctions = junctions_plot, coverage = coverage_plot,
 #'   the reads splice, the coverage band, the read-connection band under
 #'   `display$readConnections` and the pileup, one above the other on a
 #'   shared axis, each band split into the `facet`'s sections, and each
-#'   drawn where the display's `coverage`, `pileup` and `sashimi` bands
+#'   drawn where the display's `coverage`, `pileup` and `junctions` bands
 #'   `show`; `"pileup"`: each read on its row, split at
 #'   its splice gaps, filled as the display's `color` object paints it and
 #'   keyed as the display keys it, with its mismatches, deletions,
@@ -303,7 +303,7 @@ alignment_options <- function(object, letters = NULL) {
       px_of(object, NULL) >= object$glyph$label$minPxPerBp),
     coverage = s$coverage$show,
     pileup = s$pileup$show,
-    junctions = s$sashimi$show,
+    junctions = s[["junctions"]]$show,
     connector_key = connector_key(object))
 }
 
@@ -317,7 +317,7 @@ connector_key <- function(object) {
 
 # Each band an alignments track draws, top to bottom, by its height in the
 # display's pixels: the coverage and read-connection bands at the heights the
-# engine draws them, the sashimi band at its configured height, the pileup its
+# engine draws them, the junctions band at its configured height, the pileup its
 # rows at the read pitch
 alignment_px <- function(object, o) {
   s <- object$display
@@ -329,7 +329,7 @@ alignment_px <- function(object, o) {
     coverage = o$coverage,
     arcs = nrow(object$arcs) + nrow(object$arc_ticks) > 0,
     pileup = o$pileup)
-  c(junctions = s$sashimi$height,
+  c(junctions = s[["junctions"]]$height,
     coverage = coverage_px(object),
     arcs = arc_band_px(object),
     pileup = max(30, rows * pitch))[shown]

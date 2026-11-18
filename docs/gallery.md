@@ -501,7 +501,7 @@ jbrowse_stack(genes, reads)
 ```sh
 jb2export --fasta inst/extdata/gapdh_hg38.fa.gz \
   --gff inst/extdata/gapdh_gencode.gff3.gz \
-  --bam inst/extdata/gapdh_direct_rna.bam sashimi:auto encoding.color.field=strand legend.show=true heightMode:grow growMaxHeight=2000 \
+  --bam inst/extdata/gapdh_direct_rna.bam junctions:auto encoding.color.field=strand legend.show=true heightMode:grow growMaxHeight=2000 \
   --loc 'chr12:6534497-6534589 chr12:6534790-6534881 chr12:6536474-6536613 chr12:6536664-6536810 chr12:6536900-6537030 chr12:6537081-6537236 chr12:6537289-6537410 chr12:6537564-6538016 chr12:6538081-6538391' \
   --width 1500 --out collapsed_introns.png
 ```

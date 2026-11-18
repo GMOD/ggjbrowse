@@ -263,7 +263,7 @@ test_that("splice junctions arc over the coverage, counted and stranded", {
   expect_length(arcs$data, 1)
   counted <- jbrowse_alignments(extdata("spliced.bam"), "ctgA:401-1,300",
     assembly = extdata("volvox.fa"),
-    display = list(sashimi = list(labels = list(show = TRUE))))
+    display = list(junctions = list(labels = list(show = TRUE))))
   counted$junctions$shown <- TRUE
   counts <- ggplot2::layer_data(ggplot2::autoplot(counted, "junctions"), 2)
   expect_equal(nrow(counts), 2)
@@ -479,7 +479,7 @@ test_that("every mark takes the engine's color, and every key the browser's word
   }
   expect_false(identical(unique(a$gaps$color[a$gaps$type == "skip"]),
     unique(a$gaps$color[a$gaps$type == "deletion"])))
-  expect_equal(attr(a$keys$junctions, "title"), "Sashimi arcs")
+  expect_equal(attr(a$keys$junctions, "title"), "Junctions")
   expect_equal(a$keys$junctions$label, "Forward transcript strand")
   expect_equal(attr(a$keys$interbase, "title"), "Insertions and clips")
   expect_equal(attr(a$keys$bases, "title"), "Base")
@@ -760,9 +760,9 @@ test_that("a stack draws a key two tracks share once, with every entry either ho
   reverse$junctions$strand <- -1
   reverse$junctions$color <- "#8f8fd8"
   reverse$keys$junctions <- key_frame("Reverse transcript strand", "#8f8fd8",
-    "Sashimi arcs")
+    "Junctions")
   text <- collected(jbrowse_stack(forward, reverse))
-  expect_equal(sum(text == "Sashimi arcs"), 1)
+  expect_equal(sum(text == "Junctions"), 1)
   expect_equal(sum(text %in% c("Forward transcript strand",
     "Reverse transcript strand")), 2)
 })

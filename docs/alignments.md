@@ -51,10 +51,10 @@ JBrowse does:
 - `facet = list(field = "split")` splits the reads into the display's stacked
   sections, each packed separately
   ([an inversion](gallery.md#inversion)).
-- `coverage`, `pileup`, `sashimi` and `readConnections` each take the
+- `coverage`, `pileup`, `junctions` and `readConnections` each take the
   band's own `show` and height, as a track config writes them:
   `coverage = list(show = FALSE)`,
-  `sashimi = list(placement = "below")`,
+  `junctions = list(placement = "below")`,
   `readConnections = list(show = TRUE, ordinaryPairs = list(show = FALSE))`.
 
 Each read comes back on the row the display lays it on, with the fill the
@@ -68,8 +68,8 @@ The engine decides what each band shows, and `a$display` holds the
 resolved config it decided from:
 
 - Every mark comes back with the `color` the display paints it, and
-  `a$keys` with the browser's keys and titles, such as "Sashimi arcs".
-- `junctions$shown` marks the arcs the sashimi band draws, by
+  `a$keys` with the browser's keys and titles, such as "Junctions".
+- `junctions$shown` marks the arcs the junctions band draws, by
   `filter$junctions`. Each arc rises to its `arcHeight` share of the band and
   strokes `strokeWidth` px, which R draws at 96 px an inch, as the browser does.
 - `allele_coverage$shown` marks the alleles the coverage band stacks, by

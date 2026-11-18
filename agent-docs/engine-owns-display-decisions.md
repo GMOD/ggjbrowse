@@ -75,8 +75,8 @@ How each piece reaches R:
 - **Keys:** the base key (empty while muted), the junction key and the
   interbase key, in the browser's own wording.
 - **Junctions:** `shown` under `filter.junctions`, `arcHeight` from
-  `sashimiArcHeightFraction()` and `strokeWidth` from
-  `sashimiStrokeWidth()`, in px, which R draws at 96 px an inch, as the browser does.
+  `junctionArcHeightFraction()` and `strokeWidth` from
+  `junctionStrokeWidth()`, in px, which R draws at 96 px an inch, as the browser does.
 - **Alleles:** `shown` under `coverage.alleles.filter`.
 - **Read pitch:** `pileup.mark.height` and its spacing, which R's read inset
   takes.

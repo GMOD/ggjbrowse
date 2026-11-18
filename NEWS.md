@@ -1,5 +1,10 @@
 # ggjbrowse (development version)
 
+- The engine is jbrowse-components 559559b2db. The alignments display's
+  `sashimi` band is `junctions`: write `display = list(junctions = list(...))`
+  where you wrote `sashimi`, and jb2export's `sashimi:` modifier is
+  `junctions:`. The junction key's title is "Junctions", where it was
+  "Sashimi arcs".
 - The engine is jbrowse-components d03d34b32c. A variant result's `height` is
   the display's whole track, 390 px unset, where it was the genotype rows'
   px: the records band and its 20 px chip strip come out of it and the rows

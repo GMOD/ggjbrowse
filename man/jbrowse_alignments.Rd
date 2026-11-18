@@ -95,13 +95,13 @@ colored, such as \code{list(list(field = "fraction", gte = 0.2))});
 \code{pileup} (\code{mark = list(height = )}, 7, or 3 and 1 for compact and
 super-compact,
 \code{mismatches}, \code{softClips}, \code{fadeLowFrequency}, ...);
-\code{sashimi} (\code{height}, \code{placement}, \code{labels});
+\code{junctions} (\code{height}, \code{placement}, \code{labels});
 \code{readConnections} (\code{show = TRUE} for each mate pair's and split
 read's arc, \code{mark = "rule"} for the read cloud, \code{height},
 \code{ordinaryPairs = list(show = FALSE)} to leave out the ordinary pairs,
 \code{encoding = list(color = list(field = ))}),
 e.g. \code{list(coverage = list(show = FALSE), pileup = list(mark = list(height = 3)))}.
-A band or layer set not to show (\code{coverage}, \code{pileup} or \code{sashimi}'s
+A band or layer set not to show (\code{coverage}, \code{pileup} or \code{junctions}'
 \code{show}, \code{coverage$interbase$show}, \code{coverage$alleles$show}) reads as
 empty tables.
 \code{pileup$mismatches$show = FALSE} empties \code{mismatches} and \code{insertions}
