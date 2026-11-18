@@ -50,8 +50,9 @@ variants_adapter <- function(file, index, samples) {
 #'   the arrangement a session saves, `sort`, `labels`, `colors`, `kept`
 #'   and `filter`; `color`, the samples file column the rows are colored by;
 #'   and `step`, pixels a row, where [jbrowse_stack()] otherwise fits the
-#'   rows into the display's height) and `facet` (a samples file attribute, or
-#'   `list(field, sort)`, whose values each take a band of rows)
+#'   rows into what the display's height leaves under its records band) and
+#'   `facet` (a samples file attribute, or `list(field, sort)`, whose values
+#'   each take a band of rows)
 #' @param index the tabix or CSI index, if not beside `file` under its usual
 #'   name
 #' @param samples a tab-separated file of the samples' attributes, a `name`

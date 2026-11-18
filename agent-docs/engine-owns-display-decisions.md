@@ -82,7 +82,8 @@ How each piece reaches R:
   takes.
 - **Defaults:** each track's resolved config, as the result's `display`,
   and for the synteny, dotplot and multi-way views their resolved settings.
-- **Sizes:** a variant track's genotype rows' `height` and `rowHeight`.
+- **Sizes:** a variant track's `height`, the whole track, and its genotype
+  rows' `rowHeight`.
 - **Rules:** a wiggle's `rules`, only those the display draws (none under
   density); R draws them in every row of a row layout, as the display does.
 - **Missing contigs:** each comparative axis's `missingContigs` message.

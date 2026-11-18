@@ -27,7 +27,7 @@
 #' @param color the row attribute the rows are colored by, such as a
 #'   samples file column, or a list of `field` and its color `scale`
 #' @param step the row height in px, or `"fit"`, the default, the rows
-#'   dividing the display's height
+#'   dividing what the display's height leaves under its records band
 #' @param tree a newick tree of the rows, labelled by row name, or a list of
 #'   its `newick` and `provenance`
 #' @param axis the row axis's guide: a list of any of `tree` and `labels`

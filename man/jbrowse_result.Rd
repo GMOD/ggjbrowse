@@ -54,8 +54,9 @@ and \code{bp_per_px}; a
 and the read cloud's \code{domain}; \code{NULL} while the band is off) and
 \code{sequence}, each region's reference bases where \code{assembly} has a sequence,
 which the sequence band draws; and a \code{\link[=jbrowse_variants]{jbrowse_variants()}} result \code{height},
-the px the display's genotype rows take, \code{row_height}, the px each row
-draws at, and the \code{tree} a caller sets.
+the px the display's whole track takes, its records band over the rows
+included, \code{row_height}, the px each row draws at, and the \code{tree} a caller
+sets.
 
 A comparative result lays out several axes: \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s two
 rows, \code{\link[=jbrowse_dotplot]{jbrowse_dotplot()}}'s x and y, \code{\link[=jbrowse_multiway]{jbrowse_multiway()}}'s lanes. Its

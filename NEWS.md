@@ -1,5 +1,13 @@
 # ggjbrowse (development version)
 
+- The engine is jbrowse-components d03d34b32c. A variant result's `height` is
+  the display's whole track, 390 px unset, where it was the genotype rows'
+  px: the records band and its 20 px chip strip come out of it and the rows
+  take the rest. `row_height` is still the px each row draws at, and a matrix
+  still stacks at its rows' height, which is 200 px by default as before. A
+  written `height` gives the rows less than it did: `display = list(height =
+  300)` draws them 151 px tall, not 300. Raise `height` by the band and its
+  chips, or set `rows$step`, to keep the old rows.
 - The engine is jbrowse-components 48ab79c589. A track whose `display` hides
   the pileup and sets no `height` draws 100 px tall, where it drew 250, and
   with the pileup hidden a downward sashimi or read-connection strip keeps its

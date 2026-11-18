@@ -42,8 +42,9 @@ tests, which test nothing while no genotype row draws),
 the arrangement a session saves, \code{sort}, \code{labels}, \code{colors}, \code{kept}
 and \code{filter}; \code{color}, the samples file column the rows are colored by;
 and \code{step}, pixels a row, where \code{\link[=jbrowse_stack]{jbrowse_stack()}} otherwise fits the
-rows into the display's height) and \code{facet} (a samples file attribute, or
-\code{list(field, sort)}, whose values each take a band of rows)}
+rows into what the display's height leaves under its records band) and
+\code{facet} (a samples file attribute, or \code{list(field, sort)}, whose values
+each take a band of rows)}
 
 \item{width}{the pixels the figure spans across the regions, at which
 records sharing a pixel fade as the display fades them}

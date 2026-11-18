@@ -43,7 +43,7 @@ gives the row}
 samples file column, or a list of \code{field} and its color \code{scale}}
 
 \item{step}{the row height in px, or \code{"fit"}, the default, the rows
-dividing the display's height}
+dividing what the display's height leaves under its records band}
 
 \item{tree}{a newick tree of the rows, labelled by row name, or a list of
 its \code{newick} and \code{provenance}}

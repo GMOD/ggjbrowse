@@ -228,11 +228,13 @@ test_that("the result keeps the display's resolved row field, row height and con
 test_that("the rows draw at the height the display resolves, the config left as written", {
   v <- jbrowse_variants(people, dcst2)
   expect_null(v$display[["height"]])
-  expect_equal(v$height, 200)
+  expect_equal(v$height, 390)
   expect_equal(v$row_height, 200 / nrow(v$rows))
   tall <- jbrowse_variants(people, dcst2, display = list(height = 300))
   expect_equal(tall$display[["height"]], 300)
-  expect_equal(tall$row_height, 300 / nrow(tall$rows))
+  expect_equal(tall$height, 300)
+  expect_equal(tall$row_height, 151 / nrow(tall$rows))
+  expect_equal(track_bands(tall)$heights, 151)
   stepped <- jbrowse_variants(people, dcst2,
     display = list(height = 300, rows = list(step = 2)))
   expect_equal(stepped$row_height, 2)

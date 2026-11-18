@@ -25,8 +25,9 @@ with the keys collected.
 - An alignments track read with `display = list(coverage = list(show = FALSE))`
   stacks no coverage band.
 - A variant matrix gives each row the display's `rows$step` pixels, or
-  without one fits its rows into the display's `height`, 200 pixels by
-  default, as the display does.
+  without one fits its rows into what the display's `height` leaves under
+  its records band, 200 pixels by default, as the display does. The
+  records band is not drawn, so the matrix stacks at its rows' height.
 - A key several tracks share appears once, listing every entry any of them
   holds. A tumor with hard clips over a normal without them gets one
   "Insertions and clips" key, "Hard clip" included.
