@@ -217,7 +217,7 @@ junctions_plot <- function(x, o) {
 
 # The read-connection band on the engine's arc scale: arcs, or the read cloud
 # on a log insert-size axis inset from the band's edges, hanging from the
-# band's top under placement "down" and rising from its bottom under "up"
+# band's top under placement "below" and rising from its bottom under "overlay" or "above"
 arcs_plot <- function(x, o) {
   s <- x$arc_scale
   cloud <- is_cloud(x)

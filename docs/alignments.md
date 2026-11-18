@@ -54,7 +54,7 @@ JBrowse does:
 - `coverage`, `pileup`, `sashimi` and `readConnections` each take the
   band's own `show` and height, as a track config writes them:
   `coverage = list(show = FALSE)`,
-  `sashimi = list(placement = "down")`,
+  `sashimi = list(placement = "below")`,
   `readConnections = list(show = TRUE, ordinaryPairs = list(show = FALSE))`.
 
 Each read comes back on the row the display lays it on, with the fill the

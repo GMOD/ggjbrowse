@@ -287,23 +287,23 @@ test_that("insertSizeAndOrientation colors by level, in the band normalInsertSiz
   expect_false("#008080" %in% teal$reads$color[teal$reads$level != "LL"])
 })
 
-test_that("the arcs and the read cloud hang from the band's top under placement down, and rise under up", {
+test_that("the arcs and the read cloud hang from the band's top under placement below, and rise under overlay", {
   y_transform <- function(x) {
     ggplot2::ggplot_build(ggplot2::autoplot(x, "arcs"))$layout$
       panel_scales_y[[1]]$get_transformation()$name
   }
   arcs <- read(display = list(readConnections = list(show = TRUE)))
-  expect_equal(arcs$display$readConnections$placement, "down")
+  expect_equal(arcs$display$readConnections$placement, "below")
   expect_match(y_transform(arcs), "reverse")
   cloud <- read(display = list(readConnections = list(show = TRUE,
     mark = "rule")))
   expect_match(y_transform(cloud), "log-10.*reverse")
-  up <- read(display = list(readConnections = list(show = TRUE,
-    mark = "rule", placement = "up")))
-  expect_match(y_transform(up), "log-10")
-  expect_no_match(y_transform(up), "reverse")
+  overlay <- read(display = list(readConnections = list(show = TRUE,
+    mark = "rule", placement = "overlay")))
+  expect_match(y_transform(overlay), "log-10")
+  expect_no_match(y_transform(overlay), "reverse")
   expect_equal(y_transform(read(display = list(readConnections =
-    list(show = TRUE, placement = "up")))), "identity")
+    list(show = TRUE, placement = "overlay")))), "identity")
 })
 
 test_that("a pileup keys the connectors it draws, and the read-connection band keys them once", {

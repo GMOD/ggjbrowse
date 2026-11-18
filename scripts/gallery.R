@@ -208,7 +208,7 @@ jbrowse_stack(genes, reads)
     locus = "chr3:25,358,500-25,359,800",
     jbrowse = c(hg38, "--bam", inst("colo829_tumor_chr3.bam"),
       "legend.show=true", grow,
-      "arcs:down", "unit=chain", "encoding.color.field=strand", "split:only",
+      "arcs:below", "unit=chain", "encoding.color.field=strand", "split:only",
       "--loc", "chr3:25,358,500-25,359,800"),
     r = r"-(
 autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
@@ -255,7 +255,7 @@ autoplot(jbrowse_alignments(e("hg008t_cuzd1_deletion.bam"),
     locus = "chr1:197,786,900-197,789,700",
     jbrowse = c(hg38, "--bam", inst("hg00151_chr1_inversion.bam"),
       "legend.show=true", grow,
-      "arcs:down", "unit=chain",
+      "arcs:below", "unit=chain",
       "encoding.color.field=insertSizeAndOrientation", "facet=split", "coverage.height=80", "--loc",
       "chr1:197,786,900-197,789,700"),
     r = r"-(

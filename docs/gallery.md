@@ -67,7 +67,7 @@ autoplot(jbrowse_alignments(e("colo829_tumor_chr3.bam"),
 
 ```sh
 jb2export --genome hg38 \
-  --bam inst/extdata/colo829_tumor_chr3.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain encoding.color.field=strand split:only \
+  --bam inst/extdata/colo829_tumor_chr3.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:below unit=chain encoding.color.field=strand split:only \
   --loc chr3:25,358,500-25,359,800 \
   --width 1500 --out long_reads_sv.png
 ```
@@ -169,7 +169,7 @@ autoplot(jbrowse_alignments(e("hg00151_chr1_inversion.bam"),
 
 ```sh
 jb2export --genome hg38 \
-  --bam inst/extdata/hg00151_chr1_inversion.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:down unit=chain encoding.color.field=insertSizeAndOrientation facet=split coverage.height=80 \
+  --bam inst/extdata/hg00151_chr1_inversion.bam legend.show=true heightMode:grow growMaxHeight=2000 arcs:below unit=chain encoding.color.field=insertSizeAndOrientation facet=split coverage.height=80 \
   --loc chr1:197,786,900-197,789,700 \
   --width 1500 --out inversion.png
 ```
