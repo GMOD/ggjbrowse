@@ -33,8 +33,9 @@ the order \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}'s \code{query} descr
 \item{display}{the view's settings, as a \code{DotplotView} snapshot writes
 them: a list with any of \code{encoding} (its \code{color} and \code{opacity}, as for
 \code{\link[=jbrowse_synteny]{jbrowse_synteny()}}), \code{filter} (a list of field predicates, such as
-\code{list(list(field = "identity", gte = 0.9))}), \code{indels} (as for
-\code{\link[=jbrowse_synteny]{jbrowse_synteny()}}) and \code{lineWidth}. Any other key is an error naming
+\code{list(list(field = "identity", gte = 0.9))}), \code{indels} (unset for each
+indel's line, \code{list(encoding = list(opacity = 0))} for the matches
+alone, \code{list(show = FALSE)} for one segment per block) and \code{lineWidth}. Any other key is an error naming
 these}
 
 \item{width, height}{the plot's pixels across and up, which decide which

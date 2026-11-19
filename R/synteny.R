@@ -249,7 +249,7 @@ on_axis_of <- function(regions, axis) {
 #' Runs JBrowse's own synteny display in V8 over two rows, the query assembly
 #' above the target: the alignment blocks the two rows share, the ribbons the
 #' band draws between them, with each CIGAR insertion, deletion and skip wide
-#' enough to show as its own colored piece, and the color and opacity the
+#' enough to show left as a gap in its block, and the color and opacity the
 #' view's settings give each. Coordinates are 0-based, half-open, on each
 #' assembly.
 #'
@@ -277,8 +277,8 @@ on_axis_of <- function(regions, axis) {
 #'   with a `field`, so `list(encoding = list(color = list(field =
 #'   "strand"), opacity = 0.5))`), `filter` (a list of field predicates, such
 #'   as `list(list(field = "length", gte = 10000))`), `indels` (unset for the
-#'   indels in their colors, `list(encoding = list(opacity = 0))` for the
-#'   matches alone with the indels left clear, `list(show = FALSE)` for the
+#'   matches alone with the indels left clear, `list(encoding = list(opacity
+#'   = 1))` for the indels in their colors, `list(show = FALSE)` for the
 #'   block alone), `mark` (`list(interpolate = "bump")` curves each ribbon's
 #'   sides), `axis` (`list(grid = TRUE)` draws the location markers), `render`
 #'   (`list(antialias = FALSE)` stops the fade of sub-pixel ribbons; unset,
@@ -796,8 +796,9 @@ autoplot.jbrowse_synteny <- function(object, above = NULL, below = NULL,
 #' @param display the view's settings, as a `DotplotView` snapshot writes
 #'   them: a list with any of `encoding` (its `color` and `opacity`, as for
 #'   [jbrowse_synteny()]), `filter` (a list of field predicates, such as
-#'   `list(list(field = "identity", gte = 0.9))`), `indels` (as for
-#'   [jbrowse_synteny()]) and `lineWidth`. Any other key is an error naming
+#'   `list(list(field = "identity", gte = 0.9))`), `indels` (unset for each
+#'   indel's line, `list(encoding = list(opacity = 0))` for the matches
+#'   alone, `list(show = FALSE)` for one segment per block) and `lineWidth`. Any other key is an error naming
 #'   these
 #' @param width,height the plot's pixels across and up, which decide which
 #'   blocks are wide enough for their CIGAR to show: 1,500 across as for the

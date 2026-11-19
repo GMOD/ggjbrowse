@@ -508,12 +508,13 @@ autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
       "--chromSizes", chrom_sizes(amylase, "target", "HG00133",
         "HG00133#1#CM090045.1"),
       "loc:HG00133#1#CM090045.1:103,768,401-103,771,400",
-      "--view", "encoding.color.field=strand"),
+      "--view", "encoding.color.field=strand", "indels.encoding.opacity=1"),
     r = r"-(
 autoplot(jbrowse_synteny(e("hprc_amylase.paf"),
   "GRCh38#0#chr1:103,619,501-103,622,500",
   "HG00133#1#CM090045.1:103,768,401-103,771,400",
-  display = list(encoding = list(color = list(field = "strand"))),
+  display = list(encoding = list(color = list(field = "strand")),
+    indels = list(encoding = list(opacity = 1))),
   labels = c(query = "GRCh38", target = "HG00133")))
 )-"),
   synteny_genes = list(

@@ -1,5 +1,11 @@
 # ggjbrowse (development version)
 
+- The engine is jbrowse-components de444a7f2b. `jbrowse_synteny()` leaves
+  each CIGAR indel a gap unless `display` paints indels, so `$ribbons` holds
+  match tiles alone; write `display = list(indels = list(encoding =
+  list(opacity = 1)))` for the insertion and deletion ribbons. A tile of a
+  reverse-strand block may list either row's span backward, and still
+  crosses. `jbrowse_dotplot()` keeps each indel's line.
 - The engine is jbrowse-components 5a9e899f10. A VCF whose samples carry no
   called genotype (a Strelka2 or Manta somatic VCF with no `GT`, or a LUMPY
   one with every `GT` `./.`) keeps its records in `$variants` when `display`

@@ -42,8 +42,7 @@ the color object's slots, such as \code{list(field = "strand")},
 \code{list(field = "mapq")}, and its \code{opacity}, a number or an opacity object
 with a \code{field}, so \code{list(encoding = list(color = list(field = "strand"), opacity = 0.5))}), \code{filter} (a list of field predicates, such
 as \code{list(list(field = "length", gte = 10000))}), \code{indels} (unset for the
-indels in their colors, \code{list(encoding = list(opacity = 0))} for the
-matches alone with the indels left clear, \code{list(show = FALSE)} for the
+matches alone with the indels left clear, \code{list(encoding = list(opacity = 1))} for the indels in their colors, \code{list(show = FALSE)} for the
 block alone), \code{mark} (\code{list(interpolate = "bump")} curves each ribbon's
 sides), \code{axis} (\code{list(grid = TRUE)} draws the location markers), \code{render}
 (\code{list(antialias = FALSE)} stops the fade of sub-pixel ribbons; unset,
@@ -126,7 +125,7 @@ objects and \code{height} the band's pixels.
 Runs JBrowse's own synteny display in V8 over two rows, the query assembly
 above the target: the alignment blocks the two rows share, the ribbons the
 band draws between them, with each CIGAR insertion, deletion and skip wide
-enough to show as its own colored piece, and the color and opacity the
+enough to show left as a gap in its block, and the color and opacity the
 view's settings give each. Coordinates are 0-based, half-open, on each
 assembly.
 }

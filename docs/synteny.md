@@ -48,14 +48,14 @@ assembly it is on.
 
 `jbrowse_synteny()` returns the blocks two rows of regions share and the
 ribbons the linear synteny display draws between them, in its colors and
-opacity, with each CIGAR insertion, deletion and skip wider than a pixel
-([HG002's chr8 inversion](gallery.md#inversion_synteny),
+opacity, with each CIGAR insertion, deletion and skip wider than a pixel left
+as a gap ([HG002's chr8 inversion](gallery.md#inversion_synteny),
 [a CIGAR zoom](gallery.md#amylase_zoom)).
 
 - `display` takes the `LinearSyntenyView`'s settings (`encoding`, `filter`,
   `indels`, `axis`, ...). `indels = list(show = FALSE)` draws each alignment
-  as one block, and `indels = list(encoding = list(opacity = 0))` leaves each
-  indel a gap.
+  as one block, and `indels = list(encoding = list(opacity = 1))` paints each
+  indel in its operation's color.
 - `autoplot(s, above = genes, below = genes2)` stacks tracks over either row
   ([genes on both rows](gallery.md#synteny_genes)).
 - `geom_jbrowse_ribbons()` draws `s$ribbons`, each foot's span on its row,

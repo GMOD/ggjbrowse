@@ -15,15 +15,14 @@ test_that("a PAF reads as the synteny band lays out and colors it", {
   expect_equal(sum(s$alignments$strand == -1), 2)
   expect_equal(s$assemblies, c("query", "target"))
   expect_equal(s$display$encoding$opacity$value, 0.25)
-  expect_true(all(c("match", "insertion") %in% s$ribbons$kind))
-  match <- s$ribbons[s$ribbons$kind == "match", ]
-  expect_equal(nrow(match), 7)
-  reversed <- s$alignments$strand[match$alignment] == -1
-  expect_equal(match$query_start > match$query_end, reversed)
-  expect_true(all(match$target_start < match$target_end))
-  expect_equal(unique(as.character(match$color)), "#ff0000")
+  expect_equal(unique(s$ribbons$kind), "match")
+  expect_gt(nrow(s$ribbons), nrow(s$alignments))
+  reversed <- s$alignments$strand[s$ribbons$alignment] == -1
+  crosses <- (s$ribbons$query_start > s$ribbons$query_end) !=
+    (s$ribbons$target_start > s$ribbons$target_end)
+  expect_equal(crosses, reversed)
+  expect_equal(unique(as.character(s$ribbons$color)), "#ff0000")
   expect_length(s$keys$ribbons$label, 0)
-  expect_true("deletion" %in% s$ribbons$kind)
   expect_type(s$ribbons$color, "character")
   expect_equal(nrow(s$offscreen), 0)
 })
@@ -295,12 +294,17 @@ test_that("each axis takes every region form a linear reader takes", {
   expect_equal(jbrowse_synteny(paf, g, target)$regions$end[1], 49186)
 })
 
-test_that("an indels opacity of 0 leaves each indel a gap", {
+test_that("an indel is a gap unless the view paints indels", {
   gaps <- jbrowse_synteny(paf, query, target,
     display = list(indels = list(encoding = list(opacity = 0))))
-  expect_equal(unique(gaps$ribbons$kind), "match")
-  expect_gt(sum(gaps$ribbons$kind == "match"), sum(s$ribbons$kind == "match"))
+  expect_equal(gaps$ribbons, s$ribbons)
   expect_equal(gaps$display$indels$encoding$opacity$value, 0)
+  colored <- jbrowse_synteny(paf, query, target,
+    display = list(indels = list(encoding = list(opacity = 1))))
+  expect_true(all(c("insertion", "deletion") %in% colored$ribbons$kind))
+  expect_equal(sum(colored$ribbons$kind == "match"), nrow(colored$alignments))
+  expect_gt(nrow(s$ribbons), sum(colored$ribbons$kind == "match"))
+  expect_true("insertion" %in% jbrowse_dotplot(paf, query, target)$segments$op)
   dots <- jbrowse_dotplot(paf, query, target,
     display = list(indels = list(encoding = list(opacity = 0))))
   expect_equal(unique(dots$segments$op), "match")
