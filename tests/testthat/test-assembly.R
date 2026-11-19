@@ -154,7 +154,7 @@ test_that("a one-sample calls VCF with no GT lists the records the display draws
   expect_equal(nrow(records$rows), 0)
   expect_equal(nrow(records$cells), 0)
   expect_equal(nrow(jbrowse_variants(vcf, "12:6,534,201-6,538,700",
-    display = list(genotypes = list(show = TRUE)))$variants), 0)
+    display = list(genotypes = list(show = TRUE)))$variants), 2)
   calls <- jbrowse_features(vcf, locus, assembly = hg38)
   f <- calls$features
   expect_equal(f$name, c("d_1", "i_2"))

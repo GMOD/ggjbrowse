@@ -1,5 +1,9 @@
 # ggjbrowse (development version)
 
+- The engine is jbrowse-components 5a9e899f10. A VCF whose samples carry no
+  called genotype (a Strelka2 or Manta somatic VCF with no `GT`, or a LUMPY
+  one with every `GT` `./.`) keeps its records in `$variants` when `display`
+  shows the genotype rows, where it listed none.
 - The engine is jbrowse-components 559559b2db. The alignments display's
   `sashimi` band is `junctions`: write `display = list(junctions = list(...))`
   where you wrote `sashimi`, and jb2export's `sashimi:` modifier is
