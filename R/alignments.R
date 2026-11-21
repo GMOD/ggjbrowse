@@ -100,7 +100,7 @@ alignments_adapter <- function(file, index) {
 #'     colored, such as `list(list(field = "fraction", gte = 0.2))`);
 #'     `pileup` (`mark = list(height = )`, 7, or 3 and 1 for compact and
 #'     super-compact,
-#'     `mismatches`, `softClips`, `fadeLowFrequency`, ...);
+#'     `mismatches`, `softclips`, `fadeLowFrequency`, ...);
 #'     `junctions` (`height`, `placement`, `labels`);
 #'     `readConnections` (`show = TRUE` for each mate pair's and split
 #'     read's arc, `mark = "rule"` for the read cloud, `height`,

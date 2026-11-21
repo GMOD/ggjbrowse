@@ -94,7 +94,7 @@ the strand colors framed against the chain's own
 colored, such as \code{list(list(field = "fraction", gte = 0.2))});
 \code{pileup} (\code{mark = list(height = )}, 7, or 3 and 1 for compact and
 super-compact,
-\code{mismatches}, \code{softClips}, \code{fadeLowFrequency}, ...);
+\code{mismatches}, \code{softclips}, \code{fadeLowFrequency}, ...);
 \code{junctions} (\code{height}, \code{placement}, \code{labels});
 \code{readConnections} (\code{show = TRUE} for each mate pair's and split
 read's arc, \code{mark = "rule"} for the read cloud, \code{height},

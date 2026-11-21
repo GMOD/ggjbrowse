@@ -1,5 +1,9 @@
 # ggjbrowse (development version)
 
+- The engine is jbrowse-components a8b49ba7a9. The alignments display's
+  `pileup.softClips` is `pileup.softclips`: write
+  `display = list(pileup = list(softclips = list(show = TRUE)))`. A feature,
+  variant-cell or multi-way gene color takes `scale = list(type = "symlog")`.
 - The engine is jbrowse-components de444a7f2b. `jbrowse_synteny()` leaves
   each CIGAR indel a gap unless `display` paints indels, so `$ribbons` holds
   match tiles alone; write `display = list(indels = list(encoding =

@@ -355,14 +355,14 @@ on another chromosome, so its end here is soft clipping, a stretch the aligner
 left unaligned. In each read track's menu:
 
 The track menu's choices are `display` settings. The pileup's
-`softClips` draws the clipped ends, and a `sort` of `"split"` lifts the
+`softclips` draws the clipped ends, and a `sort` of `"split"` lifts the
 reads that continue on another chromosome to the top. Its
 `mark = list(height = 3)` packs the pileup compact:
 
 
 ``` r
 locus <- "chr3:25,357,600-25,361,000"
-display <- list(pileup = list(softClips = list(show = TRUE),
+display <- list(pileup = list(softclips = list(show = TRUE),
   mark = list(height = 3)), sort = list(field = "split"))
 fig <- jbrowse_stack(
   `Somatic SVs` = jbrowse_features(calls_vcf, locus, width = 1200,
