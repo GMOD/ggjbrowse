@@ -38,8 +38,8 @@ drop_lines:
   - "`node`, for the"
   - "UCSC's `bedGraphToBigWig`"
 replace:
-  - from: "[conversion-rate check](#checking-the-bisulfite-conversion-rate) and the\n  optional aggregate track"
-    to: "[conversion-rate check](#checking-the-bisulfite-conversion-rate) and the\n  per-position calls we check against"
+  - from: "[conversion-rate check](#check-the-bisulfite-conversion-rate) and the optional\n  aggregate track"
+    to: "[conversion-rate check](#check-the-bisulfite-conversion-rate) and the\n  per-position calls we check against"
 -->
 
 <!-- jbrowse
@@ -49,24 +49,30 @@ replace:
     to: "This page reads the aligned reads over one 14 kb window from a clip on\njbrowse.org, so every chunk runs without the alignment step."
 -->
 
+## What bisulfite data looks like
+
 <!-- jbrowse
-section: What bisulfite data looks like
+section: intro
+only:
+  - "A chemical (sodium bisulfite)"
 replace:
-  - from: "JBrowse makes that comparison per read as it draws."
-    to: "JBrowse's engine makes that comparison per read, in the browser and in\nggjbrowse alike."
-  - from: "JBrowse colors the reads by one context at a time."
-    to: "The engine calls one context at a time."
+  - from: "Whole-genome bisulfite sequencing (WGBS) and enzymatic methyl sequencing\n(EM-seq) measure DNA methylation with short reads. "
+    to: ""
+  - from: "JBrowse\ncompares each read to the reference as it draws, a C→T change meaning\nunmethylated and a retained C methylated, so an aligned BAM is all it needs."
+    to: "JBrowse's\nengine compares each read to the reference, in the browser and in ggjbrowse\nalike, a C→T change meaning unmethylated and a retained C methylated."
+  - from: "methylated. With an\n_Arabidopsis thaliana_ WGBS run we:"
+    to: "methylated. The engine calls one\ncontext at a time."
 -->
 
 <!-- jbrowse
-section: Producing the BAM
+section: Align the reads into a BAM
 replace:
   - from: "still there for JBrowse to find"
     to: "still there for the engine to find"
 -->
 
 <!-- jbrowse
-section: Aggregate methylation per context with MethylDackel
+section: Summarize each context's methylation with MethylDackel
 level: 1
 replace:
   - from: "The track is optional, and the reproduce\nscript leaves it out."
@@ -105,7 +111,7 @@ cg <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
 ```
 
 <!-- jbrowse
-section: Loading the TAIR10 hub assembly and the WGBS BAM
+section: Load the TAIR10 hub assembly and the WGBS BAM
 title: false
 only:
   - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms"
@@ -128,8 +134,10 @@ head(cg$modifications[, c("position", "read", "name", "unmodified",
 ```
 
 <!-- jbrowse
-section: Gene body methylation and transposon silencing
+section: Compare a gene with a transposon by context
 drop:
+  - "**Color by → Bisulfite / EM-seq**"
+  - "**Color by → Cytosine context**"
   - "Type `chr1:4,398,000-4,412,000` into the location box"
   - "**Filter by...** in the RepeatMasker track menu"
 -->

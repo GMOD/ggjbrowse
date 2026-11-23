@@ -74,12 +74,12 @@ library(readr)
 ```
 
 <!-- jbrowse
-section: What RNA-seq looks like in the genome browser
+section: Read the splice arcs over ACTB
 title: Spliced reads over ACTB
 only:
   - "The thin teal lines"
 replace:
-  - from: "The thin teal lines jumping across a gap are spliced alignments"
+  - from: "The thin teal lines spanning a gap are spliced alignments"
     to: "We'll read `chr7:5,567,000-5,570,000`, _ACTB_, a compact gene with deep read coverage.\n\nEach arc below marks spliced alignments"
 -->
 
@@ -135,8 +135,15 @@ actb_depth |>
 ```
 
 <!-- jbrowse
-section: Spliced reads, CIGAR strings, and splice arcs
+section: Read the splice arcs over ACTB
 title: Spliced reads, CIGAR strings and splice arcs
+only:
+  - "A spliced aligner like"
+  - "A spliced read in the _ACTB_ pileup"
+  - "18M 95N 33M"
+  - "The CIGAR reads as"
+  - "JBrowse computes the arcs on the fly"
+  - "**Splice motif.**"
 replace:
   - from: "JBrowse computes the arcs on the fly"
     to: "The engine computes the arcs on the fly"
@@ -144,6 +151,8 @@ replace:
     to: "so the engine combines it"
   - from: "so JBrowse reads the first"
     to: "so the engine reads the first"
+  - from: "JBrowse draws a junction in the neutral color"
+    to: "The engine draws a junction in the neutral color"
   - from: "Hovering an arc shows the motif beside the\n  read count."
     to: "The junction table's `motif` column holds the motif beside the read count."
 -->
@@ -257,7 +266,7 @@ bind_rows(all = all_junctions$junctions,
 ```
 
 <!-- jbrowse
-section: Strand-specific RNA-seq
+section: Color and group reads by strand
 only:
   - "The arc colors give the transcript strand"
   - "The surfeit locus is a tight cluster"
@@ -348,7 +357,7 @@ sense |>
 ```
 
 <!-- jbrowse
-section: "Long-read splicing: IsoSeq over ACTB"
+section: Follow whole transcripts in IsoSeq reads over ACTB
 title: Long-read splicing, IsoSeq over ACTB
 only:
   - "A long read (PacBio IsoSeq"
@@ -395,13 +404,13 @@ iso_reads$junctions |>
 ```
 
 <!-- jbrowse
-section: Loading STAR, regtools and portcullis junction tables
+section: Load STAR, regtools and portcullis junction tables
 title: Junction tables from STAR, regtools and portcullis
 drop_lines:
   - "**Advanced"
   - "To load the other tables"
 replace:
-  - from: "and the BED draws as arcs on a feature track."
+  - from: "and JBrowse draws the BED as arcs on a feature track."
     to: "and the BED holds one junction per row."
   - from: " The color's\n`scale.domain` lists the `known_junction` values as strings because the adapter\nreads extra columns as text."
     to: ""

@@ -36,7 +36,7 @@ Only the optional `minimap2` command under
 <!-- jbrowse
 section: The data
 replace:
-  - from: "The read and SV call tracks read these files by URL. The derivative-allele\ntracks read local files that the [build script](#reproduce-it-end-to-end)\nwrites, so run it first, or swap the `uri` for your own sample's reads and\nfollow _The derivative allele_ to assemble a contig from them."
+  - from: "The read and SV call tracks read these files by URL. The derivative-allele\ntracks read local files that the [build script](#reproduce-it-end-to-end)\nwrites, so run it first, or swap the `uri` for your own sample's reads and\nfollow _Assemble the der(3) allele_ to assemble a contig from them."
     to: "The code below reads each of these files by URL, and reads the 3 GB FASTA by\nrange request, so R fetches only the bases it needs."
 -->
 
@@ -126,13 +126,18 @@ ggplot(passed, aes(type, fill = size)) +
 ```
 
 <!-- jbrowse
-section: The rearrangement chain across chr3, chr10 and chr12
+section: Load tumor and normal reads at the chr3 breakpoints
+title: The rearrangement chain across chr3, chr10 and chr12
+only:
+  - "The chain is COLO829's der(3)"
+  - "chr3:25,359,111 <-> chr12:72,273,112"
+  - "The genes at the junctions are"
 -->
 
 ## Walking the chain in the callset
 
 <!-- jbrowse
-section: Following the chain across breakpoint split view panels
+section: Follow the chain across split view panels
 title: false
 only:
   - "A breakpoint split view stacks the loci"
@@ -221,11 +226,13 @@ in _TRHDE_, with a pseudogene, _FAM133CP_, and an antisense gene,
 _TRHDE-AS1_, beside two of them.
 
 <!-- jbrowse
-section: Tumor and normal coverage as bigWigs
+section: Reproduce it end to end
 title: Coverage in the tumor and the normal
 only:
-  - "The demo config also"
+  - "The coverage bigWigs give"
 replace:
+  - from: "The coverage bigWigs give a chromosome-wide look at where the tumor gained and\nlost."
+    to: "The demo config's tumor and normal coverage tracks give a chromosome-wide\nlook at where the tumor gained and lost."
   - from: "converted to\nbigWig the same way for each sample:"
     to: "converted to bigWig for the browser. `readr` reads the BED as it is.\nWe'll take the ratio of the two samples' depth per window, each over its own\nmedian, and mark the chain's breakends on it:"
 -->
@@ -267,7 +274,7 @@ c(start = min(chr3$start[inside]), end = max(chr3$end[inside]),
 ```
 
 <!-- jbrowse
-section: Tumor and normal reads at the chr3 breakpoints
+section: Load tumor and normal reads at the chr3 breakpoints
 only:
   - "The ONT reads are aligned to GRCh38"
   - "Open the SV calls and the tumor and normal read tracks"
@@ -363,7 +370,7 @@ fig
 ```
 
 <!-- jbrowse
-section: Assembling the der(3) derivative allele and aligning it to GRCh38
+section: Assemble the der(3) allele and align it to GRCh38
 title: The derivative allele
 level: 0
 only:
@@ -377,8 +384,8 @@ keep:
 drop_lines:
   - "jbrowse make-pif"
 replace:
-  - from: "The split view shows each read in pieces across three panels. Assembling the\nreads"
-    to: "Assembling the reads"
+  - from: "The split view shows each read in pieces across three panels. An assembler run\non the reads"
+    to: "An assembler run on the reads"
 -->
 
 `jbrowse_synteny()` reads that PAF as it is. The demo hosts the indexed PIF its
@@ -435,7 +442,7 @@ autoplot(zoom)
 ## Checking against the truth set
 
 <!-- jbrowse
-section: Assembling the der(3) derivative allele and aligning it to GRCh38
+section: Assemble the der(3) allele and align it to GRCh38
 title: false
 only:
   - "Add the truth set"
@@ -447,7 +454,7 @@ replace:
 -->
 
 <!-- jbrowse
-section: Checking the der(3) contig against the reads and the truth set
+section: Check the der(3) contig against reads and truth set
 title: false
 only:
   - "The consensus was polished from these reads"

@@ -65,7 +65,7 @@ replace:
 -->
 
 <!-- jbrowse
-section: Building Fst, π and Tajima's D bigWigs with vcftools
+section: Build Fst, π and Tajima's D bigWigs with vcftools
 replace:
   - from:
       - "[refname aliasing](/docs/developer_guides/refname_aliasing) maps one to the\nother. A mismatch with no alias draws an empty track and raises no error."
@@ -192,7 +192,7 @@ vapply(stats, function(s) mean(tiles[[s]] <= swept[[s]]), 0)
 ```
 
 <!-- jbrowse
-section: Reading the Cyp6g1 sweep in Tajima's D and π
+section: Read the Cyp6g1 sweep in Tajima's D and π
 title: false
 only:
   - "Called variants fall under the sweep"
@@ -201,7 +201,7 @@ only:
 ## The In(2L)t inversion in Fst and π
 
 <!-- jbrowse
-section: Genotyping the inversion in each line
+section: Genotype the inversion in each line
 title: false
 only:
   - "The inversion is one `<INV>` record"
@@ -251,7 +251,7 @@ ggplot(binned, aes(mb, fst)) +
 ```
 
 <!-- jbrowse
-section: The In(2L)t inversion, genome-wide and within each arrangement
+section: Compare In(2L)t genome-wide and within each arrangement
 title: false
 only:
   - "Each arrangement's π swings"
@@ -286,7 +286,7 @@ c(bins = nrow(ratio), hosted = nrow(hosted), both = nrow(compared),
 ```
 
 <!-- jbrowse
-section: The In(2L)t inversion, genome-wide and within each arrangement
+section: Compare In(2L)t genome-wide and within each arrangement
 title: false
 only:
   - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms,\n`encoding.color` is a color scale"
@@ -316,7 +316,7 @@ fig
 ```
 
 <!-- jbrowse
-section: The In(2L)t inversion, genome-wide and within each arrangement
+section: Compare In(2L)t genome-wide and within each arrangement
 title: false
 only:
   - "The inverted lines have less diversity"

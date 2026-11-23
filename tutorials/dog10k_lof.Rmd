@@ -42,16 +42,22 @@ replace:
 -->
 
 <!-- jbrowse
-section: The CYP1A2 nonsense variant
+section: Derive the stop codon's coordinate from the reference
+title: The CYP1A2 nonsense variant
+only:
+  - "_CYP1A2_ is a drug-metabolizing cytochrome P450"
+replace:
+  - from: "Wolves are the\ncontrol, because"
+    to: "We ask which\nbreeds have the allele and whether wild canids do. Wolves are the control,\nbecause"
 -->
 
 <!-- jbrowse
-section: Deriving the CYP1A2 stop codon's coordinate from the reference
+section: Derive the stop codon's coordinate from the reference
 title: Deriving the stop codon's coordinate in R
 only:
-  - "The literature names this variant"
+  - "The variant is p.Arg373Ter."
 replace:
-  - from: "The\nbuild script rebuilds _CYP1A2_'s coding sequence from the reference and the\nRefSeq exon structure, translates it, and reports codon 373:"
+  - from: "The build script rebuilds _CYP1A2_'s coding sequence\nfrom the reference and the RefSeq exon structure, translates it, and reports\ncodon 373:"
     to: "We'll rebuild _CYP1A2_'s coding sequence from the reference and the\nRefSeq exon structure, then translate it to find codon 373."
 -->
 
@@ -99,7 +105,7 @@ cat(sprintf("%s CDS %d bp, %d codons\ncodon 373 = %s (%s) at chr30:%d\n",
 ```
 
 <!-- jbrowse
-section: Deriving the CYP1A2 stop codon's coordinate from the reference
+section: Derive the stop codon's coordinate from the reference
 title: false
 only:
   - "The C>T at chr30:38,261,635"
@@ -125,7 +131,7 @@ everyone
 ```
 
 <!-- jbrowse
-section: Slicing CYP1A2 out of the Dog10K SNV callset
+section: Slice CYP1A2 out of the Dog10K SNV callset
 -->
 
 The figures below read a hosted copy of that slice, which JBrowse keeps beside its
@@ -156,7 +162,7 @@ panel <- meta |>
 ```
 
 <!-- jbrowse
-section: CYP1A2 stop-gained genotypes across breeds and wolves
+section: Filter the track to the stop site
 title: false
 only:
   - "Other variants lie near the stop site"
@@ -277,7 +283,7 @@ tibble(
 ```
 
 <!-- jbrowse
-section: Copy number at CYP1A2
+section: Cluster per-animal copy number at CYP1A2
 only:
   - "The Dog10K paper reports"
   - "bcftools view -r chr30:38205000"
@@ -353,10 +359,10 @@ at_gene
 ```
 
 <!-- jbrowse
-section: Copy number at CYP1A2
+section: Cluster per-animal copy number at CYP1A2
 title: false
 only:
-  - "The depth-based estimate puts"
+  - "By the depth-based estimate"
 -->
 
 Here is how the collection splits at the gene:
@@ -374,7 +380,7 @@ Two numbers test the figures' reading. The first is the callset's own count of
 alleles at the stop site, which `bcftools query` prints from the callset:
 
 <!-- jbrowse
-section: Deriving the CYP1A2 stop codon's coordinate from the reference
+section: Derive the stop codon's coordinate from the reference
 title: false
 only:
   - "bcftools query -r chr30:38261635"

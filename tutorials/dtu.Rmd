@@ -104,7 +104,7 @@ ENCDO793LXB gave both a muscle and a liver sample, which is why each sample
 takes its donor's name.
 
 <!-- jbrowse
-section: Building the GFF3
+section: Build the GFF3
 title: Testing usage with satuRn
 only:
   - "**Test usage.**"
@@ -146,7 +146,7 @@ two tissues breaks, so the calls below gate on its regular FDR.
 ## Writing the statistics into GENCODE
 
 <!-- jbrowse
-section: Building the GFF3
+section: Build the GFF3
 title: false
 only:
   - "**Write the statistics into GENCODE.**"
@@ -216,7 +216,7 @@ write_tsv(annotated, "dtu_muscle_vs_liver.gff3", append = TRUE,
 ```
 
 <!-- jbrowse
-section: Building the GFF3
+section: Build the GFF3
 title: false
 only:
   - "The rows come out in coordinate order"
@@ -280,7 +280,7 @@ atp5f1c |>
 ```
 
 <!-- jbrowse
-section: Coloring each isoform by its usage change
+section: Color each isoform by its usage change
 title: Coloring each isoform by its usage change
 only:
   - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms,\n`encoding.color` is a color scale"
@@ -306,7 +306,7 @@ autoplot(genes)
 ```
 
 <!-- jbrowse
-section: Coloring each isoform by its usage change
+section: Color each isoform by its usage change
 title: Coverage as the check
 only:
   - "Add the four coverage tracks below"

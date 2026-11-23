@@ -96,7 +96,7 @@ mixed until the alleles come apart.
 ## Splitting the alleles apart
 
 <!-- jbrowse
-section: Splitting the alleles apart
+section: Split the alleles apart
 title: false
 only:
   - "Each long read is one DNA molecule"
@@ -144,7 +144,7 @@ reads_share
 ```
 
 <!-- jbrowse
-section: Splitting the alleles apart
+section: Split the alleles apart
 title: false
 only:
   - "Reads of your own without an `HP` tag"
@@ -224,12 +224,12 @@ fig
 ## Smoothing across the imprinted domain
 
 <!-- jbrowse
-section: Smoothing across the imprinted domain
+section: Smooth across the imprinted domain
 title: false
 only:
   - "A single CpG's fraction rests on the few reads"
 replace:
-  - from: "A\n`window` step averages each CpG with a fixed number of neighbouring CpGs, so a\nCpG island weighs as many sites as it holds. We'll load both haplotypes around\n_SNRPN_, each in a row with its raw values under a moving average:"
+  - from: "A\n`window` step averages each CpG with a fixed number of neighbouring CpGs, so a\nCpG island counts as many sites as it holds. We'll load both haplotypes around\n_SNRPN_, each in a row with its raw values under a moving average:"
     to: "A\nmoving average over a fixed number of neighbouring CpGs fixes that, and a CpG\nisland weighs as many sites as it holds. We'll read both haplotypes around\n_SNRPN_ and compute the average in R."
 -->
 
