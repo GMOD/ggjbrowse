@@ -460,12 +460,10 @@ test_that("a VCF's CSQ reads as a row per record and consequence", {
   expect_null(f$features$CSQ)
 })
 
-test_that("a feature listed for its label in the margin keeps its file's fields", {
+test_that("a feature in the margin is not listed, its label starting left of the window", {
   margin <- jbrowse_features(gff, "ctgA:1,003-1,400")
-  snp <- margin$features[margin$features$name %in% "FakeSNP", ]
-  expect_equal(nrow(snp), 1)
-  expect_equal(snp$ID, "FakeSNP1")
-  expect_equal(snp$source, "example")
+  expect_false("FakeSNP" %in% margin$features$name)
+  expect_false("FakeSNP" %in% margin$labels$text)
   vcf <- jbrowse_features(extdata("dog10k_cyp1a2_snvs.vcf.gz"),
     "chr30:38,258,004-38,258,203")
   expect_false(anyNA(vcf$features$ref))

@@ -1,5 +1,12 @@
 # ggjbrowse (development version)
 
+- The engine is jbrowse-components 32f11eccc6. A gene's description falls
+  back to the `product` of its only child, so a RefSeq gene converted by UCSC
+  draws a second label line such as "uncharacterized protein"; write
+  `display = list(labels = list(description = list(show = FALSE)))` for names
+  alone. A label that would start left of the window is left out of `$labels`,
+  and a feature in the margin is no longer listed for its label. A VCF region
+  holding no records gives empty tables instead of an error.
 - The engine is jbrowse-components a8b49ba7a9. The alignments display's
   `pileup.softClips` is `pileup.softclips`: write
   `display = list(pileup = list(softclips = list(show = TRUE)))`. A feature,

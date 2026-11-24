@@ -7,7 +7,7 @@ the JBrowse authors) with the packages below, minified.
 - Each package's source is on npm under its name and version
 - The Apache-2.0 text: https://www.apache.org/licenses/LICENSE-2.0
 
-- @babel/runtime 7.29.14
+- @babel/runtime 7.29.15
   License: MIT
   Copyright: Copyright (c) 2014-present Sebastian McKenzie and other contributors
 - @emotion/cache 11.14.0
@@ -211,7 +211,7 @@ the JBrowse authors) with the packages below, minified.
 - crypt 0.0.2
   License: BSD-3-Clause
   Copyright: Copyright (c) 2011, Paul Vorbach. All rights reserved.; Copyright (c) 2009, Jeff Mott. All rights reserved.
-- dompurify 3.4.18
+- dompurify 3.5.0
   License: (MPL-2.0 OR Apache-2.0)
   Copyright: Dr.-Ing. Mario Heiderich, Cure53
 - generic-filehandle2 2.5.1
@@ -232,7 +232,7 @@ the JBrowse authors) with the packages below, minified.
 - mobx-react 10.0.4
   License: MIT
   Copyright: Copyright (c) 2015 Michel Weststrate
-- mobx-react-lite 5.1.3
+- mobx-react-lite 5.1.4
   License: MIT
   Copyright: Copyright (c) 2015 Michel Weststrate
 - pako-esm2 2.0.2

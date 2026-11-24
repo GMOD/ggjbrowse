@@ -136,7 +136,8 @@ shade:
 ```{r cyp6g1-read}
 locus <- "chr2R:12,000,000-12,400,000"
 sweep <- c(12130000, 12200000)
-genes <- jbrowse_features(genes_adapter, locus, width = 1200)
+genes <- jbrowse_features(genes_adapter, locus, width = 1200,
+  display = list(labels = list(description = list(show = FALSE))))
 scan_at <- function(bigwig) jbrowse_wiggle(bigwig,
   "2R:12,000,000-12,400,000", width = 1200)
 fig <- jbrowse_stack(`RefSeq genes` = genes,
