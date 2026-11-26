@@ -224,7 +224,7 @@ only:
 -->
 
 <!-- jbrowse
-section: The statistics in the attribute column
+section: Read the statistics from the attribute column
 level: -1
 -->
 
@@ -311,8 +311,8 @@ title: Coverage as the check
 only:
   - "Add the four coverage tracks below"
 replace:
-  - from: "Add the four coverage tracks below and open them with the transcript track at\n`chr10:7,787,600-7,812,400`, the whole of _ATP5F1C_, an ATP synthase subunit:"
-    to: "We'll read each tissue's RNA-seq coverage over the same window,\n`chr10:7,787,600-7,812,400`, the whole of _ATP5F1C_."
+  - from: "Add the four coverage tracks below, then open `chr10:7,787,600-7,812,400` with\nthe transcript track. That is the whole of _ATP5F1C_, an ATP synthase subunit on\nthe plus strand, so the two plus-strand tracks hold its reads."
+    to: "We'll read each tissue's RNA-seq coverage over the same window,\n`chr10:7,787,600-7,812,400`, the whole of _ATP5F1C_, an ATP synthase subunit\non the plus strand."
 -->
 
 `jbrowse_wiggle()` reads the two plus-strand bigWigs as one track with a row

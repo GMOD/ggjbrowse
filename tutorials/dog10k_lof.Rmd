@@ -35,9 +35,9 @@ remotes::install_github("GMOD/ggjbrowse")
 <!-- jbrowse
 section: The data
 drop_lines:
-  - "15 published CRAMs"
+  - "The published CRAMs that callset depth"
 replace:
-  - from: "The tracks below read local files that the\n[build script](#reproduce-it-end-to-end) writes from these, so run it first, or\nrun the slicing steps on any tabix-indexed VCF of your own. The script fetches\neverything itself."
+  - from: "The tracks below read local files that the\n[build script](#reproduce-it-end-to-end) writes from these, so run it first, or\nrun the slicing steps on any tabix-indexed VCF of your own."
     to: "The code below reads each of these files by URL, so there is nothing to\ndownload by hand."
 -->
 
@@ -46,10 +46,10 @@ section: Derive the stop codon's coordinate from the reference
 title: The CYP1A2 nonsense variant
 only:
   - "_CYP1A2_ is a drug-metabolizing cytochrome P450"
-replace:
-  - from: "Wolves are the\ncontrol, because"
-    to: "We ask which\nbreeds have the allele and whether wild canids do. Wolves are the control,\nbecause"
 -->
+
+We'll ask which breeds have the allele and whether wild canids do, with the
+wolves as the control.
 
 <!-- jbrowse
 section: Derive the stop codon's coordinate from the reference
@@ -131,7 +131,7 @@ everyone
 ```
 
 <!-- jbrowse
-section: Slice CYP1A2 out of the Dog10K SNV callset
+section: Slice the CYP1A2 locus out of the Dog10K SNV callset
 -->
 
 The figures below read a hosted copy of that slice, which JBrowse keeps beside its
@@ -167,8 +167,8 @@ title: false
 only:
   - "Other variants lie near the stop site"
 replace:
-  - from: "and the config below filters them out so\nthe stop site"
-    to: "and the filter below drops them so\nthe stop site"
+  - from: "and the config below, which replaces the\ntrack above, filters them out so the stop site is the one column drawn. Dropping\nthe filter shows them."
+    to: "and the filter below drops them so\nthe stop site is the one column drawn. Dropping the filter shows them."
 -->
 
 ```{r neighbours}
@@ -358,14 +358,8 @@ at_gene <- rows |>
 at_gene
 ```
 
-<!-- jbrowse
-section: Cluster per-animal copy number at CYP1A2
-title: false
-only:
-  - "By the depth-based estimate"
--->
-
-Here is how the collection splits at the gene:
+Across the whole collection, the animals with three or more copies at the
+gene's coding start are:
 
 ```{r expansion-share}
 cohort |>
@@ -384,6 +378,7 @@ section: Derive the stop codon's coordinate from the reference
 title: false
 only:
   - "bcftools query -r chr30:38261635"
+  - "38261635  C  T  PASS"
 -->
 
 `AC` counts the alt alleles and `AN` the alleles called. R read the same record's

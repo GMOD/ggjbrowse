@@ -192,13 +192,6 @@ ggplot(long, aes(value)) +
 vapply(stats, function(s) mean(tiles[[s]] <= swept[[s]]), 0)
 ```
 
-<!-- jbrowse
-section: Read the Cyp6g1 sweep in Tajima's D and π
-title: false
-only:
-  - "Called variants fall under the sweep"
--->
-
 ## The In(2L)t inversion in Fst and π
 
 <!-- jbrowse
@@ -255,7 +248,7 @@ ggplot(binned, aes(mb, fst)) +
 section: Compare In(2L)t genome-wide and within each arrangement
 title: false
 only:
-  - "Each arrangement's π swings"
+  - "To compare the arrangements directly"
   - "# B: bin width"
 replace:
   - from: "An `awk` step writes it from the two π\nbedGraphs:"
@@ -315,13 +308,6 @@ fig <- jbrowse_stack(`In(2L)t` = extent,
 ```{r in2lt, fig.height = jbrowse_height(fig), fig.width = jbrowse_width(fig), fig.cap = "The published In(2L)t extent, Fst between inverted and standard lines, and log2 of π in the inverted lines over π in the standard ones in 250 kb bins, across 2L: Fst is high and the ratio mostly orange, inverted lower, between the breakpoints, and both settle past the right breakpoint"}
 fig
 ```
-
-<!-- jbrowse
-section: Compare In(2L)t genome-wide and within each arrangement
-title: false
-only:
-  - "The inverted lines have less diversity"
--->
 
 ## Checking the reading
 

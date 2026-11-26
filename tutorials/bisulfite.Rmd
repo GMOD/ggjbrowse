@@ -72,7 +72,7 @@ replace:
 -->
 
 <!-- jbrowse
-section: Summarize each context's methylation with MethylDackel
+section: Summarize methylation per context with MethylDackel
 level: 1
 replace:
   - from: "The track is optional, and the reproduce\nscript leaves it out."
@@ -111,7 +111,7 @@ cg <- jbrowse_alignments(cram, locus, assembly = tair10_2bit,
 ```
 
 <!-- jbrowse
-section: Load the TAIR10 hub assembly and the WGBS BAM
+section: Load the TAIR10 assembly and the WGBS BAM
 title: false
 only:
   - "In [grammar-of-graphics](/docs/config_guides/mark_display) terms"
@@ -227,7 +227,7 @@ the two programs in the table above.
 ### Checking against MethylDackel
 
 MethylDackel calls the same cytosines independently, and jbrowse.org hosts the
-three bigWigs the [aggregate step](#aggregate-methylation-per-context-with-methyldackel)
+three bigWigs the [aggregate step](#summarize-methylation-per-context-with-methyldackel)
 writes. `jbrowse_wiggle()` reads them as one multi-row track, and each bin's
 `score` is the percentage methylated:
 
@@ -258,7 +258,7 @@ count weighs each cytosine by its coverage.
 
 To run this on your own WGBS or EM-seq run:
 
-- Align it as [above](#producing-the-bam), or use a Bismark BAM, which keeps
+- Align it as [above](#align-the-reads-into-a-bam), or use a Bismark BAM, which keeps
   the original read sequences too.
 - Pass the BAM's path and the FASTA you aligned to:
   `jbrowse_alignments("my_wgbs.bam", "chr1:1-20000", assembly = "ref.fa", display = ...)`.

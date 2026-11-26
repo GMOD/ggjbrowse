@@ -34,7 +34,11 @@ junction table from your own BAM, see
 
 <!-- jbrowse
 section: The data
+drop_lines:
+  - "The HeLa RNase R-treated and untreated reads"
 replace:
+  - from: "long reads, gene models and junction table behind the\nfigures, and the hg38 circular RNA reads, hosted"
+    to: "long reads, gene models and junction table behind the\nfigures, hosted"
   - from: "Nothing to download: the track configs below read these files by URL."
     to: "Nothing to download: the code below reads these files by URL."
 -->
@@ -270,13 +274,11 @@ section: Color and group reads by strand
 only:
   - "The arc colors give the transcript strand"
   - "The surfeit locus is a tight cluster"
-  - "The color marks each read's strand"
+  - "To compare the strands over a whole gene"
 replace:
   - from: "Type `chr9:136,214,000-136,229,000` into the\nlocation box, then pick this path from the track menu:"
     to: "We'll read `chr9:136,214,000-136,229,000`."
-  - from:
-      - "To compare the strands over a whole gene,\n**Group by → First-of-pair strand** applies a `facet`, one section per strand,\neach with a coverage histogram drawn from that section's reads, forward and\nreverse on one autoscaled axis. **Show → Pileup**, unticked, hides the reads and\nleaves the two histograms."
-      - "To compare the strands over a whole gene,\n**Group by → First-of-pair strand** applies a `facet`, one section per strand,\neach with a coverage histogram drawn from that section's reads, forward and\nreverse on one autoscaled axis. **Show → Show pileup**, unticked, hides the\nreads and leaves the two histograms."
+  - from: "To compare the strands over a whole gene, **Group by → First-of-pair strand**\napplies a `facet`, one section per strand, each with a coverage histogram drawn\nfrom that section's reads, forward and reverse on one autoscaled axis. **Show →\nShow pileup**, unticked, hides the reads and leaves the two histograms."
     to: "To compare the strands over a whole gene,\n`facet = list(field = \"firstOfPairStrand\")` makes one section per strand,\neach with a coverage histogram drawn from that section's reads, forward and\nreverse on one autoscaled axis. `pileup = list(show = FALSE)` hides the reads\nand leaves the two histograms."
 -->
 

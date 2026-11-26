@@ -147,15 +147,15 @@ reads_share
 section: Split the alleles apart
 title: false
 only:
-  - "Reads of your own without an `HP` tag"
+  - "For reads without an `HP` tag"
   - "whatshap haplotag --reference"
 replace:
-  - from: "reads a phased VCF. The\n[alignments track guide](/docs/user_guides/alignments_track#grouping-reads)\ncovers the Group-by dialog:"
-    to: "reads a phased VCF:"
+  - from: "from a phased VCF.\nThe [alignments track guide](/docs/user_guides/alignments_track#grouping-reads)\ncovers the Group-by dialog:"
+    to: "from a phased VCF:"
 -->
 
 <!-- jbrowse
-section: Aggregate methylation with modkit bedMethyl
+section: Tally the calls into a bedMethyl track with modkit
 replace:
   - from: "The file is much smaller than\nthe reads.[^dmr]"
     to: "The file is much smaller than\nthe reads."

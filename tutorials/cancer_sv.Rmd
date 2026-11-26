@@ -233,7 +233,7 @@ only:
 replace:
   - from: "The coverage bigWigs give a chromosome-wide look at where the tumor gained and\nlost."
     to: "The demo config's tumor and normal coverage tracks give a chromosome-wide\nlook at where the tumor gained and lost."
-  - from: "converted to\nbigWig the same way for each sample:"
+  - from: "converted to bigWig the same way for each sample, then\nloaded as a\ntrack:"
     to: "converted to bigWig for the browser. `readr` reads the BED as it is.\nWe'll take the ratio of the two samples' depth per window, each over its own\nmedian, and mark the chain's breakends on it:"
 -->
 
@@ -378,7 +378,6 @@ only:
   - "To build one from your own data"
   - "The published contig aligns to the reference"
   - "derivative       0-32732"
-  - "The chr10 and chr12 pieces are templated insertions"
 keep:
   - "minimap2 -cx asm5"
 drop_lines:
@@ -441,24 +440,9 @@ autoplot(zoom)
 
 ## Checking against the truth set
 
-<!-- jbrowse
-section: Assemble the der(3) allele and align it to GRCh38
-title: false
-only:
-  - "Add the truth set"
-keep:
-  - "Add the truth set"
-replace:
-  - from: "Add the truth set, called on five platforms before this ONT run existed, so\nevery junction has an independent call to check against:"
-    to: "The truth set was called on five platforms before this ONT run existed, so\nevery junction has an independent call to check against."
--->
-
-<!-- jbrowse
-section: Check the der(3) contig against reads and truth set
-title: false
-only:
-  - "The consensus was polished from these reads"
--->
+The tumor's split reads stop at each junction against GRCh38, and the
+multi-platform truth set should hold a validated call at each place they stop.
+Its `SUPP_SEQ` field lists the platforms behind each call.
 
 The truth set names chromosomes without the `chr` prefix. Read through the
 assembly over the chain's chromosomes in `genome`, `jbrowse_features()` names
