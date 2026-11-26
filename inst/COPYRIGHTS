@@ -91,109 +91,109 @@ the JBrowse authors) with the packages below, minified.
 - @gmod/vcf 7.4.0
   License: MIT
   Copyright: Copyright (c) 2017 Garrett Stevens
-- @jbrowse/add-track-core 5.0.0-beta.22
+- @jbrowse/add-track-core 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/alignments-core 5.0.0-beta.22
+- @jbrowse/alignments-core 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/cigar-utils 5.0.0-beta.22
+- @jbrowse/cigar-utils 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/core 5.0.0-beta.22
+- @jbrowse/core 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/display-kit 5.0.0-beta.22
+- @jbrowse/display-kit 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/display-ui 5.0.0-beta.22
+- @jbrowse/display-ui 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/jexl 8.0.0
+- @jbrowse/jexl 8.0.1
   License: MIT
   Copyright: Copyright (c) 2025 Colin Diesh; Copyright (c) 2020 Tom Shawver
 - @jbrowse/mobx-state-tree 6.10.1
   License: MIT
   Copyright: Copyright (c) 2016 Michel Weststrate
-- @jbrowse/modifications-utils 5.0.0-beta.22
+- @jbrowse/modifications-utils 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-alignments 5.0.0-beta.22
+- @jbrowse/plugin-alignments 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-bed 5.0.0-beta.22
+- @jbrowse/plugin-bed 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-comparative-adapters 5.0.0-beta.22
+- @jbrowse/plugin-comparative-adapters 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-config 5.0.0-beta.22
+- @jbrowse/plugin-config 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-dotplot-view 5.0.0-beta.22
+- @jbrowse/plugin-dotplot-view 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-features 5.0.0-beta.22
+- @jbrowse/plugin-features 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-gff3 5.0.0-beta.22
+- @jbrowse/plugin-gff3 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-gtf 5.0.0-beta.22
+- @jbrowse/plugin-gtf 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-linear-comparative-view 5.0.0-beta.22
+- @jbrowse/plugin-linear-comparative-view 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-marks 5.0.0-beta.22
+- @jbrowse/plugin-marks 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-sequence 5.0.0-beta.22
+- @jbrowse/plugin-sequence 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-variants 5.0.0-beta.22
+- @jbrowse/plugin-variants 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/plugin-wiggle 5.0.0-beta.22
+- @jbrowse/plugin-wiggle 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
 - @jbrowse/quick-lru 8.0.0
   License: MIT
   Copyright: Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- @jbrowse/render-core 5.0.0-beta.22
+- @jbrowse/render-core 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/sv-core 5.0.0-beta.22
+- @jbrowse/sv-core 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/synteny-core 5.0.0-beta.22
+- @jbrowse/synteny-core 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/tables 5.0.0-beta.22
+- @jbrowse/tables 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/tree-sidebar 5.0.0-beta.22
+- @jbrowse/tree-sidebar 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @jbrowse/wiggle-core 5.0.0-beta.22
+- @jbrowse/wiggle-core 5.0.0-beta.23
   License: Apache-2.0
   Copyright: JBrowse Team
-- @mui/icons-material 9.5.0
+- @mui/icons-material 9.6.0
   License: MIT
   Copyright: Copyright (c) 2014 Call-Em-All
-- @mui/material 9.5.0
+- @mui/material 9.6.0
   License: MIT
   Copyright: Copyright (c) 2014 Call-Em-All
-- @mui/private-theming 9.5.0
+- @mui/private-theming 9.6.0
   License: MIT
   Copyright: Copyright (c) 2014 Call-Em-All
-- @mui/styled-engine 9.5.0
+- @mui/styled-engine 9.6.0
   License: MIT
   Copyright: Copyright (c) 2014 Call-Em-All
-- @mui/system 9.5.0
+- @mui/system 9.6.0
   License: MIT
   Copyright: Copyright (c) 2014 Call-Em-All
-- @mui/utils 9.5.0
+- @mui/utils 9.6.0
   License: MIT
   Copyright: Copyright (c) 2014 Call-Em-All
 - @popperjs/core 2.11.8

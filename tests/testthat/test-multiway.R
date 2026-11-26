@@ -84,7 +84,7 @@ test_that("the display's settings color the ribbons", {
   strand <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     display = list(ribbons = list(encoding = list(color = list(field = "strand")))))
   expect_equal(strand$keys$ribbons$label[1:2],
-    c("Same orientation as lane above", "Inverted vs lane above"))
+    c("Same orientation as lane above", "Lane sequence"))
   expect_equal(strand$display$ribbons$encoding$color$field, "strand")
   grey <- jbrowse_multiway(paf, "ctgA:1-50,001", "volvox",
     display = list(ribbons = list(encoding = list(color = list(value = "grey")))))
